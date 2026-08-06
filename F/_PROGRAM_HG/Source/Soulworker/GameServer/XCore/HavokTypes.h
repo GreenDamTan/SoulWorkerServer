@@ -84,6 +84,13 @@ struct hkBool {
     operator bool() const { return m_bool; }
 };
 
+template<typename EnumType, typename StorageType>
+struct hkFlags {
+    StorageType m_storage;
+    hkFlags() : m_storage(0) {}
+    hkFlags(StorageType val) : m_storage(val) {}
+};
+
 // ============================================================================
 // Havok Memory Management
 // ============================================================================
@@ -231,6 +238,12 @@ public:
     int m_currentUsed;   // IDA: current memory usage
     int m_peakUse;       // IDA: peak memory usage
     int m_align;         // IDA: alignment
+
+    hkMallocAllocator()
+        : m_currentUsed(0)
+        , m_peakUse(0)
+        , m_align(16) {
+    }
 
     static hkMallocAllocator* m_defaultMallocAllocator;
 
@@ -629,6 +642,13 @@ public:
 // hkMemorySystem - Memory system
 class hkMemorySystem {
 public:
+    enum FlagBits {
+        FLAG_PERSISTENT = 1,
+        FLAG_TEMPORARY = 2,
+        FLAG_ALL = 3
+    };
+    using Flags = hkFlags<FlagBits, int>;
+
     // FrameInfo structure for memory system initialization
     struct FrameInfo {
         int m_solverBufferSize;
@@ -652,33 +672,60 @@ public:
     // IDA: ??1hkMemorySystem@@UEAA@XZ @ 0x14078e270
     virtual ~hkMemorySystem() {}
 
+    // IDA: ?mainInit@hkMemorySystem@@UEAAPEAVhkMemoryRouter@@AEBUFrameInfo@1@V?$hkFlags@W4FlagBits@1@@H@@Z
+    virtual hkMemoryRouter* mainInit(const FrameInfo&, Flags) {
+        static hkMemoryRouter mainRouter;
+        threadInit(mainRouter, "main", Flags(FLAG_ALL));
+        return &mainRouter;
+    }
+
+    // IDA: ?mainQuit@hkMemorySystem@@UEAA?AUhkResult@@V?$hkFlags@W4FlagBits@1@@Z
+    virtual hkResult mainQuit(Flags) { return hkResult(HK_SUCCESS); }
+
+    // IDA: ?threadInit@hkMemorySystem@@UEAAXAEAVhkMemoryRouter@@PEBDV?$hkFlags@W4FlagBits@1@@H@@Z
+    virtual void threadInit(hkMemoryRouter& router, const char*, Flags) {
+        hkMemoryAllocator* allocator = hkMallocAllocator::m_defaultMallocAllocator;
+        router.m_temp = allocator;
+        router.m_heap = allocator;
+        router.m_debug = allocator;
+        router.m_solver = allocator;
+    }
+
+    // IDA: ?threadQuit@hkMemorySystem@@UEAAXAEAVhkMemoryRouter@@V?$hkFlags@W4FlagBits@1@@H@@Z
+    virtual void threadQuit(hkMemoryRouter& router, Flags) {
+        router.m_temp = nullptr;
+        router.m_heap = nullptr;
+        router.m_debug = nullptr;
+        router.m_solver = nullptr;
+    }
+
     // Virtual methods
     // IDA: ?isOk@hkMemorySystem@@UEBAIXZ @ 0x14004dc20
     virtual unsigned int isOk() const { return 1; }
 
     // IDA: ?garbageCollectThread@hkMemorySystem@@UEAAXAEAVhkMemoryRouter@@@Z @ 0x14078e290
-    virtual void garbageCollectThread(hkMemoryRouter& router) {}
+    virtual void garbageCollectThread(hkMemoryRouter&) {}
 
     // IDA: ?garbageCollectShared@hkMemorySystem@@UEAAXXZ @ 0x14078e2a0
     virtual void garbageCollectShared() {}
 
     // IDA: ?setHeapSoftLimit@hkMemorySystem@@UEAA?AUhkResult@@H@Z @ 0x14078e2b0
-    virtual hkResult setHeapSoftLimit(int limit) { return hkResult(0); }
+    virtual hkResult setHeapSoftLimit(int) { return hkResult(0); }
 
     // IDA: ?getHeapSoftLimit@hkMemorySystem@@UEBAHXZ @ 0x14078e2c0
     virtual int getHeapSoftLimit() const { return 0; }
 
     // IDA: ?solverCanAllocSingleBlock@hkMemorySystem@@UEAA_NH@Z @ 0x14078e2d0
-    virtual bool solverCanAllocSingleBlock(int size) { return true; }
+    virtual bool solverCanAllocSingleBlock(int) { return true; }
 
     // IDA: ?heapCanAllocTotal@hkMemorySystem@@UEAA_NH@Z @ 0x14078e2e0
-    virtual bool heapCanAllocTotal(int size) { return true; }
+    virtual bool heapCanAllocTotal(int) { return true; }
 
     // IDA: ?garbageCollect@hkMemorySystem@@UEAAXXZ @ 0x14078e2f0
     virtual void garbageCollect() {}
 
     // IDA: ?debugFindBaseAddress@hkMemorySystem@@UEAAPEBXPEBXH@Z @ 0x14078e330
-    virtual const void* debugFindBaseAddress(const void* ptr, int size) { return nullptr; }
+    virtual const void* debugFindBaseAddress(const void*, int) { return nullptr; }
 };
 
 // hkStackTracer - Stack trace utility
@@ -692,17 +739,24 @@ public:
 // hkMemoryInitUtil - Memory initialization utility
 // IDA: ?initDefault@hkMemoryInitUtil@@YAPEAVhkMemoryRouter@@PEAVhkMemoryAllocator@@AEBUFrameInfo@hkMemorySystem@@@Z @ 0x1402f7980
 struct hkMemoryInitUtil {
-    struct FrameInfo {
-        int m_size;
-    };
-
     static hkMemorySystem* s_system;
     static void (*s_onQuitFunc)();
 
-    static hkMemoryRouter* initDefault(hkMemoryAllocator* alloc, const FrameInfo& info) {
-        // Stub - return dummy router
-        static hkMemoryRouter router;
-        return &router;
+    static hkMemoryRouter* initDefault(
+        hkMemoryAllocator* alloc,
+        const hkMemorySystem::FrameInfo& info) {
+        static hkMallocAllocator defaultAllocator;
+        if (!alloc) {
+            alloc = &defaultAllocator;
+        }
+        hkMallocAllocator::m_defaultMallocAllocator =
+            static_cast<hkMallocAllocator*>(alloc);
+        hkMemorySystem* system = new hkMemorySystem();
+        s_system = system;
+        hkMemorySystem::replaceInstance(system);
+        return system->mainInit(
+            info,
+            hkMemorySystem::Flags(hkMemorySystem::FLAG_ALL));
     }
 
     // IDA: ?outputDebugString@hkMemoryInitUtil@@YAXPEBDPEAX@Z @ 0x14078f500
@@ -4128,14 +4182,6 @@ class hkCustomAttributes;
 struct hkVariant {
     int m_type;
     void* m_data;
-};
-
-// hkFlags - Flags template
-template<typename EnumType, typename StorageType>
-struct hkFlags {
-    StorageType m_storage;
-    hkFlags() : m_storage(0) {}
-    hkFlags(StorageType val) : m_storage(val) {}
 };
 
 // Forward declaration

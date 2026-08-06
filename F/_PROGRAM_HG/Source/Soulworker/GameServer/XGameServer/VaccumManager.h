@@ -14,8 +14,7 @@ class XActor;
 union UXActorID;
 struct VInterActionBoxInfo;
 
-// 使用 std::tr1 命名空间 (VS2010 兼容)
-namespace std { namespace tr1 = std; }
+#include "Soulworker/GameServer/XCore/XServer/GreenDamTan_StdCompat.h"
 
 // Per IDA: CVaccumManager - 176 bytes
 class CVaccumManager {

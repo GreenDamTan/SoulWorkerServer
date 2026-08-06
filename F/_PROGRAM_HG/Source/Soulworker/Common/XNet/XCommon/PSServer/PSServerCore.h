@@ -253,6 +253,25 @@ struct PS_QUICKSLOT_ITEM {
 static_assert(sizeof(PS_QUICKSLOT_ITEM) == 20, "PS_QUICKSLOT_ITEM size must match IDA");
 
 /**
+ * @brief 快捷栏物品更新 - 16 bytes
+ * 对齐 GameServer.exe PDB: four uint32 item IDs.
+ */
+struct PS_QUICKSLOT_UPDATE_ITEM {
+    union {
+        struct {
+            std::uint32_t dwItem_1;
+            std::uint32_t dwItem_2;
+            std::uint32_t dwItem_3;
+            std::uint32_t dwItem_4;
+        };
+        std::uint32_t uniItem[4];
+    };
+};
+
+static_assert(sizeof(PS_QUICKSLOT_UPDATE_ITEM) == 16,
+              "PS_QUICKSLOT_UPDATE_ITEM size must match PDB");
+
+/**
  * @brief 快捷栏卡片向量 - 40 bytes
  * 对齐 IDA DBAgent.exe
  */
@@ -339,6 +358,191 @@ struct ST_USE_ITEM_INFO_LIST {
 };
 
 static_assert(sizeof(ST_USE_ITEM_INFO_LIST) == 32, "ST_USE_ITEM_INFO_LIST size must match IDA");
+
+// PDB: stEMPTYSLOT is the 4-byte item-inventory empty-slot result.
+struct stEMPTYSLOT {
+    std::uint8_t byInvenType = 0;
+    std::uint8_t _pad0 = 0;
+    std::int16_t shSlotPos = 0;
+};
+
+static_assert(sizeof(stEMPTYSLOT) == 4,
+              "stEMPTYSLOT size must match GameServer PDB");
+static_assert(offsetof(stEMPTYSLOT, byInvenType) == 0,
+              "stEMPTYSLOT.byInvenType offset mismatch");
+static_assert(offsetof(stEMPTYSLOT, shSlotPos) == 2,
+              "stEMPTYSLOT.shSlotPos offset mismatch");
+
+// GameServer item-process request payloads recovered from the PDB field lists.
+struct PS_REQ_ITEM_MOVE {
+    std::uint8_t bySrcInvenType = 0;
+    std::uint8_t _pad0[3] = {};
+    int nSrcItemID = 0;
+    std::int16_t shSrcSlotPos = 0;
+    std::uint8_t byDestInvenType = 0;
+    std::uint8_t _pad1 = 0;
+    int nDestItemID = 0;
+    std::int16_t shDestSlotPos = 0;
+    std::uint8_t _pad2[2] = {};
+};
+
+static_assert(sizeof(PS_REQ_ITEM_MOVE) == 20,
+              "PS_REQ_ITEM_MOVE size must match GameServer PDB");
+static_assert(offsetof(PS_REQ_ITEM_MOVE, nSrcItemID) == 4,
+              "PS_REQ_ITEM_MOVE.nSrcItemID offset mismatch");
+static_assert(offsetof(PS_REQ_ITEM_MOVE, shSrcSlotPos) == 8,
+              "PS_REQ_ITEM_MOVE.shSrcSlotPos offset mismatch");
+static_assert(offsetof(PS_REQ_ITEM_MOVE, byDestInvenType) == 10,
+              "PS_REQ_ITEM_MOVE.byDestInvenType offset mismatch");
+static_assert(offsetof(PS_REQ_ITEM_MOVE, nDestItemID) == 12,
+              "PS_REQ_ITEM_MOVE.nDestItemID offset mismatch");
+static_assert(offsetof(PS_REQ_ITEM_MOVE, shDestSlotPos) == 16,
+              "PS_REQ_ITEM_MOVE.shDestSlotPos offset mismatch");
+
+struct PS_REQ_ITEM_USE {
+    std::uint8_t byInvenType = 0;
+    std::uint8_t _pad0 = 0;
+    std::int16_t shSlotPos = 0;
+    std::uint8_t _pad1[4] = {};
+    std::int64_t xSerial = 0;
+    std::uint8_t byCount = 0;
+    std::uint8_t _pad2[7] = {};
+};
+
+static_assert(sizeof(PS_REQ_ITEM_USE) == 24,
+              "PS_REQ_ITEM_USE size must match GameServer PDB");
+static_assert(offsetof(PS_REQ_ITEM_USE, shSlotPos) == 2,
+              "PS_REQ_ITEM_USE.shSlotPos offset mismatch");
+static_assert(offsetof(PS_REQ_ITEM_USE, xSerial) == 8,
+              "PS_REQ_ITEM_USE.xSerial offset mismatch");
+static_assert(offsetof(PS_REQ_ITEM_USE, byCount) == 16,
+              "PS_REQ_ITEM_USE.byCount offset mismatch");
+
+struct PS_REQ_ITEM_COMBINE : PS_REQ_ITEM_MOVE {
+    std::int16_t sCount = 0;
+    std::uint8_t _pad0[2] = {};
+};
+
+static_assert(sizeof(PS_REQ_ITEM_COMBINE) == 24,
+              "PS_REQ_ITEM_COMBINE size must match GameServer PDB");
+static_assert(offsetof(PS_REQ_ITEM_COMBINE, sCount) == 20,
+              "PS_REQ_ITEM_COMBINE.sCount offset mismatch");
+
+struct PS_REQ_ITEM_DIVIDE {
+    std::uint8_t bySrcInvenType = 0;
+    std::uint8_t _pad0[3] = {};
+    int nSrcItemID = 0;
+    std::int16_t shSrcSlotPos = 0;
+    std::uint8_t byDestInvenType = 0;
+    std::uint8_t _pad1 = 0;
+    std::int16_t shDestSlotPos = 0;
+    std::int16_t sCount = 0;
+};
+
+static_assert(sizeof(PS_REQ_ITEM_DIVIDE) == 16,
+              "PS_REQ_ITEM_DIVIDE size must match GameServer PDB");
+static_assert(offsetof(PS_REQ_ITEM_DIVIDE, nSrcItemID) == 4,
+              "PS_REQ_ITEM_DIVIDE.nSrcItemID offset mismatch");
+static_assert(offsetof(PS_REQ_ITEM_DIVIDE, shSrcSlotPos) == 8,
+              "PS_REQ_ITEM_DIVIDE.shSrcSlotPos offset mismatch");
+static_assert(offsetof(PS_REQ_ITEM_DIVIDE, byDestInvenType) == 10,
+              "PS_REQ_ITEM_DIVIDE.byDestInvenType offset mismatch");
+static_assert(offsetof(PS_REQ_ITEM_DIVIDE, shDestSlotPos) == 12,
+              "PS_REQ_ITEM_DIVIDE.shDestSlotPos offset mismatch");
+static_assert(offsetof(PS_REQ_ITEM_DIVIDE, sCount) == 14,
+              "PS_REQ_ITEM_DIVIDE.sCount offset mismatch");
+
+struct PS_REQ_TICKCOUNT {
+    int nTicknum = 0;
+    std::uint8_t _pad0[4] = {};
+    std::uint64_t dwTickcount = 0;
+};
+
+static_assert(sizeof(PS_REQ_TICKCOUNT) == 16,
+              "PS_REQ_TICKCOUNT size must match GameServer PDB");
+static_assert(offsetof(PS_REQ_TICKCOUNT, dwTickcount) == 8,
+              "PS_REQ_TICKCOUNT.dwTickcount offset mismatch");
+
+inline XPacket& operator<<(XPacket& packet, const PS_REQ_ITEM_MOVE& value) {
+    packet.XParse << value.bySrcInvenType;
+    packet.XParse << value.nSrcItemID;
+    packet.XParse << value.shSrcSlotPos;
+    packet.XParse << value.byDestInvenType;
+    packet.XParse << value.nDestItemID;
+    packet.XParse << value.shDestSlotPos;
+    return packet;
+}
+
+inline XPacket& operator>>(XPacket& packet, PS_REQ_ITEM_MOVE& value) {
+    packet.XParse >> value.bySrcInvenType;
+    packet.XParse >> value.nSrcItemID;
+    packet.XParse >> value.shSrcSlotPos;
+    packet.XParse >> value.byDestInvenType;
+    packet.XParse >> value.nDestItemID;
+    packet.XParse >> value.shDestSlotPos;
+    return packet;
+}
+
+inline XPacket& operator<<(XPacket& packet, const PS_REQ_ITEM_USE& value) {
+    packet.XParse << value.byInvenType;
+    packet.XParse << value.shSlotPos;
+    packet.XParse << value.xSerial;
+    packet.XParse << value.byCount;
+    return packet;
+}
+
+inline XPacket& operator>>(XPacket& packet, PS_REQ_ITEM_USE& value) {
+    packet.XParse >> value.byInvenType;
+    packet.XParse >> value.shSlotPos;
+    packet.XParse >> value.xSerial;
+    packet.XParse >> value.byCount;
+    return packet;
+}
+
+inline XPacket& operator<<(XPacket& packet,
+                           const PS_REQ_ITEM_COMBINE& value) {
+    packet << static_cast<const PS_REQ_ITEM_MOVE&>(value);
+    packet.XParse << value.sCount;
+    return packet;
+}
+
+inline XPacket& operator>>(XPacket& packet, PS_REQ_ITEM_COMBINE& value) {
+    packet >> static_cast<PS_REQ_ITEM_MOVE&>(value);
+    packet.XParse >> value.sCount;
+    return packet;
+}
+
+inline XPacket& operator<<(XPacket& packet, const PS_REQ_ITEM_DIVIDE& value) {
+    packet.XParse << value.bySrcInvenType;
+    packet.XParse << value.nSrcItemID;
+    packet.XParse << value.shSrcSlotPos;
+    packet.XParse << value.byDestInvenType;
+    packet.XParse << value.shDestSlotPos;
+    packet.XParse << value.sCount;
+    return packet;
+}
+
+inline XPacket& operator>>(XPacket& packet, PS_REQ_ITEM_DIVIDE& value) {
+    packet.XParse >> value.bySrcInvenType;
+    packet.XParse >> value.nSrcItemID;
+    packet.XParse >> value.shSrcSlotPos;
+    packet.XParse >> value.byDestInvenType;
+    packet.XParse >> value.shDestSlotPos;
+    packet.XParse >> value.sCount;
+    return packet;
+}
+
+inline XPacket& operator<<(XPacket& packet, const PS_REQ_TICKCOUNT& value) {
+    packet.XParse << value.nTicknum;
+    packet.XParse << value.dwTickcount;
+    return packet;
+}
+
+inline XPacket& operator>>(XPacket& packet, PS_REQ_TICKCOUNT& value) {
+    packet.XParse >> value.nTicknum;
+    packet.XParse >> value.dwTickcount;
+    return packet;
+}
 
 /**
  * @brief 物品套装部件 - 16 bytes
@@ -556,6 +760,29 @@ inline void operator>>(XPacket& packet, PS_QUICKSLOT_CARD& value) {
     }
 }
 
+// PS_QUICKSLOT_UPDATE_ITEM 序列化运算符
+inline XSendDBPacket& operator<<(XSendDBPacket& packet,
+                                 const PS_QUICKSLOT_UPDATE_ITEM& value) {
+    for (int i = 0; i < 4; ++i) {
+        packet.XParse << value.uniItem[i];
+    }
+    return packet;
+}
+
+inline XPacket& operator<<(XPacket& packet,
+                           const PS_QUICKSLOT_UPDATE_ITEM& value) {
+    for (int i = 0; i < 4; ++i) {
+        packet.XParse << value.uniItem[i];
+    }
+    return packet;
+}
+
+inline void operator>>(XPacket& packet, PS_QUICKSLOT_UPDATE_ITEM& value) {
+    for (int i = 0; i < 4; ++i) {
+        packet.XParse >> value.uniItem[i];
+    }
+}
+
 // PS_QUICKSLOT_ITEM 序列化运算符
 inline XSendDBPacket& operator<<(XSendDBPacket& packet, const PS_QUICKSLOT_ITEM& value) {
     packet << value.uxActorID;
@@ -653,53 +880,43 @@ inline void operator>>(XPacket& packet, PS_QUICKSLOT_UPDATE_CARD& value) {
 }
 
 // ST_USE_ITEM_INFO 序列化运算符
-inline XSendDBPacket& operator<<(XSendDBPacket& packet, const ST_USE_ITEM_INFO& value) {
+inline XPacket& operator<<(XPacket& packet, ST_USE_ITEM_INFO& value) {
     packet.XParse << value.nItemType;
     packet.XParse << value.byCount;
     packet.XParse << value.nUseDate;
     return packet;
 }
 
-inline XPacket& operator<<(XPacket& packet, const ST_USE_ITEM_INFO& value) {
-    packet.XParse << value.nItemType;
-    packet.XParse << value.byCount;
-    packet.XParse << value.nUseDate;
-    return packet;
-}
-
-inline void operator>>(XPacket& packet, ST_USE_ITEM_INFO& value) {
+inline XPacket& operator>>(XPacket& packet, ST_USE_ITEM_INFO& value) {
     packet.XParse >> value.nItemType;
     packet.XParse >> value.byCount;
     packet.XParse >> value.nUseDate;
+    return packet;
 }
 
 // ST_USE_ITEM_INFO_LIST 序列化运算符
-inline XSendDBPacket& operator<<(XSendDBPacket& packet, const ST_USE_ITEM_INFO_LIST& value) {
-    std::uint16_t count = static_cast<std::uint16_t>(value.vecInfo.size());
-    packet.XParse << count;
-    for (const auto& info : value.vecInfo) {
-        packet << info;
+inline XPacket& operator<<(XPacket& packet, ST_USE_ITEM_INFO_LIST& value) {
+    char cCount = static_cast<char>(value.vecInfo.size());
+    packet.XParse << cCount;
+
+    for (char c = 0; c < cCount; ++c) {
+        packet << value.vecInfo[static_cast<std::size_t>(c)];
     }
+
     return packet;
 }
 
-inline XPacket& operator<<(XPacket& packet, const ST_USE_ITEM_INFO_LIST& value) {
-    auto count = static_cast<std::uint8_t>(value.vecInfo.size());
-    packet.XParse << count;
-    for (const auto& info : value.vecInfo) {
-        packet << info;
-    }
-    return packet;
-}
+inline XPacket& operator>>(XPacket& packet, ST_USE_ITEM_INFO_LIST& value) {
+    char cCount = 0;
+    packet.XParse >> cCount;
 
-inline void operator>>(XPacket& packet, ST_USE_ITEM_INFO_LIST& value) {
-    std::uint8_t count = 0;
-    packet.XParse >> count;
-    for (int i = 0; i < count; ++i) {
+    for (char c = 0; c < cCount; ++c) {
         ST_USE_ITEM_INFO info{};
         packet >> info;
         value.vecInfo.push_back(info);
     }
+
+    return packet;
 }
 
 // ST_ACHIEVE_CATEGORY XPacket 序列化

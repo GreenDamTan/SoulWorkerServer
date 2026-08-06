@@ -26,6 +26,13 @@ CLoginProcess::~CLoginProcess()
     // IDA: 0x1405044A0 - 仅设置 vtable 并调用基类析构函数
 }
 
+bool CLoginProcess::Parse(XPacket& xPacket)
+{
+    // IDA: 0x1405052E0; the original body returns true without reading xPacket.
+    (void)xPacket;
+    return true;
+}
+
 bool CLoginProcess::DBParse(XPacket& xPacket)
 {
     // IDA: 0x1405044D0 - 数据库响应分派
@@ -37,8 +44,8 @@ bool CLoginProcess::DBParse(XPacket& xPacket)
     case 'S':
     case 'X':
     case '`':
-        // 这些子命令返回 true（或调用某个公共函数）
-        return true;
+        // The IDA call target at 0x1405052E0 is the CLoginProcess::Parse vtable slot.
+        return Parse(xPacket);
 
     case 'D':  // 计费订单号响应2
         return ResHanBillingOrderNo2(xPacket);

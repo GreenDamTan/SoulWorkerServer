@@ -92,6 +92,9 @@ public:
     // IDA 0x1408F06F0 - SendOtherInfos
     virtual void SendOtherInfos(XSendPacket& xSendPacket, XActor* pActor, int eActorType);
 
+    // IDA: ?SendWorldEventBooster@XArea@@QEAAXK_J@Z (0x1408F0250)
+    void SendWorldEventBooster(unsigned long dwBuffID, std::int64_t biEndDate);
+
     // 访问器
     TUXMapID GetMapID() const { return m_uxMapID; }
     void SetMapID(TUXMapID uxMapID) { m_uxMapID = uxMapID; }

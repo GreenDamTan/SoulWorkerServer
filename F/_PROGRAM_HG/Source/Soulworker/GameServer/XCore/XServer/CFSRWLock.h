@@ -15,23 +15,51 @@
 // 对齐 ControlServer.exe IDA
 class CFSRWLock {
 public:
-    CFSRWLock() = default;
-    ~CFSRWLock() = default;
+    CFSRWLock() {
+#ifdef _WIN32
+        InitializeSRWLock(&m_SharedLock);
+#else
+        m_SharedLock = new std::shared_mutex();
+#endif
+    }
+
+    ~CFSRWLock() {
+#ifndef _WIN32
+        delete m_SharedLock;
+        m_SharedLock = nullptr;
+#endif
+    }
 
     void LockRead() {
-        m_mutex.lock_shared();
+#ifdef _WIN32
+        AcquireSRWLockShared(&m_SharedLock);
+#else
+        m_SharedLock->lock_shared();
+#endif
     }
 
     void UnlockRead() {
-        m_mutex.unlock_shared();
+#ifdef _WIN32
+        ReleaseSRWLockShared(&m_SharedLock);
+#else
+        m_SharedLock->unlock_shared();
+#endif
     }
 
     void LockWrite() {
-        m_mutex.lock();
+#ifdef _WIN32
+        AcquireSRWLockExclusive(&m_SharedLock);
+#else
+        m_SharedLock->lock();
+#endif
     }
 
     void UnlockWrite() {
-        m_mutex.unlock();
+#ifdef _WIN32
+        ReleaseSRWLockExclusive(&m_SharedLock);
+#else
+        m_SharedLock->unlock();
+#endif
     }
 
     // 兼容接口：lock/unlock/lock_shared/unlock_shared
@@ -41,8 +69,17 @@ public:
     void unlock_shared() { UnlockRead(); }
 
 private:
-    std::shared_mutex m_mutex;
+#ifdef _WIN32
+    SRWLOCK m_SharedLock{};
+#else
+    std::shared_mutex* m_SharedLock = nullptr;
+#endif
 };
+
+#ifdef _WIN32
+static_assert(sizeof(SRWLOCK) == 8, "SRWLOCK size must match GameServer PDB");
+#endif
+static_assert(sizeof(CFSRWLock) == 8, "CFSRWLock size must match GameServer PDB");
 
 // 自动读锁 - 支持引用和指针两种方式
 class CFAutoSlimReadLock {

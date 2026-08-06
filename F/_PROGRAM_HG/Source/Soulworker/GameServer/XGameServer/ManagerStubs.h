@@ -136,6 +136,8 @@ public:
         // TODO: 对齐 IDA 实现
     }
 
+    void UpdateTotalCount(int nEventID, int nTotalCount);
+
     void CheckWorldEvent(std::vector<ST_WORLD_EVENT_BOOSTER>& vecBoostID) {
         vecBoostID.clear();
 

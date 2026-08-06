@@ -18,6 +18,7 @@
 #include "Soulworker/Common/XNet/XCommon/PSServer/PSServerDB.h"
 #include "Soulworker/Common/XNet/XCommon/PSServer/PSServerCashShop.h"
 #include "Soulworker/GameServer/XCore/XServer/GreenDamTan_LogHelper.h"
+#include "Soulworker/GameServer/XCore/XServer/GreenDamTan_TimeCompat.h"
 #include <ctime>
 #include <typeinfo>
 
@@ -943,7 +944,7 @@ bool CGocInventory::GetRemoveSocket() const {
     return m_bReqSocketRemove;
 }
 
-// IDA: 0x14025CAE0 - SetReqLeagueNameChange
+// PDB 装饰符号：?SetReqLeagueNameChange@CGocInventory@@QEAAX_N@Z；IDA：0x14025CAE0
 // void __fastcall CGocInventory::SetReqLeagueNameChange(CGocInventory *this, bool bChange)
 // {
 //   this->m_bReqLeagueNameChange = bChange;
@@ -952,7 +953,7 @@ void CGocInventory::SetReqLeagueNameChange(bool bChange) {
     m_bReqLeagueNameChange = bChange;
 }
 
-// IDA: 0x1403E13D0 - SetRenovatePointItem
+// PDB 装饰符号：?SetRenovatePointItem@CGocInventory@@QEAAX_N@Z；IDA：0x1403E13D0
 // void __fastcall CGocInventory::SetRenovatePointItem(CGocInventory *this, bool bRenovate)
 // {
 //   this->m_bRenovateItem = bRenovate;
@@ -961,16 +962,16 @@ void CGocInventory::SetRenovatePointItem(bool bRenovate) {
     m_bRenovateItem = bRenovate;
 }
 
-// IDA: 0x1404070B0 - CheatGetAbsoluteUpgrade
+// PDB 装饰符号：?CheatGetAbsoluteUpgrade@CGocInventory@@QEAA_NXZ；IDA：0x1404070B0
 // _BOOL8 __fastcall CGocInventory::CheatGetAbsoluteUpgrade(CGocInventory *this)
 // {
 //   return this->m_bAbsoluteUpgade;
 // }
-bool CGocInventory::CheatGetAbsoluteUpgrade() const {
+bool CGocInventory::CheatGetAbsoluteUpgrade() {
     return m_bAbsoluteUpgade;
 }
 
-// IDA: 0x1404070D0 - CheatSetAbsoluteUpgrade
+// PDB 装饰符号：?CheatSetAbsoluteUpgrade@CGocInventory@@QEAAX_N@Z；IDA：0x1404070D0
 // void __fastcall CGocInventory::CheatSetAbsoluteUpgrade(CGocInventory *this, bool bVal)
 // {
 //   this->m_bAbsoluteUpgade = bVal;
@@ -979,16 +980,16 @@ void CGocInventory::CheatSetAbsoluteUpgrade(bool bVal) {
     m_bAbsoluteUpgade = bVal;
 }
 
-// IDA: 0x140504200 - GetReqLeagueNameChange
+// PDB 装饰符号：?GetReqLeagueNameChange@CGocInventory@@QEAA_NXZ；IDA：0x140504200
 // _BOOL8 __fastcall CGocInventory::GetReqLeagueNameChange(CGocInventory *this)
 // {
 //   return this->m_bReqLeagueNameChange;
 // }
-bool CGocInventory::GetReqLeagueNameChange() const {
+bool CGocInventory::GetReqLeagueNameChange() {
     return m_bReqLeagueNameChange;
 }
 
-// IDA: 0x14050A060 - SetProcessBilling
+// PDB 装饰符号：?SetProcessBilling@CGocInventory@@QEAAX_N@Z；IDA：0x14050A060
 // void __fastcall CGocInventory::SetProcessBilling(CGocInventory *this, bool bUse)
 // {
 //   this->m_bProcessBilling = bUse;
@@ -997,16 +998,16 @@ void CGocInventory::SetProcessBilling(bool bUse) {
     m_bProcessBilling = bUse;
 }
 
-// IDA: 0x1405DACB0 - GetRecycle
+// PDB 装饰符号：?GetRecycle@CGocInventory@@QEAA_JXZ；IDA：0x1405DACB0
 // __int64 __fastcall CGocInventory::GetRecycle(CGocInventory *this)
 // {
 //   return this->m_biRecycle;
 // }
-std::int64_t CGocInventory::GetRecycle() const {
+std::int64_t CGocInventory::GetRecycle() {
     return m_biRecycle;
 }
 
-// IDA: 0x1405DACD0 - SetMileageShopBuyItem
+// PDB 装饰符号：?SetMileageShopBuyItem@CGocInventory@@QEAAX_N@Z；IDA：0x1405DACD0
 // void __fastcall CGocInventory::SetMileageShopBuyItem(CGocInventory *this, bool bBuy)
 // {
 //   this->m_bReqShopBuy = bBuy;
@@ -1020,7 +1021,7 @@ void CGocInventory::SetMileageShopBuyItem(bool bBuy) {
 // {
 //   return this->m_bReqShopBuy;
 // }
-bool CGocInventory::GetMileageShopBuyItem() const {
+bool CGocInventory::GetMileageShopBuyItem() {
     return m_bReqShopBuy;
 }
 
@@ -1029,7 +1030,7 @@ bool CGocInventory::GetMileageShopBuyItem() const {
 // {
 //   return this->m_bProcessBilling;
 // }
-bool CGocInventory::IsProcessBilling() const {
+bool CGocInventory::IsProcessBilling() {
     return m_bProcessBilling;
 }
 
@@ -1311,75 +1312,43 @@ int CGocInventory::GetSimpleEmptySlotCount() const {
 // IDA: 0x1400E0CB0 - IsValidEquipItem
 // Validates if item can be equipped in the specified slot
 // Uses XItemFactory::IsCanEquip to check slot range
-bool CGocInventory::IsValidEquipItem(void* psInfo) {
-    // IDA Decompiled:
-    // char __fastcall CGocInventory::IsValidEquipItem(CGocInventory *this, PS_STORAGE_INFO *psInfo)
-    // {
-    //   XGameServer *v2 = TXSingleton<XGameServer>::Instance();
-    //   TB_ITEM *pTB_Item = XResourceMgr::GetTB_ITEM(&v2->m_xResourceMgr, psInfo->stItem.nItemID);
-    //   if (pTB_Item) {
-    //     XGameServer *v4 = TXSingleton<XGameServer>::Instance();
-    //     TB_ITEM_CLASSIFY *pTB_ItemClassify = XResourceMgr::GetTB_ITEM_CLASSIFY(&v4->m_xResourceMgr, pTB_Item->Item_Classify_Index);
-    //     if (pTB_ItemClassify) {
-    //       int nDestSlot = psInfo->shSlotPos;
-    //       int nItemSlot = pTB_ItemClassify->Item_Slot_Type;
-    //       XGameServer *v5 = TXSingleton<XGameServer>::Instance();
-    //       if (XItemFactory::IsCanEquip(&v5->m_xItemFactory, nItemSlot, nDestSlot)) {
-    //         return 1;
-    //       } else {
-    //         LogHelper::LogError("game.item", "IsValidEquipItem error - Wrong item slot[ ItemID:%, Inven:%d, Pos:%d ]",
-    //                             psInfo->stItem.nItemID, psInfo->byInvenType, psInfo->shSlotPos);
-    //         return 0;
-    //       }
-    //     }
-    //   }
-    //   return 0;
-    // }
+bool CGocInventory::IsValidEquipItem(PS_STORAGE_INFO* psInfo) {
+    XGameServer* pGameServer = TXSingleton<XGameServer>::Instance();
+    TB_ITEM* pTBItem = pGameServer->GetResourceMgr().GetTB_ITEM(psInfo->stItem.nItemID);
+    if (pTBItem) {
+        pGameServer = TXSingleton<XGameServer>::Instance();
+        TB_ITEM_CLASSIFY* pTBItemClassify =
+            pGameServer->GetResourceMgr().GetTB_ITEM_CLASSIFY(
+                pTBItem->Item_Classify_Index);
+        if (pTBItemClassify) {
+            const int nDestSlot = psInfo->shSlotPos;
+            const int nItemSlot = pTBItemClassify->Item_Slot_Type;
+            pGameServer = TXSingleton<XGameServer>::Instance();
+            if (pGameServer->GetItemFactory().IsCanEquip(
+                    static_cast<e_EQUIP_SLOT_TYPE>(nItemSlot),
+                    nDestSlot)) {
+                return true;
+            }
 
-    // TODO: 需人工审查 - Implement when PS_STORAGE_INFO/XItemFactory available
-    (void)psInfo;
+            LogHelper::LogError(
+                "game.item",
+                "IsValidEquipItem error - Wrong item slot[ ItemID:%, Inven:%d, Pos:%d ]",
+                psInfo->stItem.nItemID,
+                psInfo->byInvenType,
+                psInfo->shSlotPos);
+            return false;
+        }
+        LogHelper::LogError(
+            "game.item",
+            "IsValidEquipItem error - No Table TB_ITEM_CLASSIFY[ %d ]",
+            psInfo->stItem.nItemID);
+        return false;
+    }
+    LogHelper::LogError(
+        "game.item",
+        "IsValidEquipItem error - No Table TB_ITEM[ %d ]",
+        psInfo->stItem.nItemID);
     return false;
-}
-
-// CanEquip - Validates if an item can be equipped
-// Wrapper that checks item table, classify, and slot validity
-// Returns true if the item can be equipped in the specified slot
-bool CGocInventory::CanEquip(std::uint8_t byInvenType, std::int16_t shSlotPos, int nItemID) {
-    // IDA: This is a helper function that combines:
-    // 1. Get TB_ITEM for nItemID
-    // 2. Get TB_ITEM_CLASSIFY from TB_ITEM
-    // 3. Check Item_Slot_Type against shSlotPos using XItemFactory::IsCanEquip
-    // 4. Also check level, class restrictions
-    
-    // XGameServer* pServer = TXSingleton<XGameServer>::Instance();
-    // XResourceMgr* pResourceMgr = pServer->GetResourceMgr();
-    // TB_ITEM* pTBItem = pResourceMgr->GetTB_ITEM(nItemID);
-    // if (!pTBItem) return false;
-    // 
-    // TB_ITEM_CLASSIFY* pTBClassify = pResourceMgr->GetTB_ITEM_CLASSIFY(pTBItem->Item_Classify_Index);
-    // if (!pTBClassify) return false;
-    // 
-    // // Check slot type matches
-    // int nItemSlotType = pTBClassify->Item_Slot_Type;
-    // if (!XItemFactory::IsCanEquip(nItemSlotType, shSlotPos)) {
-    //     return false;
-    // }
-    // 
-    // // Check level limit
-    // CUser* pUser = GetCUser();
-    // if (pUser && pTBItem->Item_Limit_Lv > pUser->GetLevel()) {
-    //     return false;
-    // }
-    // 
-    // // Check class limit
-    // if (pTBItem->Item_Limit_Class != 0 && pTBItem->Item_Limit_Class != pUser->GetClass()) {
-    //     return false;
-    // }
-
-    (void)byInvenType;
-    (void)shSlotPos;
-    (void)nItemID;
-    return true;  // TODO: 需人工审查 - Full implementation requires XItemFactory/CUser
 }
 
 // ============================================================================
@@ -1405,11 +1374,7 @@ std::int16_t CGocInventory::GetEmptySlot(std::uint8_t byInvenType) {
     
     XBaseInventory* pInven = GetInvenPtr(byInvenType);
     if (pInven) {
-        // IDA: Call XBaseInventory::GetEmptySlot()
-        // return pInven->GetEmptySlot();
-        // IDA-verified: return pInven->GetEmptySlot();
-        // Note: Requires XBaseInventory::GetEmptySlot method
-        return -1;
+        return pInven->GetEmptySlot();
     }
     return -1;  // No inventory found
 }
@@ -1683,21 +1648,12 @@ bool CGocInventory::DelPrivateShopItem(std::shared_ptr<CItem> pItem) {
 // IDA: 0x1400B11D0
 // Populates ST_PRIVATE_SHOP_LIST with shop items
 void CGocInventory::PrivateShopItemList(ST_PRIVATE_SHOP_LIST& stList) {
-    // IDA 0x1400B11D0 精确还原
-    // 遍历 m_liPrivateShopItem 并填充 stList
-    // Note: ST_PRIVATE_SHOP_INFO/ST_PRIVATE_SHOP_LIST defined in ShopStructures.h
-    // but that header has redefinition conflicts with other headers
-
-    for (const auto& shopItem : m_liPrivateShopItem) {
-        // Create info structure manually to avoid header conflicts
-        // stInfo.biMoney = shopItem.biMoney;
-        // if (shopItem.pItem) { shopItem.pItem->GetItem(&stInfo.stItem); }
-        // stList.vecInfo.push_back(stInfo);
-
-        // Simplified implementation - just reserve space
-        (void)shopItem;
+    for (const ST_PRIVATE_SHOP_ITEM& shopItem : m_liPrivateShopItem) {
+        ST_PRIVATE_SHOP_INFO stInfo;
+        stInfo.biMoney = shopItem.biMoney;
+        shopItem.pItem->GetItem(&stInfo.stItem);
+        stList.vecInfo.push_back(stInfo);
     }
-    (void)stList;
 }
 
 // IDA: 0x1400B1330
@@ -1723,13 +1679,13 @@ void CGocInventory::ClearPrivateShopList() {
 // Trade helper functions (from IDA)
 // ============================================================================
 
-// IDA: 0x1400A0070
-// void __fastcall CGocInventory::SetTradeState(CGocInventory *this, E_TRADE_STATE eState)
-// {
-//   this->m_eTradeState = eState;
-// }
-void CGocInventory::SetTradeState(E_TRADE_STATE eState) {
+// PDB/IDA: 0x1400AF760, ?SetTradeState@CGocInventory@@QEAAXW4eTRADE_STATE@@@Z
+// 复核注意：旧 IDA 注释中的 0x1400A0070 和 E_TRADE_STATE 原型不是本符号；装饰符号确认此处使用 eTRADE_STATE。
+void CGocInventory::SetTradeState(eTRADE_STATE eState) {
     m_eTradeState = eState;
+    if (eState == E_TRADE_STATE_READY) {
+        m_dw64TradeTick = GreenDamTan::GetTickCount64Compat() + 99000;
+    }
 }
 
 // IDA: 0x1400A0078
@@ -1743,7 +1699,7 @@ void CGocInventory::SetTradeActorID(UXActorID actorID) {
 //         CGocInventory *this, unsigned __int8 byInvenType,
 //         unsigned __int16 shSlotPos, unsigned __int8 byFlag)
 // Returns true if lock was set successfully
-bool CGocInventory::SetLock(std::uint8_t byInvenType, std::uint16_t shSlotPos, std::uint8_t byFlag) {
+bool CGocInventory::SetLock(std::uint8_t byInvenType, std::int16_t shSlotPos, std::uint8_t byFlag) {
     // IDA 0x1400A7020 精确还原
     switch (byInvenType) {
         case 0:  // Shape equip
@@ -2239,17 +2195,19 @@ bool CGocInventory::DivideItem(PS_DB_ITEM_MOVE& stItemMove) {
     // IDA: Create new item using XItemFactory
     XGameServer* pServer = TXSingleton<XGameServer>::Instance();
     int nItemID = pSrcItem->GetID();
-    STItem stNewItem;
     XResourceMgr* pResourceMgr = pServer ? &pServer->GetResourceMgr() : nullptr;
 
     if (pServer) {
-        pServer->GetItemFactory().CreateItem(stNewItem, nItemID,
-                                              stItemMove.stDestItem.sCount, false,
-                                              pResourceMgr, false);
+        pServer->GetItemFactory().CreateItem(
+            stItemMove.stDestItem,
+            nItemID,
+            stItemMove.stDestItem.sCount,
+            false,
+            pResourceMgr,
+            false);
     }
 
-    // IDA: Copy remaining fields from stDestItem
-    stNewItem = stItemMove.stDestItem;
+    STItem stNewItem = stItemMove.stDestItem;
 
     // IDA: Add to destination
     if (!AddItem(stItemMove.byDestInvenType, stItemMove.shDestSlotPos,
@@ -2684,7 +2642,7 @@ void CGocInventory::GetToolRandomBoxInfo(ST_CREATE_ITEMS& stItems) {
 // {
 //   return std::list<CBattleZone *>::size((VChunkLocker *)&this->m_liPrivateShopItem);
 // }
-std::int16_t CGocInventory::GetPrivateShopItemCount() const {
+std::int16_t CGocInventory::GetPrivateShopItemCount() {
     return static_cast<std::int16_t>(m_liPrivateShopItem.size());
 }
 
@@ -2737,7 +2695,7 @@ char* CGocInventory::GetHanBillNo() {
 // {
 //   return this->m_byTradePassword;
 // }
-std::uint8_t CGocInventory::GetTradePasswordState() const {
+std::uint8_t CGocInventory::GetTradePasswordState() {
     return m_byTradePassword;
 }
 
@@ -2752,11 +2710,8 @@ UXActorID CGocInventory::GetTradeActorID() const {
 }
 
 // IDA: 0x1400F9C50 - GetTradeState
-// __int64 __fastcall CGocInventory::GetTradeState(CGocInventory *this)
-// {
-//   return (unsigned int)this->m_eTradeState;
-// }
-int CGocInventory::GetTradeState() const {
+// PDB return type: eTRADE_STATE (UDT 0x10A35), not generic int.
+eTRADE_STATE CGocInventory::GetTradeState() const {
     return m_eTradeState;
 }
 
@@ -2796,7 +2751,7 @@ bool CGocInventory::GetSocketExtract() const {
     return m_bReqSocketExtract;
 }
 
-// IDA: 0x1404EAB10 - SetSocketUpgrade
+// PDB 装饰符号：?SetSocketUpgrade@CGocInventory@@QEAAX_N@Z；IDA：0x1404EAB10
 // void __fastcall CGocInventory::SetSocketUpgrade(CGocInventory *this, bool bUpgrade)
 // {
 //   this->m_bReqSocketUpgrade = bUpgrade;
@@ -2805,12 +2760,12 @@ void CGocInventory::SetSocketUpgrade(bool bUpgrade) {
     m_bReqSocketUpgrade = bUpgrade;
 }
 
-// IDA: 0x1404EAB30 - GetSocketUpgrade
+// PDB 装饰符号：?GetSocketUpgrade@CGocInventory@@QEAA_NXZ；IDA：0x1404EAB30
 // _BOOL8 __fastcall CGocInventory::GetSocketUpgrade(CGocInventory *this)
 // {
 //   return this->m_bReqSocketUpgrade;
 // }
-bool CGocInventory::GetSocketUpgrade() const {
+bool CGocInventory::GetSocketUpgrade() {
     return m_bReqSocketUpgrade;
 }
 
@@ -2911,13 +2866,13 @@ void CGocInventory::SetTradePasswordState(std::uint8_t byState) {
 //   }
 //   return 0xFFFFFFFFLL;
 // }
-int CGocInventory::GetCashMileage(int eType) const {
+int CGocInventory::GetCashMileage(E_CASH_MILEAGE_TYPE eType) {
     switch (eType) {
-        case 0:  // E_CASH_MILEAGE_AKASHIC
+        case E_CASH_MILEAGE_AKASHIC:
             return m_nCashMileage[0];
-        case 1:  // E_CASH_MILEAGE_BROACH
+        case E_CASH_MILEAGE_BROACH:
             return m_nCashMileage[1];
-        case 2:  // E_CASH_MILEAGE_TAG
+        case E_CASH_MILEAGE_TAG:
             return m_nCashMileage[2];
         default:
             return -1;
@@ -3403,9 +3358,36 @@ void CGocInventory::SendQuickSlotInfo() {
 
 // IDA: 0x1400ACA50
 // Sets item to quick slot
-bool CGocInventory::SetQuickSlotItem(void* stUpdateSlot) {
-    (void)stUpdateSlot;
-    return false;
+bool CGocInventory::SetQuickSlotItem(PS_QUICKSLOT_UPDATE_ITEM& stUpdateSlot) {
+    for (int i = 0; i < 4; ++i) {
+        if (stUpdateSlot.uniItem[i]) {
+            std::shared_ptr<CItem> pItem = GetItem(2, stUpdateSlot.uniItem[i]);
+            if (!pItem) {
+                pItem = GetItem(0xD, stUpdateSlot.uniItem[i]);
+            }
+
+            if (!pItem) {
+                CMover* pOwner = GetOwnerGO();
+                const std::uint32_t dwActorID = pOwner->GetActorID().GetID();
+                CGocNetwork::SendErrorMessage(pOwner, 8, 0x28, 0xCB8D);
+                LogHelper::LogError(
+                    "game.item",
+                    "SetQuickSlotItem error - Not Exist Registration Item to the Quick Slot[ AcotrID:%d, ItemID:%i64d ] ( %d )",
+                    dwActorID,
+                    stUpdateSlot.uniItem[i],
+                    2833);
+                stUpdateSlot.uniItem[i] = 0;
+            }
+        }
+
+        m_nQuickSlotItem[i] = static_cast<int>(stUpdateSlot.uniItem[i]);
+    }
+
+    XSendPacket xSendPacket(8, 0x28);
+    xSendPacket << stUpdateSlot;
+    CGocNetwork::Send(m_pOwner, xSendPacket);
+    SaveQuickSlot();
+    return true;
 }
 
 
@@ -3463,9 +3445,21 @@ void CGocInventory::SendRepurchaseList() {
 
 // IDA: 0x1400ACD50
 // Loads quick slot data from database
-bool CGocInventory::LoadQuickSlotItem(void* stQuickSlotItem) {
-    (void)stQuickSlotItem;
-    return false;
+bool CGocInventory::LoadQuickSlotItem(PS_QUICKSLOT_ITEM stQuickSlotItem) {
+    for (int i = 0; i < 4; ++i) {
+        if (stQuickSlotItem.uniItem[i]) {
+            std::shared_ptr<CItem> pItem = GetItem(2, stQuickSlotItem.uniItem[i]);
+            if (!pItem) {
+                pItem = GetItem(0xD, stQuickSlotItem.uniItem[i]);
+            }
+            if (!pItem) {
+                stQuickSlotItem.uniItem[i] = 0;
+            }
+        }
+
+        m_nQuickSlotItem[i] = static_cast<int>(stQuickSlotItem.uniItem[i]);
+    }
+    return true;
 }
 
 
@@ -3533,12 +3527,46 @@ void CGocInventory::OnUpdate() {
 // IDA: 0x1400AED60
 // Updates trade unlock status for inventory items
 void CGocInventory::UpdateTradeUnLock() {
+    for (const PS_REQ_ITEM_TRADE& stInfo : m_stTradeInfo.listInfo) {
+        SetLock(stInfo.byInvenType, stInfo.shSlotPos, 0);
+    }
 }
 
 
 // IDA: 0x1400AEEE0
-// Checks if item can be traded
+// PDB: ?IsTradeCheck@CGocInventory@@QEAAXXZ
+// Checks and expires a ready trade, notifying both actors.
 void CGocInventory::IsTradeCheck() {
+    if (GetTradeState() == E_TRADE_STATE_READY &&
+        m_dw64TradeTick < GreenDamTan::GetTickCount64Compat()) {
+        // 复核注意：IDA 将 PDB 的零参数 ABI 污染为 float 参数；
+        // 这里保留原始 main=0xA/sub=8、payload=0/52412。
+        XSendPacket xSendPacket(0xA, 8);
+        xSendPacket.XParse << 0;
+        xSendPacket.XParse << 52412;
+        CGocNetwork::Send(GetOwnerGO(), xSendPacket);
+
+        const UXActorID tradeActorID = GetTradeActorID();
+        CUser* pUser =
+            TXSingleton<XGameServer>::Instance()->FindActorIDToUser(
+                tradeActorID);
+        if (pUser) {
+            std::shared_ptr<CGocInventory> pInven =
+                pUser->GetGOC_Inventory(false);
+            if (pInven->GetTradeActorID() == GetOwnerGO()->GetActorID()) {
+                pInven->InitTarde();
+
+                XSendPacket packet(0xA, 8);
+                packet.XParse << 0;
+                packet.XParse << 52412;
+                CGocNetwork::Send(
+                    static_cast<XActor*>(static_cast<CMover*>(pUser)),
+                    packet);
+            }
+        }
+
+        InitTarde();
+    }
 }
 
 
@@ -3548,13 +3576,94 @@ void CGocInventory::IsTradeCheck() {
 
 // IDA: 0x1400ADB20
 // Handles item break/enhance request
-bool CGocInventory::BreakItemReq(std::uint8_t byInvenType, std::int16_t shSlotPos, int nCount, std::uint8_t byBreakLock, void* stLogData) {
-    (void)byInvenType;
-    (void)shSlotPos;
-    (void)nCount;
-    (void)byBreakLock;
-    (void)stLogData;
-    return false;
+bool CGocInventory::BreakItemReq(std::uint8_t byInvenType,
+                                 std::int16_t shSlotPos,
+                                 int nCount,
+                                 std::uint8_t byBreakLock,
+                                 ST_LOG_GAME* stLogData) {
+    if (shSlotPos < 0)
+        return false;
+
+    bool bLock = false;
+    std::shared_ptr<CItem> pItem = GetSlotItem(byInvenType, shSlotPos, bLock);
+    CUser* pUser = GetCUserFromOwner(this);
+    XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+    if (!pItem || bLock) {
+        pServer->SendItemLockLog(
+            CQuestCondition::GetQuestID(pUser->GetActorID()),
+            byInvenType,
+            shSlotPos,
+            static_cast<std::uint8_t>(bLock),
+            9,
+            0);
+        return false;
+    }
+
+    PS_RES_STORAGE_INFO psBroadcast{};
+    if (byInvenType == 0 || byInvenType == 1 || byInvenType == 3) {
+        Unequip(byInvenType, shSlotPos);
+        PS_STORAGE_INFO stInfo{};
+        stInfo.byInvenType = byInvenType;
+        stInfo.shSlotPos = shSlotPos;
+        stInfo.stItem.Init();
+        psBroadcast.vecItem.push_back(stInfo);
+    }
+
+    const int nResultCount = pItem->GetCount() - nCount;
+    if (nResultCount < 0)
+        return false;
+
+    PS_RES_STORAGE_INFO psUpdateItem{};
+    if (!ReduceItem3(byInvenType,
+                     shSlotPos,
+                     static_cast<std::int16_t>(nCount),
+                     byBreakLock,
+                     psUpdateItem)) {
+        return false;
+    }
+
+    ST_LOG_GAME stLog = *stLogData;
+    if (!UpdateItemEnd(byBreakLock, psUpdateItem, stLog))
+        return false;
+
+    if (!pUser)
+        return false;
+
+    std::uint32_t dwActorID =
+        CQuestCondition::GetQuestID(pUser->GetActorID());
+    if (byInvenType == 16 || byInvenType == 17 || byInvenType == 18)
+        dwActorID = pUser->GetUAID();
+
+    CMover* pOwner = GetOwnerGO();
+    IXObject* pObject = pOwner ? static_cast<IXObject*>(pOwner) : nullptr;
+    if (nResultCount <= 0) {
+        XSendDBPacket xSendDBPacket(pObject, 0x21, 5);
+        xSendDBPacket.XParse << dwActorID;
+        xSendDBPacket.XParse << byInvenType;
+        xSendDBPacket.XParse << shSlotPos;
+        xSendDBPacket.XParse << pItem->GetID();
+        xSendDBPacket.XParse << pItem->GetSerial();
+        if (pServer)
+            pServer->SendDBGame(xSendDBPacket);
+    } else {
+        XSendDBPacket xSendDBPacket(pObject, 0x21, 0x11);
+        xSendDBPacket.XParse << dwActorID;
+        xSendDBPacket.XParse << byInvenType;
+        xSendDBPacket.XParse << shSlotPos;
+        xSendDBPacket.XParse << pItem->GetSerial();
+        xSendDBPacket.XParse << nResultCount;
+        if (pServer)
+            pServer->SendDBGame(xSendDBPacket);
+    }
+
+    if (!psBroadcast.vecItem.empty()) {
+        XSendPacket xSendPacket(8, 0x0D);
+        xSendPacket.XParse << CQuestCondition::GetQuestID(pUser->GetActorID());
+        xSendPacket << psBroadcast;
+        CGocNetwork::SendBroadCast(pUser, xSendPacket, E_BROADCAST_TYPE::eNoneSelf);
+    }
+
+    return true;
 }
 
 
@@ -3563,74 +3672,64 @@ bool CGocInventory::BreakItemReq(std::uint8_t byInvenType, std::int16_t shSlotPo
 // ============================================================================
 
 // IDA: 0x1400AF190
-// void __fastcall CGocInventory::LogOut(CGocInventory *this, bool bLogout)
+// PDB: ?LogOut@CGocInventory@@QEAAX_N@Z
 // Handles logout during trade - cancels trade with partner
 void CGocInventory::LogOut(bool bLogout) {
-    // IDA: Check if in trade
-    // if (!CGocInventory::GetTradeState(this)) return;
-    //
-    // std::uint32_t TradeActorID = CGocInventory::GetTradeActorID(this);
-    // if (TradeActorID == 0) return;
-    //
-    // // Get trade partner
-    // XGameServer* pServer = XGameServer::Instance();
-    // CUser* pPartner = pServer->FindActorIDToUser(TradeActorID);
-    // if (pPartner) {
-    //     // Get partner's inventory component
-    //     std::shared_ptr<CGocInventory> pInven;
-    //     CMover::GetGOC<CGocInventory>(&pPartner->CMoverEx, &pInven, 0);
-    //     pInven->InitTarde();
-    //
-    //     // Send cancel packet (main=0xA, sub=8)
-    //     XSendPacket xSendPacket(0xA, 8);
-    //     xSendPacket << GetActorID();
-    //     xSendPacket << (bLogout ? 0xCC5A : 0xCC5B);  // Error code
-    //     CGocNetwork::Send(&pPartner->XActor, &xSendPacket);
-    // }
+    if (GetTradeState() && GetTradeActorID().dwActorID != 0) {
+        const UXActorID tradeActorID = GetTradeActorID();
+        CUser* pUser =
+            TXSingleton<XGameServer>::Instance()->FindActorIDToUser(
+                tradeActorID);
+        if (pUser) {
+            std::shared_ptr<CGocInventory> pInven =
+                pUser->GetGOC_Inventory(false);
+            pInven->InitTarde();
 
-    (void)bLogout;
-    // TODO: Implement when GetTradeState and GetTradeActorID are available
+            // 复核注意：IDA 将 PDB 的 bool ABI 污染为额外 float；
+            // packet 是 main=0xA/sub=8，首字段为当前 actor ID。
+            XSendPacket xSendPacket(0xA, 8);
+            xSendPacket.XParse << GetOwnerGO()->GetActorID().dwActorID;
+            xSendPacket.XParse << (bLogout ? 52410 : 52411);
+            CGocNetwork::Send(
+                static_cast<XActor*>(static_cast<CMover*>(pUser)),
+                xSendPacket);
+        }
+    }
 }
 
 // IDA: 0x1400AF370
-// void __fastcall CGocInventory::SendTradeCancel(CGocInventory *this, int nCause)
+// PDB: ?SendTradeCancel@CGocInventory@@QEAAXH@Z
 // Sends trade cancel notification to both parties
 void CGocInventory::SendTradeCancel(int nCause) {
-    // IDA: Check if in trade
-    // if (!CGocInventory::GetTradeState(this)) return;
-    //
-    // std::uint32_t TradeActorID = CGocInventory::GetTradeActorID(this);
-    // if (TradeActorID != 0) {
-    //     // Get trade partner
-    //     XGameServer* pServer = XGameServer::Instance();
-    //     CUser* pPartner = pServer->FindActorIDToUser(TradeActorID);
-    //     if (pPartner) {
-    //         // Get partner's inventory component
-    //         std::shared_ptr<CGocInventory> pInven;
-    //         CMover::GetGOC<CGocInventory>(&pPartner->CMoverEx, &pInven, 0);
-    //         pInven->InitTarde();
-    //
-    //         // Send cancel packet to partner
-    //         XSendPacket packet(0xA, 8);
-    //         packet << GetActorID();
-    //         packet << nCause;
-    //         CGocNetwork::Send(&pPartner->XActor, &packet);
-    //     }
-    // }
-    //
-    // // Initialize our trade state
-    // std::shared_ptr<CGocInventory> pInven;
-    // CMover::GetGOC<CGocInventory>(pMover, &pInven, 0);
-    // pInven->InitTarde();
-    //
-    // // Send cancel packet to self
-    // XSendPacket xSendPacket(0xA, 8);
-    // xSendPacket << GetActorID();
-    // xSendPacket << nCause;
-    // CGocNetwork::Send(pActor, &xSendPacket);
+    if (GetTradeState()) {
+        const UXActorID tradeActorID = GetTradeActorID();
+        if (tradeActorID.dwActorID != 0) {
+            CUser* pUser =
+                TXSingleton<XGameServer>::Instance()->FindActorIDToUser(
+                    tradeActorID);
+            if (pUser) {
+                std::shared_ptr<CGocInventory> pInven =
+                    pUser->GetGOC_Inventory(false);
+                pInven->InitTarde();
 
-    (void)nCause;
-    // TODO: Implement when GetTradeState and GetTradeActorID are available
+                XSendPacket packet(0xA, 8);
+                packet.XParse << GetOwnerGO()->GetActorID().dwActorID;
+                packet.XParse << nCause;
+                CGocNetwork::Send(
+                    static_cast<XActor*>(static_cast<CMover*>(pUser)),
+                    packet);
+            }
+        }
+
+        std::shared_ptr<CGocInventory> pInven =
+            GetOwnerGO()->GetGOC_Inventory(false);
+        pInven->InitTarde();
+
+        XSendPacket xSendPacket(0xA, 8);
+        xSendPacket.XParse << GetOwnerGO()->GetActorID().dwActorID;
+        xSendPacket.XParse << nCause;
+        CGocNetwork::Send(GetOwnerGO(), xSendPacket);
+    }
 }
 
 // ============================================================================
@@ -3689,227 +3788,194 @@ bool CGocInventory::IsHelperItem(std::uint32_t dwItemID) {
 // IDA: 0x1400AE6A0
 // char __fastcall CGocInventory::PopTradeItem(CGocInventory *this, PS_REQ_ITEM_TRADE stInfo)
 // Removes item from trade list, returns true if found and removed
-bool CGocInventory::PopTradeItem(void* stInfo) {
-    // IDA: Find item in trade list
-    // PS_REQ_ITEM_TRADE* pInfo = static_cast<PS_REQ_ITEM_TRADE*>(stInfo);
-    // auto iter = std::find(m_stTradeInfo.listInfo.begin(), m_stTradeInfo.listInfo.end(), *pInfo);
-    // if (iter == m_stTradeInfo.listInfo.end()) {
-    //     return false;
-    // }
-    // m_stTradeInfo.listInfo.erase(iter);
-    // return true;
-
-    (void)stInfo;
-    // TODO: Implement when PS_REQ_ITEM_TRADE is available
-    return false;
+bool CGocInventory::PopTradeItem(PS_REQ_ITEM_TRADE stInfo) {
+    const auto iter = std::find(m_stTradeInfo.listInfo.begin(),
+                                m_stTradeInfo.listInfo.end(), stInfo);
+    if (iter == m_stTradeInfo.listInfo.end()) {
+        return false;
+    }
+    m_stTradeInfo.listInfo.erase(iter);
+    return true;
 }
 
 // ============================================================================
 // Item update/sync functions (IDA verified)
 // ============================================================================
 
-// IDA: 0x1400AF7A0
-// void __fastcall CGocInventory::SendUpdateItem(CGocInventory *this, PS_RES_STORAGE_INFO *stItemList)
+// PDB/IDA: 0x1400AF7A0, ?SendUpdateItem@CGocInventory@@QEAAXUPS_RES_STORAGE_INFO@@@Z
+// 复核注意：IDA 将 PDB 参数污染显示为 vector<VAnimationInfo>*；真实 ABI 是 PS_RES_STORAGE_INFO&。
 // Sends update for multiple items from list
-void CGocInventory::SendUpdateItem(void* stItemList) {
-    // IDA: Iterate through item list
-    // PS_RES_STORAGE_INFO* pList = static_cast<PS_RES_STORAGE_INFO*>(stItemList);
-    // for (auto& iter : *pList) {
-    //     if (iter.stItem.sCount > 0) {
-    //         // Send update packet
-    //         CGocInventory::SendUpdateItem(this, iter.byInvenType, iter.shSlotPos,
-    //                                       iter.stItem.sCount, byType);
-    //     } else {
-    //         // Item was deleted, unlock and send break
-    //         CGocInventory::SetLock(this, iter.byInvenType, iter.shSlotPos, 0);
-    //         CGocInventory::SendBreakItem(this, iter.byInvenType, iter.shSlotPos);
-    //     }
-    // }
-
-    (void)stItemList;
-    // TODO: Implement when PS_RES_STORAGE_INFO is available
+void CGocInventory::SendUpdateItem(PS_RES_STORAGE_INFO& stItemList) {
+    for (const PS_STORAGE_INFO& stInfo : stItemList.vecItem) {
+        if (stInfo.stItem.sCount != 0) {
+            SendUpdateItem(stInfo.byInvenType, stInfo.shSlotPos,
+                           stInfo.stItem.sCount, stItemList.byType);
+        } else {
+            SetLock(stInfo.byInvenType, stInfo.shSlotPos, 0);
+            SendBreakItem(stInfo.byInvenType, stInfo.shSlotPos);
+        }
+    }
 }
 
-// IDA: 0x1400B00B0
-// void __fastcall CGocInventory::SendUpdateItem(CGocInventory *this,
-//         unsigned __int8 byInvenType, __int16 shSlotPos,
-//         __int16 shCount, unsigned __int8 byType)
+// PDB/IDA: 0x1400B00B0, ?SendUpdateItem@CGocInventory@@QEAAXEFFE@Z
+// 复核注意：IDA 尾部的 float 参数和 hkaiGraphBuilder::extraPositionData 调用是污染，不属于此 ABI。
 // Sends update for single item (main=8, sub=0x12)
 void CGocInventory::SendUpdateItem(std::uint8_t byInvenType, std::int16_t shSlotPos,
                                     std::int16_t shCount, std::uint8_t byType) {
-    // IDA: Check count
-    // if (shCount < 1) {
-    //     CGocInventory::SendBreakItem(this, byInvenType, shSlotPos);
-    //     return;
-    // }
-    //
-    // // Unlock slot
-    // CGocInventory::SetLock(this, byInvenType, shSlotPos, 0);
-    //
-    // // Build update packet
-    // PS_ITEM_UPDATE psItemUpdateInfo;
-    // psItemUpdateInfo.byType = byType;
-    // psItemUpdateInfo.byInvenType = byInvenType;
-    // psItemUpdateInfo.shSlotPos = shSlotPos;
-    // psItemUpdateInfo.nCount = shCount;
-    //
-    // // Send packet (main=8, sub=0x12)
-    // XSendPacket xSendPacket(8, 0x12);
-    // xSendPacket << &psItemUpdateInfo;
-    // CGocNetwork::Send(pActor, &xSendPacket);
+    if (shCount < 1) {
+        SendBreakItem(byInvenType, shSlotPos);
+        return;
+    }
 
-    (void)byInvenType;
-    (void)shSlotPos;
-    (void)shCount;
-    (void)byType;
-    // TODO: Implement when PS_ITEM_UPDATE is available
+    SetLock(byInvenType, shSlotPos, 0);
+
+    PS_ITEM_UPDATE stUpdate{};
+    stUpdate.byType = byType;
+    stUpdate.byInvenType = byInvenType;
+    stUpdate.shSlotPos = shSlotPos;
+    stUpdate.nCount = shCount;
+
+    XSendPacket xSendPacket(8, 0x12);
+    xSendPacket << stUpdate;
+    CGocNetwork::Send(GetOwnerGO(), xSendPacket);
 }
 
-// IDA: 0x1400AFFC0
-// void __fastcall CGocInventory::SendBreakItem(CGocInventory *this,
-//         unsigned __int8 byInvenType, __int16 shSlotPos)
+// PDB/IDA: 0x1400AFFC0, ?SendBreakItem@CGocInventory@@QEAAXEF@Z
+// 复核注意：IDA 尾部的 float 参数和 hkaiGraphBuilder::extraPositionData 调用是污染，不属于此 ABI。
 // Sends item break/delete notification (main=8, sub=5)
 void CGocInventory::SendBreakItem(std::uint8_t byInvenType, std::int16_t shSlotPos) {
-    // IDA: Send break item packet
-    // XSendPacket xSendPacket(8, 5);
-    // xSendPacket << byInvenType;
-    // xSendPacket << shSlotPos;
-    // CGocNetwork::Send(pActor, &xSendPacket);
-
-    (void)byInvenType;
-    (void)shSlotPos;
-    // TODO: Implement when XSendPacket is available
+    XSendPacket xSendPacket(8, 5);
+    xSendPacket.XParse << byInvenType;
+    xSendPacket.XParse << shSlotPos;
+    CGocNetwork::Send(GetOwnerGO(), xSendPacket);
 }
 
 // ============================================================================
 // DB sync functions (IDA verified)
 // ============================================================================
 
-// IDA: 0x1400AF900
-// void __fastcall CGocInventory::SendUpdateItemToDB(CGocInventory *this, PS_RES_STORAGE_INFO *stItemList)
+// PDB/IDA: 0x1400AF900, ?SendUpdateItemToDB@CGocInventory@@QEAAXUPS_RES_STORAGE_INFO@@@Z
+// 复核注意：IDA 将 PDB 参数污染显示为 vector<VAnimationInfo>*；真实 ABI 是 PS_RES_STORAGE_INFO&。
 // Sends item updates to database (main=0x21, sub=0x11 for update, sub=5 for delete)
-void CGocInventory::SendUpdateItemToDB(void* stItemList) {
-    // IDA: Iterate through item list
-    // PS_RES_STORAGE_INFO* pList = static_cast<PS_RES_STORAGE_INFO*>(stItemList);
-    // for (auto& iter : *pList) {
-    //     if (iter.stItem.sCount > 0) {
-    //         // Send update DB packet (main=0x21, sub=0x11)
-    //         PS_DB_ITEM_REDUCE stReduce;
-    //         stReduce.dwUCID = GetUCID();
-    //         stReduce.byInvenType = iter.byInvenType;
-    //         stReduce.shSlotPos = iter.shSlotPos;
-    //         stReduce.nReduceCount = iter.stItem.sCount;
-    //         stReduce.xSerial = iter.stItem.xSerial;
-    //         XSendDBPacket xSendPacket(pObject, 0x21, 0x11);
-    //         xSendPacket << &stReduce;
-    //         XGameServer::SendDBGame(&xSendPacket);
-    //     } else {
-    //         // Send delete DB packet (main=0x21, sub=5)
-    //         XSendDBPacket xSendDBPacket(pObject, 0x21, 5);
-    //         xSendDBPacket << dwUCID;
-    //         xSendDBPacket << iter.byInvenType;
-    //         xSendDBPacket << iter.shSlotPos;
-    //         xSendDBPacket << iter.stItem.nItemID;
-    //         xSendDBPacket << iter.stItem.xSerial;
-    //         XGameServer::SendDBGame(&xSendDBPacket);
-    //     }
-    // }
+void CGocInventory::SendUpdateItemToDB(PS_RES_STORAGE_INFO& stItemList) {
+    CUser* pUser = GetCUserFromOwner(this);
+    CMover* pOwner = GetOwnerGO();
+    IXObject* pObject = pOwner ? static_cast<IXObject*>(pOwner) : nullptr;
+    XGameServer* pServer = TXSingleton<XGameServer>::Instance();
 
-    (void)stItemList;
-    // TODO: Implement when PS_RES_STORAGE_INFO and PS_DB_ITEM_REDUCE are available
+    for (const PS_STORAGE_INFO& stInfo : stItemList.vecItem) {
+        if (stInfo.stItem.sCount != 0) {
+            PS_DB_ITEM_REDUCE stReduce{};
+            stReduce.dwUCID = pUser->GetUCID();
+            stReduce.byInvenType = stInfo.byInvenType;
+            stReduce.shSlotPos = stInfo.shSlotPos;
+            stReduce.xSerial = stInfo.stItem.xSerial;
+            stReduce.nReduceCount = stInfo.stItem.sCount;
+
+            XSendDBPacket xSendPacket(pObject, 0x21, 0x11);
+            xSendPacket << stReduce;
+            pServer->SendDBGame(xSendPacket);
+        } else {
+            XSendDBPacket xSendDBPacket(pObject, 0x21, 5);
+            xSendDBPacket.XParse << pUser->GetUCID();
+            xSendDBPacket.XParse << stInfo.byInvenType;
+            xSendDBPacket.XParse << stInfo.shSlotPos;
+            xSendDBPacket.XParse << stInfo.stItem.nItemID;
+            xSendDBPacket.XParse << stInfo.stItem.xSerial;
+            pServer->SendDBGame(xSendDBPacket);
+        }
+    }
 }
 
-// IDA: 0x1400AFC40
-// void __fastcall CGocInventory::SendUserUpdateItem(CGocInventory *this,
-//         PS_RES_STORAGE_INFO *psUpdateItem, bool bUnLock)
+// PDB/IDA: 0x1400AFC40, ?SendUserUpdateItem@CGocInventory@@QEAAXUPS_RES_STORAGE_INFO@@_N@Z
+// 复核注意：IDA 将 PDB 参数污染显示为 vector<VAnimationInfo>*；真实 ABI 是 PS_RES_STORAGE_INFO&。
 // Sends user item update notification (main=8, sub=0x15)
-void CGocInventory::SendUserUpdateItem(void* psUpdateItem, bool bUnLock) {
-    // IDA: Unlock items if requested
-    // PS_RES_STORAGE_INFO* pList = static_cast<PS_RES_STORAGE_INFO*>(psUpdateItem);
-    // if (bUnLock) {
-    //     for (auto& iter : *pList) {
-    //         CGocInventory::SetLock(this, iter.byInvenType, iter.shSlotPos, 0);
-    //     }
-    // }
-    //
-    // // Send update packet (main=8, sub=0x15)
-    // XSendPacket xSendPacket(8, 0x15);
-    // xSendPacket << pList;
-    // CGocNetwork::Send(pActor, &xSendPacket);
+void CGocInventory::SendUserUpdateItem(PS_RES_STORAGE_INFO& psUpdateItem, bool bUnLock) {
+    if (bUnLock) {
+        for (const PS_STORAGE_INFO& stInfo : psUpdateItem.vecItem) {
+            SetLock(stInfo.byInvenType, stInfo.shSlotPos, 0);
+        }
+    }
 
-    (void)psUpdateItem;
-    (void)bUnLock;
-    // TODO: Implement when PS_RES_STORAGE_INFO is available
+    XSendPacket xSendPacket(8, 0x15);
+    xSendPacket << psUpdateItem;
+    CGocNetwork::Send(GetOwnerGO(), xSendPacket);
 }
 
-// IDA: 0x1400AFDF0
-// void __fastcall CGocInventory::SendCreateItem(CGocInventory *this, PS_RES_STORAGE_INFO *stItemList)
+// PDB/IDA: 0x1400AFDF0, ?SendCreateItem@CGocInventory@@QEAAXUPS_RES_STORAGE_INFO@@@Z
+// 复核注意：IDA 反编译尾部的 float 参数和 hkaiGraphBuilder::extraPositionData 调用是污染，不属于 PDB ABI。
 // Sends item creation notification (main=8, sub=6)
-void CGocInventory::SendCreateItem(void* stItemList) {
-    // IDA: Process cash item dates and unlock slots
-    // PS_RES_STORAGE_INFO* pList = static_cast<PS_RES_STORAGE_INFO*>(stItemList);
-    // for (auto& iter : *pList) {
-    //     if (iter.stItem.nCashDate) {
-    //         CGocInventory::SetCashItemDate(this, iter.stItem.xSerial, iter.stItem.nCashDate);
-    //     }
-    //     CGocInventory::SetLock(this, iter.byInvenType, iter.shSlotPos, 0);
-    // }
-    //
-    // // Send create packet (main=8, sub=6)
-    // XSendPacket xSendPacket(8, 6);
-    // xSendPacket << pList;
-    // CGocNetwork::Send(pActor, &xSendPacket);
+void CGocInventory::SendCreateItem(PS_RES_STORAGE_INFO& stItemList) {
+    for (const PS_STORAGE_INFO& stInfo : stItemList.vecItem) {
+        if (stInfo.stItem.nCashDate != 0) {
+            SetCashItemDate(stInfo.stItem.xSerial,
+                            static_cast<int>(stInfo.stItem.nCashDate));
+        }
+        SetLock(stInfo.byInvenType, stInfo.shSlotPos, 0);
+    }
 
-    (void)stItemList;
-    // TODO: Implement when PS_RES_STORAGE_INFO is available
+    XSendPacket xSendPacket(8, 6);
+    xSendPacket << stItemList;
+    CGocNetwork::Send(GetOwnerGO(), xSendPacket);
 }
 
-// IDA: 0x1400B0230
-// void __fastcall CGocInventory::SendDivideItem(CGocInventory *this, PS_DB_ITEM_MOVE *stItemMove)
+// PDB/IDA: 0x1400B0230, ?SendDivideItem@CGocInventory@@QEAAXAEAUPS_DB_ITEM_MOVE@@@Z
+// 复核注意：IDA 反编译尾部的 float 参数和 hkaiGraphBuilder::extraPositionData 调用是污染，不属于 PDB ABI。
 // Sends item divide/split notification (main=8, sub=4)
-void CGocInventory::SendDivideItem(void* stItemMove) {
-    // IDA: Unlock slots
-    // PS_DB_ITEM_MOVE* pMove = static_cast<PS_DB_ITEM_MOVE*>(stItemMove);
-    // CGocInventory::SetLock(this, pMove->bySrcInvenType, pMove->shSrcSlotPos, 0);
-    // CGocInventory::SetLock(this, pMove->byDestInvenType, pMove->shDestSlotPos, 0);
-    //
-    // // Build divide result packet
-    // PS_RES_ITEM_DIVIDE resItemDivide;
-    // resItemDivide.nItemID = pMove->stSrcItem.nItemID;
-    // resItemDivide.bySrcInvenType = pMove->bySrcInvenType;
-    // resItemDivide.shSrcSlotPos = pMove->shSrcSlotPos;
-    // resItemDivide.shSrcCount = pMove->stSrcItem.sCount;
-    // resItemDivide.byDestInvenType = pMove->byDestInvenType;
-    // resItemDivide.shDestSlotPos = pMove->shDestSlotPos;
-    // resItemDivide.stDestItem = pMove->stDestItem;
-    //
-    // // Send packet (main=8, sub=4)
-    // XSendPacket xSendPacket(8, 4);
-    // xSendPacket << &resItemDivide;
-    // CGocNetwork::Send(pActor, &xSendPacket);
-    //
-    // // Send DB item log
-    // ST_LOG_GAME stLogData;
-    // stLogData._nUAID = pUser->GetUAID();
-    // stLogData._nUCID = GetUCID();
-    // stLogData._sMainType = 4;
-    // stLogData._sSubType = 36;
-    // XGameServer::SendDBItemLog(&stLogData, &vecCreateItem, &vecUpdateItem);
-    //
-    // // Send statistics
-    // ST_STATISTICS_ITEM stStatistics;
-    // stStatistics.byFlag = 1;
-    // stStatistics.biSerial = pMove->stDestItem.xSerial;
-    // stStatistics.dwUCID = GetUCID();
-    // stStatistics.dwItemID = pMove->stDestItem.nItemID;
-    // stStatistics.byUpgrade = pMove->stDestItem.byUpgrade;
-    // stStatistics.byUpgradeLimit = pMove->stDestItem.byUpgradeLimit;
-    // XSendDBPacket xSendDBStatistics(pObject, 0xF0, 0x11);
-    // xSendDBStatistics << &stStatistics;
-    // XGameServer::SendDBStatistics(&xSendDBStatistics);
+void CGocInventory::SendDivideItem(PS_DB_ITEM_MOVE& stItemMove) {
+    SetLock(stItemMove.bySrcInvenType, stItemMove.shSrcSlotPos, 0);
+    SetLock(stItemMove.byDestInvenType, stItemMove.shDestSlotPos, 0);
 
-    (void)stItemMove;
-    // TODO: Implement when PS_DB_ITEM_MOVE and related types are available
+    PS_RES_ITEM_DIVIDE stDivide{};
+    stDivide.nItemID = stItemMove.stSrcItem.nItemID;
+    stDivide.bySrcInvenType = stItemMove.bySrcInvenType;
+    stDivide.shSrcSlotPos = stItemMove.shSrcSlotPos;
+    stDivide.shSrcCount = stItemMove.stSrcItem.sCount;
+    stDivide.byDestInvenType = stItemMove.byDestInvenType;
+    stDivide.shDestSlotPos = stItemMove.shDestSlotPos;
+    stDivide.stDestItem = stItemMove.stDestItem;
+
+    XSendPacket xSendPacket(8, 4);
+    xSendPacket << stDivide;
+    CGocNetwork::Send(GetOwnerGO(), xSendPacket);
+
+    PS_RES_STORAGE_INFO vecCreateItem{};
+    PS_RES_STORAGE_INFO vecUpdateItem{};
+    PS_STORAGE_INFO stSrcItem{};
+    stSrcItem.byInvenType = stItemMove.bySrcInvenType;
+    stSrcItem.shSlotPos = stItemMove.shSrcSlotPos;
+    stSrcItem.stItem = stItemMove.stSrcItem;
+    vecUpdateItem.vecItem.push_back(stSrcItem);
+
+    PS_STORAGE_INFO stDestItem{};
+    stDestItem.byInvenType = stItemMove.byDestInvenType;
+    stDestItem.shSlotPos = stItemMove.shDestSlotPos;
+    stDestItem.stItem = stItemMove.stDestItem;
+    vecCreateItem.vecItem.push_back(stDestItem);
+
+    CUser* pUser = GetCUserFromOwner(this);
+    XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+
+    ST_LOG_GAME stLogData{};
+    stLogData._nUAID = static_cast<int>(pUser->GetUAID());
+    stLogData._nUCID = static_cast<int>(pUser->GetUCID());
+    stLogData._sMainType = 4;
+    stLogData._sSubType = 36;
+    pServer->SendDBItemLog(stLogData, vecCreateItem, vecUpdateItem);
+
+    ST_STATISTICS_ITEM stStatistics{};
+    stStatistics.byFlag = 1;
+    stStatistics.biSerial = stItemMove.stDestItem.xSerial;
+    stStatistics.dwUCID = pUser->GetUCID();
+    stStatistics.dwItemID = static_cast<unsigned int>(stItemMove.stDestItem.nItemID);
+    stStatistics.byUpgrade = stItemMove.stDestItem.byUpgrade;
+    stStatistics.byUpgradeLimit = stItemMove.stDestItem.byUpgradeLimit;
+
+    CMover* pOwner = GetOwnerGO();
+    IXObject* pObject = pOwner ? static_cast<IXObject*>(pOwner) : nullptr;
+    XSendDBPacket xSendDBStatistics(pObject, 0xF0, 0x11);
+    xSendDBStatistics << stStatistics;
+    pServer->SendDBStatistics(xSendDBStatistics);
 }
 
 // ============================================================================
@@ -4095,26 +4161,19 @@ void CGocInventory::ReloadCash() {
 //   }
 // }
 void CGocInventory::SetCashMileage(int* pCashMileage, bool bSend) {
-    if (!pCashMileage)
-        return;
-
-    // Update mileage values (IDA verified)
+    PS_CASH_MILEAGE_LIST psList;
     for (int i = 0; i < 3; ++i) {
         m_nCashMileage[i] = pCashMileage[i];
+        PS_CASH_MILEAGE psInfo;
+        psInfo.byMileageType = static_cast<std::uint8_t>(i);
+        psInfo.nCashMileage = m_nCashMileage[i];
+        psList.vecInfo.push_back(psInfo);
     }
 
     if (bSend) {
-        // IDA: Send packet to client (main=3, sub=0x7B)
-        // PS_CASH_MILEAGE_LIST psList;
-        // for (int i = 0; i < 3; ++i) {
-        //     PS_CASH_MILEAGE psInfo;
-        //     psInfo.byMileageType = i;
-        //     psInfo.nCashMileage = m_nCashMileage[i];
-        //     psList.push_back(psInfo);
-        // }
-        // XSendPacket xSendPacket(3, 0x7B);
-        // xSendPacket << psList;
-        // CGocNetwork::Send(pActor, &xSendPacket);
+        XSendPacket xSendPacket(3, 0x7B);
+        xSendPacket << psList;
+        CGocNetwork::Send(GetOwnerGO(), xSendPacket);
     }
 }
 
@@ -4124,14 +4183,15 @@ void CGocInventory::SetCashMileage(int* pCashMileage, bool bSend) {
 //   this->m_nCashMileage[psUpdateInfo.byMileageType] = psUpdateInfo.nCashMileage;
 //   // Send packet (main=3, sub=0x7B)
 // }
-void CGocInventory::SetCashMileage(void* psUpdateInfo) {
-    // TODO: Implement with PS_CASH_MILEAGE struct
-    // PS_CASH_MILEAGE* pInfo = static_cast<PS_CASH_MILEAGE*>(psUpdateInfo);
-    // if (pInfo->byMileageType < 3) {
-    //     m_nCashMileage[pInfo->byMileageType] = pInfo->nCashMileage;
-    //     // Send packet to client (main=3, sub=0x7B)
-    // }
-    (void)psUpdateInfo;
+void CGocInventory::SetCashMileage(PS_CASH_MILEAGE psUpdateInfo) {
+    m_nCashMileage[psUpdateInfo.byMileageType] = psUpdateInfo.nCashMileage;
+
+    PS_CASH_MILEAGE_LIST psList;
+    psList.vecInfo.push_back(psUpdateInfo);
+
+    XSendPacket xSendPacket(3, 0x7B);
+    xSendPacket << psList;
+    CGocNetwork::Send(GetOwnerGO(), xSendPacket);
 }
 
 // IDA: 0x1400E51A0
@@ -4381,9 +4441,21 @@ bool CGocInventory::IsResealPackage(int nPackageID) {
 }
 
 // IDA: 0x1400E6AD0
-// bool __fastcall CGocInventory::IsResealPackageCount(CGocInventory *this, unsigned int nPackageID, int nCount)
-// Checks if count matches item count in repackage table
+bool CGocInventory::IsResealPackageCount(int nPackageID, int nCount) {
+    TB_REPACKAGECOSTUME* pTBRepackage =
+        TXSingleton<XGameServer>::Instance()
+            ->GetResourceMgr()
+            .GetTB_REPACKAGECOSTUME(static_cast<unsigned int>(nPackageID));
+    if (!pTBRepackage)
+        return false;
 
+    int nCheckCount = 0;
+    const unsigned int* pItem = &pTBRepackage->Item_01;
+    for (int i = 0; i < 13 && pItem[i]; ++i)
+        ++nCheckCount;
+
+    return nCheckCount && nCount == nCheckCount;
+}
 
 // === Batch 27: Billing response functions (IDA verified, complex) ===
 
@@ -6309,13 +6381,13 @@ bool CGocInventory::CanEquipSlotOpen(std::uint8_t byInvenType, std::int16_t shSl
     std::shared_ptr<CItem> pItem = GetSlotItem(byInvenType, static_cast<std::uint16_t>(shSlot), bLock);
 
     if (!pItem || bLock) {
-        // IDA: Send item lock log and return false
+        // IDA ABI note: the original consumes the first uint32 of the
+        // hidden GetActorID result buffer as the lock-log identity.
         CUser* pUser = GetCUserFromOwner(this);
-        std::uint32_t dwUCID = pUser ? pUser->GetUCID() : 0;
+        const UXActorID actorID = pUser->GetActorID();
         XGameServer* pServer = TXSingleton<XGameServer>::Instance();
-        if (pServer) {
-            pServer->SendItemLockLog(dwUCID, byInvenType, shSlot, bLock ? 1 : 0, 13, 0);
-        }
+        pServer->SendItemLockLog(actorID.dwActorID, byInvenType, shSlot,
+                                 bLock ? 1 : 0, 13, 0);
         return false;
     }
 
@@ -6328,18 +6400,9 @@ bool CGocInventory::CanEquipSlotOpen(std::uint8_t byInvenType, std::int16_t shSl
     if (!pTBClassify)
         return false;
 
-    // IDA: Check item level limit <= player level
-    // RTTI: CMover -> CUser + offset 131512 (handled by GetCUserFromOwner)
+    // IDA: CMover -> CUser, then the virtual GetLevel call at the CUser subobject.
     CUser* pUser = GetCUserFromOwner(this);
-    if (!pUser)
-        return false;
-
-    // IDA: Get player level from CUser at offset 131512 (character info)
-    // The level is accessed via pUser->GetLevel() or similar
-    int nPlayerLevel = 0;
-    // TODO: Need to access CUser level - check CUser structure
-    // For now, use a placeholder that should be replaced with actual level access
-    // nPlayerLevel = pUser->GetLevel();
+    const int nPlayerLevel = static_cast<int>(pUser->GetLevel());
 
     if (pTBItem->Item_Limit_Lv > nPlayerLevel)
         return false;
@@ -6404,8 +6467,9 @@ bool CGocInventory::ChangeEquipSlotPos(std::uint8_t bySlotType, std::uint8_t& by
     if (bySlotType < 0x65 || bySlotType > 0x6E)
         return false;
 
-    // IDA: Convert slot type to position (subtract 101)
-    byEquipPos = bySlotType - 0x65;  // bySlotType - 101
+    // IDA: Convert slot type to position by subtracting 91 (0x5B).
+    // The source binary uses 0x65..0x6E and therefore produces positions 10..19.
+    byEquipPos = static_cast<std::uint8_t>(bySlotType - 91);
 
     // IDA: Validate position range (must be 10-19)
     if (byEquipPos < 0xA || byEquipPos > 0x13)
@@ -6512,51 +6576,57 @@ void CGocInventory::EquipSlotOpen(int nPosBit) {
 // __int64 __fastcall CGocInventory::EquipSlotOpen(CGocInventory *this, unsigned __int8 byInvenType, __int16 shSlot)
 // Opens equipment slot using item from inventory (complex function)
 bool CGocInventory::EquipSlotOpen(std::uint8_t byInvenType, std::int16_t shSlot) {
-    // IDA: Get item at slot
-    // std::shared_ptr<CItem> pItem;
-    // std::uint8_t bLock;
-    // CGocInventory::GetSlotItem(this, &pItem, byInvenType, shSlot, &bLock);
-    // if (!pItem || bLock) {
-    //     XGameServer::SendItemLockLog(dwUCID, byInvenType, shSlot, bLock, 14, 0);
-    //     return false;
-    // }
+    bool bLock = false;
+    std::shared_ptr<CItem> pItem =
+        GetSlotItem(byInvenType, static_cast<std::uint16_t>(shSlot), bLock);
 
-    // IDA: Get item table and classify table
-    // CItem* pRawItem = pItem.get();
-    // TB_ITEM* pTBItem = CItem::GetItemTable(pRawItem);
-    // if (!pTBItem) return false;
-    // TB_ITEM_CLASSIFY* pTBClassify = CItem::GetClassifyTable(pRawItem);
-    // if (!pTBClassify) return false;
+    if (!pItem || bLock) {
+        CUser* pUser = GetCUserFromOwner(this);
+        XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+        pServer->SendItemLockLog(pUser->GetActorID().dwActorID,
+                                 byInvenType, shSlot, bLock ? 1 : 0, 14, 0);
+        return false;
+    }
 
-    // IDA: Reduce item (lock type 0x17)
-    // PS_RES_STORAGE_INFO stUpdateItem;
-    // if (!CGocInventory::ReduceItem3(byInvenType, shSlot, 1, 0x17, &stUpdateItem))
-    //     return false;
+    TB_ITEM* pTBItem = pItem->GetItemTable();
+    if (!pTBItem)
+        return false;
 
-    // IDA: Get equip position from slot type
-    // std::uint8_t byEquipPos;
-    // int nEquipPosBit;
-    // if (!CGocInventory::ChangeEquipSlotPos(pTBClassify->Item_Slot_Type, &byEquipPos, &nEquipPosBit)) {
-    //     CGocInventory::UnLockList(&stUpdateItem);
-    //     return false;
-    // }
+    TB_ITEM_CLASSIFY* pTBClassify = pItem->GetClassifyTable();
+    if (!pTBClassify)
+        return false;
 
-    // IDA: Log and update
-    // ST_LOG_GAME stLog;
-    // stLog._sSubType = 65;
-    // stLog.nParam3 = byEquipPos;
-    // stLog.nParam4 = nEquipPosBit;
-    // if (!CGocInventory::UpdateItemEnd(0x17, &stUpdateItem, &stLog))
-    //     return false;
+    PS_RES_STORAGE_INFO stUpdateItem;
+    if (!ReduceItem3(byInvenType, shSlot, 1, 0x17, stUpdateItem))
+        return false;
 
-    // IDA: Send DB packet (main=0x21, sub=0x25)
-    // XSendDBPacket xSendDBPacket(pObject, 0x21, 0x25);
-    // xSendDBPacket << QuestID << stUpdateItem << nEquipPosBit << byEquipPos;
-    // XGameServer::SendDBGame(&xSendDBPacket);
+    std::uint8_t byEquipPos = 0;
+    int nEquipPosBit = 0;
+    if (!ChangeEquipSlotPos(pTBClassify->Item_Slot_Type,
+                            byEquipPos, nEquipPosBit)) {
+        UnLockList(stUpdateItem);
+        return false;
+    }
 
-    (void)byInvenType;
-    (void)shSlot;
-    return false;  // TODO: 需人工审查 - Implement when GetSlotItem/ReduceItem3/UpdateItemEnd available
+    ST_LOG_GAME stLog;
+    stLog._sSubType = 65;
+    stLog.nParam3 = byEquipPos;
+    stLog.nParam4 = nEquipPosBit;
+    if (!UpdateItemEnd(0x17, stUpdateItem, stLog))
+        return false;
+
+    CMover* pOwner = GetOwnerGO();
+    IXObject* pObject = pOwner ? static_cast<IXObject*>(pOwner) : nullptr;
+    XSendDBPacket xSendDBPacket(pObject, 0x21, 0x25);
+    CUser* pUser = GetCUserFromOwner(this);
+    const UXActorID actorID = pUser->GetActorID();
+    xSendDBPacket.XParse << actorID.dwActorID;
+    xSendDBPacket << stUpdateItem;
+    xSendDBPacket.XParse << nEquipPosBit;
+    xSendDBPacket.XParse << byEquipPos;
+
+    XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+    return pServer->SendDBGame(xSendDBPacket);
 }
 
 // ============================================================================
@@ -6567,138 +6637,131 @@ bool CGocInventory::EquipSlotOpen(std::uint8_t byInvenType, std::int16_t shSlot)
 // void __fastcall CGocInventory::SendDBItemCooltimeInfo(CGocInventory *this)
 // Sends item cooldown info to database (main=0x21, sub=0x46)
 void CGocInventory::SendDBItemCooltimeInfo() {
-    // IDA: Get current date
-    // XGameServer* pServer = TXSingleton<XGameServer>::Instance();
-    // __int64 biDate = XGameServer::GetCurDate(pServer);
+    XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+    const std::int64_t biDate = pServer->GetCurDate();
+    CMover* pOwner = GetOwnerGO();
+    IXObject* pObject = pOwner ? static_cast<IXObject*>(pOwner) : nullptr;
+    XSendDBPacket xSendDBPacket(pObject, 0x21, 0x46);
 
-    // IDA: Send DB packet
-    // XSendDBPacket xSendDBPacket(pObject, 0x21, 0x46);
-    // xSendDBPacket << QuestID << biDate;
-    // XGameServer::SendDBGame(&xSendDBPacket);
-
-    // TODO: Implement when XSendDBPacket/XGameServer available
+    // IDA ABI note: the original obtains a four-byte UXActorID through the
+    // hidden return buffer and passes that buffer to CQuestCondition::GetQuestID();
+    // the callee reads its first uint32, so the wire value is actorID.dwActorID.
+    CUser* pUser = GetCUserFromOwner(this);
+    const UXActorID actorID = pUser->GetActorID();
+    xSendDBPacket << actorID.dwActorID;
+    xSendDBPacket << biDate;
+    pServer->SendDBGame(xSendDBPacket);
 }
 
 // IDA: 0x1400B98E0
 // void __fastcall CGocInventory::SendItemCoolTimeInfo(CGocInventory *this)
 // Sends item cooldown info to client (main=8, sub=0x66)
 void CGocInventory::SendItemCoolTimeInfo() {
-    // IDA: Build cooldown list from m_mpSaveGroupCooltime
-    // PS_ITEM_COOMTIME_LIST psList;
-    // for (auto& pair : m_mpSaveGroupCooltime) {
-    //     PS_ITEM_COOLTIME_INFO psInfo = pair.second;
-    //     __int64 biEndDate = psInfo.biRemainDate;
-    //     __int64 biCurDate = XGameServer::GetCurDate();
-    //     psInfo.biRemainDate = biEndDate - biCurDate;
-    //     if (biEndDate - biCurDate > 0)
-    //         psList.vecInfo.push_back(psInfo);
-    // }
+    PS_ITEM_COOMTIME_LIST psList;
+    for (const auto& pair : m_mpSaveGroupCooltime) {
+        PS_ITEM_COOLTIME_INFO psInfo = pair.second;
+        const std::int64_t biEndDate = psInfo.biRemainDate;
+        XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+        const std::int64_t biCurDate = pServer->GetCurDate();
+        psInfo.biRemainDate = biEndDate - biCurDate;
+        if (biEndDate - biCurDate > 0) {
+            psList.vecInfo.push_back(psInfo);
+        }
+    }
 
-    // IDA: Send if not empty
-    // if (!psList.vecInfo.empty()) {
-    //     XSendPacket xSendPacket(8, 0x66);
-    //     xSendPacket << psList;
-    //     CGocNetwork::Send(pActor, &xSendPacket);
-    // }
-
-    // TODO: Implement when PS_ITEM_COOMTIME_LIST/XSendPacket available
+    if (!psList.vecInfo.empty()) {
+        XSendPacket xSendPacket(8, 0x66);
+        xSendPacket << psList;
+        CMover* pOwner = GetOwnerGO();
+        XActor* pActor = pOwner ? static_cast<XActor*>(pOwner) : nullptr;
+        CGocNetwork::Send(pActor, xSendPacket);
+    }
 }
 
 // IDA: 0x1400B9770
 // void __fastcall CGocInventory::LoadCoolTime(CGocInventory *this, PS_ITEM_COOMTIME_LIST *psCooltimeList)
 // Loads cooldown list from DB response
-void CGocInventory::LoadCoolTime(void* psCooltimeList) {
-    // IDA: For each item in psCooltimeList
-    // for (size_t i = 0; i < psCooltimeList->size(); ++i) {
-    //     PS_ITEM_COOLTIME_INFO psInfo = psCooltimeList[i];
-    //
-    //     // Check if already in m_mpSaveGroupCooltime
-    //     auto iter = m_mpSaveGroupCooltime.find(psInfo.byCooltimeGroupID);
-    //     if (iter == m_mpSaveGroupCooltime.end()) {
-    //         // Insert new entry
-    //         m_mpSaveGroupCooltime[psInfo.byCooltimeGroupID] = psInfo;
-    //     }
-    //
-    //     // Calculate remaining time
-    //     __int64 biCurDate = XGameServer::GetCurDate();
-    //     psCooltimeList[i].biRemainDate = psInfo.biRemainDate - biCurDate;
-    // }
+void CGocInventory::LoadCoolTime(PS_ITEM_COOMTIME_LIST& psCooltimeList) {
+    for (PS_ITEM_COOLTIME_INFO& psInfo : psCooltimeList.vecInfo) {
+        const auto iter = m_mpSaveGroupCooltime.find(psInfo.byCooltimeGroupID);
+        if (iter == m_mpSaveGroupCooltime.end()) {
+            m_mpSaveGroupCooltime.emplace(psInfo.byCooltimeGroupID, psInfo);
+        }
 
-    (void)psCooltimeList;
-    // TODO: 需人工审查 - Implement when PS_ITEM_COOMTIME_LIST/XGameServer available
+        XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+        psInfo.biRemainDate = psInfo.biRemainDate - pServer->GetCurDate();
+    }
 }
 
 // IDA: 0x1400B9AB0
 // void __fastcall CGocInventory::AddCoolTime(CGocInventory *this, unsigned __int16 byGroupID, unsigned __int64 dwValue, bool bSendDB)
 // Adds cooldown for group ID, optionally syncs to DB
 void CGocInventory::AddCoolTime(std::uint16_t byGroupID, std::uint64_t dwValue, bool bSendDB) {
-    // IDA: Only process if dwValue > 0
-    if (dwValue == 0)
+    if (dwValue == 0) {
         return;
-
-    // IDA: Convert milliseconds to seconds and add current date
-    // __int64 dwCoolTimeValue = dwValue;
-    // dwValue /= 1000;  // Convert to seconds
-    // XGameServer* pServer = TXSingleton<XGameServer>::Instance();
-    // __int64 biCurDate = XGameServer::GetCurDate(pServer);
-    // dwValue += biCurDate;  // End time = current time + cooldown duration
-
-    if (bSendDB) {
-        // IDA: Add to m_mpSaveGroupCooltime (persistent, synced to DB)
-        // PS_ITEM_COOLTIME_INFO psCooltimeInfo;
-        // psCooltimeInfo.byCooltimeGroupID = byGroupID;
-        // psCooltimeInfo.biRemainDate = dwValue;
-        // psCooltimeInfo.biCooltimeValue = dwCoolTimeValue;
-        //
-        // auto iter = m_mpSaveGroupCooltime.find(byGroupID);
-        // if (iter == m_mpSaveGroupCooltime.end()) {
-        //     m_mpSaveGroupCooltime[byGroupID] = psCooltimeInfo;
-        // } else {
-        //     iter->second = psCooltimeInfo;
-        // }
-        //
-        // // Send DB packet (main=0x21, sub=0x47)
-        // PS_DB_ITEM_COOLTIME_UPDATE psCooltimeUpdate;
-        // psCooltimeUpdate.dwUCID = GetUCID();
-        // psCooltimeUpdate.psInfo = psCooltimeInfo;
-        // XSendDBPacket xSendDBPacket(pObject, 0x21, 0x47);
-        // xSendDBPacket << psCooltimeUpdate;
-        // XGameServer::SendDBGame(&xSendDBPacket);
-    } else {
-        // IDA: Add to m_mpGroupCoolTime (temporary, in-memory only)
-        // auto iter = m_mpGroupCoolTime.find(byGroupID);
-        // if (iter == m_mpGroupCoolTime.end()) {
-        //     m_mpGroupCoolTime[byGroupID] = dwValue;
-        // } else {
-        //     iter->second = dwValue;
-        // }
     }
 
-    (void)byGroupID;
-    (void)dwValue;
-    (void)bSendDB;
-    // TODO: 需人工审查 - Implement when PS_ITEM_COOLTIME_INFO/XSendDBPacket available
+    const std::uint64_t dwCoolTimeValue = dwValue;
+    dwValue /= 0x3E8u;
+    XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+    const std::uint64_t biCurDate = static_cast<std::uint64_t>(
+        pServer->GetCurDate());
+    dwValue += biCurDate;
+
+    if (bSendDB) {
+        PS_ITEM_COOLTIME_INFO psCooltimeInfo{};
+        psCooltimeInfo.byCooltimeGroupID = byGroupID;
+        psCooltimeInfo.biRemainDate = static_cast<std::int64_t>(dwValue);
+        psCooltimeInfo.biCooltimeValue = static_cast<std::int64_t>(dwCoolTimeValue);
+        const auto saveIter = m_mpSaveGroupCooltime.find(byGroupID);
+        if (saveIter != m_mpSaveGroupCooltime.end()) {
+            saveIter->second = psCooltimeInfo;
+        } else {
+            m_mpSaveGroupCooltime.emplace(byGroupID, psCooltimeInfo);
+        }
+
+        PS_DB_ITEM_COOLTIME_UPDATE psCooltimeUpdate{};
+        CUser* pUser = GetCUserFromOwner(this);
+        // IDA ABI note: CUser::GetActorID returns a 4-byte UXActorID through
+        // its hidden result buffer; the original then passes that buffer as
+        // this to CQuestCondition::GetQuestID() const (0x14005AB80), whose
+        // body reads the first uint32. Preserve that machine-level result
+        // directly; this is not a CGocQuest lookup.
+        const UXActorID actorID = pUser->GetActorID();
+        psCooltimeUpdate.dwUCID = actorID.dwActorID;
+        psCooltimeUpdate.psInfo = psCooltimeInfo;
+
+        CMover* pOwner = GetOwnerGO();
+        IXObject* pObject = static_cast<IXObject*>(pOwner);
+        XSendDBPacket xSendDBPacket(pObject, 0x21, 0x47);
+        xSendDBPacket << psCooltimeUpdate;
+        pServer->SendDBGame(xSendDBPacket);
+    } else {
+        const auto iter = m_mpGroupCoolTime.find(byGroupID);
+        if (iter != m_mpGroupCoolTime.end()) {
+            iter->second = dwValue;
+        } else {
+            m_mpGroupCoolTime.emplace(byGroupID, dwValue);
+        }
+    }
 }
 
 // IDA: 0x1400B9E20
 // VPList_vtbl *__fastcall CGocInventory::GetCoolTime(CGocInventory *this, unsigned __int16 byGroupID, bool bSave)
 // Gets cooldown remaining time for group ID
 std::uint64_t CGocInventory::GetCoolTime(std::uint16_t byGroupID, bool bSave) {
-    // IDA: If bSave, look in m_mpSaveGroupCooltime, else m_mpGroupCoolTime
     if (bSave) {
-        // auto iter = m_mpSaveGroupCooltime.find(byGroupID);
-        // if (iter != m_mpSaveGroupCooltime.end()) {
-        //     return iter->second.biRemainDate;
-        // }
+        const auto iter = m_mpSaveGroupCooltime.find(byGroupID);
+        if (iter != m_mpSaveGroupCooltime.end()) {
+            return static_cast<std::uint64_t>(iter->second.biRemainDate);
+        }
     } else {
-        // auto iter = m_mpGroupCoolTime.find(byGroupID);
-        // if (iter != m_mpGroupCoolTime.end()) {
-        //     return iter->second;
-        // }
+        const auto iter = m_mpGroupCoolTime.find(byGroupID);
+        if (iter != m_mpGroupCoolTime.end()) {
+            return iter->second;
+        }
     }
-    (void)byGroupID;
-    (void)bSave;
-    return 0;  // Not found
+    return 0;
 }
 
 // ============================================================================
@@ -6710,41 +6773,96 @@ std::uint64_t CGocInventory::GetCoolTime(std::uint16_t byGroupID, bool bSave) {
 // Checks trade password state, returns error ID if locked
 bool CGocInventory::CheckTradePasswordState(int& nErrorID) {
     nErrorID = 0;
-
-    // IDA: Get trade password state
-    // int nState = CGocInventory::GetTradePasswordState(this);
-    // if (nState == 2) return true;  // Password set and verified
-    // if (nState == 3) nErrorID = 1234;  // Locked
-    // return false;
-
-    (void)nErrorID;
-    return false;  // TODO: 需人工审查 - Implement when GetTradePasswordState available
+    if (GetTradePasswordState() == 2) {
+        return true;
+    }
+    if (GetTradePasswordState() == 3) {
+        nErrorID = 1234;
+    }
+    return false;
 }
 
 // IDA: 0x1400B9F60
 // char __fastcall CGocInventory::CheckTradePassword(CGocInventory *this, PS_TRADE_PW_REQ *psTrade)
 // Validates trade password and sends response
-bool CGocInventory::CheckTradePassword(void* psTrade) {
-    // IDA: Complex function handling different trade password operations:
-    // byType = psTrade->byType
-    //
-    // case 1: Set new password
-    //   - Check if password already set (state != 0)
-    //   - Validate password format
-    //   - Send DB packet to set password (main=2, sub=0x38)
-    //
-    // case 2: Change password
-    //   - Validate old password
-    //   - Send DB packet to change (main=2, sub=0x39)
-    //
-    // case 3: Delete password
-    //   - Send DB packet to delete (main=2, sub=0x3B)
-    //
-    // case 4: Unlock/reset
-    //   - Send DB packet (main=2, sub=0x3A)
+bool CGocInventory::CheckTradePassword(PS_TRADE_PW_REQ& psTrade) {
+    CUser* pUser = GetCUserFromOwner(this);
+    if (!pUser) {
+        return false;
+    }
 
-    (void)psTrade;
-    return false;  // TODO: 需人工审查 - Implement when PS_TRADE_PW_REQ/GetTradePasswordState available
+    switch (psTrade.byCheckType) {
+    case 1: {
+        if (GetTradePasswordState()) {
+            return false;
+        }
+
+        int nErrorID = 59504;
+        if (!IsValidTradePassword(psTrade.strPassword, nErrorID)) {
+            PS_TRADE_PW_RES psResult{};
+            psResult.nErrorID = nErrorID;
+            psResult.byTradePWState = GetTradePasswordState();
+            XSendPacket xSendPacket(3, 0x18);
+            xSendPacket << psResult;
+            CMover* pOwner = GetOwnerGO();
+            XActor* pActor = pOwner ? static_cast<XActor*>(pOwner) : nullptr;
+            CGocNetwork::Send(pActor, xSendPacket);
+            return false;
+        }
+
+        CMover* pOwner = GetOwnerGO();
+        IXObject* pObject = pOwner ? static_cast<IXObject*>(pOwner) : nullptr;
+        XSendDBPacket xSendDBPacket(pObject, 2, 0x38);
+        xSendDBPacket << pUser->GetUAID();
+        xSendDBPacket << psTrade;
+        XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+        pServer->SendDBAccount(xSendDBPacket);
+        return true;
+    }
+    case 2: {
+        int nErrorID = 59504;
+        if (!IsValidTradePassword(psTrade.strPassword, nErrorID)) {
+            PS_TRADE_PW_RES psResult{};
+            psResult.nErrorID = nErrorID;
+            psResult.byTradePWState = GetTradePasswordState();
+            XSendPacket xSendPacket(3, 0x18);
+            xSendPacket << psResult;
+            CMover* pOwner = GetOwnerGO();
+            XActor* pActor = pOwner ? static_cast<XActor*>(pOwner) : nullptr;
+            CGocNetwork::Send(pActor, xSendPacket);
+            return false;
+        }
+
+        CMover* pOwner = GetOwnerGO();
+        IXObject* pObject = pOwner ? static_cast<IXObject*>(pOwner) : nullptr;
+        XSendDBPacket xSendDBPacket(pObject, 2, 0x39);
+        xSendDBPacket << pUser->GetUAID();
+        xSendDBPacket << psTrade;
+        XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+        pServer->SendDBAccount(xSendDBPacket);
+        return true;
+    }
+    case 3: {
+        CMover* pOwner = GetOwnerGO();
+        IXObject* pObject = pOwner ? static_cast<IXObject*>(pOwner) : nullptr;
+        XSendDBPacket xSendDBPacket(pObject, 2, 0x3B);
+        xSendDBPacket << pUser->GetUAID();
+        XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+        pServer->SendDBAccount(xSendDBPacket);
+        return true;
+    }
+    case 4: {
+        CMover* pOwner = GetOwnerGO();
+        IXObject* pObject = pOwner ? static_cast<IXObject*>(pOwner) : nullptr;
+        XSendDBPacket xSendDBPacket(pObject, 2, 0x3A);
+        xSendDBPacket << pUser->GetUAID();
+        XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+        pServer->SendDBAccount(xSendDBPacket);
+        return true;
+    }
+    default:
+        return false;
+    }
 }
 
 // IDA: 0x1400BA530
@@ -6827,75 +6945,64 @@ bool CGocInventory::IsValidTradePassword(char* strPassword, int& nErrorID) {
 // IDA: 0x1400B7370
 // void __fastcall CGocInventory::SetItemUseInfoList(CGocInventory *this, ST_USE_ITEM_INFO_LIST *stUseItemInfoList)
 // Sets item use info list from DB response
-void CGocInventory::SetItemUseInfoList(void* stUseItemInfoList) {
-    // IDA: Get before init date for filtering expired entries
-    // XGameServer* pServer = TXSingleton<XGameServer>::Instance();
-    // __int64 biBeforeDate = XGameServer::GetBeforeInitDate(pServer);
+void CGocInventory::SetItemUseInfoList(ST_USE_ITEM_INFO_LIST& stUseItemInfoList) {
+    ST_USE_ITEM_INFO_LIST stChangeUseInfoList;
+    XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+    const std::int64_t biBeforeDate = pServer->GetBeforeInitDate();
 
-    // IDA: For each entry in stUseItemInfoList
-    // for (size_t i = 0; i < stUseItemInfoList->size(); ++i) {
-    //     ST_USE_ITEM_INFO* pInfo = &stUseItemInfoList[i];
-    //     // Clear if expired
-    //     if (pInfo->biDate < biBeforeDate) {
-    //         pInfo->byCount = 0;
-    //         pInfo->biDate = 0;
-    //     }
-    //     m_mpUseItemInfo[pInfo->nType] = *pInfo;
-    // }
+    for (ST_USE_ITEM_INFO& stUseItemInfo : stUseItemInfoList.vecInfo) {
+        if (stUseItemInfo.nUseDate < biBeforeDate) {
+            stUseItemInfo.byCount = 0;
+            stUseItemInfo.nUseDate = 0;
+        }
 
-    // IDA: Update timestamps
-    // XGameServer* pServer = TXSingleton<XGameServer>::Instance();
-    // m_biUseItemUpdateDate = XGameServer::GetCurDate(pServer);
-    // m_dw64UpdateTick = GetTickCount64();
+        // IDA uses map::insert here; an existing key is not overwritten.
+        m_mpUseItemInfo.insert(
+            std::make_pair(stUseItemInfo.nItemType, stUseItemInfo));
+    }
 
-    (void)stUseItemInfoList;
-    // TODO: 需人工审查 - Implement when ST_USE_ITEM_INFO_LIST/XGameServer available
+    pServer = TXSingleton<XGameServer>::Instance();
+    m_biUseItemUpdateDate = pServer->GetCurDate();
+    m_dw64UpdateTick = GreenDamTan::GetTickCount64Compat();
 }
 
 // IDA: 0x1400B74F0
 // void __fastcall CGocInventory::OnInitItemUseInfoDate(CGocInventory *this)
 // Initializes item use info date, clears expired entries
 void CGocInventory::OnInitItemUseInfoDate() {
-    // IDA: Check if update date is set
     if (m_biUseItemUpdateDate == 0)
         return;
 
-    // IDA: Check if expired
-    // XGameServer* pServer = TXSingleton<XGameServer>::Instance();
-    // if (m_biUseItemUpdateDate > XGameServer::GetBeforeInitDate(pServer))
-    //     return;
+    XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+    if (m_biUseItemUpdateDate > pServer->GetBeforeInitDate())
+        return;
 
-    // IDA: Clear all entries in m_mpUseItemInfo
-    // ST_USE_ITEM_INFO_LIST stChangeUseInfoList;
-    // for (auto iter = m_mpUseItemInfo.begin(); iter != m_mpUseItemInfo.end(); ++iter) {
-    //     iter->second.byCount = 0;
-    //     iter->second.biDate = 0;
-    // }
+    ST_USE_ITEM_INFO_LIST stChangeUseInfoList;
+    for (auto iter = m_mpUseItemInfo.begin();
+         iter != m_mpUseItemInfo.end(); ++iter) {
+        iter->second.byCount = 0;
+        iter->second.nUseDate = 0;
+    }
 
-    // IDA: Send packet to client (main=8, sub=0x49)
-    // XSendPacket xSendPacket(8, 0x49);
-    // xSendPacket << stChangeUseInfoList;
-    // CGocNetwork::Send(pActor, &xSendPacket);
+    XSendPacket xSendPacket(8, 0x49);
+    xSendPacket << stChangeUseInfoList;
 
-    // IDA: Update date
-    // XGameServer* pServer = TXSingleton<XGameServer>::Instance();
-    // m_biUseItemUpdateDate = XGameServer::GetCurDate(pServer);
+    // CMover inherits XActor through a non-first base; static_cast applies the
+    // original adjusted-subobject conversion before CGocNetwork::Send.
+    CMover* pOwner = GetOwnerGO();
+    XActor* pActor = pOwner ? static_cast<XActor*>(pOwner) : nullptr;
+    CGocNetwork::Send(pActor, xSendPacket);
 
-    // TODO: 需人工审查 - Implement when ST_USE_ITEM_INFO_LIST/XSendPacket available
+    pServer = TXSingleton<XGameServer>::Instance();
+    m_biUseItemUpdateDate = pServer->GetCurDate();
 }
 
 // IDA: 0x1400B76B0
 // bool __fastcall CGocInventory::CanUseItemInfo(CGocInventory *this, int nType)
 // Checks if item use info type can be used (count < 3)
 bool CGocInventory::CanUseItemInfo(int nType) {
-    // IDA: Find type in m_mpUseItemInfo
-    // auto iter = m_mpUseItemInfo.find(nType);
-    // if (iter == m_mpUseItemInfo.end())
-    //     return true;  // Not found, can use
-    // return iter->second.byCount < 3;  // Can use if count < 3
-
-    (void)nType;
-    return true;  // TODO: 需人工审查 - Implement when m_mpUseItemInfo available
+    const auto iter = m_mpUseItemInfo.find(nType);
+    return iter == m_mpUseItemInfo.end() || iter->second.byCount < 3;
 }
 
 // ============================================================================
@@ -6906,12 +7013,17 @@ bool CGocInventory::CanUseItemInfo(int nType) {
 // void __fastcall CGocInventory::SendDBAppearanceLoad(CGocInventory *this)
 // Sends DB request to load appearance list (main=0x21, sub=0x29)
 void CGocInventory::SendDBAppearanceLoad() {
-    // IDA: Send DB packet
-    // XSendDBPacket xSendDBPacket(pObject, 0x21, 0x29);
-    // xSendDBPacket << QuestID;
-    // XGameServer::SendDBGame(&xSendDBPacket);
+    CMover* pOwner = GetOwnerGO();
+    IXObject* pObject = pOwner ? static_cast<IXObject*>(pOwner) : nullptr;
+    XSendDBPacket xSendDBPacket(pObject, 0x21, 0x29);
 
-    // TODO: 需人工审查 - Implement when XSendDBPacket available
+    // IDA ABI note: CUser::GetActorID's hidden result buffer is consumed by
+    // CQuestCondition::GetQuestID(), whose first uint32 is the wire identity.
+    CUser* pUser = GetCUserFromOwner(this);
+    const UXActorID actorID = pUser->GetActorID();
+    xSendDBPacket << actorID.dwActorID;
+    XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+    pServer->SendDBGame(xSendDBPacket);
 }
 
 // IDA: 0x1400BB270
@@ -7041,56 +7153,42 @@ void CGocInventory::SendEquipAppearance() {
 // IDA: 0x1400BB640
 // void __fastcall CGocInventory::AddAppearance(CGocInventory *this, ST_APPEARANCE_LIST *stList)
 // Adds multiple appearances from list, calls AddAppearance for each
-void CGocInventory::AddAppearance(void* stList) {
-    // IDA Decompiled:
-    // for ( i = 0; i < std::vector<...>::size(stList); ++i ) {
-    //     v4 = std::vector<...>::operator[](stList, i);
-    //     v2 = (unsigned __int16 *)std::vector<...>::operator[](stList, i);
-    //     CGocInventory::AddAppearance(this, *v2, *(_QWORD *)&v4->stEventInfo.nID);
-    // }
-    // PS_POST_DELETE_LIST::~PS_POST_DELETE_LIST(stList);
-
-    // TODO: 需人工审查 - Implement when ST_APPEARANCE_LIST type available
+void CGocInventory::AddAppearance(ST_APPEARANCE_LIST stList) {
+    for (const ST_APPEARANCE_INFO& stInfo : stList.vecInfo) {
+        AddAppearance(stInfo.wAppearanceID, stInfo.biEndDate);
+    }
 }
 
 // IDA: 0x1400BB800
 // void __fastcall CGocInventory::AddAppearance(CGocInventory *this, unsigned __int16 wAppearanceID, __int64 biEndDate)
 // Adds single appearance by ID with end date
 void CGocInventory::AddAppearance(std::uint16_t wAppearanceID, std::int64_t biEndDate) {
-    // IDA Decompiled:
-    // XGameServer* pServer = TXSingleton<XGameServer>::Instance();
-    // __int64 biCurDate = XGameServer::GetCurDate(pServer);
-    // m_mpAppearanceList[wAppearanceID] = biEndDate;
-    // if ( biCurDate > biEndDate && biEndDate > 0 ) {
-    //     // Appearance already expired
-    // }
-
-    // TODO: 需人工审查 - Implement when m_mpAppearanceList type available
+    const unsigned long key = static_cast<unsigned long>(wAppearanceID);
+    const auto iter = m_mpAppearanceList.find(key);
+    if (iter != m_mpAppearanceList.end()) {
+        iter->second = biEndDate;
+    } else {
+        m_mpAppearanceList.emplace(key, biEndDate);
+    }
 }
 
 // IDA: 0x1400BB8C0
 // void __fastcall CGocInventory::UpdateAppearance(CGocInventory *this, unsigned __int16 wAppearanceID, __int64 biAddSec, __int64 *biEndDate)
 // Updates appearance end date based on add seconds
 void CGocInventory::UpdateAppearance(std::uint16_t wAppearanceID, std::int64_t biAddSec, std::int64_t& biEndDate) {
-    // IDA Decompiled:
-    // if ( biAddSec ) {
-    //     XGameServer* pServer = TXSingleton<XGameServer>::Instance();
-    //     __int64 biCurDate = XGameServer::GetCurDate(pServer);
-    //     auto iter = m_mpAppearanceList.find(wAppearanceID);
-    //     if ( iter != m_mpAppearanceList.end() ) {
-    //         __int64 biDate = iter->second;
-    //         if ( biCurDate <= biDate )
-    //             *biEndDate = biAddSec + biDate;
-    //         else
-    //             *biEndDate = biAddSec + biCurDate;
-    //     } else {
-    //         *biEndDate = biAddSec + biCurDate;
-    //     }
-    // } else {
-    //     *biEndDate = 0;
-    // }
-
-    // TODO: 需人工审查 - Implement when m_mpAppearanceList type available
+    if (biAddSec) {
+        XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+        const std::int64_t biCurDate = pServer->GetCurDate();
+        const auto iter = m_mpAppearanceList.find(
+            static_cast<unsigned long>(wAppearanceID));
+        if (iter != m_mpAppearanceList.end() && biCurDate <= iter->second) {
+            biEndDate = biAddSec + iter->second;
+        } else {
+            biEndDate = biAddSec + biCurDate;
+        }
+    } else {
+        biEndDate = 0;
+    }
 }
 
 // IDA: 0x1400BBDD0
@@ -7386,11 +7484,9 @@ bool CGocInventory::UseItem_AkashicRecord(std::uint8_t byInvenType, std::int16_t
 // void __fastcall CGocInventory::GetQuickSlotItem(CGocInventory *this, int *pQuickSlotItem)
 // Gets quick slot items (4 items)
 void CGocInventory::GetQuickSlotItem(int* pQuickSlotItem) {
-    // IDA Decompiled:
-    // for ( int i = 0; i < 4; ++i )
-    //     pQuickSlotItem[i] = this->m_nQuickSlotItem[i];
-
-    // TODO: 需人工审查 - Implement when m_nQuickSlotItem member available
+    for (int i = 0; i < 4; ++i) {
+        pQuickSlotItem[i] = m_nQuickSlotItem[i];
+    }
 }
 
 // IDA: 0x1400BD260 - ?SendDBBroachLoad@CGocInventory@@QEAAX_N@Z
@@ -7611,50 +7707,67 @@ void CGocInventory::SendFurniture() {
 // void __fastcall CGocInventory::SendControlServerTradePassword(CGocInventory *this)
 // Sends trade password check to control server (main=0xF3, sub=0x27)
 void CGocInventory::SendControlServerTradePassword() {
-    // IDA Decompiled:
-    // CUser* pUser = dynamic_cast<CUser*>(GetOwner());
-    // if ( pUser ) {
-    //     XSendPacket xSendPacket(0xF3, 0x27);
-    //     xSendPacket << QuestID;
-    //     XGameServer* pServer = TXSingleton<XGameServer>::Instance();
-    //     CGameControlSocket::SendCheck(&pServer->m_controlSocket, &xSendPacket);
-    // }
+    CUser* pUser = GetCUserFromOwner(this);
+    if (!pUser) {
+        return;
+    }
 
-    // TODO: 需人工审查 - Implement when XSendPacket/CGameControlSocket types available
+    XSendPacket xSendPacket(0xF3, 0x27);
+    xSendPacket << pUser->GetActorID().dwActorID;
+    XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+    pServer->GetControlSocket().SendCheck(&xSendPacket);
 }
 
 // IDA: 0x1400BA860
 // void __fastcall CGocInventory::GM_ChangeSecondPW(CGocInventory *this, wchar_t *strPW)
 // GM command to change second password
 void CGocInventory::GM_ChangeSecondPW(wchar_t* strPW) {
-    // IDA Decompiled:
-    // PS_SECOND_PW_REQ psSecond;
-    // psSecond.byCheckType = 1;
-    // WideCharToMultiByte(0, 0, strPW, -1, psSecond.strPassword, 7, nullptr, nullptr);
-
-    // TODO: 需人工审查 - Implement when PS_SECOND_PW_REQ type available
+    PS_SECOND_PW_REQ psSecond{};
+    psSecond.byCheckType = 1;
+#ifdef _WIN32
+    WideCharToMultiByte(0, 0, strPW, -1, psSecond.strPassword,
+                        static_cast<int>(sizeof(psSecond.strPassword)),
+                        nullptr, nullptr);
+#else
+    std::wcstombs(psSecond.strPassword, strPW,
+                  sizeof(psSecond.strPassword) - 1);
+    psSecond.strPassword[sizeof(psSecond.strPassword) - 1] = '\0';
+#endif
 }
 
 // IDA: 0x1400BA8E0
 // void __fastcall CGocInventory::GM_ChangeTradePW(CGocInventory *this, wchar_t *strPW)
 // GM command to change trade password, validates and sends to DB
 void CGocInventory::GM_ChangeTradePW(wchar_t* strPW) {
-    // IDA Decompiled:
-    // PS_TRADE_PW_REQ psTrade;
-    // psTrade.byCheckType = 1;
-    // WideCharToMultiByte(0, 0, strPW, -1, psTrade.strPassword, 5, nullptr, nullptr);
-    // psTrade.strPassword[4] = 0;
-    //
-    // CUser* pUser = dynamic_cast<CUser*>(GetOwner());
-    // int nError = 0;
-    // if ( IsValidTradePassword(psTrade.strPassword, &nError) == 1 && pUser ) {
-    //     XSendDBPacket xSendDBPacket(pObject, 2, 0x38);
-    //     xSendDBPacket << pUser->GetUAID() << psTrade;
-    //     XGameServer* pServer = TXSingleton<XGameServer>::Instance();
-    //     XGameServer::SendDBAccount(pServer, &xSendDBPacket);
-    // }
+    PS_TRADE_PW_REQ psTrade{};
+    psTrade.byCheckType = 1;
+#ifdef _WIN32
+    WideCharToMultiByte(0, 0, strPW, -1, psTrade.strPassword,
+                        static_cast<int>(sizeof(psTrade.strPassword)),
+                        nullptr, nullptr);
+#else
+    std::wcstombs(psTrade.strPassword, strPW,
+                  sizeof(psTrade.strPassword) - 1);
+    psTrade.strPassword[sizeof(psTrade.strPassword) - 1] = '\0';
+#endif
+    psTrade.strPassword[4] = '\0';
 
-    // TODO: 需人工审查 - Implement when PS_TRADE_PW_REQ type available
+    CUser* pUser = GetCUserFromOwner(this);
+    int nError = 0;
+    if (!IsValidTradePassword(psTrade.strPassword, nError) || !pUser) {
+        return;
+    }
+
+    CMover* pOwner = GetOwnerGO();
+    IXObject* pObject = pOwner ? static_cast<IXObject*>(pOwner) : nullptr;
+    XSendDBPacket xSendDBPacket(pObject, 2, 0x38);
+    // IDA ABI note: the original performs a second CUser RTTI cast after
+    // packet construction, then resolves UAID before obtaining the server singleton.
+    CUser* pUserForUAID = GetCUserFromOwner(this);
+    xSendDBPacket << pUserForUAID->GetUAID();
+    xSendDBPacket << psTrade;
+    XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+    pServer->SendDBAccount(xSendDBPacket);
 }
 
 // IDA: 0x1400BAAD0
@@ -12849,35 +12962,25 @@ bool CGocInventory::IsValidDyeInfo(int nItemID, int nDyeID) {
 // IDA: 0x1400DF110
 // bool __fastcall CGocInventory::IsValidSlotItem(CGocInventory *this, unsigned __int8 byInvenType, __int16 shSlot, STItem *stItem)
 // Validates if slot item matches expected serial
-bool CGocInventory::IsValidSlotItem(std::uint8_t byInvenType, std::int16_t shSlot, void* stItem) {
-    // IDA Decompiled:
-    // __int64 __fastcall CGocInventory::IsValidSlotItem(CGocInventory *this, unsigned __int8 byInvenType, __int16 shSlot, STItem *stItem)
-    // {
-    //   // Get user UCID
-    //   dwUCID = GetActor()->GetActorID().GetQuestID();
-    //
-    //   // Get item from slot
-    //   byLock[0] = 0;
-    //   GetSlotItem(&pItemPtr, byInvenType, shSlot, byLock);
-    //
-    //   // Check if slot is empty
-    //   if (pItemPtr.invalid()) return true;  // Empty slot is valid
-    //
-    //   // Check serial mismatch
-    //   if (pItemPtr->GetSerial() != stItem->xSerial) {
-    //     LogError("IsValidSlotItem error - Overlapped item[UCID:%d, Inven:%d, Slot:%d, ExistSerial:%I64d, Serial:%I64d",
-    //              dwUCID, byInvenType, shSlot, pItemPtr->GetSerial(), stItem->xSerial);
-    //     return false;
-    //   }
-    //
-    //   return false;  // Slot occupied with different item
-    // }
+bool CGocInventory::IsValidSlotItem(std::uint8_t byInvenType, std::int16_t shSlot, STItem* stItem) {
+    CUser* pUser = GetCUserFromOwner(this);
+    const std::uint32_t dwUCID =
+        CQuestCondition::GetQuestID(pUser->GetActorID());
+    bool bLock = false;
+    std::shared_ptr<CItem> pItem = GetSlotItem(byInvenType, shSlot, bLock);
+    if (!pItem) {
+        return true;
+    }
 
-    // TODO: 需人工审查 - Implement when GetSlotItem/STItem available
-    (void)byInvenType;
-    (void)shSlot;
-    (void)stItem;
-    return true;
+    LogHelper::LogError(
+        "game.contents",
+        "IsValidSlotItem error - Overlapped item[UCID:%d, Inven:%d, Slot:%d, ExistSerial:%I64d, Serial:%I64d",
+        dwUCID,
+        byInvenType,
+        shSlot,
+        pItem->GetSerial(),
+        stItem->xSerial);
+    return false;
 }
 
 // IDA: 0x1400DF260
@@ -13392,38 +13495,20 @@ bool CGocInventory::AddDyePoint(int nDyePoint) {
 // IDA: 0x1400E1430
 // bool __fastcall CGocInventory::IsHiddenDye(CGocInventory *this, unsigned __int16 nDyeID)
 // Checks if dye ID is hidden (Hidden_Info == 1)
-bool CGocInventory::IsHiddenDye(std::uint16_t nDyeID) {
-    // IDA Decompiled:
-    // bool __fastcall CGocInventory::IsHiddenDye(CGocInventory *this, unsigned __int16 nDyeID)
-    // {
-    //   XGameServer* pServer = TXSingleton<XGameServer>::Instance();
-    //   TB_DYE* pTB_Dye = XResourceMgr::GetTB_DYE(&pServer->m_xResourceMgr, nDyeID);
-    //   return pTB_Dye && pTB_Dye->Hidden_Info == 1;
-    // }
-
-    // TODO: 需人工审查 - Implement when XResourceMgr/TB_DYE available
-    (void)nDyeID;
-    return false;
+bool CGocInventory::IsHiddenDye(int nDyeID) {
+    XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+    TB_DYE* pTB_Dye = pServer->GetResourceMgr().GetTB_DYE(
+        static_cast<std::uint16_t>(nDyeID));
+    return pTB_Dye && pTB_Dye->Hidden_Info == 1;
 }
 
 // IDA: 0x1400E1480
-// float __fastcall CGocInventory::GetCommonValue(CGocInventory *this, unsigned int nIndex)
+// PDB ABI uses signed int (H); IDA's unsigned display is type pollution.
 // Gets common value from TB_COMMON table
-float CGocInventory::GetCommonValue(unsigned int nIndex) {
-    // IDA Decompiled:
-    // float __fastcall CGocInventory::GetCommonValue(CGocInventory *this, unsigned int nIndex)
-    // {
-    //   XGameServer* pServer = TXSingleton<XGameServer>::Instance();
-    //   TB_COMMON* pTB_Common = XResourceMgr::GetTB_COMMON(&pServer->m_xResourceMgr, nIndex);
-    //   if (pTB_Common)
-    //     return pTB_Common->Value;
-    //   else
-    //     return -1.0f;
-    // }
-
-    // TODO: 需人工审查 - Implement when XResourceMgr/TB_COMMON available
-    (void)nIndex;
-    return -1.0f;
+float CGocInventory::GetCommonValue(int nIndex) {
+    XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+    TB_COMMON* pTB_Common = pServer->GetResourceMgr().GetTB_COMMON(nIndex);
+    return pTB_Common ? pTB_Common->Value : -1.0f;
 }
 
 // === Batch 11: Gesture functions (IDA verified) ===
@@ -13952,23 +14037,3 @@ int CGocInventory::ChangeItemTitle(void* psChangeInfo, int& nTitleID, bool& bSuc
 //   v2 = TXSingleton<XGameServer>::Instance();
 //   return XResourceMgr::GetTB_REPACKAGECOSTUME(&v2->m_xResourceMgr, nPackageID) != nullptr;
 // }
-
-
-// IDA: 0x1400E6AD0
-bool CGocInventory::IsResealPackageCount(int nPackageID, int nCount) {
-    TB_REPACKAGECOSTUME* pTBRepackage = TXSingleton<XGameServer>::Instance()
-                                            ->GetResourceMgr()
-                                            .GetTB_REPACKAGECOSTUME(
-                                                static_cast<unsigned int>(nPackageID));
-    if (!pTBRepackage) {
-        return false;
-    }
-
-    int nCheckCount = 0;
-    for (int i = 0; i < 13 && pTBRepackage->uniItem[i]; ++i) {
-        ++nCheckCount;
-    }
-
-    return nCheckCount && nCount == nCheckCount;
-}
-// IDA-verified implementation

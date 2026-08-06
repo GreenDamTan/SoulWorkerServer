@@ -85,6 +85,9 @@ public:
     // IDA: ?SetInfo@XActor@@UEAAXXZ
     virtual void SetInfo() {}
 
+    // IDA: ?SendWorldEventBooster@XActor@@UEAAXK_J@Z (0x140188CF0)
+    virtual void SendWorldEventBooster(unsigned long dwBuffID, std::int64_t biEndDate);
+
     // 区域
     // IDA: ?GetArea@XActor@@UEAAPEAVXArea@@XZ (0x140188D20)
     XArea* GetArea() const { return m_pArea; }

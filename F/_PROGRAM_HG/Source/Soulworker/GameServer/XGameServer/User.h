@@ -17,6 +17,7 @@ struct TB_CHARACTER;
 class TB_ENDURANCE;
 class CFSRWLock;
 struct ST_CHECK_POS;
+struct PS_REQ_TICKCOUNT;
 struct PS_TICKCOUNT_INFO;
 struct TB_SKILL;
 struct STPosInfo;
@@ -67,7 +68,10 @@ public:
 
     // 核心方法 (来自构造函数调用序列)
     void InitComponant();
-    void RegisterProcess();
+    void SetRequestTick(std::uint8_t byType,
+                        PS_REQ_TICKCOUNT& psReqTick,
+                        std::uint64_t dwRecvTick);
+    void GetResultTick(int nTicknum, PS_TICKCOUNT_INFO& psTick);
     void ChangeBattlePose(int nPose);
     void SetInfo();
     void InitStoreSuboInputPacket();
@@ -437,6 +441,9 @@ public:
     // IDA 0x1406FEFB0
     void SendBannerInfo();
 
+    // IDA: ?SendWorldEventBooster@CUser@@UEAAXK_J@Z (0x1406E9740)
+    virtual void SendWorldEventBooster(unsigned long dwBuffID, std::int64_t biEndDate);
+
     // IDA 0x1406E9E60: writes this user's STCharInfoEx portion into an info packet.
     virtual void SetInfoPacket(XSendPacket& xSendPacket);
     // IDA 0x1406E9EC0: refreshes and returns the full character info block.
@@ -492,6 +499,9 @@ public:
     // LoadData - Load player data from database
     // IDA 0x1406E9300 (estimated)
     bool LoadData();
+
+protected:
+    virtual bool RegisterProcess();
 
     // === Inventory Helper Functions ===
     // GetItemCount - Get count of specific item in inventory

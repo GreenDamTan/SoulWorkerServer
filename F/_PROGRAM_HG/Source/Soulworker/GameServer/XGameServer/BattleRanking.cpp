@@ -346,8 +346,8 @@ void BattleRanking::ResRankingReward(CGocRecode* pRecode, void* pDBReward) {
     // Update inventory
     CGocInventory* pInventory = GetGOC<CGocInventory>(pUser);
     if (pInventory) {
-        pInventory->SendUpdateItem(&psRes->stUpdateItem);
-        pInventory->SendCreateItem(&psRes->stCreateItem, 1.0f);
+        pInventory->SendUpdateItem(psRes->stUpdateItem);
+        pInventory->SendCreateItem(psRes->stCreateItem);
     }
     
     // Send client response

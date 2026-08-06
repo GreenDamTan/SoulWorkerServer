@@ -24,7 +24,7 @@ public:
     // IDA: ?StopThread@CThreadBase@@QEAAXXZ (0x1401ef5d0)
     // Stop the thread by setting stop event and flag
     void StopThread() {
-        CKernelEvent::Set(&m_evStop);  // Set stop event
+        m_evStop.Set();  // Set stop event
         m_bStopFlag = 1;               // Set stop flag
     }
 

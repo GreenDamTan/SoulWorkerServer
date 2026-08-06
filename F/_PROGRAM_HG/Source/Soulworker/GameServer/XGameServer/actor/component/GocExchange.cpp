@@ -1914,8 +1914,8 @@ void CGocExchange::ResExchangeSellRegister(PS_DB_EXCHANGE_SELL_REGISTER& psRes)
         
         // Send update item packet
         PS_RES_STORAGE_INFO psResStorage;
-        psResStorage.stUpdateItem = *(std::vector<PS_STORAGE_INFO>*)&psRes.stUpdateItem;
-        pInvenPtr->SendUpdateItem(&psResStorage);
+        psResStorage.vecItem = *(std::vector<PS_STORAGE_INFO>*)&psRes.stUpdateItem;
+        pInvenPtr->SendUpdateItem(psResStorage);
         
         // Send my list update packet (Main=0x2B, Sub=8)
         PS_EXCHANGE_MY_LIST_RES psList;

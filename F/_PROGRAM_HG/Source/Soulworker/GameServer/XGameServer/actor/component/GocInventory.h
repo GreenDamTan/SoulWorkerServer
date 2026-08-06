@@ -41,10 +41,19 @@ enum eINVEN_TYPE : unsigned char {
     E_INVEN_TYPE_LOOK_EQUIP = 3,
 };
 
-// Enum for trade states
-enum E_TRADE_STATE {
+// PDB eTRADE_STATE values used by CGocInventory trade transitions.
+enum eTRADE_STATE {
     E_TRADE_STATE_NONE = 0,
+    E_TRADE_STATE_READY_BEFORE = 1,
+    E_TRADE_STATE_READY = 2,
+    E_TRADE_STATE_UPDATE = 3,
+    E_TRADE_STATE_CHECK = 4,
+    E_TRADE_STATE_CHECK_BOTH = 5,
+    E_TRADE_STATE_CONFIRM = 6,
 };
+
+static_assert(sizeof(eTRADE_STATE) == 4,
+              "eTRADE_STATE size must match GameServer PDB");
 
 // Local structs not in shared headers
 struct ST_PRIVATE_SHOP_ITEM {
@@ -52,9 +61,15 @@ struct ST_PRIVATE_SHOP_ITEM {
     std::int64_t biMoney = 0;
 };
 
+// 复核注意：GameServer PDB UDT 0x13926 的大小是 4；不要套用 GocTrade.h 中旧的三字段推断。
 struct PS_REQ_ITEM_TRADE {
     std::uint8_t byInvenType = 0;
     std::int16_t shSlotPos = 0;
+
+    bool operator==(const PS_REQ_ITEM_TRADE& other) const {
+        return byInvenType == other.byInvenType &&
+               shSlotPos == other.shSlotPos;
+    }
 };
 
 static_assert(sizeof(PS_REQ_ITEM_TRADE) == 4,
@@ -361,12 +376,6 @@ public:
     // Validates and processes money move request between inventory and bank
     bool IsValidMoveMoney(PS_REQ_MOVE_MONEY* psMoveMoney);
 
-    // === Equipment validation functions (IDA verified) ===
-    
-    // CanEquip - Validates if an item can be equipped in a slot
-    // Checks item table, classify, slot validity, level/class restrictions
-    bool CanEquip(std::uint8_t byInvenType, std::int16_t shSlotPos, int nItemID);
-
     // === Empty slot functions (IDA verified) ===
     
     // GetEmptySlot - Finds an empty slot in the specified inventory type
@@ -457,7 +466,8 @@ public:
 
     // SetQuickSlotItem - 0x1400ACA50
     // Updates quick slot items
-    bool SetQuickSlotItem(/*PS_QUICKSLOT_UPDATE_ITEM*/ void* stUpdateSlot);
+    // PDB ABI is a non-const reference; do not change this to by-value.
+    bool SetQuickSlotItem(PS_QUICKSLOT_UPDATE_ITEM& stUpdateSlot);
 
     // === Repurchaser functions (IDA verified) ===
 
@@ -473,7 +483,7 @@ public:
 
     // LoadQuickSlotItem - 0x1400ACD50
     // Loads quick slot items from DB response
-    bool LoadQuickSlotItem(/*PS_QUICKSLOT_ITEM*/ void* stQuickSlotItem);
+    bool LoadQuickSlotItem(PS_QUICKSLOT_ITEM stQuickSlotItem);
 
     // === Item creation functions (IDA verified) ===
 
@@ -507,7 +517,7 @@ public:
     // BreakItemReq - 0x1400ADB20
     // Breaks/disposes an item with logging
     bool BreakItemReq(std::uint8_t byInvenType, std::int16_t shSlotPos, int nCount,
-                      std::uint8_t byBreakLock, void* stLogData);
+                      std::uint8_t byBreakLock, ST_LOG_GAME* stLogData);
 
     // === Logout/trade cancel functions (IDA verified) ===
 
@@ -534,17 +544,17 @@ public:
 
     // PopTradeItem - 0x1400AE6A0
     // Removes item from trade list
-    bool PopTradeItem(/*PS_REQ_ITEM_TRADE*/ void* stInfo);
+    bool PopTradeItem(PS_REQ_ITEM_TRADE stInfo);
 
     // SetTradeState - 0x1400AF760
     // Sets trade state and initializes timeout
-    void SetTradeState(int eState);
+    void SetTradeState(eTRADE_STATE eState);
 
     // === Item update/sync functions (IDA verified) ===
 
     // SendUpdateItem - 0x1400AF7A0 (list version)
     // Sends update for multiple items
-    void SendUpdateItem(/*PS_RES_STORAGE_INFO*/ void* stItemList);
+    void SendUpdateItem(PS_RES_STORAGE_INFO& stItemList);
 
     // SendUpdateItem - 0x1400B00B0 (single item version)
     // Sends update for single item (main=8, sub=0x12)
@@ -559,25 +569,19 @@ public:
 
     // SendUpdateItemToDB - 0x1400AF900
     // Sends item updates to database (main=0x21, sub=0x11 or sub=5)
-    void SendUpdateItemToDB(/*PS_RES_STORAGE_INFO*/ void* stItemList);
+    void SendUpdateItemToDB(PS_RES_STORAGE_INFO& stItemList);
 
     // SendUserUpdateItem - 0x1400AFC40
     // Sends user item update notification (main=8, sub=0x15)
-    void SendUserUpdateItem(/*PS_RES_STORAGE_INFO*/ void* psUpdateItem, bool bUnLock);
+    void SendUserUpdateItem(PS_RES_STORAGE_INFO& psUpdateItem, bool bUnLock);
 
     // SendCreateItem - 0x1400AFDF0
     // Sends item creation notification (main=8, sub=6)
-    void SendCreateItem(/*PS_RES_STORAGE_INFO*/ void* stItemList);
+    void SendCreateItem(PS_RES_STORAGE_INFO& stItemList);
 
     // SendDivideItem - 0x1400B0230
     // Sends item divide/split notification (main=8, sub=4)
-    void SendDivideItem(/*PS_DB_ITEM_MOVE*/ void* stItemMove);
-
-    // === Private shop functions (IDA verified) ===
-
-    // PrivateShopItemList - 0x1400B11D0
-    // Populates private shop list with items
-    void PrivateShopItemList(/*ST_PRIVATE_SHOP_LIST*/ void* stPrivateShopList);
+    void SendDivideItem(PS_DB_ITEM_MOVE& stItemMove);
 
     // === Quest items ===
     bool IsQuestItem(int nItemId) const;
@@ -590,15 +594,12 @@ public:
 
     // === Additional helper functions (from IDA) ===
 
-    // SetTradeState - 0x1400A0070
-    void SetTradeState(E_TRADE_STATE eState);
-
     // SetTradeActorID - 0x1400A0078
     void SetTradeActorID(UXActorID actorID);
 
     // SetLock - 0x1400A7020 (IDA verified)
     // Sets lock flag on inventory/equipment slot, returns true if successful
-    bool SetLock(std::uint8_t byInvenType, std::uint16_t shSlotPos, std::uint8_t byFlag);
+    bool SetLock(std::uint8_t byInvenType, std::int16_t shSlotPos, std::uint8_t byFlag);
 
     // === Appearance functions (IDA verified) ===
 
@@ -624,7 +625,7 @@ public:
 
     // AddAppearance - 0x1400BB640
     // Adds multiple appearances from list, calls AddAppearance for each
-    void AddAppearance(/*ST_APPEARANCE_LIST*/ void* stList);
+    void AddAppearance(ST_APPEARANCE_LIST stList);
 
     // AddAppearance (single) - 0x1400BB800
     // Adds single appearance by ID with end date
@@ -1008,7 +1009,7 @@ public:
 
     // GetCashMileage - 0x1400E5140
     // Returns cash mileage by type (0=Akashic, 1=Broach, 2=Tag)
-    int GetCashMileage(int eType) const;
+    int GetCashMileage(E_CASH_MILEAGE_TYPE eType);
 
     // SetCashMileage (array) - 0x1400E4EA0
     // Sets cash mileage from array and optionally sends to client
@@ -1016,7 +1017,7 @@ public:
 
     // SetCashMileage (single) - 0x1400E5020
     // Updates single cash mileage value and sends to client
-    void SetCashMileage(/*PS_CASH_MILEAGE*/ void* psUpdateInfo);
+    void SetCashMileage(PS_CASH_MILEAGE psUpdateInfo);
 
     // SendCashMileageLog - 0x1400E51A0
     // Sends cash mileage log to DB
@@ -1080,7 +1081,7 @@ public:
 
     // GetTradePasswordState - 0x1400F93B0
     // Returns m_byTradePassword
-    std::uint8_t GetTradePasswordState() const;
+    std::uint8_t GetTradePasswordState();
 
     // === Batch 17: Trade and Cash Item functions (IDA verified) ===
 
@@ -1090,7 +1091,7 @@ public:
 
     // GetTradeState - 0x1400F9C50
     // Returns m_eTradeState
-    int GetTradeState() const;
+    eTRADE_STATE GetTradeState() const;
 
     // GetTradeMoney - 0x1400F9CB0
     // Returns m_stTradeInfo.biMoney
@@ -1130,7 +1131,7 @@ public:
 
     // GetSocketUpgrade - 0x1404EAB30
     // Returns m_bReqSocketUpgrade
-    bool GetSocketUpgrade() const;
+    bool GetSocketUpgrade();
 
     // SetSocketExchange - 0x1404EAB80
     // Sets m_bReqSocketExchange
@@ -1178,7 +1179,7 @@ public:
 
     // CheatGetAbsoluteUpgrade - 0x1404070B0
     // Returns m_bAbsoluteUpgade
-    bool CheatGetAbsoluteUpgrade() const;
+    bool CheatGetAbsoluteUpgrade();
 
     // CheatSetAbsoluteUpgrade - 0x1404070D0
     // Sets m_bAbsoluteUpgade
@@ -1186,7 +1187,7 @@ public:
 
     // GetReqLeagueNameChange - 0x140504200
     // Returns m_bReqLeagueNameChange
-    bool GetReqLeagueNameChange() const;
+    bool GetReqLeagueNameChange();
 
     // === Batch 22: Billing/Recycle/Mileage getters/setters (IDA verified) ===
 
@@ -1196,7 +1197,7 @@ public:
 
     // GetRecycle - 0x1405DACB0
     // Returns m_biRecycle
-    std::int64_t GetRecycle() const;
+    std::int64_t GetRecycle();
 
     // SetMileageShopBuyItem - 0x1405DACD0
     // Sets m_bReqShopBuy
@@ -1204,11 +1205,11 @@ public:
 
     // GetMileageShopBuyItem - 0x1405DACF0
     // Returns m_bReqShopBuy
-    bool GetMileageShopBuyItem() const;
+    bool GetMileageShopBuyItem();
 
     // IsProcessBilling - 0x1405DAD10
     // Returns m_bProcessBilling
-    bool IsProcessBilling() const;
+    bool IsProcessBilling();
 
     // === Batch 23: Tool clear/get functions (IDA verified) ===
 
@@ -1230,7 +1231,7 @@ public:
 
     // GetPrivateShopItemCount - 0x140622430
     // Returns size of m_liPrivateShopItem list
-    std::int16_t GetPrivateShopItemCount() const;
+    std::int16_t GetPrivateShopItemCount();
 
     // === Batch 24: Tool get/Trade functions (IDA verified) ===
 
@@ -1587,7 +1588,7 @@ public:
 
     // IsValidSlotItem - 0x1400DF110
     // Validates if slot item matches expected serial
-    bool IsValidSlotItem(std::uint8_t byInvenType, std::int16_t shSlot, /*STItem*/ void* stItem);
+    bool IsValidSlotItem(std::uint8_t byInvenType, std::int16_t shSlot, STItem* stItem);
 
     // AddItemEmptySlot - 0x1400DF260
     // Adds overlapped items to empty slots
@@ -1621,7 +1622,7 @@ public:
 
     // IsValidEquipItem - 0x1400E0CB0
     // Validates if item can be equipped in slot
-    bool IsValidEquipItem(/*PS_STORAGE_INFO*/ void* psInfo);
+    bool IsValidEquipItem(PS_STORAGE_INFO* psInfo);
 
     // GetMakeLimitInitDay - 0x1400E0DE0
     // Gets init day offset for make limit reset period
@@ -1643,11 +1644,11 @@ public:
 
     // IsHiddenDye - 0x1400E1430
     // Checks if dye ID is hidden (Hidden_Info == 1)
-    bool IsHiddenDye(std::uint16_t nDyeID);
+    bool IsHiddenDye(int nDyeID);
 
     // GetCommonValue - 0x1400E1480
     // Gets common value from TB_COMMON table
-    float GetCommonValue(unsigned int nIndex);
+    float GetCommonValue(int nIndex);
 
     // === Batch 11: Gesture functions (IDA verified) ===
 
@@ -1731,7 +1732,7 @@ public:
 
     // LoadCoolTime - 0x1400B9770
     // Loads cooldown list from DB response
-    void LoadCoolTime(/*PS_ITEM_COOMTIME_LIST*/ void* psCooltimeList);
+    void LoadCoolTime(PS_ITEM_COOMTIME_LIST& psCooltimeList);
 
     // AddCoolTime - 0x1400B9AB0
     // Adds cooldown for group ID, optionally syncs to DB
@@ -1749,7 +1750,7 @@ public:
 
     // CheckTradePassword - 0x1400B9F60
     // Validates trade password and sends response
-    bool CheckTradePassword(/*PS_TRADE_PW_REQ*/ void* psTrade);
+    bool CheckTradePassword(PS_TRADE_PW_REQ& psTrade);
 
     // IsValidTradePassword - 0x1400BA530
     // Validates password format (4 digits, 0-7, no sequences)
@@ -1763,7 +1764,7 @@ public:
 
     // SetItemUseInfoList - 0x1400B7370
     // Sets item use info list from DB response
-    void SetItemUseInfoList(/*ST_USE_ITEM_INFO_LIST*/ void* stUseItemInfoList);
+    void SetItemUseInfoList(ST_USE_ITEM_INFO_LIST& stUseItemInfoList);
 
     // OnInitItemUseInfoDate - 0x1400B74F0
     // Initializes item use info date, clears expired entries
@@ -1826,16 +1827,16 @@ protected:
     ST_MY_TRADE_INFO m_stTradeInfo;
     UXActorID m_uxTradeActorID = 0;
     std::uint64_t m_dw64TradeTick = 0;
-    int m_eTradeState = 0;  // eTRADE_STATE enum
+    eTRADE_STATE m_eTradeState = E_TRADE_STATE_NONE;
 
     // Group cool time map (from InitItemCoolTime)
-    std::map<int, void*> m_mpGroupCoolTime;
+    std::map<std::uint16_t, std::uint64_t> m_mpGroupCoolTime;
 
     // Additional members from Init
     std::list<STItem> m_listRepurchaserItem;  // IDA: std::list<STItem>
     PS_ITEM_SOCKET_LIST m_listRepurchaseSocket;  // IDA: PS_ITEM_SOCKET_LIST
     PS_ITEM_BROACH_LIST m_listRepurchaseBroach;  // IDA: PS_ITEM_BROACH_LIST
-    int m_nQuickSlotItem[10] = {0};       // Quick slot items
+    int m_nQuickSlotItem[4] = {0};        // Quick slot items
     TB_ITEM_ENDURANCE* m_pEnduranceTable = nullptr;
     std::map<std::int64_t, int> m_mpCashItemDate;
     bool m_bAbsoluteUpgade = false;
@@ -1844,7 +1845,7 @@ protected:
     std::int64_t m_biUseItemUpdateDate = 0;
     std::uint64_t m_dw64UpdateTick = 0;
     int m_nMazeNeedItemID = 0;
-    std::map<std::uint32_t, void*> m_mpUseItemInfo;
+    std::map<int, ST_USE_ITEM_INFO> m_mpUseItemInfo;
     std::map<unsigned long, std::int64_t> m_mpAppearanceList;
     char m_stCashSet[9 * 104] = {0};      // 9 PS_CASH_SET objects
     bool m_bProcessBilling = false;
@@ -1875,8 +1876,8 @@ protected:
     int m_nRenovatePoint = 0;
     int m_nRefinePoint = 0;
     std::uint64_t m_dw64WaitTick = 0;
-    int m_nCashMileage[4] = {0};          // Cash mileage array
-    std::map<std::uint32_t, void*> m_mpSaveGroupCooltime;
+    int m_nCashMileage[3] = {0};          // Cash mileage array
+    std::map<std::uint16_t, PS_ITEM_COOLTIME_INFO> m_mpSaveGroupCooltime;
 
     // Tool-related members (from IDA ClearTool* functions)
     std::vector<void*> m_stToolDisassemble;       // ST_ITEM_PACKAGE_PARTS vector

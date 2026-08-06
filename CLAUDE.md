@@ -64,19 +64,13 @@ cmake -S . -B build -G Ninja `
 ### Build
 
 ```powershell
-cmake --build build --target LoginServer
-cmake --build build --target RelayServer
-cmake --build build --target GameServer
-cmake --build build --target ControlServer
-```
-
-For faster parallel compilation, use `-j` with the number of cores (e.g., `-j8` for 8 cores):
-
-```powershell
+cmake --build build --target LoginServer -- -j8
+cmake --build build --target RelayServer -- -j8
 cmake --build build --target GameServer -- -j8
+cmake --build build --target ControlServer -- -j8
 ```
 
-If parallel compilation triggers LLVM memory pressure, use a serial build for the target being checked:
+Use a multi-threaded build by default to avoid unnecessary compile time. If a build fails, inspect the complete build output or saved error log before changing code. If parallel compilation triggers LLVM memory pressure, retry the affected target serially:
 
 ```powershell
 cmake --build build --target GameServer -- -j1

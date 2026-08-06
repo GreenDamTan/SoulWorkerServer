@@ -16,8 +16,7 @@
 #include <map>
 #include <set>
 
-// 使用 std::tr1 命名空间 (VS2010 兼容) - C++11 中 tr1 已合并到 std
-namespace std { namespace tr1 = std; }
+#include "Soulworker/GameServer/XCore/XServer/GreenDamTan_StdCompat.h"
 
 // 包含 Vision Engine 子类型定义
 #include "VisionEngineTypes/hkvVec3.h"

@@ -83,8 +83,7 @@ struct ST_WAIT_ENTER_SERVER {
     ULONGLONG dwTick = 0;
 };
 
-// 使用 std::tr1 命名空间 (VS2010 兼容)
-namespace std { namespace tr1 = std; }
+#include "Soulworker/GameServer/XCore/XServer/GreenDamTan_StdCompat.h"
 
 // ============================================================================
 // GreenDamTan_UserIndexContainer - 用户索引容器 (替代 boost::multi_index)

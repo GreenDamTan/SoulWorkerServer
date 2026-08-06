@@ -8,11 +8,25 @@
 #include <unordered_map>
 #include <vector>
 
+#include "GreenDamTan_TxMap.h"
+
+#ifdef _WIN32
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
+#include <winsock2.h>
+#include <windows.h>
+#endif
+
 /**
  * @brief `CSimpleLock` 的跨平台最小还原。
  *
- * 原版基于 `CRITICAL_SECTION`；当前继续用 `std::recursive_mutex`
- * 维持 `Init/Lock/UnLock` 外形，避免把平台差异散落到业务代码。
+ * PDB layout: `m_CriticalSection` at offset 0, `m_bInit` at offset 40,
+ * total size 48 bytes. Windows therefore uses the native 40-byte
+ * `CRITICAL_SECTION`; the non-Windows path retains the same object size.
  */
 class CSimpleLock {
 public:
@@ -37,44 +51,80 @@ public:
         CSimpleLock* m_xLock = nullptr;
     };
 
+    CSimpleLock() = default;
+    ~CSimpleLock() {
+        Clear();
+    }
+
+    CSimpleLock(const CSimpleLock&) = delete;
+    CSimpleLock& operator=(const CSimpleLock&) = delete;
+
     void Init() {
-        if (m_bInit && m_mutex) {
+        if (m_bInit) {
             return;
         }
+
+#ifdef _WIN32
+        InitializeCriticalSection(&m_CriticalSection);
+#else
         m_mutex = std::make_unique<std::recursive_mutex>();
+#endif
         m_bInit = true;
     }
 
-    void Destroy() {
+    void Clear() {
         if (!m_bInit) {
             return;
         }
 
+#ifdef _WIN32
+        DeleteCriticalSection(&m_CriticalSection);
+#else
         m_mutex.reset();
+#endif
         m_bInit = false;
     }
 
     void Lock() {
-        if (!m_bInit || !m_mutex) {
+        if (!m_bInit) {
             Init();
         }
 
+#ifdef _WIN32
+        EnterCriticalSection(&m_CriticalSection);
+#else
         m_mutex->lock();
+#endif
     }
 
     void UnLock() {
-        if (!m_bInit || !m_mutex) {
+        if (!m_bInit) {
             return;
         }
 
+#ifdef _WIN32
+        LeaveCriticalSection(&m_CriticalSection);
+#else
         m_mutex->unlock();
+#endif
     }
 
-    bool m_bInit = false;
-
-private:
+protected:
+#ifdef _WIN32
+    CRITICAL_SECTION m_CriticalSection{};
+#else
     std::unique_ptr<std::recursive_mutex> m_mutex;
+    std::uint8_t m_padding[31] = {};
+#endif
+    bool m_bInit = false;
 };
+
+#ifdef _WIN32
+static_assert(sizeof(CRITICAL_SECTION) == 40,
+              "CRITICAL_SECTION size must match GameServer PDB");
+#endif
+static_assert(sizeof(CSimpleLock) == 48,
+              "CSimpleLock size must match GameServer PDB");
 
 /**
  * @brief `IXObject` 的最小落地。
@@ -91,12 +141,9 @@ private:
  * 
  * Layout (64 bytes):
  * - vftable pointer: 8 bytes (offset 0)
- * - m_xLock.m_bInit: 1 byte (offset 8)
- * - padding: 7 bytes (offset 9-15)
- * - m_xLock.m_mutex (unique_ptr): 8 bytes (offset 16-23)
- * - padding: 4 bytes (offset 24-27)
- * - m_xSessionID: 4 bytes (offset 28-31)
- * - padding: 32 bytes (offset 32-63)
+ * - m_xLock: 48 bytes (offset 8)
+ * - m_xSessionID: 4 bytes (offset 56)
+ * - tail padding: 4 bytes (offset 60-63)
  */
 class IXObject {
 public:
@@ -105,7 +152,7 @@ public:
     }
 
     virtual ~IXObject() {
-        m_xLock.Destroy();
+        m_xLock.Clear();
     }
 
     virtual int GetSessionID() {
@@ -122,12 +169,6 @@ public:
 
     CSimpleLock m_xLock;
     int m_xSessionID = 0;
-
-protected:
-    // Padding to match IDA size (64 bytes total)
-    // Current: 8 (vftable) + 16 (CSimpleLock) + 4 (int) + padding = 64
-    // CSimpleLock = 1 (bool) + 7 (padding) + 8 (unique_ptr) = 16
-    char m_reserved[36] = {0};
 };
 
 static_assert(sizeof(IXObject) == 64, "IXObject size mismatch - expected 64 bytes from IDA");
@@ -142,16 +183,18 @@ static_assert(sizeof(IXObject) == 64, "IXObject size mismatch - expected 64 byte
  */
 class IXObjectMgr {
 public:
-    IXObjectMgr() {
+    IXObjectMgr()
+        : m_nMaxSize(0)
+        , m_xLock()
+        , m_xSessionIdx(0) {
         m_xLock.Init();
     }
 
-    virtual ~IXObjectMgr() = default;
-
-    virtual bool Init(int maxObjectCount) {
-        m_nMaxObjectCount = maxObjectCount;
-        return true;
+    virtual ~IXObjectMgr() {
+        m_xLock.Clear();
     }
+
+    virtual bool Init(int maxObjectCount) = 0;
 
     int GetSessionID() {
         CSimpleLock::Owner xLock(&m_xLock);
@@ -162,20 +205,16 @@ public:
     }
 
 protected:
+    int m_nMaxSize;
     CSimpleLock m_xLock;
-    std::uint32_t m_xSessionIdx = 0;
-    int m_nMaxObjectCount = 0;
+    std::uint32_t m_xSessionIdx;
+
 };
 
-// 前置声明 - TXMap 在 GreenDamTan_ClientBase.h 中定义
-template <typename KeyType, typename ValueType, typename KeyTraits>
-struct TXMap;
+static_assert(sizeof(IXObjectMgr) == 72,
+              "IXObjectMgr size mismatch");
 
-// 前置声明 - ATL::CAtlMap 在 GreenDamTan_ClientBase.h 中定义
-namespace ATL {
-template <typename KeyType, typename ValueType, typename KeyTraits, typename ValueTraits>
-class CAtlMap;
-}
+#include "GreenDamTan_TxPool.h"
 
 /**
  * @brief `TXObjectMgr<TObject>` 的跨平台还原。
@@ -209,148 +248,78 @@ class CAtlMap;
  */
 template <typename TObject>
 class TXObjectMgr : public IXObjectMgr {
-    // NOTE: 移除 static_assert 以允许前向声明类型
-    // 原版 IDA 显示 CUser 通过 RTTI 转换，不要求编译时继承关系
-    // static_assert(std::is_base_of_v<IXObject, TObject>,
-    //               "TXObjectMgr<TObject> requires TObject to derive from IXObject");
-
 public:
-    /**
-     * @brief 初始化对象池。
-     *
-     * 对齐 IDA: 固定容量预分配对象池。
-     *
-     * NOTE: 当前实现不预分配对象，因为 TObject 可能是不完整类型。
-     * 对象将在 Create() 调用时动态创建。
-     *
-     * @param maxObjectCount 最大对象数量
-     * @return true 初始化成功
-     * @return false 初始化失败
-     */
-    bool Init(int maxObjectCount) override {
-        CSimpleLock::Owner lock(&m_xLock);
-        m_nMaxObjectCount = maxObjectCount;
-        m_xObjectMap.clear();
-        m_xFreeList.clear();
-        m_xStorage.clear();
-
-        if (m_nMaxObjectCount <= 0) {
-            return false;
+    virtual ~TXObjectMgr() {
+        if (m_nMaxSize) {
+            Clear(nullptr);
         }
-
-        // NOTE: 不预分配对象，因为 TObject 可能是不完整类型
-        // 对象将在 Create() 调用时动态创建
-        m_xStorage.reserve(static_cast<std::size_t>(m_nMaxObjectCount));
-        return true;
     }
 
-    /**
-     * @brief 从池中创建/分配一个对象。
-     *
-     * 对齐 IDA: Create -> GetSessionID -> m_xObjectMap.SetAt -> SetSessionID
-     *
-     * @return TObject* 新创建的对象指针，池满时返回 nullptr
-     */
     TObject* Create() {
-        CSimpleLock::Owner lock(&m_xLock);
-
-        // 检查是否达到最大对象数
-        if (m_nMaxObjectCount > 0 && static_cast<int>(m_xObjectMap.size()) >= m_nMaxObjectCount) {
-            return nullptr;
-        }
-
-        // 动态创建新对象
-        TObject* object = new TObject();
+        IXObject* object = m_xPool.Pop();
         if (!object) {
             return nullptr;
         }
 
         const int sessionID = GetSessionID();
-        const auto [it, inserted] = m_xObjectMap.emplace(sessionID, object);
-        if (!inserted) {
-            delete object;
+        if (!m_xObjectMap.SetAt(sessionID, object)) {
+            m_xPool.Push(object);
             return nullptr;
         }
 
         object->SetSessionID(sessionID);
-        // 注意: 不存储到 m_xStorage，因为对象生命周期由外部管理
-        // m_xStorage 用于预分配模式，当前使用动态创建模式
-        return object;
+        m_xPool.Add(object);
+        return dynamic_cast<TObject*>(object);
     }
 
-    /**
-     * @brief 删除/回收一个对象到池中。
-     *
-     * 对齐 IDA: Delete -> RemoveKey -> NotifyRemoved -> 回收到池
-     *
-     * @param object 要删除的对象指针
-     */
-    void Delete(IXObject* object) {
+    TObject* Find(int xSessionID) {
+        return dynamic_cast<TObject*>(m_xObjectMap.GetAt(xSessionID));
+    }
+
+    bool Init(int maxObjectCount) override {
+        m_nMaxSize = maxObjectCount;
+        m_xObjectMap.RemoveAll();
+        m_xPool.SetSafeArrayFlag(true);
+        return true;
+    }
+
+    virtual void Delete(IXObject* object) {
         if (!object) {
             return;
         }
 
-        CSimpleLock::Owner lock(&m_xLock);
-        const auto it = m_xObjectMap.find(object->GetSessionID());
-        if (it == m_xObjectMap.end()) {
-            return;
+        if (m_xObjectMap.RemoveKey(object->GetSessionID())) {
+            object->NotifyRemoved();
+            m_xPool.RemoveFromList(object);
+            m_xPool.Push(object);
         }
-
-        m_xObjectMap.erase(it);
-        object->NotifyRemoved();
-        m_xFreeList.push_back(object);
     }
 
-    /**
-     * @brief 根据 SessionID 查找对象。
-     *
-     * 对齐 IDA 0x1400014F0: TXObjectMgr<CUser>::Find
-     * ```
-     * v2 = TXMap<int,IXObject *,ATL::CElementTraits<int>>::GetAt(
-     *        (TXMap<unsigned long,XActor *,ATL::CElementTraits<unsigned long> > *)&this->m_xObjectMap,
-     *        xSessionID);
-     * return (CUser *)_RTDynamicCast_0(v2, 0, &IXObject `RTTI Type Descriptor', &CUser `RTTI Type Descriptor', 0);
-     * ```
-     *
-     * 关键发现:
-     * - 使用 TXMap::GetAt 查找
-     * - 使用 RTTI 动态转换从 IXObject* 转换到 TObject*
-     *
-     * @param xSessionID 会话 ID
-     * @return TObject* 找到的对象指针，未找到返回 nullptr
-     *
-     * TODO: 对齐 IDA - 应该使用 TXMap::GetAt 而不是 std::unordered_map::find
-     */
-    TObject* Find(int xSessionID) {
-        // TODO: 对齐 IDA - 当前实现没有使用 TXMap::GetAt
-        // IDA 显示:
-        //   v2 = TXMap<int,IXObject*>::GetAt(&this->m_xObjectMap, xSessionID);
-        //   return (CUser *)_RTDynamicCast_0(v2, ...);
-        // 当前使用 std::unordered_map::find 作为临时替代
-
-        CSimpleLock::Owner lock(&m_xLock);
-        const auto it = m_xObjectMap.find(xSessionID);
-        if (it == m_xObjectMap.end()) {
-            return nullptr;
-        }
-
-        // 对齐 IDA: 使用 RTTI 动态转换
-        // IDA: _RTDynamicCast_0(v2, 0, &IXObject, &CUser, 0)
-        // C++ 等价于 dynamic_cast
-        return dynamic_cast<TObject*>(it->second);
+    virtual void Clear(TXPool<IXObject>::IXDeletor* pDeletor = nullptr) {
+        m_xObjectMap.RemoveAll();
+        m_xPool.Clear(pDeletor);
     }
 
-    // TODO: 对齐 IDA - 暴露 m_xObjectMap 以便 TXMap 使用
-    // 注意: 这是临时方案，最终应该使用 TXMap<int, IXObject*>
-    std::unordered_map<int, IXObject*>& GetObjectMap() { return m_xObjectMap; }
+    int GetQueueSize() const {
+        return m_xPool.GetCurSize();
+    }
 
-private:
-    std::vector<std::unique_ptr<TObject>> m_xStorage;
-    std::deque<IXObject*> m_xFreeList;
+    int GetMaxQueueSize() const {
+        return m_xPool.GetFullSize();
+    }
 
-    // TODO: 对齐 IDA - 应该使用 TXMap<int, IXObject*> m_xObjectMap
-    // IDA 0x1400014F0 显示类型: TXMap<unsigned long, XActor*, ATL::CElementTraits<unsigned long>>
-    // 但实际上是 TXMap<int, IXObject*>
-    // 当前仍使用 std::unordered_map，后续需要迁移到 TXMap
-    std::unordered_map<int, IXObject*> m_xObjectMap;
+    int GetCurMaxQueue() const {
+        return m_xPool.GetCurMaxSize();
+    }
+
+    TXMap<int, IXObject*>& GetObjectMap() {
+        return m_xObjectMap;
+    }
+
+public:
+    TXMap<int, IXObject*> m_xObjectMap;
+    TXPool<IXObject> m_xPool;
 };
+
+static_assert(sizeof(TXObjectMgr<int>) == 280,
+              "TXObjectMgr layout mismatch");

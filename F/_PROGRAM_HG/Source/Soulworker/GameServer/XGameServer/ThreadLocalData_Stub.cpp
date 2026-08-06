@@ -2,16 +2,36 @@
 // Stub implementation for ThreadLocalData static methods
 // This file provides minimal implementations to resolve linker errors
 
+#ifdef _WIN32
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
+#include <winsock2.h>
+#include <windows.h>
+#endif
+
 #include "Soulworker/GameServer/XCore/VisionEngineTypes.h"
+#include "Soulworker/GameServer/XCore/XServer/GreenDamTan_TimeCompat.h"
 #include "Soulworker/GameServer/XGameServer/VaccumCube.h"
 #include "Soulworker/GameServer/XGameServer/ThreadLocalData.h"
+#include "Soulworker/GameServer/XCore/XArea/XArea.h"
 #include "Soulworker/GameServer/XGameServer/Monster.h"
 #include "Soulworker/GameServer/XGameServer/Npc.h"
 #include "Soulworker/GameServer/XGameServer/XMonsterMgr.h"
 
-// Static instances for stub implementation
-static ThreadLocalData* s_pInstance = nullptr;
-static VDefaultTimer* s_pTimer = nullptr;
+namespace {
+struct GreenDamTan_ThreadLocalSlots {
+    void* reserved0 = nullptr;
+    VDefaultTimer* timer = nullptr;
+    void* reserved2 = nullptr;
+    ThreadLocalData* localData = nullptr;
+};
+
+thread_local GreenDamTan_ThreadLocalSlots g_threadLocalSlots;
+}
 
 // ============================================================================
 // ThreadLocalData Constructor - IDA @ 0x1406D0A50
@@ -55,18 +75,86 @@ ThreadLocalData::ThreadLocalData()
 {
 }
 
-ThreadLocalData* ThreadLocalData::GetInstance() {
-    if (!s_pInstance) {
-        s_pInstance = new ThreadLocalData();
+ThreadLocalData::~ThreadLocalData() {
+    Clear();
+    delete m_xMonsterMgr;
+    m_xMonsterMgr = nullptr;
+}
+
+void ThreadLocalData::Initialize() {
+    m_nMazeCount = 0;
+    m_nMonsterCount = 0;
+    m_nModeMazeCount = 0;
+    m_bInitPool = false;
+    m_bLoadWorld = false;
+    m_bReqSyncWorld = false;
+    m_nLogSynctime = static_cast<decltype(m_nLogSynctime)>(
+        GreenDamTan::GetTickCount64Compat() + 60000);
+    m_nReportSynctime = static_cast<decltype(m_nReportSynctime)>(
+        GreenDamTan::GetTickCount64Compat() + 10000);
+}
+
+void ThreadLocalData::InitPool() {
+    m_bInitPool = true;
+}
+
+void ThreadLocalData::Clear() {
+    if (!m_bInitPool) {
+        return;
     }
-    return s_pInstance;
+    m_mapArea.clear();
+    m_mapAi.clear();
+    if (m_xMonsterMgr) {
+        m_xMonsterMgr->ClearAll();
+    }
+    m_bInitPool = false;
+}
+
+void ThreadLocalData::Update(float fDeltaTime) {
+    if (!m_bInitPool) {
+        return;
+    }
+    for (auto& pair : m_mapArea) {
+        if (pair.second) {
+            pair.second->OnUpdate(fDeltaTime);
+        }
+    }
+}
+
+ThreadLocalData* ThreadLocalData::CreateInstance(
+    int threadCount,
+    int ownerThreadIndex) {
+    VDefaultTimer* timer = new VDefaultTimer(false);
+    g_threadLocalSlots.timer = timer;
+    timer->Init();
+
+    ThreadLocalData* instance = new ThreadLocalData();
+    g_threadLocalSlots.localData = instance;
+    instance->m_nThreadCount = threadCount;
+    instance->m_nOwnerThreadIndex = ownerThreadIndex;
+    return instance;
+}
+
+ThreadLocalData* ThreadLocalData::GetInstance() {
+    return g_threadLocalSlots.localData;
 }
 
 VDefaultTimer* ThreadLocalData::GetTimer() {
-    if (!s_pTimer) {
-        s_pTimer = new VDefaultTimer();
+    return g_threadLocalSlots.timer;
+}
+
+void ThreadLocalData::DestroyInstance() {
+    VDefaultTimer* timer = g_threadLocalSlots.timer;
+    if (timer) {
+        timer->DeleteThis();
+        g_threadLocalSlots.timer = nullptr;
     }
-    return s_pTimer;
+
+    ThreadLocalData* instance = g_threadLocalSlots.localData;
+    if (instance) {
+        delete instance;
+        g_threadLocalSlots.localData = nullptr;
+    }
 }
 
 CVaccumCube* ThreadLocalData::CreateVaccumCubeObject(XVec3 vPos) {
@@ -162,4 +250,15 @@ void ThreadLocalData::DeleteNpc(CNpc* pNpc) {
     if (!pNpc) return;
     // TODO: Implement using XNpcMgr when available
     delete pNpc;
+}
+
+void ThreadLocalData::SendWorldEventBooster(
+    unsigned long dwBuffID,
+    __int64 biEndDate) {
+    for (auto& pair : m_mapArea) {
+        XArea* pArea = pair.second;
+        if (pArea) {
+            pArea->SendWorldEventBooster(dwBuffID, biEndDate);
+        }
+    }
 }

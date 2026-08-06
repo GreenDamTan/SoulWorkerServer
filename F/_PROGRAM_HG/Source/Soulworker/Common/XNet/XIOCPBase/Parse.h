@@ -56,6 +56,29 @@ public:
         return *this;
     }
 
+    XParse& operator<<(std::uint8_t value) {
+        values_.emplace_back(value);
+        AppendRaw(&value, sizeof(value));
+        return *this;
+    }
+
+    XParse& operator<<(char value) {
+        values_.emplace_back(static_cast<int>(value));
+        AppendRaw(&value, sizeof(value));
+        return *this;
+    }
+
+    XParse& operator>>(char& value) {
+        if (TryReadRaw(value)) {
+            return *this;
+        }
+        if (!ReadIntegral(value)) {
+            m_eError = 1;
+            value = 0;
+        }
+        return *this;
+    }
+
     XParse& operator>>(int& value) {
         if (TryReadRaw(value)) {
             return *this;

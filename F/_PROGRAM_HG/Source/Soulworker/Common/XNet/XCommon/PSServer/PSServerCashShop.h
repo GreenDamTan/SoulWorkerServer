@@ -12,6 +12,60 @@
 // ============================================================================
 
 // ============================================================================
+// 现金里程结构体
+// ============================================================================
+
+// GameServer PDB PSCharacter.h: PS_CASH_MILEAGE is 8 bytes.
+enum E_CASH_MILEAGE_TYPE {
+    E_CASH_MILEAGE_AKASHIC = 0,
+    E_CASH_MILEAGE_BROACH = 1,
+    E_CASH_MILEAGE_TAG = 2,
+    E_CASH_MILEAGE_MAX = 3,
+};
+
+static_assert(sizeof(E_CASH_MILEAGE_TYPE) == 4,
+              "E_CASH_MILEAGE_TYPE size must match GameServer PDB");
+
+struct PS_CASH_MILEAGE {
+    std::uint8_t byMileageType = 0;
+    std::uint8_t _pad[3] = {};
+    std::int32_t nCashMileage = 0;
+};
+
+static_assert(sizeof(PS_CASH_MILEAGE) == 8,
+              "PS_CASH_MILEAGE size must match GameServer PDB");
+static_assert(offsetof(PS_CASH_MILEAGE, byMileageType) == 0,
+              "PS_CASH_MILEAGE.byMileageType offset mismatch");
+static_assert(offsetof(PS_CASH_MILEAGE, nCashMileage) == 4,
+              "PS_CASH_MILEAGE.nCashMileage offset mismatch");
+
+struct PS_CASH_MILEAGE_LIST {
+    std::vector<PS_CASH_MILEAGE> vecInfo;
+
+    PS_CASH_MILEAGE_LIST() {
+        vecInfo.clear();
+    }
+};
+
+static_assert(sizeof(PS_CASH_MILEAGE_LIST) == 32,
+              "PS_CASH_MILEAGE_LIST size must match GameServer PDB");
+
+inline XPacket& operator<<(XPacket& packet, PS_CASH_MILEAGE& value) {
+    packet.XParse << value.byMileageType;
+    packet.XParse << value.nCashMileage;
+    return packet;
+}
+
+inline XPacket& operator<<(XPacket& packet, PS_CASH_MILEAGE_LIST& value) {
+    const std::uint8_t cCount = static_cast<std::uint8_t>(value.vecInfo.size());
+    packet.XParse << cCount;
+    for (std::uint8_t c = 0; c < cCount; ++c) {
+        packet << value.vecInfo[c];
+    }
+    return packet;
+}
+
+// ============================================================================
 // 现金购买计数结构体
 // ============================================================================
 

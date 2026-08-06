@@ -180,25 +180,7 @@ void CGocInventory::SendDBCashBuyCount() {
 // MILEAGE FUNCTIONS
 // ============================================================================
 
-// IDA: 0x1400E5140
-// __int64 __fastcall CGocInventory::GetCashMileage(CGocInventory *this, E_CASH_MILEAGE_TYPE eType)
-// Gets mileage points by type (Akashic/Broach/Tag)
-int CGocInventory::GetCashMileage(E_CASH_MILEAGE_TYPE eType) {
-    // IDA Decompiled:
-    // switch (eType) {
-    //   case E_CASH_MILEAGE_AKASHIC: return this->m_nCashMileage[0];
-    //   case E_CASH_MILEAGE_BROACH: return this->m_nCashMileage[1];
-    //   case E_CASH_MILEAGE_TAG: return this->m_nCashMileage[2];
-    // }
-    // return -1;
-    
-    switch (eType) {
-        case E_CASH_MILEAGE_AKASHIC: return m_nCashMileage[0];
-        case E_CASH_MILEAGE_BROACH: return m_nCashMileage[1];
-        case E_CASH_MILEAGE_TAG: return m_nCashMileage[2];
-        default: return -1;
-    }
-}
+// Cash mileage implementation is owned by GocInventory.cpp, the active CMake source.
 
 // IDA: 0x1400E51A0
 // void __fastcall CGocInventory::SendCashMileageLog(CGocInventory *this, unsigned __int8 bySubType,
@@ -237,22 +219,7 @@ void CGocInventory::SendCashMileageLog(unsigned char bySubType, PS_DB_CASH_MILEA
     (void)bySubType; (void)psList; (void)dwRecvUAID;
 }
 
-// IDA: 0x1400E5020
-// void __fastcall CGocInventory::SetCashMileage(CGocInventory *this, PS_CASH_MILEAGE psUpdateInfo)
-// Sets mileage points and sends update to client
-void CGocInventory::SetCashMileage(PS_CASH_MILEAGE psUpdateInfo) {
-    // IDA Decompiled:
-    // this->m_nCashMileage[psUpdateInfo.byMileageType] = psUpdateInfo.nCashMileage;
-    // PS_CASH_MILEAGE_LIST psList;
-    // psList.vecInfo.push_back(psUpdateInfo);
-    // XSendPacket xSendPacket(3, 0x7B);  // CMD_CHARACTER, SUB_CASH_MILEAGE
-    // xSendPacket << psList;
-    // CGocNetwork::Send(pUser, &xSendPacket);
-    
-    m_nCashMileage[psUpdateInfo.byMileageType] = psUpdateInfo.nCashMileage;
-    
-    // TODO: Send packet to client
-}
+// Single-value cash mileage implementation is owned by GocInventory.cpp.
 
 // IDA: 0x1400E5500
 // void __fastcall CGocInventory::SendDBCashMileageUpdate(CGocInventory *this, PS_DB_CASH_MILEAGE_LIST *psDBList)
@@ -427,33 +394,7 @@ void CGocInventory::SetReadyLoadCash(bool bReady) {
     m_bReadyLoadCash = bReady;
 }
 
-// IDA: 0x1400E4EA0
-// void __fastcall CGocInventory::SetCashMileage(CGocInventory *this, int *pnMileage, bool bSyncDB)
-// Sets mileage array from pointer
-void CGocInventory::SetCashMileage(int* pnMileage, bool bSyncDB) {
-    // IDA Decompiled:
-    // for (int i = 0; i < 3; ++i) {
-    //   this->m_nCashMileage[i] = pnMileage[i];
-    // }
-    // if (bSyncDB) {
-    //   PS_DB_CASH_MILEAGE_LIST psDBList;
-    //   for (int i = 0; i < 3; ++i) {
-    //     PS_CASH_MILEAGE_UPDATE psUpdate;
-    //     psUpdate.byMileageType = i;
-    //     psUpdate.nUpdateMileage = pnMileage[i];
-    //     psDBList.vecInfo.push_back(psUpdate);
-    //   }
-    //   CGocInventory::SendDBCashMileageUpdate(this, &psDBList);
-    // }
-    
-    for (int i = 0; i < 3; ++i) {
-        m_nCashMileage[i] = pnMileage[i];
-    }
-    
-    if (bSyncDB) {
-        // TODO: Send DB update
-    }
-}
+// Array cash mileage implementation is owned by GocInventory.cpp.
 
 // IDA: 0x1400A0A40
 // void __fastcall CGocInventory::SetMileage(CGocInventory *this, int nIndex, int nValue1, int nValue2)

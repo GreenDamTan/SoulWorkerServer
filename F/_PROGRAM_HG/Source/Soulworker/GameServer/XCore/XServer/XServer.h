@@ -58,7 +58,7 @@ struct XOverLab {
     }
 
     void Destroy() {
-        m_xLock.Destroy();
+        m_xLock.Clear();
     }
 
     std::intptr_t Socket = -1;
@@ -290,6 +290,17 @@ protected:
 /**
  * @brief 登录服公共服务基类的最小还原。
  */
+class XServerObjectMgr final : public IXObjectMgr {
+public:
+    bool Init(int maxObjectCount) override {
+        m_nMaxSize = maxObjectCount;
+        return true;
+    }
+};
+
+static_assert(sizeof(XServerObjectMgr) == sizeof(IXObjectMgr),
+              "XServerObjectMgr layout mismatch");
+
 class XServer : public XIOCPServer {
 public:
     virtual ~XServer() = default;
@@ -317,7 +328,7 @@ protected:
     virtual int SetConsoleHandler(int add) { return add; }
 
     XOption m_xOption;
-    IXObjectMgr m_xObjectMgr;
+    XServerObjectMgr m_xObjectMgr;
     IXObjectMgr* m_pIObjectMgr = &m_xObjectMgr;
     int m_nMaxUserCount = 0;
     char m_szName[21] = {};

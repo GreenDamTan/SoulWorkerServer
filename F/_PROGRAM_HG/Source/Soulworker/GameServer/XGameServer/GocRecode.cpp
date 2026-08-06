@@ -487,8 +487,8 @@ void CGocRecode::ResRankingReward(struct PS_DB_RANKING_REWARD* psRes) {
     psReward.nMaxRank = psRes->nMaxRank;
     
     CGocInventory* pInventory = GetGOC<CGocInventory>(pUser);
-    pInventory->SendUpdateItem(&psRes->stUpdateItem);
-    pInventory->SendCreateItem(&psRes->stCreateItem);
+    pInventory->SendUpdateItem(psRes->stUpdateItem);
+    pInventory->SendCreateItem(psRes->stCreateItem);
     
     XSendPacket xSendPacket(0x2C, 2);
     xSendPacket << psReward;

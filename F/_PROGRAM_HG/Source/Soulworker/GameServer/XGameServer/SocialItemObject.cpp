@@ -6,11 +6,8 @@
 #include <new>
 #include <cstring>
 
-// Forward declarations
-class VType;
-
 // Static type info for RTTI
-VType CSocialItemObject::classCSocialItemObject;
+VType* CSocialItemObject::classCSocialItemObject = nullptr;
 
 // ============================================================================
 // CSocialItemObject::CreateObject - Create new social item object
@@ -50,7 +47,7 @@ VType* CSocialItemObject::GetTypeId() const
     // {
     //   return &CSocialItemObject::classCSocialItemObject;
     // }
-    return &classCSocialItemObject;
+    return classCSocialItemObject;
 }
 
 // ============================================================================
@@ -153,7 +150,8 @@ void CSocialItemObject::SetInfoPacket(XSendPacket& xSendPacket)
     // xSendPacket << stInfo;
     
     // Manual serialization for now
-    xSendPacket.Write(&stInfo, sizeof(ST_SOCIAL_ITEM_RES));
+    xSendPacket.XParse.SetBytes(
+        reinterpret_cast<const char*>(&stInfo), sizeof(ST_SOCIAL_ITEM_RES));
 }
 
 // ============================================================================
@@ -394,7 +392,8 @@ void CSocialItemObject::SetInfoLeavePacket(XSendPacket& xSendPacket)
     // xSendPacket << m_itemInfo;
     
     // Manual serialization for now
-    xSendPacket.Write(&m_itemInfo, sizeof(ST_SOCIAL_ITEM_INFO));
+    xSendPacket.XParse.SetBytes(
+        reinterpret_cast<const char*>(&m_itemInfo), sizeof(ST_SOCIAL_ITEM_INFO));
 }
 
 // ============================================================================

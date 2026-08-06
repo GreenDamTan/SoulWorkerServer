@@ -30,8 +30,7 @@ struct PS_CREATE_MAP_LIST;
 struct PS_ENTER_MAP_REQ;
 struct ST_PARTY_INFO;
 
-// 使用 std::tr1 命名空间 (VS2010 兼容)
-namespace std { namespace tr1 = std; }
+#include "Soulworker/GameServer/XCore/XServer/GreenDamTan_StdCompat.h"
 
 // ============================================================================
 // ST_CHANNEL_MAP_INFO - 频道地图信息结构

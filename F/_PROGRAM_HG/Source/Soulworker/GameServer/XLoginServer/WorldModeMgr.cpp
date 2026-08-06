@@ -11,8 +11,7 @@
 #include <intrin.h>
 #endif
 
-// 使用 std::tr1 命名空间 (VS2010 兼容)
-namespace std { namespace tr1 = std; }
+#include "Soulworker/GameServer/XCore/XServer/GreenDamTan_StdCompat.h"
 
 // ============================================================================
 // 构造函数/析构函数

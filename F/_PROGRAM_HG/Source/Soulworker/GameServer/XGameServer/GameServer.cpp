@@ -5,6 +5,7 @@
 #include "Soulworker/GameServer/XGameServer/WorldManager.h"
 #include "Soulworker/GameServer/XCore/XServer/TXDBSocket.h"
 #include "Soulworker/GameServer/XCore/XServer/CFSRWLock.h"
+#include "Soulworker/GameServer/XCore/XServer/GreenDamTan_TimeCompat.h"
 #include "Soulworker/Common/XNet/XIOCPBase/Packet.h"
 #include "Soulworker/Common/XNet/XUtil/TXSingleton.h"
 #include "Soulworker/GameServer/XGameServer/ManagerStubs.h"
@@ -14,8 +15,10 @@
 #include "Soulworker/GameServer/XGameServer/Mover.h"
 #include "Soulworker/GameServer/XGameServer/actor/component/GocNetwork.h"
 #include "Soulworker/GameServer/XGameServer/actor/component/GocAttribute.h"
+#include "Soulworker/GameServer/XGameServer/ThreadLocalData.h"
 #include "Soulworker/Common/XNet/XCommon/PSServer/PSServerCashShop.h"
 #include "Soulworker/GameServer/XRelayServer/Thread/LogicThreadProcessor.h"
+#include "Soulworker/GameServer/XCore/HavokTypes.h"
 #include <ctime>
 #include <cstdlib>
 #include <cstdarg>
@@ -24,6 +27,107 @@
 #ifdef _WIN32
 #include <windows.h>
 #endif
+
+void CWorldEventMgr::UpdateTotalCount(int nEventID, int nTotalCount) {
+    CFAutoSlimWriteLock lock(&m_rwWorldEventLock);
+
+    XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+    TB_WORLD_EVENT* pTBWorldEvent =
+        pServer ? pServer->GetResourceMgr().GetTB_WORLD_EVENT(
+                      static_cast<unsigned int>(nEventID))
+                : nullptr;
+    if (!pTBWorldEvent || !pTBWorldEvent->event_activation) {
+        return;
+    }
+
+    auto parseEventDate = [](const char* value) {
+        int year = 2000;
+        int month = 1;
+        int day = 1;
+        int hour = 0;
+        int minute = 0;
+        int second = 0;
+        std::sscanf(value,
+                    "%d-%d-%d %d:%d:%d",
+                    &year,
+                    &month,
+                    &day,
+                    &hour,
+                    &minute,
+                    &second);
+
+        const bool valid = year >= 2000 && year <= 2040 &&
+                           month >= 1 && month <= 12 &&
+                           day >= 1 && day <= 31 &&
+                           hour >= 0 && hour <= 24 &&
+                           minute >= 0 && minute <= 60 &&
+                           second >= 0 && second <= 60;
+        return valid ? GreenDamTan::MakeTimeCompat(
+                           year, month, day, hour, minute, second)
+                     : GreenDamTan::MakeTimeCompat(2000, 1, 1, 0, 0, 0);
+    };
+
+    const std::int64_t currentTime = GreenDamTan::GetCurrentTime();
+    const std::int64_t startTime = parseEventDate(
+        pTBWorldEvent->event_start_date).GetTime();
+    const std::int64_t endTime = parseEventDate(
+        pTBWorldEvent->event_end_date).GetTime();
+    if (currentTime < startTime || endTime < currentTime) {
+        return;
+    }
+
+    const float percent = static_cast<float>(nTotalCount) /
+                          static_cast<float>(pTBWorldEvent->event_item_amount_max);
+    const std::uint8_t byPercent = static_cast<std::uint8_t>(percent * 100.0f);
+
+    int nBoosterID = 0;
+    unsigned int rewardID = 1000u * static_cast<unsigned int>(nEventID) + 1u;
+    for (int i = 1; i < 20; ++i, ++rewardID) {
+        TB_WORLD_EVENT_REWARD* pReward =
+            pServer->GetResourceMgr().GetTB_WORLD_EVENT_REWARD(rewardID);
+        if (!pReward || byPercent < pReward->event_item_percentile_min) {
+            break;
+        }
+        if (pReward->event_reward_type == 0) {
+            nBoosterID = static_cast<int>(pReward->event_reward_value);
+        }
+    }
+
+    if (nBoosterID <= 0) {
+        return;
+    }
+
+    bool bChange = false;
+    std::int64_t biEndDate = 0;
+    auto iter = m_mapWorldEventBooster.find(nEventID);
+    if (iter != m_mapWorldEventBooster.end()) {
+        if (iter->second.nBoosterID != nBoosterID) {
+            bChange = true;
+        }
+        iter->second.nTotalCount = nTotalCount;
+        iter->second.nBoosterID = nBoosterID;
+        biEndDate = iter->second.biEnd;
+    } else {
+        ST_WORLD_EVENT_BOOSTER stInfo;
+        stInfo.nEventID = nEventID;
+        stInfo.nTotalCount = nTotalCount;
+        stInfo.nBoosterID = nBoosterID;
+        stInfo.biStart = startTime;
+        stInfo.biEnd = endTime;
+        biEndDate = stInfo.biEnd;
+        m_mapWorldEventBooster.emplace(nEventID, stInfo);
+        bChange = true;
+    }
+
+    if (bChange) {
+        CLogicThreadManager::Instance().DoJobAllThread(
+            [nBoosterID, biEndDate]() {
+                ThreadLocalData::GetInstance()->SendWorldEventBooster(
+                    static_cast<unsigned int>(nBoosterID),
+                    biEndDate);
+            });
+    }
+}
 
 // ============================================================
 // 全局变量 - FPS 相关
@@ -106,8 +210,18 @@ public:
 VGameHelper* XMaze::m_spGameHelper = nullptr;
 
 namespace DohHavokHelper {
-    void init() {}
-    void deinit() {}
+    void init() {
+        hkMemorySystem::FrameInfo frameInfo(0);
+        hkMemoryRouter* memoryRouter = hkMemoryInitUtil::initDefault(
+            hkMallocAllocator::m_defaultMallocAllocator,
+            frameInfo);
+        hkBaseSystem::init(memoryRouter);
+    }
+
+    void deinit() {
+        hkBaseSystem::quit();
+        hkMemoryInitUtil::quit();
+    }
 }
 
 struct VMemoryStatistics_t {
@@ -286,7 +400,8 @@ bool XGameServer::InitServer() {
     // 12. 初始化物品工厂
     std::uint8_t byGroupID = m_xOption.GetGroupID();
     int nFactoryServerID = m_xOption.GetServerID();
-    XItemFactory::Init(&m_xItemFactory, byGroupID, nFactoryServerID);
+    m_xItemFactory.Init(byGroupID,
+                        static_cast<std::uint8_t>(nFactoryServerID));
     LogHelper::LogInfo("game.system", "<ITEM_FACTORY> Factory Init ( %d, %d )",
                         static_cast<int>(byGroupID), nFactoryServerID);
 

@@ -95,6 +95,9 @@ struct PS_SECOND_PW_REQ {
     char strPassword[7] = {};
 };
 
+static_assert(sizeof(PS_SECOND_PW_REQ) == 8,
+              "PS_SECOND_PW_REQ size must match GameServer PDB");
+
 /**
  * @brief AccountDB 返回给登录/角色链路的二级密码结果。
  *
@@ -106,12 +109,22 @@ struct PS_SECOND_PW_RES {
     std::uint8_t bySecondPWState = 0;
 };
 
+static_assert(sizeof(PS_SECOND_PW_RES) == 8,
+              "PS_SECOND_PW_RES size must match GameServer PDB");
+
 /**
- * @brief 交易密码请求结构（5位密码）。
+ * @brief 交易密码请求结构。
+ *
+ * GameServer PDB UDT 0x13C5B is 6 bytes: byCheckType at offset 0
+ * followed by the five-byte password buffer at offset 1.
  */
 struct PS_TRADE_PW_REQ {
+    std::uint8_t byCheckType = 0;
     char strPassword[5] = {};
 };
+
+static_assert(sizeof(PS_TRADE_PW_REQ) == 6,
+              "PS_TRADE_PW_REQ size must match GameServer PDB");
 
 /**
  * @brief 交易密码响应结构。
@@ -120,6 +133,9 @@ struct PS_TRADE_PW_RES {
     int nErrorID = 0;
     std::uint8_t byTradePWState = 0;
 };
+
+static_assert(sizeof(PS_TRADE_PW_RES) == 8,
+              "PS_TRADE_PW_RES size must match GameServer PDB");
 
 /**
  * @brief Soul Gauge / 第三方认证信息缓存。
@@ -1055,8 +1071,25 @@ struct PS_ITEM_SLOT_INFOS {
  */
 struct PS_STORAGE_INFO {
     std::uint8_t byInvenType = 0;
-    std::uint16_t shSlotPos = 0;
+    std::int16_t shSlotPos = 0;
     STItem stItem{};
+};
+
+struct PS_ITEM_UPDATE {
+    std::uint8_t byType = 0;
+    std::uint8_t byInvenType = 0;
+    std::int16_t shSlotPos = 0;
+    std::int32_t nCount = 0;
+};
+
+struct PS_RES_ITEM_DIVIDE {
+    std::int32_t nItemID = 0;
+    std::uint8_t bySrcInvenType = 0;
+    std::int16_t shSrcSlotPos = 0;
+    std::int16_t shSrcCount = 0;
+    std::uint8_t byDestInvenType = 0;
+    std::int16_t shDestSlotPos = 0;
+    STItem stDestItem{};
 };
 
 // TODO: 推测结果 - 对齐 IDA 0x1400CCB40 ResTradeResult 使用
@@ -1336,8 +1369,18 @@ static_assert(sizeof(PS_ITEM_SLOT_INFO) == 0x4,
               "PS_ITEM_SLOT_INFO size must match PDB");
 static_assert(sizeof(PS_STORAGE_INFO) == 0x80,
               "PS_STORAGE_INFO size must match PDB");
+static_assert(offsetof(PS_STORAGE_INFO, shSlotPos) == 0x2,
+              "PS_STORAGE_INFO.shSlotPos offset mismatch");
 static_assert(offsetof(PS_STORAGE_INFO, stItem) == 0x8,
               "PS_STORAGE_INFO.stItem offset mismatch");
+static_assert(sizeof(PS_ITEM_UPDATE) == 0x8,
+              "PS_ITEM_UPDATE size must match PDB");
+static_assert(offsetof(PS_ITEM_UPDATE, nCount) == 0x4,
+              "PS_ITEM_UPDATE.nCount offset mismatch");
+static_assert(sizeof(PS_RES_ITEM_DIVIDE) == 0x88,
+              "PS_RES_ITEM_DIVIDE size must match PDB");
+static_assert(offsetof(PS_RES_ITEM_DIVIDE, stDestItem) == 0x10,
+              "PS_RES_ITEM_DIVIDE.stDestItem offset mismatch");
 static_assert(sizeof(PS_RES_ITEM_TITLE_CHANGE) == 0x10,
               "PS_RES_ITEM_TITLE_CHANGE size must match PDB");
 static_assert(sizeof(ST_STATISTICS_ITEM) == 0x20,
@@ -1666,6 +1709,42 @@ inline XPacket& operator<<(XPacket& packet, const PS_STORAGE_INFO& value) {
     return packet;
 }
 
+inline void operator>>(XPacket& packet, PS_ITEM_UPDATE& value) {
+    packet.XParse >> value.byType;
+    packet.XParse >> value.byInvenType;
+    packet.XParse >> value.shSlotPos;
+    packet.XParse >> value.nCount;
+}
+
+inline XPacket& operator<<(XPacket& packet, const PS_ITEM_UPDATE& value) {
+    packet.XParse << value.byType;
+    packet.XParse << value.byInvenType;
+    packet.XParse << value.shSlotPos;
+    packet.XParse << value.nCount;
+    return packet;
+}
+
+inline void operator>>(XPacket& packet, PS_RES_ITEM_DIVIDE& value) {
+    packet.XParse >> value.nItemID;
+    packet.XParse >> value.bySrcInvenType;
+    packet.XParse >> value.shSrcSlotPos;
+    packet.XParse >> value.shSrcCount;
+    packet.XParse >> value.byDestInvenType;
+    packet.XParse >> value.shDestSlotPos;
+    packet >> value.stDestItem;
+}
+
+inline XPacket& operator<<(XPacket& packet, const PS_RES_ITEM_DIVIDE& value) {
+    packet.XParse << value.nItemID;
+    packet.XParse << value.bySrcInvenType;
+    packet.XParse << value.shSrcSlotPos;
+    packet.XParse << value.shSrcCount;
+    packet.XParse << value.byDestInvenType;
+    packet.XParse << value.shDestSlotPos;
+    packet << value.stDestItem;
+    return packet;
+}
+
 // TODO: 推测结果 - 对齐 IDA 0x1400CCB40 ResTradeResult 序列化
 inline void operator>>(XPacket& packet, ST_TRADE_ITEM& value) {
     packet >> value.stInfo;
@@ -1778,10 +1857,12 @@ inline XPacket& operator<<(XPacket& packet, const PS_SECOND_PW_RES& value) {
 }
 
 inline void operator>>(XPacket& packet, PS_TRADE_PW_REQ& value) {
+    packet.XParse >> value.byCheckType;
     packet.XParse.GetString(value.strPassword, 5, nullptr);
 }
 
 inline XPacket& operator<<(XPacket& packet, const PS_TRADE_PW_REQ& value) {
+    packet.XParse << value.byCheckType;
     packet.XParse << std::string(value.strPassword);
     return packet;
 }
@@ -3344,6 +3425,8 @@ inline XPacket& operator<<(XPacket& packet, const PS_ITEM_COOLTIME_INFO& value) 
 struct PS_ITEM_COOMTIME_LIST {
     std::vector<PS_ITEM_COOLTIME_INFO> vecInfo;
 };
+static_assert(sizeof(PS_ITEM_COOMTIME_LIST) == 32,
+              "PS_ITEM_COOMTIME_LIST size must match PDB");
 
 inline void operator>>(XPacket& packet, PS_ITEM_COOMTIME_LIST& value) {
     std::uint16_t count = 0;
@@ -3393,18 +3476,35 @@ inline XPacket& operator<<(XPacket& packet, const PS_DB_ITEM_COOLTIME_UPDATE& va
  */
 struct PS_DB_ITEM_REDUCE {
     std::uint32_t dwUCID = 0;
+    std::uint8_t byInvenType = 0;
+    std::int16_t shSlotPos = 0;
     std::int64_t xSerial = 0;
-    std::int16_t nReduceCount = 0;
+    std::int32_t nReduceCount = 0;
 };
+
+static_assert(sizeof(PS_DB_ITEM_REDUCE) == 0x18,
+              "PS_DB_ITEM_REDUCE size must match PDB");
+static_assert(offsetof(PS_DB_ITEM_REDUCE, byInvenType) == 0x4,
+              "PS_DB_ITEM_REDUCE.byInvenType offset mismatch");
+static_assert(offsetof(PS_DB_ITEM_REDUCE, shSlotPos) == 0x6,
+              "PS_DB_ITEM_REDUCE.shSlotPos offset mismatch");
+static_assert(offsetof(PS_DB_ITEM_REDUCE, xSerial) == 0x8,
+              "PS_DB_ITEM_REDUCE.xSerial offset mismatch");
+static_assert(offsetof(PS_DB_ITEM_REDUCE, nReduceCount) == 0x10,
+              "PS_DB_ITEM_REDUCE.nReduceCount offset mismatch");
 
 inline void operator>>(XPacket& packet, PS_DB_ITEM_REDUCE& value) {
     packet.XParse >> value.dwUCID;
+    packet.XParse >> value.byInvenType;
+    packet.XParse >> value.shSlotPos;
     packet.XParse >> value.xSerial;
     packet.XParse >> value.nReduceCount;
 }
 
 inline XPacket& operator<<(XPacket& packet, const PS_DB_ITEM_REDUCE& value) {
     packet.XParse << value.dwUCID;
+    packet.XParse << value.byInvenType;
+    packet.XParse << value.shSlotPos;
     packet.XParse << value.xSerial;
     packet.XParse << value.nReduceCount;
     return packet;
@@ -3538,6 +3638,8 @@ struct ST_APPEARANCE_INFO {
     std::uint16_t wAppearanceID = 0;
     std::int64_t biEndDate = 0;
 };
+static_assert(sizeof(ST_APPEARANCE_INFO) == 16,
+              "ST_APPEARANCE_INFO size must match PDB");
 
 /**
  * @brief 外观列表
@@ -3546,6 +3648,8 @@ struct ST_APPEARANCE_INFO {
 struct ST_APPEARANCE_LIST {
     std::vector<ST_APPEARANCE_INFO> vecInfo;
 };
+static_assert(sizeof(ST_APPEARANCE_LIST) == 32,
+              "ST_APPEARANCE_LIST size must match PDB");
 
 inline XPacket& operator>>(XPacket& packet, ST_APPEARANCE_LIST& value) {
     std::int16_t nSize = 0;

@@ -34,7 +34,7 @@ struct ST_PRIVATE_SHOP_INFO
     __int64 biMoney;
     STItem stItem;
 
-    ST_PRIVATE_SHOP_INFO();
+    ST_PRIVATE_SHOP_INFO() : stItem() {}
 };
 
 // Personal Shop List structure

@@ -379,7 +379,13 @@ struct ST_SYSTEM_POST {
     wchar_t strName[21] = {};                 // +0x376: 发送者名字 (42 bytes)
     ST_SYSTEM_POST_ITEM stSysItem[5] = {};    // +0x3A0: 物品列表 (5 * 24 = 120 bytes)
     std::int64_t biMoney = 0;                 // +0x418: 金钱 (8 bytes)
-    std::int64_t _pad0 = 0;                   // +0x420: padding (8 bytes)
+    union {                                    // +0x420: event/identifier payload
+        struct {
+            std::uint32_t dwID1;
+            std::uint32_t dwID2;
+        };
+        std::int64_t dwEventID = 0;
+    };
 };
 
 static_assert(sizeof(ST_SYSTEM_POST) == 1064, "ST_SYSTEM_POST size must match IDA");
@@ -974,6 +980,7 @@ inline XPacket& operator<<(XPacket& packet, const ST_SYSTEM_POST& value) {
     packet.XParse << GreenDamTan_BoundedWideString(value.strName);
     for (int i = 0; i < 5; ++i) packet << value.stSysItem[i];
     packet.XParse << value.biMoney;
+    packet.XParse << value.dwEventID;
     return packet;
 }
 
@@ -988,6 +995,7 @@ inline XPacket& operator>>(XPacket& packet, ST_SYSTEM_POST& value) {
     packet.XParse.GetWString(value.strName, 21, sLen);
     for (int i = 0; i < 5; ++i) packet >> value.stSysItem[i];
     packet.XParse >> value.biMoney;
+    packet.XParse >> value.dwEventID;
     return packet;
 }
 

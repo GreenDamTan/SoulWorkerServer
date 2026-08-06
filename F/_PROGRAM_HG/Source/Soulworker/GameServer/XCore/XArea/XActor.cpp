@@ -31,6 +31,11 @@ void XActor::Reset() {
     m_pArea = nullptr;
 }
 
+void XActor::SendWorldEventBooster(unsigned long dwBuffID, std::int64_t biEndDate) {
+    (void)dwBuffID;
+    (void)biEndDate;
+}
+
 /**
  * @brief Check if specific status flag is set
  *

@@ -4,6 +4,7 @@
 #include "Soulworker/GameServer/XGameServer/GameServer.h"
 #include "Soulworker/GameServer/XGameServer/Maze.h"
 #include "Soulworker/Common/XNet/XUtil/TXSingleton.h"
+#include "Soulworker/Common/XNet/XCommon/PSServer.h"
 #include "Soulworker/GameServer/XCore/XArea/XActor.h"
 #include "Soulworker/GameServer/XGameServer/actor/component/GocAkashicRecord.h"
 #include "Soulworker/GameServer/XGameServer/actor/component/GocAttribute.h"
@@ -16,6 +17,12 @@
 #include "Soulworker/GameServer/XGameServer/actor/component/GocParty.h"
 #include "Soulworker/GameServer/XGameServer/Item/CItem.h"
 #include "Soulworker/GameServer/XGameServer/StatusEffect.h"
+#include "Soulworker/GameServer/XGameServer/Process/SystemProcess.h"
+#include "Soulworker/GameServer/XGameServer/Process/LoginProcess.h"
+#include "Soulworker/GameServer/XGameServer/Process/CharacterProcess.h"
+#include "Soulworker/GameServer/XGameServer/Process/MonsterProcess.h"
+#include "Soulworker/GameServer/XGameServer/Process/ItemProcess.h"
+#include <new>
 
 // 构造函�?IDA 0x1406E2FA0
 // 反编译验�? 初始化序列完整还�?
@@ -457,11 +464,74 @@ void CUser::InitComponant() {
     CreateComponent<CGocAchieve>(GOC_ACHIEVE);
 }
 
-void CUser::RegisterProcess() {
-    // IDA 0x1406E2FA0 构造函数调用序�?
-    // 注册 XProcess 用于数据包处�?
-    // Note: IXProcess 子类注册在构造函数中完成
-    // 各个数据包处理器已通过 Register() 注册
+void CUser::SendWorldEventBooster(unsigned long dwBuffID, std::int64_t biEndDate) {
+    std::shared_ptr<CGocBooster> pBooster = GetGOC_Booster(false);
+    if (pBooster) {
+        pBooster->ChangeBooster(
+            eBooster_Type_Event,
+            static_cast<std::uint16_t>(dwBuffID),
+            biEndDate,
+            false);
+    }
+}
+
+// IDA: 0x1406FF920
+void CUser::SetRequestTick(std::uint8_t byType,
+                           PS_REQ_TICKCOUNT& psReqTick,
+                           std::uint64_t dwRecvTick) {
+    const std::uint64_t dwTick = GetTickCount64();
+    const std::uint64_t dwGap =
+        dwTick <= psReqTick.dwTickcount
+            ? psReqTick.dwTickcount - dwTick
+            : dwTick - psReqTick.dwTickcount;
+    (void)dwGap;
+
+    m_mpTickInfo.find(psReqTick.nTicknum);
+
+    PS_TICKCOUNT_INFO psInfo;
+    psInfo.nTicknum = psReqTick.nTicknum;
+    psInfo.byType = byType;
+    psInfo.dwReqTickcount = psReqTick.dwTickcount;
+    psInfo.dw64ReqTickcount = dwRecvTick;
+
+    m_mpTickInfo.insert({psReqTick.nTicknum, psInfo});
+}
+
+// IDA: 0x1406FFA40
+void CUser::GetResultTick(int nTicknum, PS_TICKCOUNT_INFO& psTick) {
+    const auto iter = m_mpTickInfo.find(nTicknum);
+    if (iter != m_mpTickInfo.end()) {
+        psTick = iter->second;
+        m_mpTickInfo.erase(iter);
+    }
+}
+
+bool CUser::RegisterProcess() {
+    // IDA 0x1406E4B70: each process is constructed, registered, and
+    // registration failure returns false immediately. The current target
+    // only compiles these five process implementations.
+    auto* systemProcess = new CSystemProcess();
+    if (!Register(1, systemProcess)) {
+        return false;
+    }
+
+    auto* loginProcess = new CLoginProcess();
+    if (!Register(2, loginProcess)) {
+        return false;
+    }
+
+    auto* characterProcess = new CCharacterProcess();
+    if (!Register(3, characterProcess)) {
+        return false;
+    }
+
+    auto* itemProcess = new CItemProcess();
+    if (!Register(8, itemProcess)) {
+        return false;
+    }
+
+    auto* monsterProcess = new CMonsterProcess();
+    return Register(0x17, monsterProcess);
 }
 
 void CUser::ChangeBattlePose(int nPose) {

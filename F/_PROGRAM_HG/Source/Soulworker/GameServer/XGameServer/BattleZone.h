@@ -16,8 +16,7 @@
 struct TB_NPC;
 struct ST_MONSTER_DAMAGE_INFO;  // Defined in Mover.h
 
-// 使用 std::tr1 命名空间 (VS2010 兼容)
-namespace std { namespace tr1 = std; }
+#include "Soulworker/GameServer/XCore/XServer/GreenDamTan_StdCompat.h"
 
 // TODO: 推测结果 - 来自 Vision Engine / IDA
 // E_SEND_INFO_TYPE - 发送信息类型枚举

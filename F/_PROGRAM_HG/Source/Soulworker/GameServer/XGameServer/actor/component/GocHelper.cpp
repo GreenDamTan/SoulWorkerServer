@@ -2258,8 +2258,8 @@ void CGocHelper::ResHelperEquip(PS_DB_HELPER_EQUIP_RES& psRes) {
                 stInfo.byInvenType = psRes.psEquip.byInvenType;
                 stInfo.shSlotPos = psRes.psEquip.shInvenSlotPos;
                 stInfo.stItem = stHelperItem;
-                stItemList.push_back(stInfo);
-                pInven->SendCreateItem(&stItemList);
+                stItemList.vecItem.push_back(stInfo);
+                pInven->SendCreateItem(stItemList);
 
                 // IDA: 记录日志
                 if (pUser) {
@@ -2354,8 +2354,8 @@ void CGocHelper::ResHelperEquip(PS_DB_HELPER_EQUIP_RES& psRes) {
             stInfo.byInvenType = psRes.psEquip.byInvenType;
             stInfo.shSlotPos = psRes.psEquip.shInvenSlotPos;
             stInfo.stItem = stHelperItem;
-            stItemList.push_back(stInfo);
-            pInven->SendCreateItem(&stItemList);
+            stItemList.vecItem.push_back(stInfo);
+            pInven->SendCreateItem(stItemList);
 
             // IDA: 记录日志
             if (pUser) {

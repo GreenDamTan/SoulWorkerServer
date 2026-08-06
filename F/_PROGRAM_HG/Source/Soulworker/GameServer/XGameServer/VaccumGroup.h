@@ -13,8 +13,7 @@ union UXActorID;
 struct VInterActionBoxInfo;
 struct TB_INTERACTION_OBJECT;
 
-// 使用 std::tr1 命名空间 (VS2010 兼容)
-namespace std { namespace tr1 = std; }
+#include "Soulworker/GameServer/XCore/XServer/GreenDamTan_StdCompat.h"
 
 // 优先级比较器 (用于 priority_queue)
 struct Prioritize {

@@ -18,8 +18,8 @@ class DohHavokResourceManager {};
 struct SS_REPORT_POOL_INFO {};
 
 // Static instance for GetInstance() stub
-static ThreadLocalData* s_pInstance = nullptr;
-static VDefaultTimer* s_pTimer = nullptr;
+static thread_local ThreadLocalData* s_pInstance = nullptr;
+static thread_local VDefaultTimer* s_pTimer = nullptr;
 
 // External global lock (stub)
 // CFSRWLock g_VisionLock;
@@ -2871,7 +2871,7 @@ void ThreadLocalData::SendOperationTime()
 // ============================================================================
 // SendWorldEventBooster - IDA @ 0x1406DA780
 // ============================================================================
-void ThreadLocalData::SendWorldEventBooster(unsigned int dwBuff_ID, __int64 biEndDate)
+void ThreadLocalData::SendWorldEventBooster(unsigned long dwBuff_ID, __int64 biEndDate)
 {
     // IDA: Send world event booster to all areas
     for (auto& pair : m_mapArea)

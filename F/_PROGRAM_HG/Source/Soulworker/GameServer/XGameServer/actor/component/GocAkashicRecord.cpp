@@ -821,7 +821,7 @@ bool CGocAkashicRecord::ReqDisassembleAkashic(std::vector<std::uint32_t>& psList
                 stCreateItem.bBindType = 1;
 
             XGameServer* pGS = TXSingleton<XGameServer>::Instance();
-            pGS->GetItemFactory().CreateItem(&stCreateItem, &stCreateItem);
+            pGS->GetItemFactory().CreateItem(stCreateItem, stCreateItem);
 
             std::uint8_t byInvenType = pBaseInven->GetInvenType();
             pInvenPtr.get()->AddItem(byInvenType, shSlotPos, stCreateItem, true);
@@ -1066,11 +1066,53 @@ void CGocAkashicRecord::AddAkashicGetInfo(std::uint32_t dwAkashicID)
 }
 
 // SetQuickSlotCard
-void CGocAkashicRecord::SetQuickSlotCard(PS_QUICKSLOT_CARD* pCard)
+bool CGocAkashicRecord::SetQuickSlotCard(PS_QUICKSLOT_UPDATE_CARD_VEC& psUpdate)
 {
-    if (pCard && pCard->byPage < 5)
-    {
-        m_psQuickSlotCard[pCard->byPage] = *pCard;
+    if (m_mapAkashic.empty() || psUpdate.vecInfo.size() > m_byDeckCount ||
+        psUpdate.vecInfo.size() != 1)
+        return false;
+
+    const PS_QUICKSLOT_UPDATE_CARD& psUpdateCardInfo = psUpdate.vecInfo.front();
+    if (psUpdateCardInfo.byPage >= 5 ||
+        psUpdateCardInfo.byPage >= m_byDeckCount ||
+        !IsOverlapCard(const_cast<std::uint32_t*>(psUpdateCardInfo.uniCard)))
+        return false;
+
+    PS_QUICKSLOT_CARD psQuickSlotCard =
+        m_psQuickSlotCard[psUpdateCardInfo.byPage];
+    bool bChange = false;
+    for (int i = 0; i < 5; ++i) {
+        if (psQuickSlotCard.uniCard[i] != psUpdateCardInfo.uniCard[i]) {
+            if (m_byActiveDeck == psUpdateCardInfo.byPage)
+                RemoveExistBuff(psQuickSlotCard.uniCard[i]);
+            psQuickSlotCard.uniCard[i] = psUpdateCardInfo.uniCard[i];
+            bChange = true;
+        }
+    }
+
+    if (bChange) {
+        m_psQuickSlotCard[psUpdateCardInfo.byPage] = psQuickSlotCard;
+        SaveQuickSlot(psUpdateCardInfo.byPage);
+    }
+
+    XSendPacket xSendPacket(8, 0x27);
+    xSendPacket.XParse << static_cast<std::uint8_t>(0);
+    xSendPacket << psUpdate;
+    CGocNetwork::Send(GetOwnerActor(), xSendPacket);
+    UpdateAkashicPassiveList();
+    return true;
+}
+
+// GetQuickSlotCard (0x14001AF40)
+void CGocAkashicRecord::GetQuickSlotCard(PS_QUICKSLOT_UPDATE_CARD_VEC& psInfo)
+{
+    psInfo.vecInfo.clear();
+    for (std::uint8_t i = 0; i < m_byDeckCount; ++i) {
+        PS_QUICKSLOT_UPDATE_CARD psUpdate;
+        psUpdate.byPage = m_psQuickSlotCard[i].byPage;
+        for (int k = 0; k < 5; ++k)
+            psUpdate.uniCard[k] = m_psQuickSlotCard[i].uniCard[k];
+        psInfo.vecInfo.push_back(psUpdate);
     }
 }
 

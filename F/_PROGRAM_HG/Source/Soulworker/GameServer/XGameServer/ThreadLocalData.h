@@ -315,7 +315,7 @@ public:
     void SendOperationTime();
 
     // IDA @ 0x1406DA780 - Send world event booster
-    void SendWorldEventBooster(unsigned int dwBuff_ID, __int64 biEndDate);
+    void SendWorldEventBooster(unsigned long dwBuff_ID, __int64 biEndDate);
 
     // IDA @ 0x1406DA820 - Compare league inventory count
     bool CompareLeagueInventoryCount(unsigned int nLeagueID, unsigned int dwUCID);

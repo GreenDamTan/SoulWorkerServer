@@ -99,7 +99,8 @@ public:
     void AddAkashicGetInfo(std::uint32_t dwAkashicID);
 
     // Quick slot operations
-    void SetQuickSlotCard(PS_QUICKSLOT_CARD* pCard);
+    bool SetQuickSlotCard(PS_QUICKSLOT_UPDATE_CARD_VEC& psUpdate);
+    void GetQuickSlotCard(PS_QUICKSLOT_UPDATE_CARD_VEC& psInfo);
     void GetQuickSlotCard(std::uint32_t* pQuickSlotCard);
     void DisassembleQuickSlotCard(std::uint32_t dwAkashicID);
 

@@ -26,6 +26,9 @@ public:
     CLoginProcess();
     virtual ~CLoginProcess() override;
 
+    // IDA vtable slot 0x1405052E0; PDB symbol is ?Parse@CLoginProcess@@UEAA_NAEAVXPacket@@@Z.
+    bool Parse(XPacket& xPacket) override;
+
     // === 数据库响应处理 ===
     /** @brief 处理数据库响应 (IDA: 0x1405044D0) */
     bool DBParse(XPacket& xPacket);

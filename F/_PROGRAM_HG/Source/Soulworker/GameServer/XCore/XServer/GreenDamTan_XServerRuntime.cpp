@@ -354,7 +354,7 @@ XClient::~XClient() {
         m_packetQueue.pop();
     }
     m_socketContext.Destroy();
-    xLock.Destroy();
+    xLock.Clear();
 }
 
 bool XSocket::Init() {

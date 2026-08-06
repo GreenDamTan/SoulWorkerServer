@@ -5,7 +5,11 @@
 #include "../../GameServer.h"
 #include "../../User.h"
 #include "Soulworker/Common/XNet/XCommon/PSServer/PSServerMail.h"
+#include "Soulworker/Common/XNet/XIOCPBase/Packet.h"
 #include "Soulworker/Common/XNet/XUtil/TXSingleton.h"
+#include "../../../XCore/XServer/IXObject.h"
+#include "../../../XCore/XArea/XActor.h"
+#include "GocQuest.h"
 #include <cstring>
 #include <ctime>
 
@@ -917,24 +921,24 @@ bool CGocPost::SystemPostSend(std::uint8_t bySubType, std::uint16_t wType, std::
         return false;
     }
 
-    // TODO: Need XSendDBPacket, XItemFactory::GeneratSerial
-    // ST_SYSTEM_POST stSystemPost;
-    // stSystemPost.byPostType = 1;
-    // XGameServer* pServer = XGameServer::Instance();
-    // stSystemPost.byPostSubType = pServer->GetSystemPostTableIndex(bySubType, wType);
-    // stSystemPost.dwEventID = biEventID;
-    // UXSerial result;
-    // std::int64_t biPostSerial = XItemFactory::GeneratSerial(&pServer->m_xItemFactory, &result);
-    // XSendDBPacket xSendDBPacket(pObject, 6, 9);
-    // xSendDBPacket.XParse << dwRecvUCID;
-    // xSendDBPacket.XParse << biPostSerial;
-    // xSendDBPacket << stSystemPost;
-    // return pServer->SendDBGame(xSendDBPacket);
+    ST_SYSTEM_POST stSystemPost{};
+    stSystemPost.byPostType = 1;
 
-    (void)wType;
-    (void)biEventID;
-    (void)dwRecvUCID;
-    return false;
+    XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+    stSystemPost.byPostSubType =
+        pServer->GetSystemPostTableIndex(bySubType, wType);
+    stSystemPost.dwEventID = biEventID;
+
+    const std::int64_t biPostSerial =
+        pServer->GetItemFactory().GeneratSerial().xSerial;
+    CMover* pMover = static_cast<CMover*>(GetOwnerGO());
+    IXObject* pObject = pMover ? static_cast<IXObject*>(
+        static_cast<XActor*>(pMover)) : nullptr;
+    XSendDBPacket xSendDBPacket(pObject, 6, 9);
+    xSendDBPacket.XParse << dwRecvUCID;
+    xSendDBPacket.XParse << biPostSerial;
+    xSendDBPacket << stSystemPost;
+    return pServer->SendDBGame(xSendDBPacket);
 }
 
 // SystemPostSend (IDA: 0x14010E940) - with money

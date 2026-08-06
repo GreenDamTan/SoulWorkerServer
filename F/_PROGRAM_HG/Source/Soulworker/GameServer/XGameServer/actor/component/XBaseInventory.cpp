@@ -8,6 +8,8 @@
 #include "Soulworker/GameServer/XCore/XServer/GreenDamTan_ClientBase.h"
 #include "Soulworker/GameServer/XCore/XServer/GreenDamTan_LogHelper.h"
 
+#include <cstdlib>
+
 // ============================================================================
 // XBaseEquip Implementation
 // ============================================================================
@@ -91,6 +93,74 @@ XLookEquip::XLookEquip()
     m_byType = 3;
 }
 
+// IDA: 0x140301830
+void XShapeEquip::GetCancelSlot(
+    int nSlotType,
+    unsigned int nCancelBit,
+    std::vector<stEMPTYSLOT>& vecCancelSlot) {
+    for (int i = 0; i < 14; ++i) {
+        const int nBit = 1 << (14 - i - 1);
+        (void)nBit;
+
+        if (!m_pItem[i] || GetLock(static_cast<std::int16_t>(i)) ||
+            nSlotType - 11 == i) {
+            continue;
+        }
+
+        XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+        TB_ITEM* pTBItem = pServer->GetResourceMgr().GetTB_ITEM(
+            static_cast<unsigned int>(m_pItem[i]->GetID()));
+        char* pEnd = nullptr;
+        const unsigned int nTempCancelBit = static_cast<unsigned int>(
+            std::strtoul(pTBItem->Item_Slot_Disable, &pEnd, 2));
+        (void)pEnd;
+        if ((nCancelBit & nTempCancelBit) == 0) {
+            continue;
+        }
+
+        stEMPTYSLOT stCancelSlot{};
+        stCancelSlot.byInvenType = 0;
+        stCancelSlot.shSlotPos = static_cast<std::int16_t>(i);
+        vecCancelSlot.push_back(stCancelSlot);
+    }
+}
+
+// IDA: 0x140301F10
+void XLookEquip::GetCancelSlot(
+    int nSlotType,
+    unsigned int nCancelBit,
+    std::vector<stEMPTYSLOT>& vecCancelSlot) {
+    for (int i = 0; i < 14; ++i) {
+        const int nBit = 1 << (14 - i - 1);
+        (void)nBit;
+
+        if (!m_pItem[i] || GetLock(static_cast<std::int16_t>(i)) ||
+            nSlotType - 11 == i) {
+            continue;
+        }
+
+        XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+        TB_ITEM* pTBItem = pServer->GetResourceMgr().GetTB_ITEM(
+            static_cast<unsigned int>(m_pItem[i]->GetID()));
+        if (!pTBItem) {
+            continue;
+        }
+
+        char* pEnd = nullptr;
+        const unsigned int nTempCancelBit = static_cast<unsigned int>(
+            std::strtoul(pTBItem->Item_Slot_Disable, &pEnd, 2));
+        (void)pEnd;
+        if ((nCancelBit & nTempCancelBit) == 0) {
+            continue;
+        }
+
+        stEMPTYSLOT stCancelSlot{};
+        stCancelSlot.byInvenType = 3;
+        stCancelSlot.shSlotPos = static_cast<std::int16_t>(i);
+        vecCancelSlot.push_back(stCancelSlot);
+    }
+}
+
 // ============================================================================
 // XBaseInventory Implementation
 // ============================================================================
@@ -119,6 +189,45 @@ std::int16_t XBaseInventory::GetEmptySlot() {
         }
     }
     return -1;  // No empty slot found
+}
+
+// IDA: 0x1402FEF30
+void XBaseInventory::GetEmptySlot(
+    int nNeedCount,
+    std::vector<stEMPTYSLOT>& vecEmptySlot) {
+    if (nNeedCount <= 0) {
+        return;
+    }
+
+    for (int i = 0; i < m_shOpenSlot; ++i) {
+        if (!m_pItem[i] && !m_bLock[i]) {
+            if (vecEmptySlot.size() == static_cast<std::size_t>(nNeedCount)) {
+                return;
+            }
+
+            stEMPTYSLOT stEmptySlot;
+            stEmptySlot.byInvenType = m_byType;
+            stEmptySlot.shSlotPos = static_cast<std::int16_t>(i);
+            vecEmptySlot.push_back(stEmptySlot);
+        }
+    }
+}
+
+// IDA: 0x1402FEE00
+bool XBaseInventory::CheckEmptySlotCount(std::uint16_t wNeedCount) {
+    if (wNeedCount == 0) {
+        return false;
+    }
+
+    std::uint16_t wCount = 0;
+    for (int i = 0; i < m_shOpenSlot; ++i) {
+        if (!m_pItem[i] && !m_bLock[i] &&
+            wNeedCount == ++wCount) {
+            return true;
+        }
+    }
+
+    return false;
 }
 
 std::int16_t XBaseInventory::GetEmptySlotCount() {

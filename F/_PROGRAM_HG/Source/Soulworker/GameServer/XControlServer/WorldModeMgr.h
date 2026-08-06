@@ -22,8 +22,7 @@
 #include <vector>
 #include <list>
 
-// 命名空间别名 (C++11 后 tr1 已合并到 std)
-namespace std { namespace tr1 = std; }
+#include "Soulworker/GameServer/XCore/XServer/GreenDamTan_StdCompat.h"
 
 // 前向声明
 class CFAutoSlimWriteLock;

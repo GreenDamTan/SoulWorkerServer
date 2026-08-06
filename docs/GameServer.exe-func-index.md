@@ -5,21 +5,11 @@
 | XGameServer | GocInventory.cpp | CGocInventory::InitEmptySlot | 0x1400CB000 | implemented | PDB dump symbols + OMAP + IDA | no | - |
 | XGameServer | GocInventory.cpp | CGocInventory::IsEmptyInventory(int, int, int, int) | 0x1400CB0A0 | implemented | PDB dump symbols + OMAP + IDA | no | - |
 | XGameServer | GocInventory.cpp | CGocInventory::IsEmptyInventory(int, int) | 0x1400D5860 | implemented | PDB dump symbols + OMAP + IDA | no | - |
-| XGameServer | Ai.cpp | ?CopyFullData@CAi@@QEAAXAEBV1@@Z | 0x14025FE10 | implemented | IDA decompile | yes | AI���ݸ��ƺ���-��������״̬���������� |
-| XGameServer | Ai.cpp | ?Update@CAi@@QEAAXM@Z | 0x1402621B0 | implemented | IDA decompile | yes | AI����������-ʱ���ۼӺ�״̬ת�� |
-| XGameServer | Ai.cpp | ?Initialize@CAi@@QEAAXPEAVCMonster@@@Z | 0x1402623F0 | implemented | IDA decompile | yes | AI��ʼ������-����״̬������������ָ�� |
 | XGameServer | Ai.cpp | ?FuncEscapeProcess@CAi@@QEAAXM@Z | 0x14026A7A0 | implemented | IDA decompile | yes | ��ȷ��ԭ-���ܵ��ʱ�������߼�?|
-| XGameServer | Ai.cpp | ?RegisterStateFunctions@CAi@@QEAAXH@Z | 0x140263160 | implemented | IDA decompile | yes | ע��״̬����-Ϊ42+��AI״̬ע�ᴦ������ |
-| XGameServer | Ai.cpp | ?RegisterConditionsEx@CAi@@QEAAXHHHPEAD00H@Z | 0x140263E10 | implemented | IDA decompile | yes | ע����չ����-���������ַ�����ע��FSM���� |
-| XGameServer | Ai.cpp | ?_CombineReservedConditions@CAi@@AEAAXHHHHHHH@Z | 0x1402642F0 | implemented | IDA decompile | yes | ???????????|
-| XGameServer | Ai.cpp | ?RegisterSkillConditions@CAi@@QEAAXHHPEADMMH@Z | 0x140264460 | implemented | IDA decompile | yes | ע�Ἴ������-Ϊ����ת��������ע������ |
-| XGameServer | Ai.cpp | ?RegisterActionAfterSkill@CAi@@QEAAXHHHPEADMMH@Z | 0x140264910 | implemented | IDA decompile | yes | ע�Ἴ�ܺ���-�����������������״�?|
 | XGameServer | Ai.cpp | ?SetDeathAction@CAi@@QEAAXPEAD@Z | 0x140261C00 | implemented | IDA decompile | yes | ������������-����������������(��-VStringδʵ��) |
 | XGameServer | Ai.cpp | ?SetProtectInfo@CAi@@QEAAXMM@Z | 0x140261DD0 | implemented | IDA decompile | yes | ���ñ�����Ϣ-���ñ���Ч������ͳ�ʱʱ��?|
-| XGameServer | Ai.cpp | ?SetSkillCooltime@CAi@@QEAAXPEAUTB_SKILL@@@Z | 0x140261F40 | implemented | IDA decompile | yes | 设置技能冷却时�?更新冷却列表和全局冷却 |
 | XGameServer | Ai.cpp | ?Update@CAi@@QEAAXM@Z | 0x1402621B0 | implemented | IDA decompile | yes | AI����������-ʱ���ۼӺ�״̬ת�� |
 | XGameServer | Ai.cpp | ?Initialize@CAi@@QEAAXPEAVCMonster@@@Z | 0x1402623F0 | implemented | IDA decompile | yes | AI��ʼ������-����״̬������������ָ�� |
-| XGameServer | Ai.cpp | ?SetCommonAction@CAi@@QEAAXHPEAD@Z | 0x140261400 | implemented | IDA decompile | yes | ����ͨ�ö���-���ƶ����������� |
 | XGameServer | Ai.cpp | ?SetSkillGroupRate@CAi@@QEAAXHHHHHHHHHH@Z | 0x140261590 | implemented | IDA decompile | yes | ??????????????|
 | XGameServer | Ai.cpp | ?SetReservedCondition@CAi@@QEAAXHHPEADMM@Z | 0x140261750 | implemented | IDA decompile | yes | ??????????? |
 | XGameServer | Ai.cpp | ?RegisterConditionsEx@CAi@@QEAAXHHHPEAD00H@Z | 0x140263E10 | implemented | IDA decompile | yes | ע��AI������չ |
@@ -44,40 +34,16 @@
 | XGameServer | Ai.cpp | ?GetSuicideTime@CAi@@QEAAMXZ | 0x14019D210 | implemented | IDA decompile | yes | ��ȡ��ɱʱ�� |
 | XGameServer | Ai.cpp | ?GetTargetSightDistance@CAi@@QEAAMXZ | 0x14019D1F0 | implemented | IDA decompile | yes | ��ȡĿ����Ұ���� |
 | XGameServer | Ai.cpp | ?SetEnalbeHelperWarp@CAi@@QEAAX_N@Z | 0x140091E70 | implemented | IDA decompile | yes | �������ִ������ñ�־ |
-| XGameServer | Ai.cpp | ?FuncSearchTarget@CAi@@QEAAXXZ | 0x140265AD0 | implemented | IDA decompile | yes | ����Ŀ��-ɨ�踽���жԶ���ѡ�����Ŀ��?|
 | XGameServer | Ai.cpp | ?FuncAttackSkill@CAi@@QEAA_NXZ | 0x140268D80 | implemented | IDA decompile | yes | ��������ִ��-���ǶȾ��벢ִ�й��� |
-| XGameServer | Ai.cpp | ?SelectAction@CAi@@QEAAXXZ | 0x14026ADF0 | implemented | IDA decompile | yes | AI��Ϊѡ��-ģ���߼�����ѡ����Ϊ״̬ |
 | XGameServer | Ai.cpp | ?CheckSkillCondition@CAi@@QEAA_NHH@Z | 0x140269930 | implemented | IDA decompile | yes | ???G???????|
-| XGameServer | Ai.cpp | ?FuncStartState@CAi@@QEAAXXZ | 0x14026A850 | implemented | IDA decompile | yes | ����״̬-��ʼ��״̬��������ʼ��״̬ |
 | XGameServer | Ai.cpp | ?SelectAction@CAi@@QEAAXXZ | 0x14026ADF0 | implemented | IDA decompile | yes | AI?????? |
 | XGameServer | Ai.cpp | ?SetSpawnAggro@CAi@@QEAAXMM@Z | 0x140261D70 | implemented | IDA decompile | yes | ���ó�����ɲ���?������? |
-| XGameServer | Ai.cpp | ?GetConditionIntData@CAi@@QEAAHGH@Z | 0x14025F7F0 | implemented | IDA decompile | yes | ��ȷ��ԭ-��ȡ������������
-| XGameServer | Ai.cpp | ?GetConditionFloatData@CAi@@QEAAMGH@Z | 0x14025F860 | implemented | IDA decompile | yes | ��ȷ��ԭ-��ȡ������������
-| XGameServer | User.cpp | ?SetSocialUseID@CUser@@QEAAXK@Z | 0x14018FC60 | implemented | IDA decompile | yes | �����罻ʹ��ID |
 | XGameServer | TraceHPState.cpp | ?Init@CTraceHPState@@QEAAXPEAVCMonster@@@Z | 0x140198e60 | implemented | IDA decompile | yes | ��ʼ��HP׷��״̬-���ù���ָ�벢��ռ��ٷֱ��б�?|
 | XGameServer | Monster.cpp | ?GetParentID@CMonster@@QEAA?ATUXActorID@@XZ | 0x14009f170 | implemented | IDA decompile | yes | ��ȡ��ActorID |
-| XGameServer | Monster.cpp | ?ProcessGameMode@CMonster@@IEAAXXZ | 0x1403568a0 | implemented | IDA decompile | yes | ������Ϸģʽ-����Monster_Type���ö�Ӧ���� |
-| XGameServer | Monster.cpp | ?ProcessExp@CMonster@@IEAAXPEAVXActor@@@Z | 0x140355fd0 | implemented | IDA decompile | yes | ��������-���ݹ���ȼ���Rank���㾭�� |
-| XGameServer | Monster.cpp | ?DropItemByHit@CMonster@@IEAAXK@Z | 0x140356290 | implemented | IDA decompile | yes | ���е�����Ʒ-�����������͵���ProcessDropByHit |
-| XGameServer | Monster.cpp | ?ProcessDrop@CMonster@@IEAAXPEAVXActor@@@Z | 0x140356550 | implemented | IDA decompile | yes | ��������-�����������͵��ö�Ӧ���䴦�� |
-| XGameServer | Monster.cpp | ?ProcessEscortQuest@CMonster@@IEAAXXZ | 0x140356750 | implemented | IDA decompile | yes | ������������-���͹�������ʱʧ������ |
-| XGameServer | Monster.cpp | ?SetInfoPacket@CMonster@@UEAAXAEAVXSendPacket@@@Z | 0x140355d60 | implemented | IDA decompile | yes | ������Ϣ��-��ȡ����ֵ�����͹�����Ϣ |
-| XGameServer | Monster.cpp | ?InitComponant@CMonster@@QEAAXXZ | 0x1403559a0 | implemented | IDA decompile | yes | ��ʼ�����?����NpcAttribute��Inventory���?|
-| XGameServer | Monster.cpp | ?GetActorID@CMonster@@UEAA?ATUXActorID@@XZ | 0x1403559e0 | implemented | IDA decompile | yes | ��ȡActorID(��m_pGrapParentת��) |
-| XGameServer | Monster.cpp | ?GetID@CMonster@@UEAAKXZ | 0x140355a10 | implemented | IDA decompile | yes | ��ȡID(����m_pGrapParent) |
-| XGameServer | Monster.cpp | ?SetPosInfo@CMonster@@UEAAXUXVec3@@M@Z | 0x140355a30 | implemented | IDA decompile | yes | ����λ����Ϣ-���ø���SetPosInfo |
-| XGameServer | Monster.cpp | ?SetPositionXVec3@CMonster@@UEAAXAEAUXVec3@@@Z | 0x140355ad0 | implemented | IDA decompile | yes | ����λ��-���Ƶ�������Ϣ�����û��� |
-| XGameServer | Monster.cpp | ?GetActionResourceFN@CMonster@@UEAA?AVVString@@XZ | 0x140357990 | implemented | IDA decompile | yes | ��ȷ��ԭ-��ȡ������Դ�ļ���
-| XGameServer | Monster.cpp | ?ApplyTableAbility@CMonster@@QEAAXXZ | 0x1403581a0 | implemented | IDA decompile | yes | Ӧ�ñ�������-���ý׶�/�ٶ�/����/��Ӫ |
 | XGameServer | Monster.cpp | ?UpdateSendMoveData@CMonster@@QEAAXXZ | 0x14035ABC0 | implemented | IDA decompile | yes | ��ȷ��ԭ-���·����ƶ�����
 | XGameServer | Monster.cpp | ?CheckSendMovePacket@CMonster@@UEAAXXZ | 0x14035AC40 | implemented | IDA decompile | yes | ��ȷ��ԭ-��鷢���ƶ���?
 | XGameServer | Monster.cpp | ?CheckTurnOrMovePacket@CMonster@@UEAAXXZ | 0x14035AF30 | implemented | IDA decompile | yes | ��ȷ��ԭ-���ת����ƶ���
 | XGameServer | Monster.cpp | ?StartMoving@CMonster@@UEAAHXZ | 0x14035B1E0 | implemented | IDA decompile | yes | ��ȷ��ԭ-��ʼ�ƶ�
-| XGameServer | Monster.cpp | ?ChangeBattlePose@CMonster@@UEAAX_N0@Z | 0x14035a0a0 | implemented | IDA decompile | yes | ��ȷ��ԭ-�л�ս����̬�����Ŷ��� |
-| XGameServer | Monster.cpp | ?ActiveSuperArmorSkill@CMonster@@UEAAXXZ | 0x14035a690 | implemented | IDA decompile | yes | ��ȷ��ԭ-����AI��ActiveSuperArmorSkill |
-| XGameServer | Monster.cpp | ?ProcessSkillAnimation@CMonster@@MEAAXM@Z | 0x140359e20 | implemented | IDA decompile | yes | ��ȷ��ԭ-�������ܶ����ͼ��������߼� |
-| XGameServer | Monster.cpp | ?ActionBufferProcess@CMonster@@UEAAHPEAUtagACTION_BUFFER@@@Z | 0x140359fa0 | implemented | IDA decompile | yes | ��ȷ��ԭ-�����ƶ����봥���� |
-| XGameServer | Monster.cpp | ?DebugMessage@CMonster@@UEAAXXZ | 0x140359c50 | implemented | IDA decompile | yes | ??????? |
 | XGameServer | Monster.cpp | ?GetSkillDestPos@CMonster@@UEAA?AVhkvVec3@@XZ | 0x14035A5E0 | implemented | IDA decompile | yes | ��ȡ����Ŀ��λ��-Ŀ��λ��+AIƫ�� |
 | XGameServer | Monster.cpp | ?ChangeAngleAttackName@CMonster@@UEAAXEAEAVVString@@@Z | 0x14035A6C0 | implemented | IDA decompile | yes | ?????????????|
 | XGameServer | Monster.cpp | ?IsRemainBossMonster@CMonster@@QEAA_NXZ | 0x14035A950 | implemented | IDA decompile | yes | ��ȷ��ԭ-���ʣ��Boss����
@@ -89,14 +55,9 @@
 | XGameServer | Monster.cpp | ?SetDirectionYaw@CMonster@@UEAAXME@Z | 0x14035B370 | implemented | IDA decompile | yes | ��ȷ��ԭ-���÷���ƫ��
 | XGameServer | Monster.cpp | ?UpdateTargetRotation@CMonster@@UEAAX_N@Z | 0x14035B470 | implemented | IDA decompile | yes | ��ȷ��ԭ-����Ŀ����ת
 | XGameServer | Monster.cpp | ?CancelAttackFromDamage@CMonster@@UEAAXXZ | 0x14035B520 | implemented | IDA decompile | yes | ��ȷ��ԭ-�˺�ȡ������
-| XGameServer | Monster.cpp | ?InitialObjectInfo@CMonster@@UEAAXKHVhkvVec3@@M@Z | 0x140355120 | implemented | IDA decompile | yes | ��ȷ��ԭ-��ʼ��������Ϣ |
 | XGameServer | Monster.cpp | ?GenerateEventObject@CMonster@@UEAAXXZ | 0x1403556D0 | implemented | IDA decompile | yes | ��ȷ��ԭ-�����¼����󲢳�ʼ���ȼ� |
-| XGameServer | Monster.cpp | ?SetInfo@CMonster@@UEAAXXZ | 0x140355730 | implemented | IDA decompile | yes | ��ȷ��ԭ-������Ϣ-��ʼ�����ܹ�����
 | XGameServer | Monster.cpp | ?SetSyncInfo@CMonster@@UEAAXXZ | 0x140355B10 | implemented | IDA decompile | yes | ��ȷ��ԭ-����ͬ����Ϣ
 | XGameServer | Monster.cpp | ?ProcessExp@CMonster@@IEAAXPEAVXActor@@@Z | 0x140355FD0 | implemented | IDA decompile | yes | ��ȷ��ԭ-��������
-| XGameServer | Monster.cpp | ?DropItemByHit@CMonster@@IEAAXK@Z | 0x140356290 | implemented | IDA decompile | yes | ��ȷ��ԭ-���е�����Ʒ
-| XGameServer | Monster.cpp | ?ProcessDrop@CMonster@@IEAAXPEAVXActor@@@Z | 0x140356550 | implemented | IDA decompile | yes | ��ȷ��ԭ-��������
-| XGameServer | Monster.cpp | ?ProcessEscortQuest@CMonster@@IEAAXXZ | 0x140356750 | implemented | IDA decompile | yes | ��ȷ��ԭ-������������
 | XGameServer | Monster.cpp | ?ProcessGameMode@CMonster@@IEAAXXZ | 0x140356810 | implemented | IDA decompile | yes | ��ȷ��ԭ-��ɻ�������?
 | XGameServer | Monster.cpp | ?IsMonsterInteractObject@CMonster@@QEAAHXZ | 0x140360AD0 | implemented | IDA decompile | yes | ��ȷ��ԭ-Monster_Type==7 |
 | XGameServer | Monster.cpp | ?IsInheritParentStat@CMonster@@UEAA_NXZ | 0x140360B10 | implemented | IDA decompile | yes | ��ȷ��ԭ-Monster_Element==1����OwnerPlayer |
@@ -106,13 +67,7 @@
 | XGameServer | Monster.cpp | ?FindGuardMonster@CMonster@@QEAAPEAV1@XZ | 0x140360F60 | implemented | IDA decompile | yes | ��ȷ��ԭ-�����ػ����� |
 | XGameServer | Monster.cpp | ?ApplyLevelToStat@CMonster@@QEAAXH@Z | 0x140357C80 | implemented | IDA decompile | yes | ��ȷ��ԭ-Ӧ�õȼ������� |
 | XGameServer | Monster.cpp | ?GetSpawnTime@CMonster@@QEAAMXZ | 0x1403606A0 | implemented | IDA decompile | yes | ��ȷ��ԭ-��������ʱ�� |
-| XGameServer | Monster.cpp | ?IsTableID@CMonster@@QEAA_NPEBD@Z | 0x140360700 | implemented | IDA decompile | yes | ��ȷ��ԭ-���TableID
-| XGameServer | Monster.cpp | ?IsDefensiveWeapon@CMonster@@UEAAHXZ | 0x140360790 | implemented | IDA decompile | yes | ��ȷ��ԭ-����������
-| XGameServer | Monster.cpp | ?IsMonsterDamageCount@CMonster@@QEAAHXZ | 0x140360890 | implemented | IDA decompile | yes | ��ȷ��ԭ-����˺���������?
 | XGameServer | Monster.cpp | ?IsDedicated@CMonster@@QEAAHXZ | 0x1403608D0 | implemented | IDA decompile | yes | ��ȷ��ԭ-���ר�ù���?
-| XGameServer | Monster.cpp | ?IsMonsterCombo@CMonster@@QEAAHXZ | 0x140360910 | implemented | IDA decompile | yes | ��ȷ��ԭ-�����������?
-| XGameServer | Monster.cpp | ?IsMercenary@CMonster@@QEAAHXZ | 0x140360950 | implemented | IDA decompile | yes | ��ȷ��ԭ-����Ӷ��
-| XGameServer | Monster.cpp | ?IsHelper@CMonster@@QEAAHXZ | 0x140360990 | implemented | IDA decompile | yes | ��ȷ��ԭ-�������?
 | XGameServer | Monster.cpp | ?IsRealHelper@CMonster@@QEAAHXZ | 0x1403609D0 | implemented | IDA decompile | yes | ��ȷ��ԭ-Monster_Type==10��TB_HELPER���� |
 | XGameServer | Monster.cpp | ?IsNormalMonster@CMonster@@QEAAHXZ | 0x140360A50 | implemented | IDA decompile | yes | ��ȷ��ԭ-Monster_Type==0 |
 | XGameServer | Monster.cpp | ?GetAIState@CMonster@@UEAAEXZ | 0x140357A20 | implemented | IDA decompile | yes | ��ȷ��ԭ-��ȡAI״̬
@@ -122,16 +77,10 @@
 | XGameServer | Monster.cpp | ?GetAIActionValue@CMonster@@UEAAXPEAH@Z | 0x140357B70 | implemented | IDA decompile | yes | ��ȷ��ԭ-��ȡAI����ֵ
 | XGameServer | Monster.cpp | ?CheckWayPoint@CMonster@@UEAAXXZ | 0x140357BB0 | implemented | IDA decompile | yes | ��ȷ��ԭ-���·����?
 | XGameServer | Monster.cpp | ?GetSectorID@CMonster@@UEAAHXZ | 0x140357C40 | implemented | IDA decompile | yes | ��ȷ��ԭ-��ȡ����ID
-| XGameServer | Monster.cpp | ?ApplySuperArmorGage@CMonster@@QEAAXM@Z | 0x140358100 | implemented | IDA decompile | yes | ��ȷ��ԭ-Ӧ�ó�������ֵ
 | XGameServer | Monster.cpp | ?GetGroupID@CMonster@@QEAAHXZ | 0x140353AD0 | implemented | IDA decompile | yes | ��ȷ��ԭ-��ȡ��ID
 | XGameServer | Monster.cpp | ?SetGuardID@CMonster@@QEAAXK@Z | 0x140353CA0 | implemented | IDA decompile | yes | ��ȷ��ԭ-�����ػ���ID
-| XGameServer | Monster.cpp | ?SetGroupID@CMonster@@QEAAXH@Z | 0x140354230 | implemented | IDA decompile | yes | ��ȷ��ԭ-������ID
-| XGameServer | Monster.cpp | ?SetCallScriptDie@CMonster@@QEAAX_N@Z | 0x140354270 | implemented | IDA decompile | yes | ��ȷ��ԭ-���ýű��������ñ�־
 | XGameServer | Monster.cpp | ?SetReserveDie@CMonster@@QEAAX_N@Z | 0x1403542B0 | implemented | IDA decompile | yes | ��ȷ��ԭ-����Ԥ��������־
-| XGameServer | Monster.cpp | ?SetNextSkillID@CMonster@@QEAAXH@Z | 0x140364630 | implemented | IDA decompile | yes | ��ȷ��ԭ-������һ������ID
-| XGameServer | Monster.cpp | ?GetTraceHPState@CMonster@@QEAAPEAVCTraceHPState@@XZ | 0x140364760 | implemented | IDA decompile | yes | ��ȷ��ԭ-��ȡHP׷��״̬
 | XGameServer | Monster.cpp | ?GetLevel@CMonster@@UEAAEXZ | 0x140364B10 | implemented | IDA decompile | yes | ��ȷ��ԭ-��ȡ�ȼ�
-| XGameServer | Monster.cpp | ?SetLevel@CMonster@@UEAAXE@Z | 0x140364300 | implemented | IDA decompile | yes | ��ȷ��ԭ-���õȼ�
 | XGameServer | Monster.cpp | ?SetInitYaw@CMonster@@QEAAXM@Z | 0x1406E03F0 | implemented | IDA decompile | yes | ��ȷ��ԭ-���ó�ʼƫ���� |
 | XGameServer | Monster.cpp | ?IsSuicide@CMonster@@UEAAHXZ | 0x1403642A0 | implemented | IDA decompile | yes | ��ȷ��ԭ-����Ƿ����?
 | XGameServer | Monster.cpp | ?SetGuardMonster@CMonster@@QEAAXK@Z | 0x1403644C0 | implemented | IDA decompile | yes | ��ȷ��ԭ-�����ػ�����ID
@@ -151,23 +100,17 @@
 | XGameServer | Monster.cpp | ?GetAggroList@CMonster@@QEAAPEAV?$map@KUtagDamageMeter@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUtagDamageMeter@@@std@@@3@@std@@XZ | 0x14027A5F0 | implemented | IDA decompile | yes | ��ȷ��ԭ-��ȡ����б�?|
 | XGameServer | Monster.cpp | ?ApplyAggroValue@CMonster@@QEAAXKM_N@Z | 0x1403614A0 | implemented | IDA decompile | yes | ��ȷ��ԭ-Ӧ�ó���?|
 | XGameServer | Monster.cpp | ?GetAggroValue@CMonster@@QEAAMK@Z | 0x1403615D0 | implemented | IDA decompile | yes | ��ȷ��ԭ-��ȡָ��ID����?|
-| XGameServer | Monster.cpp | ?GetTopAggroValue@CMonster@@QEAAMXZ | 0x140361640 | implemented | IDA decompile | yes | ��ȷ��ԭ-��ȡ��߳��ֵ |
 | XGameServer | Monster.cpp | ?UpdateHealAggro@CMonster@@QEAAXXZ | 0x14035FB20 | implemented | IDA decompile | yes | ��ȷ��ԭ-�������Ƴ��?|
 | XGameServer | Monster.cpp | ?CalcSkillAggroPoint@CMonster@@QEAAMPEAVCMoverEx@@MPEAUTB_SKILL@@@Z | 0x14035F7F0 | implemented | IDA decompile | yes | ��ȷ��ԭ-���㼼�ܳ�޵�?|
 | XGameServer | Monster.cpp | ?CalcDotAggroPoint@CMonster@@QEAAMM@Z | 0x14035F9E0 | implemented | IDA decompile | yes | ��ȷ��ԭ-����DoT��޵�?|
 | XGameServer | Monster.cpp | ?CalcHealAggroPoint@CMonster@@QEAAMPEAVCMoverEx@@@Z | 0x14035FA00 | implemented | IDA decompile | yes | ��ȷ��ԭ-�������Ƴ�޵�?|
 | XGameServer | Monster.cpp | ?CheckDamageAggroReset@CMonster@@QEAAXMM@Z | 0x14035FF80 | implemented | IDA decompile | yes | ��ȷ��ԭ-����˺�������� |
-| XGameServer | Monster.cpp | ?CheckProtectAggro@CMonster@@QEAAXKM@Z | 0x140361260 | implemented | IDA decompile | yes | ��ȷ��ԭ-��鱣����� |
-| XGameServer | Monster.cpp | ?UpdateDamageAggressive@CMonster@@QEAAXPEAVCMoverEx@@H@Z | 0x14035F5B0 | implemented | IDA decompile | yes | ��ȷ��ԭ-�����˺������� |
-| XGameServer | Monster.cpp | ?IsCanAI@CMonster@@UEAAHXZ | 0x140358860 | implemented | IDA decompile | yes | ����Ƿ����ִ��AI-��ȷ��ԭ |
 | XGameServer | Monster.cpp | ?SetSummonType@CMonster@@QEAAXE@Z | 0x14009F1E0 | implemented | IDA decompile | yes | ��ȷ��ԭ-�����ٻ����� |
 | XGameServer | Monster.cpp | ?GetGroupAggro@CMonster@@QEAAPEAVCGroupAggro@@XZ | 0x140198DC0 | implemented | IDA decompile | yes | ��ȷ��ԭ-��ȡȺ���޶��� |
-| XGameServer | Monster.cpp | ?GetCallScriptDie@CMonster@@QEAA_NXZ | 0x140199230 | implemented | IDA decompile | yes | ��ȷ��ԭ-��ȡ�ű��������ñ�־ |
 | XGameServer | Monster.cpp | ?GetMobTableRef@CMonster@@QEAAPEAUTB_MONSTER@@XZ | 0x140016EF0 | implemented | IDA decompile | yes | ��ȷ��ԭ-��ȡ���������?|
 | XGameServer | Monster.cpp | ?SetTablePtr@CMonster@@QEAAXPEAUTB_MONSTER@@@Z | 0x1403558A0 | implemented | IDA decompile | yes | ��ȷ��ԭ-���ù����ָ��?|
 | XGameServer | Monster.cpp | ?GetAi@CMonster@@QEAAPEAVCAi@@XZ | 0x14009F1A0 | implemented | IDA decompile | yes | ��ȷ��ԭ-��ȡAI���� |
 | XGameServer | Monster.cpp | ?SetAi@CMonster@@QEAAXPEAVCAi@@@Z | 0x1406E0410 | implemented | IDA decompile | yes | ��ȷ��ԭ-����AI���� |
-| XGameServer | Monster.cpp | ?OnDie@CMonster@@UEAAXPEAVXActor@@@Z | 0x140356980 | implemented | IDA decompile | yes | ��ȷ��ԭ-��������-�����߼�
 | XGameServer | Monster.cpp | ?RealDie@CMonster@@UEAAXF@Z | 0x14035A200 | implemented | IDA decompile | yes | ��ȷ��ԭ-��������-Boss��������
 | XGameServer | Monster.cpp | ?CheckSuperArmorMotion@CMonster@@QEAA_NF@Z | 0x14035D2C0 | implemented | IDA decompile | yes | ��ȷ��ԭ-��鳬�����׶���?
 | XGameServer | Monster.cpp | ?CheckProtectSkillUI@CMonster@@QEAAXXZ | 0x14035B6C0 | implemented | IDA decompile | yes | ��ȷ��ԭ-��鱣������UI
@@ -178,7 +121,6 @@
 | XGameServer | Monster.cpp | ?Init@CMonster@@UEAAXXZ | 0x140355900 | implemented | IDA decompile | yes | ��ȷ��ԭ-��ʼ��-GOC���?
 | XGameServer | Monster.cpp | ?GetHP@CMonster@@UEAAHXZ | 0x140364D60 | implemented | IDA decompile | yes | ��ȷ��ԭ-��ȡHP
 | XGameServer | Monster.cpp | ?GetTableID@CMonster@@UEAAHXZ | 0x140364AD0 | implemented | IDA decompile | yes | ��ȷ��ԭ-��ȡ��ID |
-| XGameServer | Monster.cpp | ?DamageAggressive@CMonster@@QEAAXXZ | 0x14035FC60 | implemented | IDA decompile | yes | ��ȷ��ԭ-�˺������Դ���-�����˺�������Ŀ�� |
 | XGameServer | Monster.cpp | ?SetDie@CMonster@@UEAAXFH@Z | 0x14035CE10 | implemented | IDA decompile | yes | ��ȷ��ԭ-��������״̬
 | XGameServer | Monster.cpp | ?ActionProcess@CMonster@@UEAAHF@Z | 0x14035D660 | implemented | IDA decompile | yes | ��ȷ��ԭ-��������-���ܹ����ж�
 | XGameServer | Monster.cpp | ?Damage@CMonster@@UEAAXAEAUtagACTION_DAMAGE@@HAEA_N@Z | 0x14035B590 | implemented | IDA decompile | yes | ��ȷ��ԭ-�˺�����
@@ -193,10 +135,8 @@
 | XGameServer | GameServer.cpp | ?Clear@XGameServer@@UEAAXXZ | 0x1402D9900 | implemented | IDA decompile | yes | ��Ϸ����������-�Ͽ����Ӳ��ͷ���Դ |
 | XGameServer | GameServer.cpp | ?OnUpdate@XGameServer@@UEAAXXZ | 0x1402DA160 | implemented | IDA decompile | yes | ��Ϸ����������-����/�̳�/���а�ʱ���� |
 | XGameServer | MoverEx.cpp | ?CheckUseSkill@CMoverEx@@QEAAHEEPEAUTB_SKILL@@@Z | 0x14037FBD0 | implemented | IDA decompile | yes | ???????????????|
-| XGameServer | MoverEx.cpp | ?CancelSkill@CMoverEx@@QEAAXXZ | 0x14037E9E0 | implemented | IDA decompile | yes | CancelSkill - cancel skill with IsStatus check |
 | XGameServer | MoverEx.cpp | ?PreSkillProcess@CMoverEx@@UEAAXHH@Z | 0x14037D790 | implemented | IDA decompile | yes | PreSkillProcess - IDA exact restoration with full charging/animation logic |
 | XGameServer | MoverEx.cpp | ?GetNextMotion@CMoverEx@@QEAAFXZ | 0x140381F90 | implemented | IDA decompile | yes | GetNextMotion - get next motion based on state |
-| XGameServer | MoverEx.cpp | ?CheckPhaseMotion@CMoverEx@@QEAAXXZ | 0x140384810 | implemented | IDA decompile | yes | ???Phase??????? |
 | XGameServer | MoverEx.cpp | ?ThinkFunction@CMoverEx@@UEAAXXZ | 0x14037A4F0 | implemented | IDA decompile | yes | ��ȷ��ԭ-˼������-����״̬����
 | XGameServer | MoverEx.cpp | ?ChangeMotion@CMoverEx@@UEAAXH_NH@Z | 0x14037C310 | implemented | IDA decompile | yes | ��ȷ��ԭ-�����л�-�����߼� |
 | XGameServer | MoverEx.cpp | ?UpdateStiffen@CMoverEx@@QEAAXM@Z | 0x140396100 | implemented | IDA decompile | yes | ��ȷ��ԭ-��ֱ״̬����-����/�ӳ�/�ָ� |
@@ -219,31 +159,22 @@
 | XGameServer | Monster.cpp | ?IsFollower@CMonster@@QEBA_NXZ | 0x140360810 | implemented | IDA decompile | yes | ��ȷ��ԭ-IsMercenary()||IsHelper() |
 | XGameServer | Monster.cpp | ?DamageAggressive@CMonster@@QEAAXXZ | 0x14035FC60 | implemented | IDA decompile | yes | �˺������Դ���-�����˺�������Ŀ�� |
 | XGameServer | Monster.cpp | ?UpdateDamageAggressive@CMonster@@QEAAXPEAVCMoverEx@@H@Z | 0x14035F5B0 | implemented | IDA decompile | yes | �����˺�������-����AddDamageMeter��DamageAggressive |
-| XGameServer | Monster.cpp | ?GetTopAggroValue@CMonster@@QEAAMXZ | 0x140361640 | implemented | IDA decompile | yes | ��ȡ��߳��ֵ-�����˺����������?|
 | XGameServer | BattleZone.cpp | ?ExcuteSpawnBox@CBattleZone@@QEAAXH@Z | 0x14019F3D0 | implemented | IDA decompile | yes | ????????? |
-| XGameServer | BattleZone.cpp | ?SpawnGenerateMonster@CBattleZone@@QEAAXH@Z | 0x1401A2100 | implemented | IDA decompile | yes | ?????????????? |
-| XGameServer | BattleZone.cpp | ?CreateMonster@CBattleZone@@QEAAPEAVCMonster@@HPEAUTB_MONSTER_SPAWN@@AEBUVector3@@@Z | 0x1401A08B0 | implemented | IDA decompile | yes | ??????????? |
 | XGameServer | BattleZone.cpp | ?StartWorldMode@CBattleZone@@QEAAXAEAUST_WORLD_MODE_INFO@@@Z | 0x1401A4C40 | implemented | IDA decompile | yes | ��ȷ��ԭ-����CGameWorldMode�����͹㲥�� |
 | XGameServer | BattleZone.cpp | ?FinishWorldMode@CBattleZone@@QEAAXAEAUPS_WORLD_MODE_FINISH@@@Z | 0x1401A4FC0 | implemented | IDA decompile | yes | ��ȷ��ԭ-���WorldMode���������͹㲥 |
 | XGameServer | BattleZone.cpp | ?IsWorldModeBoss@CBattleZone@@QEAA_NH@Z | - | implemented | IDA decompile | yes | ?????????Boss |
 | XGameServer | Mover.cpp | ?IsDie@CMover@@QEBA_NXZ | 0x140366E40 | implemented | IDA decompile | yes | ����Ƿ�����?״̬����HP<=0 |
 | XGameServer | Mover.cpp | ?IsMoving@CMover@@QEBA_NXZ | 0x14027A610 | implemented | IDA decompile | yes | ����Ƿ��ƶ�?����m_fMoving |
-| XGameServer | Mover.cpp | ?ProcessExtraMoving@CMover@@QEAAXXZ | 0x14036BC20 | implemented | IDA decompile | yes | ��ȷ��ԭ-���������ƶ�
-| XGameServer | Mover.cpp | ?ReleaseExtraMoving@CMover@@UEAAXXZ | 0x14036C120 | implemented | IDA decompile | yes | �ͷŶ����ƶ�-����λ�ô��������״�?|
-| XGameServer | Mover.cpp | ?AddExtraMoving@CMover@@UEAAXMMM@Z | 0x14036C210 | implemented | IDA decompile | yes | ���Ӷ����ƶ�-�ۼ��ƶ�Ŀ�겢����ʱ�� |
 | XGameServer | GroupAggro.cpp | ?RunAggro@CGroupAggro@@QEAAXPEAVCMonster@@@Z | 0x140198A90 | implemented | IDA decompile | yes | ��ȷ��ԭ-����Ⱥ����
 | XCore/XServer | XSeed.h | ?GetSeedByIndex@XSeed@@QAENN@Z | 0x1407195C0 | implemented | IDA decompile | yes | ��ȡ��������ֵ-������������ӳ���?0000 |
 | XCore/XServer | XSeed.h | XRand<int> | 0x1402E7570 | implemented | IDA decompile | yes | ?????????????????|
 | XCore/XServer | XSeed.h | XRand<float> | 0x1402E7630 | implemented | IDA decompile | yes | ???????????????|
-| XGameServer | BattleZone.cpp | ?SpawnMonster@CBattleZone@@QEAAPEAVCMonster@@HAEAUST_SPAWN_MONSTER_INFO@@@Z | - | implemented | IDA decompile | yes | ��ȷ��ԭ-���ɹ��ﲢ�������� |
 | XGameServer | BattleZone.cpp | ?RemoveMonster@CBattleZone@@QEAAXPEAVCMonster@@@Z | - | implemented | IDA decompile | yes | ��ȷ��ԭ-���ɹ��ﲢ�������� |
 | XGameServer | BattleZone.cpp | ?GetMonsterCount@CBattleZone@@QEAAHXZ | - | implemented | IDA decompile | yes | ����GetActorCount(eActorMonster) | ??????????? |
 | XGameServer | BattleZone.cpp | ??0CBattleZone@@QEAA@XZ | 0x14019D2B0 | implemented | IDA decompile | yes | CBattleZone���캯��-��ʼ���������ͳ�Ա |
 | XGameServer | BattleZone.cpp | ??1CBattleZone@@UEAA@XZ | 0x14019D4E0 | implemented | IDA decompile | yes | CBattleZone��������-���ٸ��������û������� |
 | XGameServer | BattleZone.cpp | ?Clear@CBattleZone@@QEAAXXZ | 0x14019DBD0 | implemented | IDA decompile | yes | ����ս������-ɾ�����ж����������?|
 | XGameServer | BattleZone.cpp | ?OnUpdate@CBattleZone@@UEAAXXZ | 0x14019E1A0 | implemented | IDA decompile | yes | ս���������?����������/������/��ɫ���� |
-| XGameServer | BattleZone.cpp | ?DeleteMonster@CBattleZone@@QEAAXPEAVCMonster@@@Z | 0x14019EFE0 | implemented | IDA decompile | yes | ɾ������-��������/����/KRR/�˳����� |
-| XGameServer | BattleZone.cpp | ?DeleteNpc@CBattleZone@@QEAAXK@Z | 0x1401A1320 | implemented | IDA decompile | yes | Delete NPC by ID |
 | XGameServer | BattleZone.cpp | ?DeleteAkashicObject@CBattleZone@@QEAAXK@Z | 0x1401A14B0 | implemented | IDA decompile | yes | Delete Akashic object by ID |
 | XGameServer | Xigncode.cpp | ?Init@CXigncode@@QEAA_NXZ | 0x140001000 | implemented | IDA decompile | yes | Initialize Xigncode SDK |
 | XGameServer | Xigncode.cpp | ?Release@CXigncode@@QEAAXXZ | 0x140001080 | implemented | IDA decompile | yes | Release Xigncode SDK |
@@ -282,14 +213,6 @@
 | - | - | ?_Linsert@?$_Tree@V?$_Tmap_traits@HV?$shared_ptr@VCDropItemGroup@@@tr1@std@@U?$less@H@3@V?$allocator@U?$pair@$$CBHV?$shared_ptr@VCDropItemGroup@@@tr1@std@@@std@@@3@$0A@@std@@@std@@QEAA?AU?$pair@V?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@HV?$shared_ptr@VCDropItemGroup@@@tr1@std@@U?$less@H@3@V?$allocator@U?$pair@$$CBHV?$shared_ptr@VCDropItemGroup@@@tr1@std@@@std@@@3@$0A@@std@@@std@@@std@@_N@2@PEAU_Node@?$_Tree_nod@V?$_Tmap_traits@HV?$shared_ptr@VCDropItemGroup@@@tr1@std@@U?$less@H@3@V?$allocator@U?$pair@$$CBHV?$shared_ptr@VCDropItemGroup@@@tr1@std@@@std@@@3@$0A@@std@@@2@_N@Z | 0x1400026c0 | blocked | IDA ?_Linsert@?$_Tree@V?$_Tmap_traits@HV?$shared_ptr@VCDropItemGroup@@@tr1@std@@U?$less@H@3@V?$allocator@U?$pair@$$CBHV?$shared_ptr@VCDropItemGroup@@@tr1@std@@@std@@@3@$0A@@std@@@std@@QEAA?AU?$pair@V?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@HV?$shared_ptr@VCDropItemGroup@@@tr1@std@@U?$less@H@3@V?$allocator@U?$pair@$$CBHV?$shared_ptr@VCDropItemGroup@@@tr1@std@@@std@@@3@$0A@@std@@@std@@@std@@_N@2@PEAU_Node@?$_Tree_nod@V?$_Tmap_traits@HV?$shared_ptr@VCDropItemGroup@@@tr1@std@@U?$less@H@3@V?$allocator@U?$pair@$$CBHV?$shared_ptr@VCDropItemGroup@@@tr1@std@@@std@@@3@$0A@@std@@@2@_N@Z | yes | - |
 | - | - | ??0?$_Ref_count@VCAchieve@@@tr1@std@@QEAA@PEAVCAchieve@@@Z | 0x140002a50 | blocked | IDA ??0?$_Ref_count@VCAchieve@@@tr1@std@@QEAA@PEAVCAchieve@@@Z | yes | - |
 | - | - | ??0bad_weak_ptr@tr1@std@@QEAA@AEBV012@@Z | 0x140002a90 | blocked | IDA ??0bad_weak_ptr@tr1@std@@QEAA@AEBV012@@Z | yes | - |
-| XGameServer | GocInventory.cpp | CGocInventory::AddPrivateShopItem | 0x1400B0D80 | implemented | IDA decompile | yes | IDA精确还原 - 个人商店物品添加含锁定处�?|
-| XGameServer | GocInventory.cpp | CGocInventory::DelPrivateShopItem | 0x1400B1000 | implemented | IDA decompile | yes | IDA精确还原 - 个人商店物品删除含解锁处�?|
-| XGameServer | GocInventory.cpp | CGocInventory::PrivateShopItemList | 0x1400B11D0 | implemented | IDA decompile | yes | IDA精确还原 - 获取个人商店物品列表 |
-| XGameServer | GocInventory.cpp | CGocInventory::ClearPrivateShopList | 0x1400B1330 | implemented | IDA decompile | yes | IDA精确还原 - 清空商店列表含解锁处�?|
-| XGameServer | GocInventory.cpp | CGocInventory::ReduceItemShop | 0x1400DBDF0 | implemented | IDA decompile | yes | IDA精确还原 - 减少商店物品数量，含验证、获取TB_ITEM_CLASSIFY、调用ReduceItemCheckShop和DelItemCountShop |
-| XGameServer | GocInventory.cpp | CGocInventory::ClearInven | 0x1400A0000 | implemented | IDA decompile | yes | Precise restoration - clears all currency values |
-| XGameServer | GocInventory.cpp | CGocInventory::ConvertHelperInvenSlot | 0x1400AF660 | implemented | IDA decompile | yes | IDA精确还原 - 转换辅助槽类�?40-242到索�?-2 |
-| XGameServer | GocInventory.cpp | CGocInventory::ReduceItemCheckShop | 0x1400DBF40 | implemented | IDA decompile | yes | IDA精确还原 - 检查并减少更新列表中的商店物品，遍历PS_RES_STORAGE_INFO并更新计数 |
 | XGameServer | GocInventory.cpp | CGocInventory::IsBuyCashLimitCount | 0x1400E5AD0 | implemented | IDA decompile | yes | IDA精确还原 - 计算现金商店购买限制结束日期(�?�?�? |
 | XGameServer | GocAkashicRecord.cpp | CGocAkashicRecord::GetOwnerMover | - | implemented | IDA pattern | yes | Verified IDA pattern for owner retrieval |
 | XGameServer | GocAkashicRecord.cpp | CGocAkashicRecord::GetOwnerObject | - | implemented | IDA pattern | yes | Verified IDA pattern for object retrieval |
@@ -304,8 +227,8 @@
 | XCore | VisionEngineTypes.cpp | VManagedResource::GetGlobalTime | 0x14072AD80 | implemented | IDA decompile | yes | IDA精确还原 - 返回全局时间g_fGlobalTime |
 | XCore | VisionEngineTypes.cpp | VManagedResource::GetFilename | 0x140734DB0 | implemented | IDA decompile | yes | IDA精确还原 - 获取资源文件�?跳过前导斜杠) |
 | XCore | VisionEngineTypes.cpp | VManagedResource::SetResourceFlag | 0x1407727A0 | implemented | IDA decompile | yes | IDA精确还原 - 设置资源标志�?m_iResourceFlag|=iMask) |
-| XCore | VisionEngineTypes.cpp | VManagedResource::DoReload | - | implemented | IDA pattern | yes | Virtual reload stub for derived classes |
-| XCore | VisionEngineTypes.cpp | VManagedResource::DoUnload | - | implemented | IDA pattern | yes | Virtual unload stub for derived classes |
+| XCore | VisionEngineTypes.cpp | VManagedResource::DoReload | - | blocked | IDA pattern | no | Virtual reload stub for derived classes |
+| XCore | VisionEngineTypes.cpp | VManagedResource::DoUnload | - | blocked | IDA pattern | no | Virtual unload stub for derived classes |
 | XGameServer | GocNpcCredit.cpp | CGocNpcCredit::SetShopItem | 0x140106980 | implemented | IDA decompile | yes | IDA精确还原 - 设置角色商店物品从DB响应 |
 | XGameServer | GocNpcCredit.cpp | CGocNpcCredit::SetShopAccountItem | 0x140106B20 | implemented | IDA decompile | yes | IDA精确还原 - 设置账号商店物品从DB响应 |
 | XGameServer | GocNpcCredit.cpp | CGocNpcCredit::UpdateShopItem | 0x140106CC0 | implemented | IDA decompile | yes | IDA精确还原 |
@@ -316,127 +239,21 @@
 | XGameServer | GocSkill.cpp | CGocSkill::GetModeShopMoney | 0x14005B420 | implemented | IDA decompile | yes | IDA精确还原 - 返回m_ModeShopMyInfo.nRoguelikeMoney |
 | XGameServer | GocSkill.cpp | CGocSkill::UpdateModeShopMoney | 0x140174440 | implemented | IDA decompile | yes | IDA精确还原 - 更新roguelike货币并检查下�?|
 | XGameServer | GocSkill.cpp | CGocSkill::AddModeShopBuyList | 0x140174490 | implemented | IDA decompile | yes | IDA精确还原(存根) - 添加购买到模式商店购买列表含计数跟踪待TB_MODE_BI_UPGRADE |
-| XGameServer | GocInventory.cpp | CGocInventory::SendMoney | 0x1400A2D70 | implemented | IDA decompile | yes | IDA精确还原 - 发送库存货币到客户�?main=8,sub=0x20) |
 | XGameServer | GocInventory.cpp | CGocInventory::SendMoney | 0x1400A2E60 | implemented | IDA decompile | yes | IDA精确还原 - 发送PS_GOLD_UPDATE到客户端 |
 | XGameServer | GocInventory.cpp | CGocInventory::SetBankMoney | 0x1400A23B0 | implemented | IDA decompile | yes | IDA精确还原 - 设置银行货币(m_nBankMoney=nMoney) |
-| XGameServer | GocInventory.cpp | CGocInventory::SendBankMoney | 0x1400A23E0 | implemented | IDA decompile | yes | IDA精确还原 - 发送银行货币到客户�?main=8,sub=0x21) |
-| XGameServer | GocInventory.cpp | CGocInventory::SetBP | 0x1400A2F30 | implemented | IDA decompile | yes | IDA精确还原 - 设置BP值并更新CUser stMyCharInfoEx |
-| XGameServer | GocInventory.cpp | CGocInventory::AddBP | 0x1400A3000 | implemented | IDA decompile | yes | IDA精确还原 - 添加BP含DB更新和日志记�?|
 | XGameServer | GocInventory.cpp | CGocInventory::SendBP | 0x1400A3C20 | implemented | IDA decompile | yes | IDA精确还原 - 发送BP更新到客户端(main=8,sub=0x31) |
 | XGameServer | GocInventory.cpp | CGocInventory::InitLimitBP | 0x1400A2FA0 | implemented | IDA decompile | yes | IDA精确还原 - 初始化限制BP值为0 |
 | XGameServer | GocInventory.cpp | CGocInventory::SetLimitBP | 0x1400A2FD0 | implemented | IDA decompile | yes | IDA精确还原 - 设置怪物和PVP BP限制 |
-| XGameServer | GocInventory.cpp | CGocInventory::SetEther | 0x1400A3CF0 | implemented | IDA decompile | yes | IDA精确还原 - 设置Ether值并更新CUser stMyCharInfoEx |
-| XGameServer | GocInventory.cpp | CGocInventory::AddEther | 0x1400A3D60 | implemented | IDA decompile | yes | IDA精确还原 - 添加Ether含选项效果检查和DB更新 |
-| XGameServer | GocInventory.cpp | CGocInventory::SendEther | 0x1400A4450 | implemented | IDA decompile | yes | IDA精确还原 - 发送Ether更新到客户端(main=8,sub=0x32) |
 | XGameServer | GocInventory.cpp | CGocInventory::DropEtherLog | 0x1400A4210 | implemented | IDA decompile | yes | IDA精确还原 - 记录掉落Ether日志(m_biDropEther>0�? |
 | XGameServer | GocInventory.cpp | CGocInventory::AddDropMoney | 0x1400A2890 | implemented | IDA decompile | yes | IDA精确还原 - 添加掉落货币含选项效果和溢出检�?|
 | XGameServer | GocInventory.cpp | CGocInventory::SetInventory | 0x1400A08E0 | implemented | IDA decompile | yes | IDA精确还原 - 初始化库存扩展步骤并设置货币�?|
 | XGameServer | GocInventory.cpp | CGocInventory::InventoryInfoReq | 0x1400A0A90 | implemented | IDA decompile | yes | IDA精确还原 - 发送DB请求加载库存/银行/插槽/胸针/包裹数据 |
-| XGameServer | GocInventory.cpp | CGocInventory::SetBankStep | 0x1400A1290 | implemented | IDA decompile | yes | IDA精确还原 - 银行扩展步骤初始化含国家类型检�?|
-| XGameServer | GocInventory.cpp | CGocInventory::AddTotalFriendPoint | 0x1400A4C80 | implemented | IDA decompile | yes | IDA精确还原 - 好友点数添加含溢出检查和DB更新 |
-| XGameServer | GocInventory.cpp | CGocInventory::SendTotalFriendPoint | 0x1400A4E30 | implemented | IDA decompile | yes | IDA精确还原 - 发送好友点数到客户�?main=8,sub=0x34) |
-| XGameServer | GocInventory.cpp | CGocInventory::PushRepurchaserItem | 0x1400A4F60 | implemented | IDA decompile | yes | IDA精确还原(存根) - 回购列表管理�?2项限制待PS_RES_STORAGE_INFO |
-| XGameServer | GocInventory.cpp | CGocInventory::EraseRepurchaserItem | 0x1400A5490 | implemented | IDA decompile | yes | Precise restoration - erase item from repurchaser/socket/broach lists by serial |
-| XGameServer | GocInventory.cpp | CGocInventory::IsRepurchaserItem | 0x1400A56D0 | implemented | IDA decompile | yes | Precise restoration - check if item exists in repurchaser list by serial/ID/count |
 | XGameServer | GocInventory.cpp | CGocInventory::SendRepurchaseList | 0x1400A57A0 | implemented | IDA decompile | yes | Precise restoration - send repurchase list to client (main=9,sub=3) with socket/broach lists |
-| XGameServer | GocInventory.cpp | CGocInventory::Equip | 0x1400A5960 | implemented | IDA decompile | yes | IDA精确还原(存根) - 装备物品含套装计数待XBaseEquip接口 |
-| XGameServer | GocInventory.cpp | CGocInventory::Unequip | 0x1400A5B10 | implemented | IDA decompile | yes | IDA精确还原(存根) - 卸下装备含序�?物品ID/染料ID清除待XBaseEquip接口 |
-| XGameServer | GocInventory.cpp | CGocInventory::ExchangeEquipSlot | 0x1400A5F30 | implemented | IDA decompile | yes | IDA精确还原(存根) - 交换装备槽位待XBaseEquip接口 |
-| XGameServer | GocInventory.cpp | CGocInventory::IsValidMoveMoney | 0x1400A6060 | implemented | IDA decompile | yes | IDA精确还原(存根) - 验证货币转移含CUser检查待PS_REQ_MOVE_MONEY |
-| XGameServer | GocInventory.cpp | CGocInventory::GetSlotItem | 0x1400A61F0 | implemented | IDA decompile | yes | IDA精确还原(存根) - 获取装备或库存槽位物品含锁定标志待XBaseEquip接口 |
 | XGameServer | GocInventory.cpp | CGocInventory::DivideItem | 0x1400A6390 | implemented | IDA decompile | yes | IDA精确还原(存根) - 分割物品堆叠含日志记录待PS_DB_ITEM_MOVE |
-| XGameServer | GocInventory.cpp | CGocInventory::AddItem | 0x1400A6920 | implemented | IDA decompile | yes | IDA精确还原(存根) - 通过shared_ptr添加物品到装备或库存待XBaseEquip接口 |
-| XGameServer | GocInventory.cpp | CGocInventory::AddItem | 0x1400A6B60 | implemented | IDA decompile | yes | IDA精确还原(存根) - 通过STItem结构添加物品待XBaseEquip接口 |
-| XGameServer | GocInventory.cpp | CGocInventory::RemoveItem | 0x1400A6DA0 | implemented | IDA decompile | yes | IDA精确还原(存根) - 从装�?调用Unequip)或库存移除物品待XBaseEquip接口 |
 | XGameServer | GocInventory.cpp | CGocInventory::SaveQuickSlot | 0x1400A6EA0 | implemented | IDA decompile | yes | IDA精确还原 - 保存快捷栏物品到DB，复制4个槽位并发送DB包 |
-| XGameServer | GocInventory.cpp | CGocInventory::SetLock | 0x1400A7020 | implemented | IDA decompile | yes | IDA精确还原(存根) - 设置装备或库存槽位锁定标志待XBaseEquip接口 |
 | XGameServer | GocInventory.cpp | CGocInventory::AtkDecEndurance | 0x1400A7110 | implemented | IDA decompile | yes | IDA精确还原(存根) - 减少攻击耐久度含日志记录待XBaseEquip接口 |
 | XGameServer | GocInventory.cpp | CGocInventory::DefDecEndurance | 0x1400A7340 | implemented | IDA decompile | yes | IDA精确还原(存根) - 减少防御耐久度含日志记录待XBaseEquip接口 |
 | XGameServer | GocPost.cpp | CGocPost::CashBuySend | 0x1401145B0 | implemented | IDA decompile | yes | IDA精确还原(存根) - 发送商城购买到DB并生成系统邮件待ST_SYSTEM_POST |
-| XGameServer | GocForce.cpp | ??0CGocForce@@QEAA@XZ | 0x140083060 | implemented | IDA decompile | yes | IDA精确还原 - CGocForce构造函数初始化CGocParty基类和匹配状�?|
-| XGameServer | GocForce.cpp | ??1CGocForce@@UEAA@XZ | 0x1400830F0 | implemented | IDA decompile | yes | IDA精确还原 - CGocForce析构函数清理Force共享指针 |
-| XGameServer | GocForce.cpp | ?Init@CGocForce@@QEAAXXZ | 0x140083140 | implemented | IDA decompile | yes | IDA精确还原 - 初始化Force组件重置匹配日期和状�?|
-| XGameServer | GocForce.cpp | ?IsFull@CGocForce@@QEAA_NXZ | 0x1400854B0 | implemented | IDA decompile | yes | IDA精确还原 - 检查Force是否�?名成�?最大容�? |
-| XGameServer | GocForce.cpp | ?IsMaster@CGocForce@@QEAA_NK@Z | 0x140083160 | implemented | IDA decompile | yes | IDA精确还原 - 检查给定UCID是否为Force队长 |
-| XGameServer | GocForce.cpp | ?SendForceInfo@CGocForce@@QEAAXE@Z | 0x140084310 | implemented | IDA decompile | yes | IDA精确还原(存根) - 发送Force信息包待CForce接口 |
-| XGameServer | GocForce.cpp | ?IsMatchingDate@CGocForce@@QEAA_NXZ | 0x140085160 | implemented | IDA decompile | yes | IDA精确还原 - 检查匹配日�?180>=当前日期 |
-| XGameServer | GocForce.cpp | ?KickOut@CGocForce@@QEAA_NKPEAVCUser@@@Z | 0x1400846F0 | implemented | IDA decompile | yes | IDA精确还原(存根) - 踢出Force成员待CForce接口 |
-| XGameServer | GocForce.cpp | ?ChangeMaster@CGocForce@@QEAAXK@Z | 0x140084C80 | implemented | IDA decompile | yes | IDA精确还原(存根) - 更改Force队长待CForce接口 |
-| XGameServer | GocForce.cpp | ?Leave@CGocForce@@QEAAXXZ | 0x140084480 | implemented | IDA decompile | yes | IDA精确还原(存根) - 离开Force待CForce接口 |
-| XGameServer | GocForce.cpp | ?Logout@CGocForce@@QEAAXXZ | 0x140084010 | implemented | IDA decompile | yes | IDA精确还原(存根) - 登出Force待CForce接口 |
-| XGameServer | GocForce.cpp | ?SetHP@CGocForce@@QEAAXH@Z | 0x140083970 | implemented | IDA decompile | yes | IDA精确还原(存根) - 设置Force成员HP待CForce接口 |
-| XGameServer | GocForce.cpp | ?SetMaxHP@CGocForce@@QEAAXH@Z | 0x1400838B0 | implemented | IDA decompile | yes | IDA精确还原(存根) - 设置Force成员最大HP待CForce接口 |
-| XGameServer | GocForce.cpp | ?SetLevel@CGocForce@@QEAAXH@Z | 0x140083730 | implemented | IDA decompile | yes | IDA精确还原(存根) - 设置Force成员等级待CForce接口 |
-| XGameServer | GocForce.cpp | ?SetAwaken@CGocForce@@QEAAXE@Z | 0x1400837B0 | implemented | IDA decompile | yes | IDA精确还原(存根) - 设置Force成员觉醒等级待CForce接口 |
-| XGameServer | GocForce.cpp | ?SetProfilePhoto@CGocForce@@QEAAXK@Z | 0x140083830 | implemented | IDA decompile | yes | IDA精确还原(存根) - 设置Force成员头像ID待CForce接口 |
-| XGameServer | GocForce.cpp | ?SetMapID@CGocForce@@QEAAXHHTUXMapID@@@Z | 0x140083690 | implemented | IDA decompile | yes | IDA精确还原(存根) - 设置Force成员地图ID待CForce接口 |
-| XGameServer | GocForce.cpp | ?UpdatePartyBooster@CGocForce@@QEAAXXZ | 0x140084EE0 | implemented | IDA decompile | yes | IDA精确还原(存根) - 更新Force增益待CForce接口 |
-| XGameServer | GocForce.cpp | ?UpdatePartyBoosterByCount@CGocForce@@QEAAXHH@Z | 0x140084F30 | implemented | IDA decompile | yes | IDA精确还原(存根) - 根据成员数更新增益待CForce接口 |
-| XGameServer | GocForce.cpp | ?ReserveReviveAll@CGocForce@@QEAAXKK@Z | 0x140083350 | implemented | IDA decompile | yes | IDA精确还原(存根) - 预约复活所有Force成员待CForce接口 |
-| XGameServer | GocForce.cpp | ?LoadRecode@CGocForce@@QEAAXXZ | 0x14010B430 | implemented | IDA decompile | yes | IDA精确还原(存根) - 加载Force记录待CForce接口 |
-| XGameServer | GocForce.cpp | ?NeedReviveBuffUser@CGocForce@@QEAA_NXZ | 0x14010C7A0 | implemented | IDA decompile | yes | IDA精确还原(存根) - 检查是否需要复活Buff待CForce接口 |
-| XGameServer | GocForce.cpp | ?DeletePartyBoost@CGocForce@@QEAAXXZ | 0x14010C940 | implemented | IDA decompile | yes | IDA精确还原(存根) - 删除队伍增益待CGocBooster接口 |
-| XGameServer | GocForce.cpp | ?GetForceMember@CGocForce@@QEAAXPEAVCUser@@AEAV?$vector@PEAVCForceMember@@V?$allocator@PEAVCForceMember@@@std@@@std@@_N@Z | 0x14010C9B0 | implemented | IDA decompile | yes | IDA精确还原(存根) - 获取Force成员列表待CForce接口 |
-| XGameServer | GocForce.cpp | ?GetForceUserCount@CGocForce@@QEAAEXZ | 0x14010D330 | implemented | IDA decompile | yes | IDA精确还原(存根) - 获取Force成员数量待CForce接口 |
-| XGameServer | GocForce.cpp | ?GetMasterID@CGocForce@@QEAAKXZ | 0x14010D410 | implemented | IDA decompile | yes | IDA精确还原(存根) - 获取Force队长UCID待CForce接口 |
-| XGameServer | GocForce.cpp | ?SetExp@CGocForce@@QEAAXPEAVCUser@@MH@Z | 0x140083A30 | implemented | IDA decompile | yes | IDA精确还原(存根) - 设置Force成员经验待CForce接口 |
-| XGameServer | GocForce.cpp | ?IsMember@CGocForce@@QEAA_NPEAVXActor@@@Z | 0x14010BBB0 | implemented | IDA decompile | yes | IDA精确还原(存根) - 检查是否为Force成员待CForce接口 |
-| XGameServer | GocForce.cpp | ?CheckPassiveSkill@CGocForce@@QEAAXPEAVCUser@@EE@Z | 0x1400851B0 | implemented | IDA decompile | yes | IDA精确还原(存根) - 检查被动技能待CForce接口 |
-| XGameServer | GocForce.cpp | ?CheckForceMatchingEnter@CGocForce@@QEAA_NXZ | 0x140085210 | implemented | IDA decompile | yes | IDA精确还原(存根) - 检查Force匹配进入条件待CForce接口 |
-| XGameServer | GocForce.cpp | ?GetFamilyID@CGocForce@@SAHXZ | 0x140039030 | implemented | IDA decompile | yes | IDA精确还原 - 返回组件家族ID(22) |
-| XGameServer | GocMyRoom.cpp | ??0CGocMyroom@@QEAA@XZ | 0x1400FAC40 | implemented | IDA decompile | yes | IDA精确还原 - 构造函数初始化所有MyRoom状�?|
-| XGameServer | GocMyRoom.cpp | ??1CGocMyroom@@UEAA@XZ | 0x1400FADE0 | implemented | IDA decompile | yes | IDA精确还原 - 析构函数清除MyRoom数据 |
-| XGameServer | GocMyRoom.cpp | ?Init@CGocMyroom@@QEAAXXZ | 0x1400FAE90 | implemented | IDA decompile | yes | IDA精确还原 - 初始化MyRoom组件(调用Clear) |
-| XGameServer | GocMyRoom.cpp | ?Clear@CGocMyroom@@QEAAXXZ | 0x1400FAEB0 | implemented | IDA decompile | yes | IDA精确还原 - 清空所有MyRoom数据和容�?|
-| XGameServer | GocMyRoom.cpp | ?OnUpdate@CGocMyroom@@QEAAXM@Z | 0x1400FAF50 | implemented | IDA decompile | yes | IDA精确还原 |
-| XGameServer | GocMyRoom.cpp | ?UpdateData@CGocMyroom@@QEAAXXZ | 0x1400FB0F0 | implemented | IDA decompile | yes | IDA精确还原 |
-| XGameServer | GocMyRoom.cpp | ?SetMyRoomInfo@CGocMyroom@@QEAAXUST_MYROOM_OWNER_INFO@@@Z | 0x1400FC370 | implemented | IDA decompile | yes | IDA精确还原 |
-| XGameServer | GocMyRoom.cpp | ?GetMyRoomInfo@CGocMyroom@@QEAAXAEAUST_MYROOM_OWNER_INFO@@@Z | 0x1400FC410 | implemented | IDA decompile | yes | IDA精确还原 |
-| XGameServer | GocMyRoom.cpp | ?IsMyRoomCreate@CGocMyroom@@QEAA_NXZ | 0x1400FC460 | implemented | IDA decompile | yes | IDA精确还原 |
-| XGameServer | GocMyRoom.cpp | ?SetMyRoomSetup@CGocMyroom@@QEAAXUPS_MYROOM_SETUP@@@Z | 0x1400FC490 | implemented | IDA decompile | yes | IDA精确还原 |
-| XGameServer | GocMyRoom.cpp | ?LoadPollenInfo@CGocMyroom@@QEAAXUPS_MYROOM_POLLEN_LIST@@@Z | 0x1400FB530 | implemented | IDA decompile | yes | IDA精确还原 |
-| XGameServer | GocMyRoom.cpp | ?SendMyRoomLoad@CGocMyroom@@QEAAXXZ | 0x1400FB780 | implemented | IDA decompile | yes | IDA精确还原 |
-| XGameServer | GocMyRoom.cpp | ?PollenAdd@CGocMyroom@@QEAAXH@Z | 0x1400FB920 | implemented | IDA decompile | yes | IDA精确还原 |
-| XGameServer | GocMyRoom.cpp | ?PollenCultivation@CGocMyroom@@QEAAXAEAUPS_DB_MYROOM_POLLEN_CULTIVATION@@@Z | 0x1400FBA60 | implemented | IDA decompile | yes | IDA精确还原 |
-| XGameServer | GocMyRoom.cpp | ?PollenClear@CGocMyroom@@QEAAXH@Z | 0x1400FBBF0 | implemented | IDA decompile | yes | IDA精确还原 |
-| XGameServer | GocMyRoom.cpp | ?PollenItemUse@CGocMyroom@@QEAAXUPS_MYROOM_POLLEN_INFO@@@Z | 0x1400FBD50 | implemented | IDA decompile | yes | IDA精确还原 |
-| XGameServer | GocMyRoom.cpp | ?PollenAddHelpUser@CGocMyroom@@QEAAXHUPS_MYROOM_POLLEN_HELP_USER@@_J@Z | 0x1400FBED0 | implemented | IDA decompile | yes | IDA精确还原 |
-| XGameServer | GocMyRoom.cpp | ?SendDBMyRoomIndex@CGocMyroom@@QEAAXXZ | 0x1400FC0C0 | implemented | IDA decompile | yes | IDA精确还原 |
-| XGameServer | GocMyRoom.cpp | ?SendPollenUpdate@CGocMyroom@@QEAAXUPS_MYROOM_POLLEN_INFO@@@Z | 0x1400FC1D0 | implemented | IDA decompile | yes | IDA精确还原 |
-| XGameServer | GocMyRoom.cpp | ?SetPollenLockCount@CGocMyroom@@QEAA_NHE@Z | 0x1400FC2B0 | implemented | IDA decompile | yes | IDA精确还原 |
-| XGameServer | GocMyRoom.cpp | ?LoadMyroomRecommend@CGocMyroom@@QEAAXUPS_MYROOM_RECOMMEND_LIST@@@Z | 0x1400FC520 | implemented | IDA decompile | yes | IDA精确还原 |
-| XGameServer | GocMyRoom.cpp | ?FindRecommend@CGocMyroom@@QEAA_NK@Z | 0x1400FC6F0 | implemented | IDA decompile | yes | IDA精确还原 |
-| XGameServer | GocMyRoom.cpp | ?AddRecommend@CGocMyroom@@QEAAXK@Z | 0x1400FCDB0 | implemented | IDA decompile | yes | IDA精确还原 |
-| XGameServer | GocMyRoom.cpp | ?Recommend@CGocMyroom@@QEAAXKK@Z | 0x1400FC8F0 | implemented | IDA decompile | yes | IDA精确还原 |
-| XGameServer | GocMyRoom.cpp | ?SendRecommend@CGocMyroom@@QEAAXUPS_RES_MYROOM_RECOMMEND@@@Z | 0x1400FCF70 | implemented | IDA decompile | yes | IDA精确还原 |
-| XGameServer | GocMyRoom.cpp | ?LoadMyroomFavorite@CGocMyroom@@QEAAXUPS_MYROOM_FAVORITE_LIST@@@Z | 0x1400FC5D0 | implemented | IDA decompile | yes | IDA精确还原 |
-| XGameServer | GocMyRoom.cpp | ?SetFavoriteList@CGocMyroom@@QEAAXUPS_MYROOM_FAVORITE_LIST@@@Z | 0x1400FC750 | implemented | IDA decompile | yes | IDA精确还原 |
-| XGameServer | GocMyRoom.cpp | ?SendFavoriteList@CGocMyroom@@QEAAXUPS_MYROOM_FAVORITE_LIST@@@Z | 0x1400FC810 | implemented | IDA decompile | yes | IDA精确还原 |
-| XGameServer | GocMyRoom.cpp | ?AddFavorite@CGocMyroom@@QEAAXUST_MYROOM_FAVORITE_INFO@@@Z | 0x1400FCDE0 | implemented | IDA decompile | yes | IDA精确还原 |
-| XGameServer | GocMyRoom.cpp | ?DeleteFavorite@CGocMyroom@@QEAAXUST_MYROOM_FAVORITE_INFO@@@Z | 0x1400FCE70 | implemented | IDA decompile | yes | IDA精确还原 |
-| XGameServer | GocMyRoom.cpp | ?FindFavorite@CGocMyroom@@QEAA_NK@Z | 0x1400FCF00 | implemented | IDA decompile | yes | IDA精确还原 |
-| XGameServer | GocMyRoom.cpp | ?SendFavoriteInfo@CGocMyroom@@QEAAXXZ | 0x1400FD040 | implemented | IDA decompile | yes | IDA精确还原 |
-| XGameServer | GocMyRoom.cpp | ?CheckFavorite@CGocMyroom@@QEAAHUPS_REQ_MYROOM_FAVORITE@@K@Z | 0x1400FDF30 | implemented | IDA decompile | yes | IDA精确还原 |
-| XGameServer | GocMyRoom.cpp | ?LoadBoardList@CGocMyroom@@QEAAXUPS_REQ_MYROOM_BOARD_INFO@@@Z | 0x1400FD160 | implemented | IDA decompile | yes | IDA精确还原 |
-| XGameServer | GocMyRoom.cpp | ?SendBoardList@CGocMyroom@@QEAAXUPS_MYROOM_BOARD_LIST@@@Z | 0x1400FD240 | implemented | IDA decompile | yes | IDA精确还原 |
-| XGameServer | GocMyRoom.cpp | ?GetCrop@CGocMyroom@@QEAAXPEAUPS_MYROOM_BOARD_POT@@@Z | 0x1400FD360 | implemented | IDA decompile | yes | IDA精确还原 |
-| XGameServer | GocMyRoom.cpp | ?GetFunitureCount@CGocMyroom@@QEAAXAEAH@Z | 0x1400FD450 | implemented | IDA decompile | yes | IDA精确还原 |
-| XGameServer | GocMyRoom.cpp | ?WriteBoard@CGocMyroom@@QEAAXUPS_REQ_MYROOM_BOARD_WRITE@@@Z | 0x1400FD480 | implemented | IDA decompile | yes | IDA精确还原 |
-| XGameServer | GocMyRoom.cpp | ?SendBoardWrite@CGocMyroom@@QEAAXUPS_RES_MYROOM_BOARD_WRITE@@@Z | 0x1400FDAB0 | implemented | IDA decompile | yes | IDA精确还原 |
-| XGameServer | GocMyRoom.cpp | ?SetBoard@CGocMyroom@@QEAAXUST_MYROOM_BOARD_INFO@@@Z | 0x1400FDB80 | implemented | IDA decompile | yes | IDA精确还原 |
-| XGameServer | GocMyRoom.cpp | ?SendWriteBoardInfo@CGocMyroom@@QEAAXXZ | 0x1400FE040 | implemented | IDA decompile | yes | IDA精确还原 |
-| XGameServer | GocMyRoom.cpp | ?LoadMyroomRankInfo@CGocMyroom@@QEAAXUPS_MYROOM_RANK_LIST@@0UPS_MYROOM_RANK_INFO@@1@Z | 0x1400FDBE0 | implemented | IDA decompile | yes | IDA精确还原 |
-| XGameServer | GocMyRoom.cpp | ?SendMyroomRankInfo@CGocMyroom@@QEAAXXZ | 0x1400FDE00 | implemented | IDA decompile | yes | IDA精确还原 |
-| XGameServer | GocMyRoom.cpp | ?GetRankRewardID@CGocMyroom@@QEAAHXZ | 0x1400FE290 | implemented | IDA decompile | yes | IDA精确还原 |
-| XGameServer | GocMyRoom.cpp | ?CheckRank@CGocMyroom@@QEAAHK@Z | 0x1400FE380 | implemented | IDA decompile | yes | IDA精确还原 |
-| XGameServer | GocMyRoom.cpp | ?RankReward@CGocMyroom@@QEAAXUPS_DB_MYROOM_RANK_REWARD@@@Z | 0x1400FE7F0 | implemented | IDA decompile | yes | IDA精确还原 |
-| XGameServer | GocMyRoom.cpp | ?SendRankRewardPost@CGocMyroom@@QEAAXKUST_CREATE_ITEMS@@@Z | 0x1400FE980 | implemented | IDA decompile | yes | IDA精确还原 |
-| XGameServer | GocMyRoom.cpp | ?LoadMyroomFunitureList@CGocMyroom@@QEAAXUPS_MYROOM_FUNITURE_LIST@@@Z | 0x1400FE120 | implemented | IDA decompile | yes | IDA精确还原 |
-| XGameServer | GocMyRoom.cpp | ?AddFuniture@CGocMyroom@@QEAAXH@Z | 0x1400FE160 | implemented | IDA decompile | yes | IDA精确还原 |
-| XGameServer | GocMyRoom.cpp | ?RemoveFuniture@CGocMyroom@@QEAAXH@Z | 0x1400FE1F0 | implemented | IDA decompile | yes | IDA精确还原 |
-| XGameServer | GocMyRoom.cpp | ?SendDBLog@CGocMyroom@@QEAAXFKH@Z | 0x1400FEBD0 | implemented | IDA decompile | yes | IDA精确还原 |
-| XGameServer | GocMyRoom.cpp | ?GetMyroomBoardInfo@CGocMyroom@@QEAAXAEAUST_MYROOM_OWNER_INFO@@@Z | 0x1400FED50 | implemented | IDA decompile | yes | IDA精确还原 |
-| XGameServer | GocMyRoom.cpp | ?SetCommunityInfo@CGocMyroom@@QEAAXUPS_MYROOM_COMMUNITY_INFO@@@Z | 0x1400FEDB0 | implemented | IDA decompile | yes | IDA精确还原 |
 | - | - | ?_Insert@?$_Tree@V?$_Tmap_traits@KV?$shared_ptr@VCDailyMissionInfo@@@tr1@std@@U?$less@K@3@V?$allocator@U?$pair@$$CBKV?$shared_ptr@VCDailyMissionInfo@@@tr1@std@@@std@@@3@$0A@@std@@@std@@IEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@KV?$shared_ptr@VCDailyMissionInfo@@@tr1@std@@U?$less@K@3@V?$allocator@U?$pair@$$CBKV?$shared_ptr@VCDailyMissionInfo@@@tr1@std@@@std@@@3@$0A@@std@@@std@@@2@_NPEAU_Node@?$_Tree_nod@V?$_Tmap_traits@KV?$shared_ptr@VCDailyMissionInfo@@@tr1@std@@U?$less@K@3@V?$allocator@U?$pair@$$CBKV?$shared_ptr@VCDailyMissionInfo@@@tr1@std@@@std@@@3@$0A@@std@@@2@1@Z | 0x140002ad0 | blocked | IDA ?_Insert@?$_Tree@V?$_Tmap_traits@KV?$shared_ptr@VCDailyMissionInfo@@@tr1@std@@U?$less@K@3@V?$allocator@U?$pair@$$CBKV?$shared_ptr@VCDailyMissionInfo@@@tr1@std@@@std@@@3@$0A@@std@@@std@@IEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@KV?$shared_ptr@VCDailyMissionInfo@@@tr1@std@@U?$less@K@3@V?$allocator@U?$pair@$$CBKV?$shared_ptr@VCDailyMissionInfo@@@tr1@std@@@std@@@3@$0A@@std@@@std@@@2@_NPEAU_Node@?$_Tree_nod@V?$_Tmap_traits@KV?$shared_ptr@VCDailyMissionInfo@@@tr1@std@@U?$less@K@3@V?$allocator@U?$pair@$$CBKV?$shared_ptr@VCDailyMissionInfo@@@tr1@std@@@std@@@3@$0A@@std@@@2@1@Z | yes | - |
 | - | - | ??$_Construct@UST_ACHIEVE_UPDATE@@AEBU1@@std@@YAXPEAUST_ACHIEVE_UPDATE@@AEBU1@@Z | 0x140002f10 | blocked | IDA ??$_Construct@UST_ACHIEVE_UPDATE@@AEBU1@@std@@YAXPEAUST_ACHIEVE_UPDATE@@AEBU1@@Z | yes | - |
 | - | - | ??1_Ref_count_base@tr1@std@@UEAA@XZ | 0x140002fb0 | blocked | IDA ??1_Ref_count_base@tr1@std@@UEAA@XZ | yes | - |
@@ -546,13 +363,11 @@
 | XGameServer | MoverEx.cpp | ?ChangeInitMotion@CMoverEx@@QEAAXH@Z | - | implemented | IDA decompile | yes | Change initial motion |
 | XGameServer | MoverEx.cpp | ?ChangeCombatType@CMoverEx@@QEAAXH@Z | - | implemented | IDA decompile | yes | Change combat type |
 | XGameServer | User.cpp | ?InitComponant@CUser@@QEAAXXZ | 0x1406E5D80 | implemented | IDA decompile | yes | IDA��ȷ��ԭ-��ʼ������GOComponent���?
-| XGameServer | User.cpp | ?RegisterProcess@CUser@@QEAAXXZ | 0x1406E4B70 | implemented | IDA decompile | yes | IDA��ȷ��ԭ-ע������Process������
 | XGameServer | User.cpp | ?SetInfo@CUser@@UEAAXXZ | - | implemented | IDA decompile | yes | Set user info |
 | XGameServer | User.cpp | ?ChangeBattlePose@CUser@@UEAAX_N0@Z | - | implemented | IDA decompile | yes | Change battle pose |
 | XGameServer | User.cpp | ?InitStoreSuboInputPacket@CUser@@QEAAXAEAVXReceivePacket@@@Z | - | implemented | IDA decompile | yes | Init store subo input packet |
 | XGameServer | User.cpp | ?DamageProcessHP@CUser@@UEAA_KHHEE@Z | - | implemented | IDA decompile | yes | HP damage processing |
 | XGameServer | User.cpp | ?ApplySkillDamageFrame@CUser@@QEAAXXZ | - | implemented | IDA decompile | yes | Apply skill damage frame |
-| XGameServer | User.cpp | ?SetHP@CUser@@UEAAXH@Z | - | implemented | IDA decompile | yes | Set HP value |
 | XGameServer | User.cpp | ?CheckUseSkill@CUser@@QEAAHEEPEAUTB_SKILL@@@Z | - | implemented | IDA decompile | yes | Check use skill |
 | XGameServer | User.cpp | ?ProcessChangeCombatAfterUseSkill@CUser@@QEAAXXZ | - | implemented | IDA decompile | yes | Process combat change after skill |
 | XGameServer | BattleZone.cpp | ?LoadComplete@CBattleZone@@UEAAXPEAVXActor@@@Z | 0x14019EC80 | implemented | IDA decompile | yes | ��ȷ��ԭ-��Ҽ�����ɴ���
@@ -560,7 +375,6 @@
 | XGameServer | BattleZone.cpp | ?Generate@CBattleZone@@QEAAXXZ | 0x1401A1680 | implemented | IDA decompile | yes | IDA��ȷ��ԭ-����ս�������¼�����/��������Box���� |
 | XGameServer | BattleZone.cpp | ?SpawnGenerateMonster@CBattleZone@@QEAAXH@Z | 0x1401A2100 | implemented | IDA decompile | yes | Spawn generated monsters |
 | XGameServer | BattleZone.cpp | ?CreateMonster@CBattleZone@@QEAAPEAVCMonster@@HPEAUTB_MONSTER_SPAWN@@AEBUVector3@@@Z | 0x1401A08B0 | implemented | IDA decompile | yes | Create monster instance |
-| XGameServer | BattleZone.cpp | ?DeleteMonster@CBattleZone@@QEAAXPEAVCMonster@@@Z | 0x14019EFE0 | implemented | IDA decompile | yes | ɾ������-��������/����/KRR/�˳����� |
 | XGameServer | BattleZone.cpp | ?SpawnMonster@CBattleZone@@QEAAPEAVCMonster@@HAEAUST_SPAWN_MONSTER_INFO@@@Z | - | implemented | IDA decompile | yes | Spawn monster (implemented as SpawnMonster(nMonsterID, vPos, fRot, nGroupID)) |
 | XGameServer | BattleZone.cpp | ?CreateNpc@CBattleZone@@QEAAPEAVCMonster@@HPEAUTB_NPC@@AEBUVector3@@@Z | - | implemented | IDA decompile | yes | Create NPC instance |
 | XGameServer | BattleZone.cpp | ?DeleteNpc@CBattleZone@@QEAAXK@Z | 0x1401A1320 | implemented | IDA decompile | yes | Delete NPC by ID |
@@ -1439,12 +1253,8 @@
 | - | - | ??1?$map@KUStatInfoList@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUStatInfoList@@@std@@@3@@std@@QEAA@XZ | 0x140038fe0 | blocked | IDA ??1?$map@KUStatInfoList@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUStatInfoList@@@std@@@3@@std@@QEAA@XZ | yes | - |
 | XGameServer | GocParty.cpp | ?GetFamilyID@CGocParty@@SAHXZ | 0x140039000 | implemented | IDA decompile | yes | ???????ID(??????) |
 | XGameServer | GocSkill.cpp | ?GetFamilyID@CGocSkill@@SAHXZ | 0x140039010 | implemented | IDA decompile | yes | ???????ID(??????) |
-| XGameServer | GocHelper.cpp | ?GetFamilyID@CGocHelper@@SAHXZ | 0x140039020 | implemented | IDA decompile | yes | IDA精确还原 |
-| XGameServer | GocForce.cpp | ?GetFamilyID@CGocForce@@SAHXZ | 0x140039030 | implemented | IDA decompile | yes | ???????ID(??????) |
 | XGameServer | GocBooster.cpp | ?GetFamilyID@CGocBooster@@SAHXZ | 0x140039040 | implemented | IDA decompile | yes | ???????ID(??????) |
 | XGameServer | GocAkashicRecord.cpp | ?GetFamilyID@CGocAkashicRecord@@SAHXZ | 0x140039050 | implemented | IDA decompile | yes | ???????ID(??????) |
-| XGameServer | GocClassEvent.cpp | ?GetFamilyID@CGocClassEvent@@SAHXZ | 0x140039060 | implemented | IDA decompile | yes | ???????ID(??????) |
-| XGameServer | GocWeeklyMission.cpp | ?GetFamilyID@CGocWeeklyMission@@SAHXZ | 0x140039070 | implemented | IDA decompile | yes | ???????ID(??????) |
 | XGameServer/actor/component | GocAttribute.cpp | ??0CGocAttribute@@QEAA@XZ | 0x140039080 | verified | GameServer PDB type 0x49618 + IDA 0x140039080 + source build | yes | Member initialization preserves the PDB layout through +0xBA7. |
 | - | - | ??_GCGocAttribute@@UEAAPEAXI@Z | 0x1400393b0 | blocked | IDA ??_GCGocAttribute@@UEAAPEAXI@Z | yes | - |
 | XGameServer/actor/component | GocAttribute.cpp | ??1CGocAttribute@@UEAA@XZ | 0x1400393f0 | verified | GameServer PDB type 0x49618 + IDA 0x1400393F0 + source build | yes | Empty source body preserves compiler-generated reverse member and base destruction. |
@@ -1834,18 +1644,13 @@
 | - | - | ?GetDailyMissionList@CGocDailyMission@@QEAAXW4E_DAILY_MISSION_FINISH@@AEAV?$vector@KV?$allocator@K@std@@@std@@@Z | 0x140051580 | implemented | IDA decompile | yes | IDA��ȷ��ԭ-��ȡ����ID�б� |
 | - | - | ?GenerateDailyMission@CGocDailyMission@@QEAA_N_N00AEAV?$vector@KV?$allocator@K@std@@@std@@@Z | 0x1400517b0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ-�����ճ����� |
 | XGameServer | GocDailyMission.cpp | ?CheckDailyMissionInfo@CGocDailyMission@@QEAA_NAEAV?$map@KUST_DAILY_MISSION_INFO@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUST_DAILY_MISSION_INFO@@@std@@@3@@std@@@Z | 0x140051860 | implemented | IDA decompile | yes | Check daily mission info validity |
-| XGameServer | GocDailyMission.cpp | ?CheckDailyMissionTime@CGocDailyMission@@QEAA_NAEAUST_DAILY_MISSION_INFO@@@Z | 0x140051900 | implemented | IDA decompile | yes | Check daily mission time |
-| XGameServer | GocDailyMission.cpp | ?ChangeDailyMissionHelper@CGocDailyMission@@QEAA_NKE@Z | 0x140052060 | implemented | IDA decompile | yes | Change daily mission helper flag |
-| XGameServer | GocDailyMission.cpp | ?OnUpdateDailyMission@CGocDailyMission@@QEAAXXZ | 0x140052360 | implemented | IDA decompile | yes | Daily mission update tick |
 | XGameServer | GocDailyMission.cpp | ?CheckUpdateKillType@CGocDailyMission@@QEAA_NKKK@Z | 0x1400525f0 | implemented | IDA decompile | yes | Check kill type mission |
-| XGameServer | GocDailyMission.cpp | ?CheckUpdateMazeClearType@CGocDailyMission@@QEAA_NKKFK@Z | 0x140052850 | implemented | IDA decompile | yes | Check maze clear type mission |
 | XGameServer | GocDailyMission.cpp | ?CheckUpdateFriendType@CGocDailyMission@@QEAA_NKEEAEAUST_DAILY_MISSION_FRIEND_RES@@@Z | 0x140053150 | implemented | IDA decompile | yes | Check friend type mission |
 | XGameServer | GocDailyMission.cpp | ?CheckDailyMissionReward@CGocDailyMission@@QEAA_NK@Z | 0x1400537d0 | implemented | IDA decompile | yes | Check daily mission reward validity |
 | XGameServer | GocDailyMission.cpp | ?FriendCheckDailyMission@CGocDailyMission@@QEAAXV?$vector@KV?$allocator@K@std@@@std@@EEAEAV?$vector@UST_DAILY_MISSION_FRIEND_RES@@V?$allocator@UST_DAILY_MISSION_FRIEND_RES@@@std@@@3@@Z | 0x140053910 | implemented | IDA decompile | yes | Friend check daily mission |
 | XGameServer | GocDailyMission.cpp | ?UpdateKillType@CGocDailyMission@@QEAAXKK@Z | 0x1400539d0 | implemented | IDA decompile | yes | Update kill type mission |
 | XGameServer | GocDailyMission.cpp | ?UpdateMazeClearType@CGocDailyMission@@QEAAXW4E_DAILY_MISSION_TARGET@@KFK_N@Z | 0x140053d00 | implemented | IDA decompile | yes | Update maze clear type mission |
 | XGameServer | GocDailyMission.cpp | ?UpdateFriendType@CGocDailyMission@@QEAAXAEAV?$vector@UST_DAILY_MISSION_FRIEND_RES@@V?$allocator@UST_DAILY_MISSION_FRIEND_RES@@@std@@@std@@@Z | 0x140054080 | implemented | IDA decompile | yes | Update friend type mission |
-| XGameServer | GocDailyMission.cpp | ?UpdateCollectType@CGocDailyMission@@QEAAXW4E_DAILY_MISSION_TARGET@@KH@Z | 0x140054360 | implemented | IDA decompile | yes | Update collect type mission |
 | XGameServer | GocDailyMission.cpp | ?UpdateMyRoomType@CGocDailyMission@@QEAAXW4E_DAILY_MISSION_CONDITION@@M@Z | 0x140054670 | implemented | IDA decompile | yes | Update my room type mission |
 | XGameServer | GocDailyMission.cpp | ?CompleteDailyMission@CGocDailyMission@@QEAA_NKV?$shared_ptr@VCDailyMissionInfo@@@tr1@std@@@Z | 0x140054960 | implemented | IDA decompile | yes | Complete daily mission |
 | XGameServer | GocDailyMission.cpp | ?DBUpdateMissionInfo@CGocDailyMission@@QEAAXAEAUPS_DAILY_MISSION_UPDATE@@@Z | 0x140054ad0 | implemented | IDA decompile | yes | DB update mission info |
@@ -1853,12 +1658,9 @@
 | XGameServer | GocDailyMission.cpp | ?DBAddDailyMissionList@CGocDailyMission@@QEAAXXZ | 0x140054ee0 | implemented | IDA decompile | yes | Add daily mission list |
 | - | - | ??0PS_MAP_DAILY_MISSION@@QEAA@XZ | 0x1400551d0 | blocked | IDA ??0PS_MAP_DAILY_MISSION@@QEAA@XZ | yes | - |
 | - | - | ??1PS_MAP_DAILY_MISSION@@QEAA@XZ | 0x1400551f0 | blocked | IDA ??1PS_MAP_DAILY_MISSION@@QEAA@XZ | yes | - |
-| XGameServer | GocDailyMission.cpp | ?DBDailyMissionPost@CGocDailyMission@@QEAAXK@Z | 0x140055210 | implemented | IDA decompile | yes | Send daily mission post |
-| XGameServer | GocDailyMission.cpp | ?SendDailyMissionList@CGocDailyMission@@QEAAXE@Z | 0x140055780 | implemented | IDA decompile | yes | Send daily mission list |
 | - | - | ??0CDailyMissionMgr@@QEAA@XZ | 0x1400558a0 | blocked | IDA ??0CDailyMissionMgr@@QEAA@XZ | yes | - |
 | - | - | ??1PS_MAP_DISTRICT_DAILY_MISSION@@QEAA@XZ | 0x1400558c0 | blocked | IDA ??1PS_MAP_DISTRICT_DAILY_MISSION@@QEAA@XZ | yes | - |
 | - | - | ??1?$map@KV?$vector@UST_DAILY_MISSION_INFO@@V?$allocator@UST_DAILY_MISSION_INFO@@@std@@@std@@U?$less@K@2@V?$allocator@U?$pair@$$CBKV?$vector@UST_DAILY_MISSION_INFO@@V?$allocator@UST_DAILY_MISSION_INFO@@@std@@@std@@@std@@@2@@std@@QEAA@XZ | 0x1400558e0 | blocked | IDA ??1?$map@KV?$vector@UST_DAILY_MISSION_INFO@@V?$allocator@UST_DAILY_MISSION_INFO@@@std@@@std@@U?$less@K@2@V?$allocator@U?$pair@$$CBKV?$vector@UST_DAILY_MISSION_INFO@@V?$allocator@UST_DAILY_MISSION_INFO@@@std@@@std@@@std@@@2@@std@@QEAA@XZ | yes | - |
-| XGameServer | GocDailyMission.cpp | ?SendDailyMissionUpdateList@CGocDailyMission@@QEAAXAEAUPS_DAILY_MISSION_UPDATE@@@Z | 0x140055900 | implemented | IDA decompile | yes | Send daily mission update list |
 | XGameServer | GocDailyMission.cpp | ?CheatChangeMission@CGocDailyMission@@QEAA_NKK@Z | 0x1400559d0 | implemented | IDA decompile | yes | GM command to change mission |
 | XGameServer | GocDailyMission.cpp | ?CheatDeleteAllMission@CGocDailyMission@@QEAA_NXZ | 0x140055a50 | implemented | IDA decompile | yes | GM command to delete all missions |
 | XGameServer | GocDailyMission.cpp | ?CheatDeleteMission@CGocDailyMission@@QEAA_NK@Z | 0x140055af0 | implemented | IDA decompile | yes | GM command to delete specified mission |
@@ -1971,46 +1773,46 @@
 | CGocEntity | GocEntity.cpp | ?Init@CGocEntity@@QEAAXXZ | 0x14005b6e0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
 | CGocEntity | GocEntity.cpp | ?OnUpdate@CGocEntity@@QEAAXXZ | 0x14005b880 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
 | CGocEntity | GocEntity.cpp | ?ClearInteraction@CGocEntity@@QEAAXXZ | 0x14005b920 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
-| CGocEntity | GocEntity.cpp | ?LoadTitle@CGocEntity@@QEAAXAEAUPS_TITLE_LOAD@@@Z | 0x14005b940 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| CGocEntity | GocEntity.cpp | ?AddTitle@CGocEntity@@QEAA_NKH@Z | 0x14005bdc0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
+| CGocEntity | GocEntity.cpp | ?LoadTitle@CGocEntity@@QEAAXAEAUPS_TITLE_LOAD@@@Z | 0x14005b940 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| CGocEntity | GocEntity.cpp | ?AddTitle@CGocEntity@@QEAA_NKH@Z | 0x14005bdc0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | - | - | ?AddTitleByClass@CGocEntity@@QEAAKKH@Z | 0x14005c3c0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ-��ְҵ���ӳƺ� |
-| CGocEntity | GocEntity.cpp | ?InitTitle@CGocEntity@@QEAAXAEAUST_TitleInfo@@0@Z | 0x14005c480 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
+| CGocEntity | GocEntity.cpp | ?InitTitle@CGocEntity@@QEAAXAEAUST_TitleInfo@@0@Z | 0x14005c480 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | CGocEntity | GocEntity.cpp | ?DeleteTitle@CGocEntity@@QEAAXH@Z | 0x14005c9a0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
-| CGocEntity | GocEntity.cpp | ?UpdateTitle@CGocEntity@@QEAAXAEAUPS_REQ_TITLE_UPDATE@@@Z | 0x14005cc50 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
+| CGocEntity | GocEntity.cpp | ?UpdateTitle@CGocEntity@@QEAAXAEAUPS_REQ_TITLE_UPDATE@@@Z | 0x14005cc50 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | - | - | ??0PS_SYNC_TITLE_UPDATE@@QEAA@XZ | 0x14005d940 | blocked | IDA ??0PS_SYNC_TITLE_UPDATE@@QEAA@XZ | yes | - |
-| CGocEntity | GocEntity.cpp | ?CheckAutoBlockCount@CGocEntity@@QEAAXW4AUTO_BLOCK_CHECK_TYPE@@HK@Z | 0x14005d970 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| CGocEntity | GocEntity.cpp | ?ClearTitle@CGocEntity@@QEAAXXZ | 0x14005da10 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
+| CGocEntity | GocEntity.cpp | ?CheckAutoBlockCount@CGocEntity@@QEAAXW4AUTO_BLOCK_CHECK_TYPE@@HK@Z | 0x14005d970 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| CGocEntity | GocEntity.cpp | ?ClearTitle@CGocEntity@@QEAAXXZ | 0x14005da10 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | - | - | ?UpdateOpenTitle@CGocEntity@@QEAAXHH@Z | 0x14005e090 | implemented | IDA decompile | yes | IDA��ȷ��ԭ-���¿��ųƺ� |
-| CGocEntity | GocEntity.cpp | ?SendTitleList@CGocEntity@@QEAAXXZ | 0x14005e420 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
+| CGocEntity | GocEntity.cpp | ?SendTitleList@CGocEntity@@QEAAXXZ | 0x14005e420 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | - | - | ??0PS_TITLE_LOAD@@QEAA@XZ | 0x14005e710 | blocked | IDA ??0PS_TITLE_LOAD@@QEAA@XZ | yes | - |
 | - | - | ??1PS_TITLE_LOAD@@QEAA@XZ | 0x14005e750 | blocked | IDA ??1PS_TITLE_LOAD@@QEAA@XZ | yes | - |
 | - | - | ??0PS_REQ_TITLE_UPDATE@@QEAA@XZ | 0x14005e790 | blocked | IDA ??0PS_REQ_TITLE_UPDATE@@QEAA@XZ | yes | - |
-| CGocEntity | GocEntity.cpp | ?SendUpdateTitle@CGocEntity@@QEAAXUST_TitleInfo@@0_N@Z | 0x14005e7c0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
+| CGocEntity | GocEntity.cpp | ?SendUpdateTitle@CGocEntity@@QEAAXUST_TitleInfo@@0_N@Z | 0x14005e7c0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | - | - | ?SendDBLoadTitle@CGocEntity@@QEAAXXZ | 0x14005e8d0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ-����DB���سƺ����� |
-| CGocEntity | GocEntity.cpp | ?CheckEchelonTitle@CGocEntity@@QEAAXHEH@Z | 0x14005e9e0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
+| CGocEntity | GocEntity.cpp | ?CheckEchelonTitle@CGocEntity@@QEAAXHEH@Z | 0x14005e9e0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | CGocEntity | GocEntity.cpp | ?Levelup@CGocEntity@@QEAAXHH@Z | 0x14005eb40 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
-| CGocEntity | GocEntity.cpp | ?UpdateTitleStat@CGocEntity@@QEAAXHHHM@Z | 0x14005ef20 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| CGocEntity | GocEntity.cpp | ?IsValidTitle@CGocEntity@@QEAA_NHE@Z | 0x14005f170 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| CGocEntity | GocEntity.cpp | ?ReqFavoriteTitle@CGocEntity@@QEAAXAEAUPS_TITLE_FAVORITE@@@Z | 0x14005f210 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| CGocEntity | GocEntity.cpp | ?ResFavoriteTitle@CGocEntity@@QEAAXAEAUPS_DB_TITLE_FAVORITE@@@Z | 0x14005f840 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| CGocEntity | GocEntity.cpp | ?UpdateCutscene@CGocEntity@@QEAAXAEAUPS_CUTSCENE_UPDATE@@@Z | 0x14005fdd0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| CGocEntity | GocEntity.cpp | ?LoginNetCafe@CGocEntity@@QEAAX_N@Z | 0x14005ffa0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| CGocEntity | GocEntity.cpp | ?SetNetCafe@CGocEntity@@QEAAX_N00@Z | 0x140060030 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| CGocEntity | GocEntity.cpp | ?SendNetCafeState@CGocEntity@@QEAAXXZ | 0x140060650 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| CGocEntity | GocEntity.cpp | ?SendSGAuthInfo@CGocEntity@@QEAAX_N@Z | 0x140060740 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| CGocEntity | GocEntity.cpp | ?EventNetCafeItemBuy@CGocEntity@@QEAAXAEAUPS_EVENT_NETCAFE_ITEM_BUY@@@Z | 0x140060a10 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| CGocEntity | GocEntity.cpp | ?EventNetCafeItemDelete@CGocEntity@@QEAAXXZ | 0x1400619d0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| CGocEntity | GocEntity.cpp | ?SetFreeReviveCount@CGocEntity@@QEAAXH_N@Z | 0x140062070 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| CGocEntity | GocEntity.cpp | ?ReviveFree@CGocEntity@@QEAA_NXZ | 0x1400621f0 | implemented | IDA decompile | yes | stub(awaiting TB_ITEM/XResourceMgr dependencies) |
+| CGocEntity | GocEntity.cpp | ?UpdateTitleStat@CGocEntity@@QEAAXHHHM@Z | 0x14005ef20 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| CGocEntity | GocEntity.cpp | ?IsValidTitle@CGocEntity@@QEAA_NHE@Z | 0x14005f170 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| CGocEntity | GocEntity.cpp | ?ReqFavoriteTitle@CGocEntity@@QEAAXAEAUPS_TITLE_FAVORITE@@@Z | 0x14005f210 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| CGocEntity | GocEntity.cpp | ?ResFavoriteTitle@CGocEntity@@QEAAXAEAUPS_DB_TITLE_FAVORITE@@@Z | 0x14005f840 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| CGocEntity | GocEntity.cpp | ?UpdateCutscene@CGocEntity@@QEAAXAEAUPS_CUTSCENE_UPDATE@@@Z | 0x14005fdd0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| CGocEntity | GocEntity.cpp | ?LoginNetCafe@CGocEntity@@QEAAX_N@Z | 0x14005ffa0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| CGocEntity | GocEntity.cpp | ?SetNetCafe@CGocEntity@@QEAAX_N00@Z | 0x140060030 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| CGocEntity | GocEntity.cpp | ?SendNetCafeState@CGocEntity@@QEAAXXZ | 0x140060650 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| CGocEntity | GocEntity.cpp | ?SendSGAuthInfo@CGocEntity@@QEAAX_N@Z | 0x140060740 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| CGocEntity | GocEntity.cpp | ?EventNetCafeItemBuy@CGocEntity@@QEAAXAEAUPS_EVENT_NETCAFE_ITEM_BUY@@@Z | 0x140060a10 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| CGocEntity | GocEntity.cpp | ?EventNetCafeItemDelete@CGocEntity@@QEAAXXZ | 0x1400619d0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| CGocEntity | GocEntity.cpp | ?SetFreeReviveCount@CGocEntity@@QEAAXH_N@Z | 0x140062070 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| CGocEntity | GocEntity.cpp | ?ReviveFree@CGocEntity@@QEAA_NXZ | 0x1400621f0 | blocked | IDA decompile | no | stub(awaiting TB_ITEM/XResourceMgr dependencies) |
 | - | - | ?GetProfilePhotoID@CGocEntity@@QEAAKXZ | 0x140062270 | implemented | IDA decompile | yes | IDA��ȷ��ԭ-��ȡͷ��ID |
-| CGocEntity | GocEntity.cpp | ?SendDBProfilePhoto@CGocEntity@@QEAAXXZ | 0x1400622d0 | implemented | IDA decompile | yes | stub(awaiting XSendDBPacket dependencies) |
-| CGocEntity | GocEntity.cpp | ?LoadProfilePhoto@CGocEntity@@QEAAXAEAUPS_PROFILE_PHOTO_LOAD@@@Z | 0x1400623e0 | implemented | IDA decompile | yes | stub(awaiting profile photo dependencies) |
-| CGocEntity | GocEntity.cpp | ?CheckEquipProfilePhoto@CGocEntity@@QEAAXXZ | 0x1400624e0 | implemented | IDA decompile | yes | stub(awaiting TB_PHOTO_ITEM dependencies) |
-| CGocEntity | GocEntity.cpp | ?CheckAddProfilePhoto@CGocEntity@@QEAA_NKAEAUST_PROFILE_PHOTO_INFO@@@Z | 0x140062820 | implemented | IDA decompile | yes | stub(awaiting TB_ITEM/TB_PHOTO_ITEM dependencies) |
-| CGocEntity | GocEntity.cpp | ?AddProfilePhoto@CGocEntity@@QEAAHAEAUST_PROFILE_PHOTO_INFO@@@Z | 0x140062e50 | implemented | IDA decompile | yes | stub(awaiting TB_PHOTO_ITEM dependencies) |
-| CGocEntity | GocEntity.cpp | ?SendProfilePhoto@CGocEntity@@QEAAXXZ | 0x140063170 | implemented | IDA decompile | yes | stub(awaiting packet dependencies) |
-| CGocEntity | GocEntity.cpp | ?ProfilePhotoRemainTimeCheck@CGocEntity@@QEAAXXZ | 0x140063370 | implemented | IDA decompile | yes | stub(awaiting ATL::CTime dependencies) |
-| CGocEntity | GocEntity.cpp | ?ReqChangeProfilePhoto@CGocEntity@@QEAAHK@Z | 0x1400634c0 | implemented | IDA decompile | yes | stub(awaiting profile photo dependencies) |
+| CGocEntity | GocEntity.cpp | ?SendDBProfilePhoto@CGocEntity@@QEAAXXZ | 0x1400622d0 | blocked | IDA decompile | no | stub(awaiting XSendDBPacket dependencies) |
+| CGocEntity | GocEntity.cpp | ?LoadProfilePhoto@CGocEntity@@QEAAXAEAUPS_PROFILE_PHOTO_LOAD@@@Z | 0x1400623e0 | blocked | IDA decompile | no | stub(awaiting profile photo dependencies) |
+| CGocEntity | GocEntity.cpp | ?CheckEquipProfilePhoto@CGocEntity@@QEAAXXZ | 0x1400624e0 | blocked | IDA decompile | no | stub(awaiting TB_PHOTO_ITEM dependencies) |
+| CGocEntity | GocEntity.cpp | ?CheckAddProfilePhoto@CGocEntity@@QEAA_NKAEAUST_PROFILE_PHOTO_INFO@@@Z | 0x140062820 | blocked | IDA decompile | no | stub(awaiting TB_ITEM/TB_PHOTO_ITEM dependencies) |
+| CGocEntity | GocEntity.cpp | ?AddProfilePhoto@CGocEntity@@QEAAHAEAUST_PROFILE_PHOTO_INFO@@@Z | 0x140062e50 | blocked | IDA decompile | no | stub(awaiting TB_PHOTO_ITEM dependencies) |
+| CGocEntity | GocEntity.cpp | ?SendProfilePhoto@CGocEntity@@QEAAXXZ | 0x140063170 | blocked | IDA decompile | no | stub(awaiting packet dependencies) |
+| CGocEntity | GocEntity.cpp | ?ProfilePhotoRemainTimeCheck@CGocEntity@@QEAAXXZ | 0x140063370 | blocked | IDA decompile | no | stub(awaiting ATL::CTime dependencies) |
+| CGocEntity | GocEntity.cpp | ?ReqChangeProfilePhoto@CGocEntity@@QEAAHK@Z | 0x1400634c0 | blocked | IDA decompile | no | stub(awaiting profile photo dependencies) |
 | CGocEntity | GocEntity.cpp | ?ResChangeProfilePhoto@CGocEntity@@QEAAXAEAUPS_DB_PROFILE_PHOTO_CHANGE@@@Z | 0x1400638c0 | implemented | IDA decompile | yes | Response handler for profile photo change from DB |
 | - | - | ?DeleteProfilePhoto@CGocEntity@@QEAAXAEAV?$vector@KV?$allocator@K@std@@@std@@@Z | 0x140063fb0 | implemented | IDA ?DeleteProfilePhoto@CGocEntity@@QEAAXAEAV?$vector@KV?$allocator@K@std@@@std@@@Z | yes | - |
 | CGocEntity | GocEntity.cpp | ?ProfilePhotoFavorite@CGocEntity@@QEAAXAEAUPS_PROFILE_PHOTO_FAVORITE@@@Z | 0x1400643d0 | implemented | IDA decompile | yes | Sets a profile photo as favorite |
@@ -2089,7 +1891,7 @@
 | - | - | ?lower_bound@?$_Tree@V?$_Tmap_traits@KUTB_TITLE_INFO@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_TITLE_INFO@@@std@@@3@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@KUTB_TITLE_INFO@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_TITLE_INFO@@@std@@@3@$0A@@std@@@std@@@2@AEBK@Z | 0x140068520 | blocked | IDA ?lower_bound@?$_Tree@V?$_Tmap_traits@KUTB_TITLE_INFO@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_TITLE_INFO@@@std@@@3@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@KUTB_TITLE_INFO@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_TITLE_INFO@@@std@@@3@$0A@@std@@@std@@@2@AEBK@Z | yes | - |
 | - | - | ?find@?$_Tree@V?$_Tmap_traits@KUTB_TITLE_INFO@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_TITLE_INFO@@@std@@@3@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@KUTB_TITLE_INFO@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_TITLE_INFO@@@std@@@3@$0A@@std@@@std@@@2@AEBK@Z | 0x140068560 | blocked | IDA ?find@?$_Tree@V?$_Tmap_traits@KUTB_TITLE_INFO@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_TITLE_INFO@@@std@@@3@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@KUTB_TITLE_INFO@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_TITLE_INFO@@@std@@@3@$0A@@std@@@std@@@2@AEBK@Z | yes | - |
 | - | - | ?GetTB_TITLE_INFO@XResourceMgr@@QEAAPEAUTB_TITLE_INFO@@K@Z | 0x140068620 | implemented | IDA ?GetTB_TITLE_INFO@XResourceMgr@@QEAAPEAUTB_TITLE_INFO@@K@Z | yes | - |
-| CGocInventory | GocInventory.cpp | ?SetReadyLoadCash@CGocInventory@@QEAAX_N@Z | 0x140068690 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
+| CGocInventory | GocInventory.cpp | ?SetReadyLoadCash@CGocInventory@@QEAAX_N@Z | 0x140068690 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | - | - | ??0ST_REPRESENTATIVE_INFO@@QEAA@XZ | 0x1400686b0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(Ĭ�ϳ�Ա��ʼ��) |
 | - | - | ??0ST_WM_AUTH_INFO@@QEAA@XZ | 0x140068700 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(Ĭ�ϳ�Ա��ʼ��) |
 | - | - | ??0ST_GF_AUTH_INFO@@QEAA@XZ | 0x140068770 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(Ĭ�ϳ�Ա��ʼ��) |
@@ -2102,12 +1904,12 @@
 | CGocEvent | GocEvent.cpp | ??1CGocEvent@@UEAA@XZ | 0x140068960 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
 | CGocEvent | GocEvent.cpp | ?Init@CGocEvent@@QEAAXXZ | 0x1400689d0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
 | CGocEvent | GocEvent.cpp | ?LogOut@CGocEvent@@QEAAXXZ | 0x140068a80 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
-| CGocEvent | GocEvent.cpp | ?RequestLoadAccountEvent@CGocEvent@@QEAAXXZ | 0x140068aa0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
+| CGocEvent | GocEvent.cpp | ?RequestLoadAccountEvent@CGocEvent@@QEAAXXZ | 0x140068aa0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | - | - | ??0PS_ACCOUNT_EVENT_LIST@@QEAA@XZ | 0x140068cb0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(Ĭ�ϳ�Ա��ʼ��) |
 | - | - | ??1PS_ACCOUNT_EVENT_LIST@@QEAA@XZ | 0x140068ce0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(Ĭ�ϳ�Ա��ʼ��) |
-| CGocEvent | GocEvent.cpp | ?LoadAccountEvent@CGocEvent@@QEAAXAEAUPS_ACCOUNT_EVENT_LIST@@@Z | 0x140068d00 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| CGocEvent | GocEvent.cpp | ?CheckAccountEvent@CGocEvent@@QEAA_NK@Z | 0x140069080 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| CGocEvent | GocEvent.cpp | ?SetWorldEventInfo@CGocEvent@@QEAAEAEAUPS_WORLD_EVENT_INFO_RES@@_J1@Z | 0x1400690e0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
+| CGocEvent | GocEvent.cpp | ?LoadAccountEvent@CGocEvent@@QEAAXAEAUPS_ACCOUNT_EVENT_LIST@@@Z | 0x140068d00 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| CGocEvent | GocEvent.cpp | ?CheckAccountEvent@CGocEvent@@QEAA_NK@Z | 0x140069080 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| CGocEvent | GocEvent.cpp | ?SetWorldEventInfo@CGocEvent@@QEAAEAEAUPS_WORLD_EVENT_INFO_RES@@_J1@Z | 0x1400690e0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | CGocEvent | GocEvent.cpp | ?SetWorldEventInfo@CGocEvent@@QEAAEHHH_J0@Z | 0x1400692a0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
 | CGocEvent | GocEvent.cpp | ?FindWorldEventReward@CGocEvent@@QEAA_NH@Z | 0x1400694d0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
 | CGocEvent | GocEvent.cpp | ?AddWorldEventReward@CGocEvent@@QEAA_NAEAUST_WORLD_EVENT_REWARD_INFO@@@Z | 0x140069530 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
@@ -2115,33 +1917,32 @@
 | CGocEvent | GocEvent.cpp | ?GetWorldEventMyCount@CGocEvent@@QEAAHH@Z | 0x140069650 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
 | CGocEvent | GocEvent.cpp | ?GetWorldEventLastResisterDate@CGocEvent@@QEAA_JH@Z | 0x1400696c0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
 | CGocEvent | GocEvent.cpp | ?GetWorldEventDailyRewardDate@CGocEvent@@QEAA_JH@Z | 0x140069730 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
-| CGocEvent | GocEvent.cpp | ?ReqWorldEventInfo@CGocEvent@@QEAAHAEAUPS_WORLD_EVENT_INFO_REQ@@@Z | 0x1400697a0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| CGocEvent | GocEvent.cpp | ?ReqWorldEventRegister@CGocEvent@@QEAAHAEAUPS_WORLD_EVENT_REGISTER_REQ@@@Z | 0x140069d90 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| CGocEvent | GocEvent.cpp | ?ReqWorldEventReward@CGocEvent@@QEAAHAEAUPS_WORLD_EVENT_REWARD_REQ@@@Z | 0x14006a7e0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| - | - | ??1PS_DB_WORLD_EVENT_REWARD@@QEAA@XZ | 0x14006b2c0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| CGocEvent | GocEvent.cpp | ?ReqWorldEventDailyReward@CGocEvent@@QEAAHAEAUPS_WORLD_EVENT_DAILY_REWARD_REQ@@@Z | 0x14006b300 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| - | - | ?ResWorldEventInfo@CGocEvent@@QEAAXAEAUPS_DB_WORLD_EVENT_INFO_RES@@@Z | 0x14006bd30 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| - | - | ??0PS_WORLD_EVENT_INFO_RES@@QEAA@AEBU0@@Z | 0x14006bf00 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| - | - | ?ResWorldEventRegister@CGocEvent@@QEAAXAEAUPS_DB_WORLD_EVENT_REGISTER_RES@@@Z | 0x14006bf80 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| - | - | ?ResWorldEventReward@CGocEvent@@QEAAXAEAUPS_DB_WORLD_EVENT_REWARD@@@Z | 0x14006c880 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| - | - | ?ResWorldEventDailyReward@CGocEvent@@QEAAXAEAUPS_DB_WORLD_EVENT_DAILY_REWARD@@@Z | 0x14006cf00 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| - | - | ?SendDBRouletteInfo@CGocEvent@@QEAAXEH@Z | 0x14006d310 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
+| CGocEvent | GocEvent.cpp | ?ReqWorldEventInfo@CGocEvent@@QEAAHAEAUPS_WORLD_EVENT_INFO_REQ@@@Z | 0x1400697a0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| CGocEvent | GocEvent.cpp | ?ReqWorldEventRegister@CGocEvent@@QEAAHAEAUPS_WORLD_EVENT_REGISTER_REQ@@@Z | 0x140069d90 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| CGocEvent | GocEvent.cpp | ?ReqWorldEventReward@CGocEvent@@QEAAHAEAUPS_WORLD_EVENT_REWARD_REQ@@@Z | 0x14006a7e0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| CGocEvent | GocEvent.cpp | ?ReqWorldEventDailyReward@CGocEvent@@QEAAHAEAUPS_WORLD_EVENT_DAILY_REWARD_REQ@@@Z | 0x14006b300 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| - | - | ?ResWorldEventInfo@CGocEvent@@QEAAXAEAUPS_DB_WORLD_EVENT_INFO_RES@@@Z | 0x14006bd30 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| - | - | ??0PS_WORLD_EVENT_INFO_RES@@QEAA@AEBU0@@Z | 0x14006bf00 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| - | - | ?ResWorldEventRegister@CGocEvent@@QEAAXAEAUPS_DB_WORLD_EVENT_REGISTER_RES@@@Z | 0x14006bf80 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| - | - | ?ResWorldEventReward@CGocEvent@@QEAAXAEAUPS_DB_WORLD_EVENT_REWARD@@@Z | 0x14006c880 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| - | - | ?ResWorldEventDailyReward@CGocEvent@@QEAAXAEAUPS_DB_WORLD_EVENT_DAILY_REWARD@@@Z | 0x14006cf00 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| - | - | ?SendDBRouletteInfo@CGocEvent@@QEAAXEH@Z | 0x14006d310 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | - | - | ?LoadRouletteEventInfo@CGocEvent@@QEAAXAEAUPS_ROULETTE_INFO@@@Z | 0x14006d4a0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
-| - | - | ?SendRouletteEventInfo@CGocEvent@@QEAAXXZ | 0x14006d5b0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
+| - | - | ?SendRouletteEventInfo@CGocEvent@@QEAAXXZ | 0x14006d5b0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | - | - | ?SetRouletteDayCount@CGocEvent@@QEAAXH@Z | 0x14006d6b0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
-| - | - | ?IsRouletteEvent@CGocEvent@@QEAAHXZ | 0x14006d6d0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| - | - | ??1PS_GM_ROULETTE_EVENT@@QEAA@XZ | 0x14006e9a0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| - | - | ??1PS_DB_ROULETTE_EVENT_UPDATE@@QEAA@XZ | 0x14006e9d0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| - | - | ?InitRouletteDayCount@CGocEvent@@QEAAX_J@Z | 0x14006ea10 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
+| - | - | ?IsRouletteEvent@CGocEvent@@QEAAHXZ | 0x14006d6d0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| - | - | ??1PS_GM_ROULETTE_EVENT@@QEAA@XZ | 0x14006e9a0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| - | - | ??1PS_DB_ROULETTE_EVENT_UPDATE@@QEAA@XZ | 0x14006e9d0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| - | - | ?InitRouletteDayCount@CGocEvent@@QEAAX_J@Z | 0x14006ea10 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | - | - | ?IsUseRoulette@CGocEvent@@QEAA_NXZ | 0x14006ec30 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
-| - | - | ?SetStartNetCafeMission@CGocEvent@@QEAAX_N@Z | 0x14006ec60 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| - | - | ??1PS_NETCAFE_MISSION_LIST@@QEAA@XZ | 0x14006eea0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| - | - | ?LoadNetCafeMission@CGocEvent@@QEAAXAEAUPS_NETCAFE_MISSION_LIST@@@Z | 0x14006eec0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| - | - | ?GetNetCafeMissionTime@CGocEvent@@QEAA_NKAEAVCTime@ATL@@00@Z | 0x14006f480 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| - | - | ?SendNetCafeMissionInfo@CGocEvent@@QEAAXK@Z | 0x14006fb40 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| - | - | ?DBUpdateNetCafeMission@CGocEvent@@QEAAXK_N@Z | 0x14006fd90 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
+| - | - | ?SetStartNetCafeMission@CGocEvent@@QEAAX_N@Z | 0x14006ec60 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| - | - | ??1PS_NETCAFE_MISSION_LIST@@QEAA@XZ | 0x14006eea0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| - | - | ?LoadNetCafeMission@CGocEvent@@QEAAXAEAUPS_NETCAFE_MISSION_LIST@@@Z | 0x14006eec0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| - | - | ?GetNetCafeMissionTime@CGocEvent@@QEAA_NKAEAVCTime@ATL@@00@Z | 0x14006f480 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| - | - | ?SendNetCafeMissionInfo@CGocEvent@@QEAAXK@Z | 0x14006fb40 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| - | - | ?DBUpdateNetCafeMission@CGocEvent@@QEAAXK_N@Z | 0x14006fd90 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | - | - | ?AllDBUpdateNetCafeMission@CGocEvent@@QEAAXXZ | 0x140070090 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
-| - | - | ?Cheat_NetCafeMission_PlayTime@CGocEvent@@QEAAXK_NH@Z | 0x1400700e0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
+| - | - | ?Cheat_NetCafeMission_PlayTime@CGocEvent@@QEAAXK_NH@Z | 0x1400700e0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | - | - | ??A?$vector@UST_SHOP_ITEM@@V?$allocator@UST_SHOP_ITEM@@@std@@@std@@QEAAAEAUST_SHOP_ITEM@@_K@Z | 0x1400705c0 | blocked | IDA ??A?$vector@UST_SHOP_ITEM@@V?$allocator@UST_SHOP_ITEM@@@std@@@std@@QEAAAEAUST_SHOP_ITEM@@_K@Z | yes | - |
 | - | - | ??1?$_Tree@V?$_Tmap_traits@HUST_WORLD_EVENT_INFO@@U?$less@H@std@@V?$allocator@U?$pair@$$CBHUST_WORLD_EVENT_INFO@@@std@@@3@$0A@@std@@@std@@QEAA@XZ | 0x1400705e0 | blocked | IDA ??1?$_Tree@V?$_Tmap_traits@HUST_WORLD_EVENT_INFO@@U?$less@H@std@@V?$allocator@U?$pair@$$CBHUST_WORLD_EVENT_INFO@@@std@@@3@$0A@@std@@@std@@QEAA@XZ | yes | - |
 | - | - | ?clear@?$_Tree@V?$_Tmap_traits@HUST_WORLD_EVENT_BOOSTER@@U?$less@H@std@@V?$allocator@U?$pair@$$CBHUST_WORLD_EVENT_BOOSTER@@@std@@@3@$0A@@std@@@std@@QEAAXXZ | 0x140070610 | blocked | IDA ?clear@?$_Tree@V?$_Tmap_traits@HUST_WORLD_EVENT_BOOSTER@@U?$less@H@std@@V?$allocator@U?$pair@$$CBHUST_WORLD_EVENT_BOOSTER@@@std@@@3@$0A@@std@@@std@@QEAAXXZ | yes | - |
@@ -2441,28 +2242,28 @@
 | CGocForce | GocForce.cpp | ?Init@CGocForce@@QEAAXXZ | 0x140083140 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
 | CGocForce | GocForce.cpp | ?IsMaster@CGocForce@@QEAA_NK@Z | 0x140083160 | implemented | IDA decompile | yes | IDA精确还原 |
 | CGocParty | GocParty.cpp | ?IsMember@CGocParty@@QEAA_NK@Z | 0x1400831b0 | implemented | IDA decompile | yes | IDA exact match - checks if actor ID is party member |
-| CGocForce | GocForce.cpp | ?ReserveReviveAll@CGocForce@@QEAAXKK@Z | 0x140083350 | implemented | IDA decompile | yes | IDA精确还原(stub) |
-| CGocForce | GocForce.cpp | ?SetMapID@CGocForce@@QEAAXHHTUXMapID@@@Z | 0x140083690 | implemented | IDA decompile | yes | IDA精确还原(stub) |
-| CGocForce | GocForce.cpp | ?SetLevel@CGocForce@@QEAAXH@Z | 0x140083730 | implemented | IDA decompile | yes | IDA精确还原(stub) |
-| CGocForce | GocForce.cpp | ?SetAwaken@CGocForce@@QEAAXE@Z | 0x1400837b0 | implemented | IDA decompile | yes | IDA精确还原(stub) |
-| CGocForce | GocForce.cpp | ?SetProfilePhoto@CGocForce@@QEAAXK@Z | 0x140083830 | implemented | IDA decompile | yes | IDA精确还原(stub) |
-| CGocForce | GocForce.cpp | ?SetMaxHP@CGocForce@@QEAAXH@Z | 0x1400838b0 | implemented | IDA decompile | yes | IDA精确还原(stub) |
-| CGocForce | GocForce.cpp | ?SetHP@CGocForce@@QEAAXH@Z | 0x140083970 | implemented | IDA decompile | yes | IDA精确还原(stub) |
-| CGocForce | GocForce.cpp | ?SetExp@CGocForce@@QEAAXPEAVCUser@@MH@Z | 0x140083a30 | implemented | IDA decompile | yes | IDA精确还原(stub) |
+| CGocForce | GocForce.cpp | ?ReserveReviveAll@CGocForce@@QEAAXKK@Z | 0x140083350 | blocked | IDA decompile | no | IDA精确还原(stub) |
+| CGocForce | GocForce.cpp | ?SetMapID@CGocForce@@QEAAXHHTUXMapID@@@Z | 0x140083690 | blocked | IDA decompile | no | IDA精确还原(stub) |
+| CGocForce | GocForce.cpp | ?SetLevel@CGocForce@@QEAAXH@Z | 0x140083730 | blocked | IDA decompile | no | IDA精确还原(stub) |
+| CGocForce | GocForce.cpp | ?SetAwaken@CGocForce@@QEAAXE@Z | 0x1400837b0 | blocked | IDA decompile | no | IDA精确还原(stub) |
+| CGocForce | GocForce.cpp | ?SetProfilePhoto@CGocForce@@QEAAXK@Z | 0x140083830 | blocked | IDA decompile | no | IDA精确还原(stub) |
+| CGocForce | GocForce.cpp | ?SetMaxHP@CGocForce@@QEAAXH@Z | 0x1400838b0 | blocked | IDA decompile | no | IDA精确还原(stub) |
+| CGocForce | GocForce.cpp | ?SetHP@CGocForce@@QEAAXH@Z | 0x140083970 | blocked | IDA decompile | no | IDA精确还原(stub) |
+| CGocForce | GocForce.cpp | ?SetExp@CGocForce@@QEAAXPEAVCUser@@MH@Z | 0x140083a30 | blocked | IDA decompile | no | IDA精确还原(stub) |
 | XGameServer | GocForce.cpp | ?SetForce@CGocForce@@QEAAXV?$shared_ptr@VCForce@@@tr1@std@@@Z | 0x140083f30 | implemented | IDA decompile | yes | ����Forceָ�� |
-| CGocForce | GocForce.cpp | ?Logout@CGocForce@@QEAAXXZ | 0x140084010 | implemented | IDA decompile | yes | IDA精确还原(stub) |
-| CGocForce | GocForce.cpp | ?SendForceInfo@CGocForce@@QEAAXE@Z | 0x140084310 | implemented | IDA decompile | yes | IDA精确还原(stub) |
+| CGocForce | GocForce.cpp | ?Logout@CGocForce@@QEAAXXZ | 0x140084010 | blocked | IDA decompile | no | IDA精确还原(stub) |
+| CGocForce | GocForce.cpp | ?SendForceInfo@CGocForce@@QEAAXE@Z | 0x140084310 | blocked | IDA decompile | no | IDA精确还原(stub) |
 | - | - | ??1PS_PARTY_INFO@@QEAA@XZ | 0x140084460 | blocked | IDA ??1PS_PARTY_INFO@@QEAA@XZ | yes | - |
-| CGocForce | GocForce.cpp | ?Leave@CGocForce@@QEAAXXZ | 0x140084480 | implemented | IDA decompile | yes | IDA精确还原(stub) |
-| CGocForce | GocForce.cpp | ?KickOut@CGocForce@@QEAA_NKPEAVCUser@@@Z | 0x1400846f0 | implemented | IDA decompile | yes | IDA精确还原(stub) |
-| CGocForce | GocForce.cpp | ?ChangeMaster@CGocForce@@QEAAXK@Z | 0x140084c80 | implemented | IDA decompile | yes | IDA精确还原(stub) |
-| CGocForce | GocForce.cpp | ?UpdatePartyBooster@CGocForce@@QEAAXXZ | 0x140084ee0 | implemented | IDA decompile | yes | IDA精确还原(stub) |
-| CGocForce | GocForce.cpp | ?UpdatePartyBoosterByCount@CGocForce@@QEAAXHH@Z | 0x140084f30 | implemented | IDA decompile | yes | IDA精确还原(stub) |
+| CGocForce | GocForce.cpp | ?Leave@CGocForce@@QEAAXXZ | 0x140084480 | blocked | IDA decompile | no | IDA精确还原(stub) |
+| CGocForce | GocForce.cpp | ?KickOut@CGocForce@@QEAA_NKPEAVCUser@@@Z | 0x1400846f0 | blocked | IDA decompile | no | IDA精确还原(stub) |
+| CGocForce | GocForce.cpp | ?ChangeMaster@CGocForce@@QEAAXK@Z | 0x140084c80 | blocked | IDA decompile | no | IDA精确还原(stub) |
+| CGocForce | GocForce.cpp | ?UpdatePartyBooster@CGocForce@@QEAAXXZ | 0x140084ee0 | blocked | IDA decompile | no | IDA精确还原(stub) |
+| CGocForce | GocForce.cpp | ?UpdatePartyBoosterByCount@CGocForce@@QEAAXHH@Z | 0x140084f30 | blocked | IDA decompile | no | IDA精确还原(stub) |
 | CGocParty | GocParty.cpp | ?SetMatchingDate@CGocParty@@QEAAX_J@Z | 0x140085030 | implemented | IDA ?SetMatchingDate@CGocParty@@QEAAX_J@Z | yes | - |
-| CGocForce | GocForce.cpp | ?AddMatchingDate@CGocForce@@QEAAXH@Z | 0x140085130 | implemented | IDA decompile | yes | IDA精确还原(stub) |
+| CGocForce | GocForce.cpp | ?AddMatchingDate@CGocForce@@QEAAXH@Z | 0x140085130 | blocked | IDA decompile | no | IDA精确还原(stub) |
 | CGocForce | GocForce.cpp | ?IsMatchingDate@CGocForce@@QEAA_NXZ | 0x140085160 | implemented | IDA decompile | yes | IDA精确还原 |
-| CGocForce | GocForce.cpp | ?CheckPassiveSkill@CGocForce@@QEAAXPEAVCUser@@EE@Z | 0x1400851b0 | implemented | IDA decompile | yes | IDA精确还原(stub) |
-| CGocForce | GocForce.cpp | ?CheckForceMatchingEnter@CGocForce@@QEAA_NXZ | 0x140085210 | implemented | IDA decompile | yes | IDA精确还原(stub) |
+| CGocForce | GocForce.cpp | ?CheckPassiveSkill@CGocForce@@QEAAXPEAVCUser@@EE@Z | 0x1400851b0 | blocked | IDA decompile | no | IDA精确还原(stub) |
+| CGocForce | GocForce.cpp | ?CheckForceMatchingEnter@CGocForce@@QEAA_NXZ | 0x140085210 | blocked | IDA decompile | no | IDA精确还原(stub) |
 | CGocForce | GocForce.cpp | ?IsFull@CGocForce@@QEAA_NXZ | 0x1400854b0 | implemented | IDA decompile | yes | IDA精确还原 |
 | - | - | ??E?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@EUTB_SYSTEMMAIL@@U?$less@E@std@@V?$allocator@U?$pair@$$CBEUTB_SYSTEMMAIL@@@std@@@3@$0A@@std@@@std@@@std@@QEAAAEAV01@XZ | 0x140085500 | blocked | IDA ??E?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@EUTB_SYSTEMMAIL@@U?$less@E@std@@V?$allocator@U?$pair@$$CBEUTB_SYSTEMMAIL@@@std@@@3@$0A@@std@@@std@@@std@@QEAAAEAV01@XZ | yes | - |
 | - | - | ??0?$_Vector_val@UPS_ITEM_MAKE_LIMIT_INFO@@V?$allocator@UPS_ITEM_MAKE_LIMIT_INFO@@@std@@@std@@QEAA@V?$allocator@UPS_ITEM_MAKE_LIMIT_INFO@@@1@@Z | 0x140085520 | blocked | IDA ??0?$_Vector_val@UPS_ITEM_MAKE_LIMIT_INFO@@V?$allocator@UPS_ITEM_MAKE_LIMIT_INFO@@@std@@@std@@QEAA@V?$allocator@UPS_ITEM_MAKE_LIMIT_INFO@@@1@@Z | yes | - |
@@ -2517,7 +2318,6 @@
 | - | - | ??_ECGocFriend@@UEAAPEAXI@Z | 0x1400865d0 | blocked | IDA ??_ECGocFriend@@UEAAPEAXI@Z | yes | - |
 | CGocFriend | GocFriend.cpp | ??1CGocFriend@@UEAA@XZ | 0x140086610 | implemented | IDA decompile | yes | IDA��ȷ��ԭ-�������� |
 | CGocFriend | GocFriend.cpp | ?Init@CGocFriend@@QEAAXXZ | 0x140086670 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
-| XGameServer | GocFriend.cpp | ?Reset@CGocFriend@@QEAAXXZ | 0x140086690 | implemented | IDA decompile | yes | ���ú����б�״̬ |
 | CGocFriend | GocFriend.cpp | ?IsValiedFriendType@CGocFriend@@QEAA_NE@Z | 0x140086730 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
 | CGocFriend | GocFriend.cpp | ?IsValiedListCount@CGocFriend@@QEAA_NE@Z | 0x140086760 | implemented | IDA decompile | yes | IDA��ȷ��ԭ-��ʵ��(��std::vector���boost::multi_index) |
 | CGocFriend | GocFriend.cpp | ?IsFriend@CGocFriend@@QEAA_NKE@Z | 0x140086810 | implemented | IDA decompile | yes | IDA��ȷ��ԭ-��ʵ��(��std::vector���boost::multi_index) |
@@ -2535,26 +2335,26 @@
 | CGocFriend | GocFriend.cpp | ?DeleteFriend@CGocFriend@@QEAAXK_N@Z | 0x1400877f0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
 | CGocFriend | GocFriend.cpp | ?UpdatePartyBooster@CGocFriend@@QEAAXXZ | 0x140087980 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
 | CGocFriend | GocFriend.cpp | ?DeleteBlock@CGocFriend@@QEAAXKPEA_W_N@Z | 0x140087a50 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
-| CGocFriend | GocFriend.cpp | ?PrepareFriendInvite@CGocFriend@@QEAAXAEAUPS_DB_FRIEND_INVITE@@@Z | 0x140087c80 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| CGocFriend | GocFriend.cpp | ?PrepareFriendAccept@CGocFriend@@QEAAXAEAUPS_REQ_FRIEND_ACCEPT@@@Z | 0x1400880b0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| CGocFriend | GocFriend.cpp | ?PrepareDelFriend@CGocFriend@@QEAA_NAEAUPS_REQ_FRIEND_DELETE@@@Z | 0x1400882f0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| CGocFriend | GocFriend.cpp | ?PrepareAddBlock@CGocFriend@@QEAA_NAEAUPS_REQ_FRIEND_BLOCK_ADD@@@Z | 0x140088460 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| CGocFriend | GocFriend.cpp | ?PrepareDelBlock@CGocFriend@@QEAA_NAEAUPS_REQ_FRIEND_BLOCK_DELETE@@@Z | 0x1400886b0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| CGocFriend | GocFriend.cpp | ?PrepareRecruitList@CGocFriend@@QEAA_NAEAUPS_RECRUIT_LIST@@@Z | 0x1400888c0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| CGocFriend | GocFriend.cpp | ?PrepareRecruitAdd@CGocFriend@@QEAA_NXZ | 0x140088c00 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| CGocFriend | GocFriend.cpp | ?PrepareRecruitDelete@CGocFriend@@QEAA_NXZ | 0x140088d30 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| CGocFriend | GocFriend.cpp | ?PrepareRecruitInfo@CGocFriend@@QEAA_NXZ | 0x140088e60 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| CGocFriend | GocFriend.cpp | ?PrepareRecommandList@CGocFriend@@QEAA_NXZ | 0x1400890c0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
+| CGocFriend | GocFriend.cpp | ?PrepareFriendInvite@CGocFriend@@QEAAXAEAUPS_DB_FRIEND_INVITE@@@Z | 0x140087c80 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| CGocFriend | GocFriend.cpp | ?PrepareFriendAccept@CGocFriend@@QEAAXAEAUPS_REQ_FRIEND_ACCEPT@@@Z | 0x1400880b0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| CGocFriend | GocFriend.cpp | ?PrepareDelFriend@CGocFriend@@QEAA_NAEAUPS_REQ_FRIEND_DELETE@@@Z | 0x1400882f0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| CGocFriend | GocFriend.cpp | ?PrepareAddBlock@CGocFriend@@QEAA_NAEAUPS_REQ_FRIEND_BLOCK_ADD@@@Z | 0x140088460 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| CGocFriend | GocFriend.cpp | ?PrepareDelBlock@CGocFriend@@QEAA_NAEAUPS_REQ_FRIEND_BLOCK_DELETE@@@Z | 0x1400886b0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| CGocFriend | GocFriend.cpp | ?PrepareRecruitList@CGocFriend@@QEAA_NAEAUPS_RECRUIT_LIST@@@Z | 0x1400888c0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| CGocFriend | GocFriend.cpp | ?PrepareRecruitAdd@CGocFriend@@QEAA_NXZ | 0x140088c00 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| CGocFriend | GocFriend.cpp | ?PrepareRecruitDelete@CGocFriend@@QEAA_NXZ | 0x140088d30 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| CGocFriend | GocFriend.cpp | ?PrepareRecruitInfo@CGocFriend@@QEAA_NXZ | 0x140088e60 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| CGocFriend | GocFriend.cpp | ?PrepareRecommandList@CGocFriend@@QEAA_NXZ | 0x1400890c0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | - | - | ??1PS_RES_FRIEND_RECOMMAND@@QEAA@XZ | 0x140089370 | blocked | IDA ??1PS_RES_FRIEND_RECOMMAND@@QEAA@XZ | yes | - |
-| CGocFriend | GocFriend.cpp | ?FriendInvite@CGocFriend@@QEAAXAEAUPS_FRIEND_RESULT@@@Z | 0x140089390 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| CGocFriend | GocFriend.cpp | ?FriendAccept@CGocFriend@@QEAAXAEAUPS_RES_FRIEND_ACCEPT@@@Z | 0x140089720 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| CGocFriend | GocFriend.cpp | ?AddBlockList@CGocFriend@@QEAAXAEAUPS_RES_BLOCKLIST_ADD@@@Z | 0x1400898c0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| CGocFriend | GocFriend.cpp | ?DeleteBlockList@CGocFriend@@QEAAXAEAUPS_RES_BLOCKLIST_DELETE@@@Z | 0x140089920 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
+| CGocFriend | GocFriend.cpp | ?FriendInvite@CGocFriend@@QEAAXAEAUPS_FRIEND_RESULT@@@Z | 0x140089390 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| CGocFriend | GocFriend.cpp | ?FriendAccept@CGocFriend@@QEAAXAEAUPS_RES_FRIEND_ACCEPT@@@Z | 0x140089720 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| CGocFriend | GocFriend.cpp | ?AddBlockList@CGocFriend@@QEAAXAEAUPS_RES_BLOCKLIST_ADD@@@Z | 0x1400898c0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| CGocFriend | GocFriend.cpp | ?DeleteBlockList@CGocFriend@@QEAAXAEAUPS_RES_BLOCKLIST_DELETE@@@Z | 0x140089920 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | CGocFriend | GocFriend.cpp | ?GetFriendList@CGocFriend@@QEAAXAEAUPS_FRIEND_LIST@@E@Z | 0x140089980 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
 | CGocFriend | GocFriend.cpp | ?GetBlockList@CGocFriend@@QEAAXAEAUPS_BLOCKLIST_INFO@@@Z | 0x140089a90 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
 | CGocFriend | GocFriend.cpp | ?UpdateFriend@CGocFriend@@QEAAXAEAUST_FRIEND_INFO@@@Z | 0x140089b50 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
-| CGocFriend | GocFriend.cpp | ?UpdateFriendCommunity@CGocFriend@@QEAAXKAEAUST_FRIEND_COMMUNITY@@@Z | 0x140089d20 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| CGocFriend | GocFriend.cpp | ?AddFriendPoint@CGocFriend@@QEAAXK_J@Z | 0x140089ee0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
+| CGocFriend | GocFriend.cpp | ?UpdateFriendCommunity@CGocFriend@@QEAAXKAEAUST_FRIEND_COMMUNITY@@@Z | 0x140089d20 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| CGocFriend | GocFriend.cpp | ?AddFriendPoint@CGocFriend@@QEAAXK_J@Z | 0x140089ee0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | - | - | ?compare@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QEBAHPEB_W@Z | 0x14008a140 | blocked | IDA ?compare@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QEBAHPEB_W@Z | yes | - |
 | - | - | ??1?$vector@UST_FRIEND_INFO@@V?$allocator@UST_FRIEND_INFO@@@std@@@std@@QEAA@XZ | 0x14008a180 | blocked | IDA ??1?$vector@UST_FRIEND_INFO@@V?$allocator@UST_FRIEND_INFO@@@std@@@std@@QEAA@XZ | yes | - |
 | - | - | ?begin@?$vector@V?$shared_ptr@VGOComponent@@@tr1@std@@V?$allocator@V?$shared_ptr@VGOComponent@@@tr1@std@@@3@@std@@QEAA?AV?$_Vector_iterator@V?$_Vector_val@V?$shared_ptr@VGOComponent@@@tr1@std@@V?$allocator@V?$shared_ptr@VGOComponent@@@tr1@std@@@3@@std@@@2@XZ | 0x14008a1b0 | blocked | IDA ?begin@?$vector@V?$shared_ptr@VGOComponent@@@tr1@std@@V?$allocator@V?$shared_ptr@VGOComponent@@@tr1@std@@@3@@std@@QEAA?AV?$_Vector_iterator@V?$_Vector_val@V?$shared_ptr@VGOComponent@@@tr1@std@@V?$allocator@V?$shared_ptr@VGOComponent@@@tr1@std@@@3@@std@@@2@XZ | yes | - |
@@ -3006,15 +2806,15 @@
 | - | - | ??1PS_RES_TOOL_SOULSTONE@@QEAA@XZ | 0x14009fcd0 | blocked | IDA ??1PS_RES_TOOL_SOULSTONE@@QEAA@XZ | yes | - |
 | - | - | ??0ST_MY_TRADE_INFO@@QEAA@XZ | 0x14009fcf0 | blocked | IDA ??0ST_MY_TRADE_INFO@@QEAA@XZ | yes | - |
 | - | - | ??1?$map@GUST_BOOSTER_INFO@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUST_BOOSTER_INFO@@@std@@@3@@std@@QEAA@XZ | 0x14009fd20 | blocked | IDA ??1?$map@GUST_BOOSTER_INFO@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUST_BOOSTER_INFO@@@std@@@3@@std@@QEAA@XZ | yes | - |
-| CGocInventory | GocInventory.cpp | ??1CGocInventory@@UEAA@XZ | 0x14009fd40 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
+| CGocInventory | GocInventory.cpp | ??1CGocInventory@@UEAA@XZ | 0x14009fd40 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | CGocInventory | GocInventory.cpp | ?ClearInven@CGocInventory@@QEAAXXZ | 0x1400a0000 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
 | CGocInventory | GocInventory.cpp | ?ClearTradeInfo@CGocInventory@@QEAAXXZ | 0x1400a0080 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
 | CGocInventory | GocInventory.cpp | ?Init@CGocInventory@@QEAA_NXZ | 0x1400a00c0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
 | CGocInventory | GocInventory.cpp | ?InitTarde@CGocInventory@@QEAAXXZ | 0x1400a0850 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
 | CGocInventory | GocInventory.cpp | ?InitItemCoolTime@CGocInventory@@QEAAXXZ | 0x1400a08b0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
-| CGocInventory | GocInventory.cpp | ?SetInventory@CGocInventory@@QEAAXEEEE_J0000@Z | 0x1400a08e0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
+| CGocInventory | GocInventory.cpp | ?SetInventory@CGocInventory@@QEAAXEEEE_J0000@Z | 0x1400a08e0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | CGocInventory | GocInventory.cpp | ?SetMileage@CGocInventory@@QEAAXHHH@Z | 0x1400a0a40 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
-| CGocInventory | GocInventory.cpp | ?InventoryInfoReq@CGocInventory@@QEAAX_N0K@Z | 0x1400a0a90 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
+| CGocInventory | GocInventory.cpp | ?InventoryInfoReq@CGocInventory@@QEAAX_N0K@Z | 0x1400a0a90 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | CGocInventory | GocInventory.cpp | ?SetBankStep@CGocInventory@@QEAAXEEEE@Z | 0x1400a1290 | implemented | IDA decompile | yes | Precise restoration - bank extend steps with nation type check |
 | CGocInventory | GocInventory.cpp | ?SetEquipItem@CGocInventory@@QEAAXUPS_RES_STORAGE_INFO@@H@Z | 0x1400a1380 | implemented | IDA decompile | no | Signature corrected to ST_PRIVATE_SHOP_LIST*, detailed TODO with IDA logic |
 | CGocInventory | GocInventory.cpp | ?GetInvenPtr@CGocInventory@@QEAAPEAVXBaseInventory@@E@Z | 0x1400a2170 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
@@ -3022,9 +2822,9 @@
 | CGocInventory | GocInventory.cpp | ?GetEquipPtr@CGocInventory@@QEAAPEAVXBaseEquip@@E@Z | 0x1400a22d0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
 | CGocInventory | GocInventory.cpp | ?SetInvenMoney@CGocInventory@@QEAAX_J_N@Z | 0x1400a2340 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
 | CGocInventory | GocInventory.cpp | ?SetBankMoney@CGocInventory@@QEAAX_J_N@Z | 0x1400a23b0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
-| CGocInventory | GocInventory.cpp | ?SendBankMoney@CGocInventory@@QEAAXXZ | 0x1400a23e0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
+| CGocInventory | GocInventory.cpp | ?SendBankMoney@CGocInventory@@QEAAXXZ | 0x1400a23e0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | CGocInventory | GocInventory.cpp | ?AddMoney@CGocInventory@@QEAA_N_JEHH_N@Z | 0x1400a24c0 | implemented | IDA decompile | yes | Precise restoration - money add with DB update and game log |
-| CGocInventory | GocInventory.cpp | ?AddDropMoney@CGocInventory@@QEAA_N_JHAEA_JEHH@Z | 0x1400a2890 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
+| CGocInventory | GocInventory.cpp | ?AddDropMoney@CGocInventory@@QEAA_N_JHAEA_JEHH@Z | 0x1400a2890 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | CGocInventory | GocInventory.cpp | ?SendMoney@CGocInventory@@QEAAXXZ | 0x1400a2d70 | implemented | IDA decompile | yes | Precise restoration - sends PS_GOLD_UPDATE packet |
 | CGocInventory | GocInventory.cpp | ?SendMoney@CGocInventory@@QEAAXAEAUPS_GOLD_UPDATE@@@Z | 0x1400a2e60 | implemented | IDA decompile | yes | Precise restoration - sends provided PS_GOLD_UPDATE |
 | CGocInventory | GocInventory.cpp | ?SetBP@CGocInventory@@QEAAX_J_N@Z | 0x1400a2f30 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
@@ -3032,335 +2832,333 @@
 | CGocInventory | GocInventory.cpp | ?SetLimitBP@CGocInventory@@QEAAXHH@Z | 0x1400a2fd0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
 | CGocInventory | GocInventory.cpp | ?AddBP@CGocInventory@@QEAA_N_JE@Z | 0x1400a3000 | implemented | IDA decompile | yes | Precise restoration - BP add with DB update |
 | - | - | ?AddLimitBP@CGocInventory@@QEAA_N_JAEAV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@E@Z | 0x1400a3480 | implemented | IDA ?AddLimitBP@CGocInventory@@QEAA_N_JAEAV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@E@Z | yes | - |
-| CGocInventory | GocInventory.cpp | ?SendBP@CGocInventory@@QEAAXAEAUPS_BP_UPDATE@@@Z | 0x1400a3c20 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
+| CGocInventory | GocInventory.cpp | ?SendBP@CGocInventory@@QEAAXAEAUPS_BP_UPDATE@@@Z | 0x1400a3c20 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | CGocInventory | GocInventory.cpp | ?SetEther@CGocInventory@@QEAAX_J_N@Z | 0x1400a3cf0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
 | CGocInventory | GocInventory.cpp | ?AddEther@CGocInventory@@QEAA_N_JE_N@Z | 0x1400a3d60 | implemented | IDA decompile | yes | Precise restoration - ether add with option effects and DB update |
-| CGocInventory | GocInventory.cpp | ?DropEtherLog@CGocInventory@@QEAAXXZ | 0x1400a4210 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| CGocInventory | GocInventory.cpp | ?SendEther@CGocInventory@@QEAAX_J@Z | 0x1400a4450 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| XGameServer | GocInventory.cpp | CGocInventory::LoadCash | 0x1400A4530 | implemented | IDA decompile | yes | IDA精确还原 - 从DB加载现金，通过RTTI获取CUser的UAID并发送DB请求 |
+| CGocInventory | GocInventory.cpp | ?DropEtherLog@CGocInventory@@QEAAXXZ | 0x1400a4210 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| CGocInventory | GocInventory.cpp | ?SendEther@CGocInventory@@QEAAX_J@Z | 0x1400a4450 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | CGocInventory | GocInventory.cpp | ?ReloadCash@CGocInventory@@QEAAXXZ | 0x1400a4690 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
 | XGameServer | GocInventory.cpp | CGocInventory::AddCash | 0x1400A4800 | implemented | IDA decompile | yes | IDA精确还原 - 添加现金并同步DB，通过RTTI获取CUser的UAID |
 | XGameServer | GocInventory.cpp | CGocInventory::SetCash | 0x1400A49A0 | implemented | IDA decompile | yes | IDA精确还原 - 设置现金并可选同步DB，通过RTTI获取CUser的UAID |
-| CGocInventory | GocInventory.cpp | ?SendCash@CGocInventory@@QEAAXH@Z | 0x1400a4b10 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
+| CGocInventory | GocInventory.cpp | ?SendCash@CGocInventory@@QEAAXH@Z | 0x1400a4b10 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | CGocInventory | GocInventory.cpp | ?SetTotalFriendPoint@CGocInventory@@QEAAX_J_N@Z | 0x1400a4bf0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
 | CGocInventory | GocInventory.cpp | ?AddTotalFriendPoint@CGocInventory@@QEAA_N_J_N@Z | 0x1400a4c80 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
-| CGocInventory | GocInventory.cpp | ?SendTotalFriendPoint@CGocInventory@@QEAAXXZ | 0x1400a4e30 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
+| CGocInventory | GocInventory.cpp | ?SendTotalFriendPoint@CGocInventory@@QEAAXXZ | 0x1400a4e30 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | CGocInventory | GocInventory.cpp | ?ClearRepurchaser@CGocInventory@@QEAAXXZ | 0x1400a4f10 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
-| CGocInventory | GocInventory.cpp | ?PushRepurchaserItem@CGocInventory@@QEAAXUPS_RES_STORAGE_INFO@@_N@Z | 0x1400a4f60 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
+| CGocInventory | GocInventory.cpp | ?PushRepurchaserItem@CGocInventory@@QEAAXUPS_RES_STORAGE_INFO@@_N@Z | 0x1400a4f60 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | - | - | ??0PS_RES_ITEM_REPURCHASER_LIST@@QEAA@XZ | 0x1400a5400 | blocked | IDA ??0PS_RES_ITEM_REPURCHASER_LIST@@QEAA@XZ | yes | - |
 | - | - | ??1PS_RES_ITEM_REPURCHASER_LIST@@QEAA@XZ | 0x1400a5440 | blocked | IDA ??1PS_RES_ITEM_REPURCHASER_LIST@@QEAA@XZ | yes | - |
 | CGocInventory | GocInventory.cpp | ?EraseRepurchaserItem@CGocInventory@@QEAAXAEAUSTItem@@@Z | 0x1400a5490 | implemented | IDA decompile | yes | Precise restoration - erase from repurchaser lists |
 | CGocInventory | GocInventory.cpp | ?IsRepurchaserItem@CGocInventory@@QEAA_N_JHFAEAUSTItem@@@Z | 0x1400a56d0 | implemented | IDA decompile | yes | Precise restoration - check item in repurchaser list |
 | CGocInventory | GocInventory.cpp | ?SendRepurchaseList@CGocInventory@@QEAAXXZ | 0x1400a57a0 | implemented | IDA decompile | yes | Precise restoration - send repurchase list to client |
-| CGocInventory | GocInventory.cpp | ?Equip@CGocInventory@@QEAAXEF@Z | 0x1400a5960 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| CGocInventory | GocInventory.cpp | ?Unequip@CGocInventory@@QEAAXEF@Z | 0x1400a5b10 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| CGocInventory | GocInventory.cpp | ?ExchangeEquipSlot@CGocInventory@@QEAAXEFEF@Z | 0x1400a5f30 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| CGocInventory | GocInventory.cpp | ?IsValidMoveMoney@CGocInventory@@QEAA_NUPS_REQ_MOVE_MONEY@@@Z | 0x1400a6060 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
+| CGocInventory | GocInventory.cpp | ?Equip@CGocInventory@@QEAAXEF@Z | 0x1400a5960 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| CGocInventory | GocInventory.cpp | ?Unequip@CGocInventory@@QEAAXEF@Z | 0x1400a5b10 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| CGocInventory | GocInventory.cpp | ?ExchangeEquipSlot@CGocInventory@@QEAAXEFEF@Z | 0x1400a5f30 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| CGocInventory | GocInventory.cpp | ?IsValidMoveMoney@CGocInventory@@QEAA_NUPS_REQ_MOVE_MONEY@@@Z | 0x1400a6060 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | CGocInventory | GocInventory.cpp | ?GetSlotItem@CGocInventory@@QEAA?AV?$shared_ptr@VCItem@@@tr1@std@@EFAEAE@Z | 0x1400a61f0 | implemented | IDA decompile | yes | ��ȷ��ԭ-��ȡ��λ��Ʒ |
-| - | - | ?DivideItem@CGocInventory@@QEAA_NAEAUPS_DB_ITEM_MOVE@@@Z | 0x1400a6390 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
+| - | - | ?DivideItem@CGocInventory@@QEAA_NAEAUPS_DB_ITEM_MOVE@@@Z | 0x1400a6390 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | - | - | ?AddItem@CGocInventory@@QEAA_NEFV?$shared_ptr@VCItem@@@tr1@std@@@Z | 0x1400a6920 | implemented | IDA ?AddItem@CGocInventory@@QEAA_NEFV?$shared_ptr@VCItem@@@tr1@std@@@Z | yes | - |
-| CGocInventory | GocInventory.cpp | ?RemoveItem@CGocInventory@@QEAA_NEF@Z | 0x1400a6da0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| CGocInventory | GocInventory.cpp | ?SaveQuickSlot@CGocInventory@@QEAAXXZ | 0x1400a6ea0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
+| CGocInventory | GocInventory.cpp | ?RemoveItem@CGocInventory@@QEAA_NEF@Z | 0x1400a6da0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| CGocInventory | GocInventory.cpp | ?SaveQuickSlot@CGocInventory@@QEAAXXZ | 0x1400a6ea0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | CGocInventory | GocInventory.cpp | ?SetLock@CGocInventory@@QEAA_NEFE@Z | 0x1400a7020 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
-| - | - | ?AtkDecEndurance@CGocInventory@@QEAAXXZ | 0x1400a7110 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
+| - | - | ?AtkDecEndurance@CGocInventory@@QEAAXXZ | 0x1400a7110 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | - | - | ??0ST_ITEM_LIMIT_LIST@@QEAA@AEBU0@@Z | 0x1400a7310 | blocked | IDA ??0ST_ITEM_LIMIT_LIST@@QEAA@AEBU0@@Z | yes | - |
-| CGocInventory | GocInventory.cpp | ?DefDecEndurance@CGocInventory@@QEAAXXZ | 0x1400a7340 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| CGocInventory | GocInventory.cpp | ?DieDecEndurance@CGocInventory@@QEAAXXZ | 0x1400a7540 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
+| CGocInventory | GocInventory.cpp | ?DefDecEndurance@CGocInventory@@QEAAXXZ | 0x1400a7340 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| CGocInventory | GocInventory.cpp | ?DieDecEndurance@CGocInventory@@QEAAXXZ | 0x1400a7540 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | CGocInventory | GocInventory.cpp | ?SendDecEndurance@CGocInventory@@QEAAXUST_ENDURANCE_LIST@@@Z | 0x1400a7740 | implemented | IDA decompile | yes | Precise restoration - sends endurance update to client + DB |
-| CGocInventory | GocInventory.cpp | ?SetEndurance@CGocInventory@@QEAA_NEFAEAUSTItem@@@Z | 0x1400a7910 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| CGocInventory | GocInventory.cpp | ?SetInventoryInfos@CGocInventory@@QEAAXEUPS_RES_STORAGE_INFO@@@Z | 0x1400a7ae0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| CGocInventory | GocInventory.cpp | ?SendInventory@CGocInventory@@QEAAXXZ | 0x1400a83f0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
+| CGocInventory | GocInventory.cpp | ?SetEndurance@CGocInventory@@QEAA_NEFAEAUSTItem@@@Z | 0x1400a7910 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| CGocInventory | GocInventory.cpp | ?SetInventoryInfos@CGocInventory@@QEAAXEUPS_RES_STORAGE_INFO@@@Z | 0x1400a7ae0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| CGocInventory | GocInventory.cpp | ?SendInventory@CGocInventory@@QEAAXXZ | 0x1400a83f0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | - | - | ??1PS_OPEN_SLOT_INFO@@QEAA@XZ | 0x1400a8750 | blocked | IDA ??1PS_OPEN_SLOT_INFO@@QEAA@XZ | yes | - |
-| CGocInventory | GocInventory.cpp | ?SendBank@CGocInventory@@QEAAXXZ | 0x1400a8770 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| CGocInventory | GocInventory.cpp | ?MoveItem@CGocInventory@@QEAA_NAEAUPS_DB_ITEM_MOVE_VEC@@H@Z | 0x1400a8af0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| CGocInventory | GocInventory.cpp | ?LineUp@CGocInventory@@QEAAXE@Z | 0x1400a96b0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| CGocInventory | GocInventory.cpp | ?UseItem@CGocInventory@@QEAA_NEFEFAEAH@Z | 0x1400a9a30 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| CGocInventory | GocInventory.cpp | ?CanUseItem@CGocInventory@@QEAA_NEF@Z | 0x1400ab0e0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| CGocInventory | GocInventory.cpp | ?SetQuickSlotItem@CGocInventory@@QEAA_NAEAUPS_QUICKSLOT_UPDATE_ITEM@@@Z | 0x1400aca50 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| CGocInventory | GocInventory.cpp | ?LoadQuickSlotItem@CGocInventory@@QEAA_NUPS_QUICKSLOT_ITEM@@@Z | 0x1400acd50 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| CGocInventory | GocInventory.cpp | ?SendQuickSlotInfo@CGocInventory@@QEAAXXZ | 0x1400ace80 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
+| CGocInventory | GocInventory.cpp | ?SendBank@CGocInventory@@QEAAXXZ | 0x1400a8770 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| CGocInventory | GocInventory.cpp | ?MoveItem@CGocInventory@@QEAA_NAEAUPS_DB_ITEM_MOVE_VEC@@H@Z | 0x1400a8af0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| CGocInventory | GocInventory.cpp | ?LineUp@CGocInventory@@QEAAXE@Z | 0x1400a96b0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| CGocInventory | GocInventory.cpp | ?UseItem@CGocInventory@@QEAA_NEFEFAEAH@Z | 0x1400a9a30 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| CGocInventory | GocInventory.cpp | ?CanUseItem@CGocInventory@@QEAA_NEF@Z | 0x1400ab0e0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| CGocInventory | GocInventory.cpp | ?SetQuickSlotItem@CGocInventory@@QEAA_NAEAUPS_QUICKSLOT_UPDATE_ITEM@@@Z | 0x1400aca50 | verified | GameServer PDB + IDA decompile/assembly + source build | yes | Validates four common/cash item IDs, clears missing IDs, updates m_nQuickSlotItem, sends main 8/sub 0x28, and saves to DB. |
+| CGocInventory | GocInventory.cpp | ?LoadQuickSlotItem@CGocInventory@@QEAA_NUPS_QUICKSLOT_ITEM@@@Z | 0x1400acd50 | verified | GameServer PDB + IDA decompile/assembly + source build | yes | By-value DB payload validates four common/cash item IDs, clears missing IDs, and copies the resulting IDs into m_nQuickSlotItem. |
+| CGocInventory | GocInventory.cpp | ?SendQuickSlotInfo@CGocInventory@@QEAAXXZ | 0x1400ace80 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | CGocInventory | GocInventory.cpp | ?GetItem@CGocInventory@@QEAA?AV?$shared_ptr@VCItem@@@tr1@std@@EH@Z | 0x1400ad750 | implemented | IDA decompile | yes | ��ȷ��ԭ-ͨ��ID��ȡ��Ʒ |
 | CGocInventory | GocInventory.cpp | ?CreateItemReq@CGocInventory@@QEAA_NHF_NW4eITEM_CREATE_TYPE@@AEAUST_LOG_GAME@@@Z | 0x1400ad7e0 | verified | GameServer PDB + IDA disassembly + source build | yes | Scalar overload wraps one item, marks quest/condition responses, serializes owner actor ID into DB 0x21/0x0C, and intentionally ignores SendDBGame result. |
-| CGocInventory | GocInventory.cpp | ?BreakItemReq@CGocInventory@@QEAA_NEFHEAEAUST_LOG_GAME@@@Z | 0x1400adb20 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| CGocInventory | GocInventory.cpp | ?OnUpdate@CGocInventory@@QEAAXXZ | 0x1400ae280 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| CGocInventory | GocInventory.cpp | ?PopTradeItem@CGocInventory@@QEAA_NUPS_REQ_ITEM_TRADE@@@Z | 0x1400ae6a0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| - | - | ?SetTradeConfirm@CGocInventory@@QEAA_NAEAUST_TRADE_ITEM_LIST@@AEAUPS_ITEM_SOCKET_LIST@@AEAUPS_ITEM_BROACH_LIST@@AEAUPS_ITEM_PACKAGE_LIST@@@Z | 0x1400ae760 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| - | - | ?CanTradeConfirm@CGocInventory@@QEAA_NUST_TRADE_ITEM_LIST@@AEAU2@@Z | 0x1400aebe0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
+| CGocInventory | GocInventory.cpp | ?BreakItemReq@CGocInventory@@QEAA_NEFHEAEAUST_LOG_GAME@@@Z | 0x1400adb20 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| CGocInventory | GocInventory.cpp | ?OnUpdate@CGocInventory@@QEAAXXZ | 0x1400ae280 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| CGocInventory | GocInventory.cpp | ?PopTradeItem@CGocInventory@@QEAA_NUPS_REQ_ITEM_TRADE@@@Z | 0x1400ae6a0 | verified | GameServer PDB + IDA decompile/assembly + source build | yes | Finds the PDB-sized trade request in listInfo, erases the first match, and returns the match status. |
+| - | - | ?SetTradeConfirm@CGocInventory@@QEAA_NAEAUST_TRADE_ITEM_LIST@@AEAUPS_ITEM_SOCKET_LIST@@AEAUPS_ITEM_BROACH_LIST@@AEAUPS_ITEM_PACKAGE_LIST@@@Z | 0x1400ae760 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| - | - | ?CanTradeConfirm@CGocInventory@@QEAA_NUST_TRADE_ITEM_LIST@@AEAU2@@Z | 0x1400aebe0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | - | - | ??1ST_TRADE_ITEM_LIST@@QEAA@XZ | 0x1400aed40 | blocked | IDA ??1ST_TRADE_ITEM_LIST@@QEAA@XZ | yes | - |
-| CGocInventory | GocInventory.cpp | ?UpdateTradeUnLock@CGocInventory@@QEAAXXZ | 0x1400aed60 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| - | - | ?UpdateTradeUnLock@CGocInventory@@QEAAXUST_TRADE_ITEM_LIST@@@Z | 0x1400aee00 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| CGocInventory | GocInventory.cpp | ?IsTradeCheck@CGocInventory@@QEAAXXZ | 0x1400aeee0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| CGocInventory | GocInventory.cpp | ?LogOut@CGocInventory@@QEAAX_N@Z | 0x1400af190 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| CGocInventory | GocInventory.cpp | ?SendTradeCancel@CGocInventory@@QEAAXH@Z | 0x1400af370 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
+| CGocInventory | GocInventory.cpp | ?UpdateTradeUnLock@CGocInventory@@QEAAXXZ | 0x1400aed60 | verified | GameServer PDB + IDA decompile/assembly + source build | yes | Iterates m_stTradeInfo.listInfo and clears each inventory lock through SetLock. |
+| - | - | ?UpdateTradeUnLock@CGocInventory@@QEAAXUST_TRADE_ITEM_LIST@@@Z | 0x1400aee00 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| CGocInventory | GocInventory.cpp | ?IsTradeCheck@CGocInventory@@QEAAXXZ | 0x1400aeee0 | verified | GameServer PDB + IDA decompile/assembly + source build | yes | Checks the READY timeout, notifies the owner and matching trade partner with main 0xA/sub 8 cause 52412, then resets both trade states. |
+| CGocInventory | GocInventory.cpp | ?LogOut@CGocInventory@@QEAAX_N@Z | 0x1400af190 | verified | GameServer PDB + IDA decompile/assembly + source build | yes | For an active trade with an online partner, resets the partner and sends the owner actor ID with cause 52410 or 52411 on main 0xA/sub 8. |
+| CGocInventory | GocInventory.cpp | ?SendTradeCancel@CGocInventory@@QEAAXH@Z | 0x1400af370 | verified | GameServer PDB + IDA decompile/assembly + source build | yes | Resets an online partner and the owner inventory, sending the owner actor ID and nCause to both on main 0xA/sub 8. |
 | CGocInventory | GocInventory.cpp | ?ConvertHelperInvenSlot@CGocInventory@@QEAAFF@Z | 0x1400af660 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(switchת��) |
-| CGocInventory | GocInventory.cpp | ?IsHelperItem@CGocInventory@@QEAA_NK@Z | 0x1400af6c0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| CGocInventory | GocInventory.cpp | ?SetTradeState@CGocInventory@@QEAAXW4eTRADE_STATE@@@Z | 0x1400af760 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| CGocInventory | GocInventory.cpp | ?SendUpdateItem@CGocInventory@@QEAAXUPS_RES_STORAGE_INFO@@@Z | 0x1400af7a0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| CGocInventory | GocInventory.cpp | ?SendUpdateItemToDB@CGocInventory@@QEAAXUPS_RES_STORAGE_INFO@@@Z | 0x1400af900 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| CGocInventory | GocInventory.cpp | ?SendUserUpdateItem@CGocInventory@@QEAAXUPS_RES_STORAGE_INFO@@_N@Z | 0x1400afc40 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| CGocInventory | GocInventory.cpp | ?SendCreateItem@CGocInventory@@QEAAXUPS_RES_STORAGE_INFO@@@Z | 0x1400afdf0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| CGocInventory | GocInventory.cpp | ?SendBreakItem@CGocInventory@@QEAAXEF@Z | 0x1400affc0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| CGocInventory | GocInventory.cpp | ?SendUpdateItem@CGocInventory@@QEAAXEFFE@Z | 0x1400b00b0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| CGocInventory | GocInventory.cpp | ?SendDivideItem@CGocInventory@@QEAAXAEAUPS_DB_ITEM_MOVE@@@Z | 0x1400b0230 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
+| CGocInventory | GocInventory.cpp | ?IsHelperItem@CGocInventory@@QEAA_NK@Z | 0x1400af6c0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| CGocInventory | GocInventory.cpp | ?SetTradeState@CGocInventory@@QEAAXW4eTRADE_STATE@@@Z | 0x1400af760 | verified | GameServer PDB + IDA decompile/assembly + source build | yes | Assigns eTRADE_STATE and sets the READY deadline to GetTickCount64 plus 99000 milliseconds. |
+| CGocInventory | GocInventory.cpp | ?SendUpdateItem@CGocInventory@@QEAAXUPS_RES_STORAGE_INFO@@@Z | 0x1400af7a0 | verified | GameServer PDB + IDA decompile/assembly + source build | yes | Iterates vecItem, sends count updates, or unlocks and sends break notifications for zero counts. |
+| CGocInventory | GocInventory.cpp | ?SendUpdateItemToDB@CGocInventory@@QEAAXUPS_RES_STORAGE_INFO@@@Z | 0x1400af900 | verified | GameServer PDB + IDA decompile/assembly + source build | yes | Sends reduction packets on 0x21/0x11 and deletion packets on 0x21/5 for each storage entry. |
+| CGocInventory | GocInventory.cpp | ?SendUserUpdateItem@CGocInventory@@QEAAXUPS_RES_STORAGE_INFO@@_N@Z | 0x1400afc40 | verified | GameServer PDB + IDA decompile/assembly + source build | yes | Optionally unlocks entries, then sends the storage response on main 8/sub 0x15. |
+| CGocInventory | GocInventory.cpp | ?SendCreateItem@CGocInventory@@QEAAXUPS_RES_STORAGE_INFO@@@Z | 0x1400afdf0 | verified | GameServer PDB + IDA decompile/assembly + source build | yes | Applies cash dates and unlocks entries before sending main 8/sub 6. |
+| CGocInventory | GocInventory.cpp | ?SendBreakItem@CGocInventory@@QEAAXEF@Z | 0x1400affc0 | verified | GameServer PDB + IDA decompile/assembly + source build | yes | Sends inventory type and signed slot position on main 8/sub 5. |
+| CGocInventory | GocInventory.cpp | ?SendUpdateItem@CGocInventory@@QEAAXEFFE@Z | 0x1400b00b0 | verified | GameServer PDB + IDA decompile/assembly + source build | yes | Breaks on a non-positive count; otherwise unlocks and sends PS_ITEM_UPDATE on main 8/sub 0x12. |
+| CGocInventory | GocInventory.cpp | ?SendDivideItem@CGocInventory@@QEAAXAEAUPS_DB_ITEM_MOVE@@@Z | 0x1400b0230 | verified | GameServer PDB + IDA decompile/assembly + source build | yes | Unlocks both slots, sends PS_RES_ITEM_DIVIDE, logs create/update items, and sends item statistics. |
 | - | - | ??0PS_RES_ITEM_DIVIDE@@QEAA@XZ | 0x1400b07b0 | blocked | IDA ??0PS_RES_ITEM_DIVIDE@@QEAA@XZ | yes | - |
-| - | - | ?SendCombineItem@CGocInventory@@QEAAXUPS_DB_ITEM_MOVE@@@Z | 0x1400b07e0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
+| - | - | ?SendCombineItem@CGocInventory@@QEAAXUPS_DB_ITEM_MOVE@@@Z | 0x1400b07e0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | CGocInventory | GocInventory.cpp | ?CreateItemReq@CGocInventory@@QEAA_NUST_CREATE_ITEMS@@_NW4eITEM_CREATE_TYPE@@AEAUST_LOG_GAME@@@Z | 0x1400b0a60 | verified | GameServer PDB + IDA decompile + source build | yes | Batch overload returns early for an empty list; otherwise serializes owner actor ID into DB 0x21/0x0C and logs 3591 while preserving true after a failed SendDBGame. |
 | - | - | ?AddPrivateShopItem@CGocInventory@@QEAA_NV?$shared_ptr@VCItem@@@tr1@std@@_JAEA_N@Z | 0x1400b0d80 | implemented | IDA ?AddPrivateShopItem@CGocInventory@@QEAA_NV?$shared_ptr@VCItem@@@tr1@std@@_JAEA_N@Z | yes | - |
 | - | - | ??0STPrivateShopItem@@QEAA@AEBU0@@Z | 0x1400b0fa0 | blocked | IDA ??0STPrivateShopItem@@QEAA@AEBU0@@Z | yes | - |
 | - | - | ??1STPrivateShopItem@@QEAA@XZ | 0x1400b0fe0 | blocked | IDA ??1STPrivateShopItem@@QEAA@XZ | yes | - |
 | - | - | ?DelPrivateShopItem@CGocInventory@@QEAA_NV?$shared_ptr@VCItem@@@tr1@std@@@Z | 0x1400b1000 | implemented | IDA ?DelPrivateShopItem@CGocInventory@@QEAA_NV?$shared_ptr@VCItem@@@tr1@std@@@Z | yes | - |
-| CGocInventory | GocInventory.cpp | ?PrivateShopItemList@CGocInventory@@QEAAXAEAUST_PRIVATE_SHOP_LIST@@@Z | 0x1400b11d0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
+| CGocInventory | GocInventory.cpp | ?PrivateShopItemList@CGocInventory@@QEAAXAEAUST_PRIVATE_SHOP_LIST@@@Z | 0x1400b11d0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | - | - | ??0ST_PRIVATE_SHOP_INFO@@QEAA@XZ | 0x1400b1310 | blocked | IDA ??0ST_PRIVATE_SHOP_INFO@@QEAA@XZ | yes | - |
-| - | - | ?ClearPrivateShopList@CGocInventory@@QEAAXXZ | 0x1400b1330 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
+| - | - | ?ClearPrivateShopList@CGocInventory@@QEAAXXZ | 0x1400b1330 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | CGocInventory | GocInventory.cpp | ?GetInvenItem@CGocInventory@@QEAA?AV?$shared_ptr@VCItem@@@tr1@std@@_J@Z | 0x1400b1420 | implemented | IDA decompile | yes | ��ȷ��ԭ-ͨ������ID��ȡ������Ʒ |
 | CGocInventory | GocInventory.cpp | ?GetEquipItem@CGocInventory@@QEAA?AV?$shared_ptr@VCItem@@@tr1@std@@_J@Z | 0x1400b1680 | implemented | IDA decompile | yes | ��ȷ��ԭ-ͨ������ID��ȡװ����Ʒ |
 | CGocInventory | GocInventory.cpp | ?GetBankItem@CGocInventory@@QEAA?AV?$shared_ptr@VCItem@@@tr1@std@@_J@Z | 0x1400b1850 | implemented | IDA decompile | yes | ��ȷ��ԭ-ͨ������ID��ȡ������Ʒ |
 | - | - | ?GetItemPtr@CGocInventory@@QEAA?AV?$shared_ptr@VCItem@@@tr1@std@@_J@Z | 0x1400b1c10 | implemented | IDA ?GetItemPtr@CGocInventory@@QEAA?AV?$shared_ptr@VCItem@@@tr1@std@@_J@Z | yes | - |
 | - | - | ?GetItemPtr@CGocInventory@@QEAA?AV?$shared_ptr@VCItem@@@tr1@std@@_JE@Z | 0x1400b1de0 | implemented | IDA ?GetItemPtr@CGocInventory@@QEAA?AV?$shared_ptr@VCItem@@@tr1@std@@_JE@Z | yes | - |
 | CGocInventory | GocInventory.cpp | ?LogCreateItemLog@CGocInventory@@QEAAXHAEAUST_LOG_GAME@@@Z | 0x1400b1fa0 | verified | GameServer PDB + IDA decompile + source build | yes | Restores the create-type to ST_LOG_GAME._sSubType mapping without altering unmatched types. |
-| - | - | ?GetInvenInfo@CGocInventory@@QEAAXEAEAUPS_RES_STORAGE_INFO@@@Z | 0x1400b2120 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
+| - | - | ?GetInvenInfo@CGocInventory@@QEAAXEAEAUPS_RES_STORAGE_INFO@@@Z | 0x1400b2120 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | - | - | ?CheckAddItems@CGocInventory@@QEAAHAEAV?$vector@UST_CREATE_ITEM@@V?$allocator@UST_CREATE_ITEM@@@std@@@std@@@Z | 0x1400b21f0 | implemented | IDA ?CheckAddItems@CGocInventory@@QEAAHAEAV?$vector@UST_CREATE_ITEM@@V?$allocator@UST_CREATE_ITEM@@@std@@@std@@@Z | yes | - |
-| - | - | ?ItemMakeCheat@CGocInventory@@QEAA_NHF_NE@Z | 0x1400b2430 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
+| - | - | ?ItemMakeCheat@CGocInventory@@QEAA_NHF_NE@Z | 0x1400b2430 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | - | - | ?CanPackageBoxUse@CGocInventory@@QEAA_NV?$shared_ptr@VCItem@@@tr1@std@@@Z | 0x1400b2ca0 | implemented | IDA ?CanPackageBoxUse@CGocInventory@@QEAA_NV?$shared_ptr@VCItem@@@tr1@std@@@Z | yes | - |
 | - | - | ?PackageBoxUse@CGocInventory@@QEAA_N_NV?$shared_ptr@VCItem@@@tr1@std@@EH@Z | 0x1400b2d80 | implemented | IDA ?PackageBoxUse@CGocInventory@@QEAA_N_NV?$shared_ptr@VCItem@@@tr1@std@@EH@Z | yes | - |
 | - | - | ??1ST_STAT_VEC@@QEAA@XZ | 0x1400b4bc0 | blocked | IDA ??1ST_STAT_VEC@@QEAA@XZ | yes | - |
 | - | - | ?CanRandomBoxUse@CGocInventory@@QEAA_NV?$shared_ptr@VCItem@@@tr1@std@@@Z | 0x1400b4be0 | implemented | IDA ?CanRandomBoxUse@CGocInventory@@QEAA_NV?$shared_ptr@VCItem@@@tr1@std@@@Z | yes | - |
 | - | - | ?RandomBoxUse@CGocInventory@@QEAA_N_NV?$shared_ptr@VCItem@@@tr1@std@@HE0H@Z | 0x1400b4cc0 | implemented | IDA ?RandomBoxUse@CGocInventory@@QEAA_N_NV?$shared_ptr@VCItem@@@tr1@std@@HE0H@Z | yes | - |
-| CGocInventory | GocInventory.cpp | ?CanEquipSlotOpen@CGocInventory@@QEAA_NEF@Z | 0x1400b6570 | implemented | IDA decompile | no | Partial implementation - needs CUser::GetLevel API |
-| - | - | ?EquipSlotOpen@CGocInventory@@QEAA_NEF@Z | 0x1400b6810 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| - | - | ?ChangeEquipSlotPos@CGocInventory@@QEAA_NEAEAEAEAH@Z | 0x1400b6d20 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| - | - | ?CheckEquipSlotOpen@CGocInventory@@QEAA_NE@Z | 0x1400b6e90 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| - | - | ?EquipSlotOpen@CGocInventory@@QEAAXH@Z | 0x1400b7090 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| - | - | ?SendEquipSlotOpen@CGocInventory@@QEAAXXZ | 0x1400b70d0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| - | - | ?SetEquipSlot@CGocInventory@@QEAAXH@Z | 0x1400b71b0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| - | - | ?EquipSlotOpenCalc@CGocInventory@@QEAAXXZ | 0x1400b71e0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| - | - | ?SetItemUseInfoList@CGocInventory@@QEAAXAEAUST_USE_ITEM_INFO_LIST@@@Z | 0x1400b7370 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| - | - | ?OnInitItemUseInfoDate@CGocInventory@@QEAAXXZ | 0x1400b74f0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| - | - | ?CanUseItemInfo@CGocInventory@@QEAA_NH@Z | 0x1400b76b0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| - | - | ?CanItemFPUse@CGocInventory@@QEAA_NEF@Z | 0x1400b7730 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| - | - | ?ItemFPUse@CGocInventory@@QEAA_NEF@Z | 0x1400b7aa0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| - | - | ?UseItemInfo@CGocInventory@@QEAAXH@Z | 0x1400b7f90 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| - | - | ?OnUpdateCashItemDate@CGocInventory@@QEAAXXZ | 0x1400b8230 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| - | - | ?CheatSetCashDate@CGocInventory@@QEAAXFH@Z | 0x1400b8750 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| - | - | ?SendFurniture@CGocInventory@@QEAAXXZ | 0x1400b88e0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| - | - | ?AddCashItemSet@CGocInventory@@QEAAXUPS_CASH_SET_LIST@@@Z | 0x1400b89e0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
+| CGocInventory | GocInventory.cpp | ?CanEquipSlotOpen@CGocInventory@@QEAA_NEF@Z | 0x1400b6570 | verified | PDB decorated symbol + IDA decompile + source build | yes | Exact by-value ABI; level gate, lock-log identity, slot mapping, and open-bit predicate restored. |
+| CGocInventory | GocInventory.cpp | ?EquipSlotOpen@CGocInventory@@QEAA_NEF@Z | 0x1400b6810 | verified | PDB decorated symbol + IDA decompile + source build | yes | Exact by-value ABI; ReduceItem3, ChangeEquipSlotPos, UpdateItemEnd, and DB main 0x21/sub 0x25 route restored. |
+| CGocInventory | GocInventory.cpp | ?ChangeEquipSlotPos@CGocInventory@@QEAA_NEAEAEAEAH@Z | 0x1400b6d20 | verified | PDB decorated symbol + IDA decompile + source build | yes | Exact reference ABI and binary subtraction by 91 for slot positions 0xA-0x13. |
+| CGocInventory | GocInventory.cpp | ?CheckEquipSlotOpen@CGocInventory@@QEAA_NE@Z | 0x1400b6e90 | verified | PDB decorated symbol + IDA decompile + source build | yes | Exact range and ten-bit position mapping restored. |
+| CGocInventory | GocInventory.cpp | ?EquipSlotOpen@CGocInventory@@QEAAXH@Z | 0x1400b7090 | verified | PDB decorated symbol + IDA decompile + source build | yes | Exact non-const void overload and conditional bitwise OR restored. |
+| CGocInventory | GocInventory.cpp | ?SendEquipSlotOpen@CGocInventory@@QEAAXXZ | 0x1400b70d0 | verified | PDB decorated symbol + IDA decompile + source build | yes | Zero-argument ABI retained; client packet main 8/sub 0x14 restored. |
+| CGocInventory | GocInventory.cpp | ?SetEquipSlot@CGocInventory@@QEAAXH@Z | 0x1400b71b0 | verified | PDB decorated symbol + IDA decompile + source build | yes | Assignment followed by EquipSlotOpenCalc restored. |
+| CGocInventory | GocInventory.cpp | ?EquipSlotOpenCalc@CGocInventory@@QEAAXXZ | 0x1400b71e0 | verified | PDB decorated symbol + IDA decompile + source build | yes | Ten conditional SetLock calls restored in binary order. |
+| CGocInventory | GocInventory.cpp | ?SetItemUseInfoList@CGocInventory@@QEAAXAEAUST_USE_ITEM_INFO_LIST@@@Z | 0x1400b7370 | verified | PDB decorated symbol + PDB UDT + IDA decompile + source build | yes | Non-const reference ABI, expiry reset, map insert, date, and tick updates restored. |
+| CGocInventory | GocInventory.cpp | ?OnInitItemUseInfoDate@CGocInventory@@QEAAXXZ | 0x1400b74f0 | verified | PDB decorated symbol + IDA decompile + source build | yes | Zero-argument ABI, date gate, map reset, empty-list client packet main 8/sub 0x49, and date refresh restored. |
+| CGocInventory | GocInventory.cpp | ?CanUseItemInfo@CGocInventory@@QEAA_NH@Z | 0x1400b76b0 | verified | PDB decorated symbol + IDA decompile + source build | yes | Exact map lookup and count-less-than-three predicate restored. |
+| - | - | ?CanItemFPUse@CGocInventory@@QEAA_NEF@Z | 0x1400b7730 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| - | - | ?ItemFPUse@CGocInventory@@QEAA_NEF@Z | 0x1400b7aa0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| - | - | ?UseItemInfo@CGocInventory@@QEAAXH@Z | 0x1400b7f90 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| - | - | ?OnUpdateCashItemDate@CGocInventory@@QEAAXXZ | 0x1400b8230 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| - | - | ?CheatSetCashDate@CGocInventory@@QEAAXFH@Z | 0x1400b8750 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| - | - | ?SendFurniture@CGocInventory@@QEAAXXZ | 0x1400b88e0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| - | - | ?AddCashItemSet@CGocInventory@@QEAAXUPS_CASH_SET_LIST@@@Z | 0x1400b89e0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | - | - | ??1PS_CASH_SET_LIST@@QEAA@XZ | 0x1400b8af0 | blocked | IDA ??1PS_CASH_SET_LIST@@QEAA@XZ | yes | - |
-| - | - | ?DelCashItemSet@CGocInventory@@QEAA_NE@Z | 0x1400b8b10 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| - | - | ?UpdateCashItemSet@CGocInventory@@QEAA_NUPS_CASH_SET@@@Z | 0x1400b8c90 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| - | - | ?SendDBCashItemSet@CGocInventory@@QEAAXXZ | 0x1400b8e30 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| - | - | ?GetCurItemsExp@CGocInventory@@QEAAHAEAUPS_ITEM_SLOT_INFO@@AEAUPS_ITEM_SLOT_INFOS@@AEAHAEA_N@Z | 0x1400b8f40 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| - | - | ?SendDBItemCooltimeInfo@CGocInventory@@QEAAXXZ | 0x1400b9610 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| - | - | ?LoadCoolTime@CGocInventory@@QEAAXAEAUPS_ITEM_COOMTIME_LIST@@@Z | 0x1400b9770 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| - | - | ?SendItemCoolTimeInfo@CGocInventory@@QEAAXXZ | 0x1400b98e0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| - | - | ?AddCoolTime@CGocInventory@@QEAAXG_K_N@Z | 0x1400b9ab0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| - | - | ?GetCoolTime@CGocInventory@@QEAA_KG_N@Z | 0x1400b9e20 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| - | - | ?CheckTradePasswordState@CGocInventory@@QEAA_NAEAH@Z | 0x1400b9f00 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| - | - | ?CheckTradePassword@CGocInventory@@QEAA_NAEAUPS_TRADE_PW_REQ@@@Z | 0x1400b9f60 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| - | - | ?IsValidTradePassword@CGocInventory@@QEAA_NPEADAEAH@Z | 0x1400ba530 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
-| - | - | ?SendControlServerTradePassword@CGocInventory@@QEAAXXZ | 0x1400ba760 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| - | - | ?GM_ChangeSecondPW@CGocInventory@@QEAAXPEA_W@Z | 0x1400ba860 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| - | - | ?GM_ChangeTradePW@CGocInventory@@QEAAXPEA_W@Z | 0x1400ba8e0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| - | - | ?UseGacha@CGocInventory@@QEAA_NKHAEAUPS_GACHA_LIST@@AEAUST_GET_INFO@@AEAUPS_RES_STORAGE_INFO@@2_N@Z | 0x1400baad0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| - | - | ?SendDBAppearanceLoad@CGocInventory@@QEAAXXZ | 0x1400bb160 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| - | - | ?LoadAppearanceList@CGocInventory@@QEAAXUST_APPEARANCE_LIST@@@Z | 0x1400bb270 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| - | - | ?AddAppearance@CGocInventory@@QEAAXUST_APPEARANCE_LIST@@@Z | 0x1400bb640 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| - | - | ?IsHaveAppearance@CGocInventory@@QEAA_NG@Z | 0x1400bb6e0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| - | - | ?AddAppearance@CGocInventory@@QEAAXG_J@Z | 0x1400bb800 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| - | - | ?UpdateAppearance@CGocInventory@@QEAAXG_JAEA_J@Z | 0x1400bb8c0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| - | - | ?EquipAppearance@CGocInventory@@QEAAXTUAppearanceEx@@@Z | 0x1400bb9d0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| - | - | ?SendEquipAppearance@CGocInventory@@QEAAXXZ | 0x1400bbc70 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| - | - | ?OnAppearanceUpdate@CGocInventory@@QEAAXXZ | 0x1400bbdd0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| - | - | ?SendDBUseInfo@CGocInventory@@QEAAXXZ | 0x1400bc0e0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| - | - | ?ItemSocketLoad@CGocInventory@@QEAAXUPS_ITEM_SOCKET_LIST@@@Z | 0x1400bc1f0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| - | - | ?ItemBroachLoad@CGocInventory@@QEAAXUPS_ITEM_BROACH_LIST@@@Z | 0x1400bc460 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| - | - | ?GetSocketList@CGocInventory@@QEAAXEAEAUPS_ITEM_SOCKET_LIST@@@Z | 0x1400bc6d0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
+| - | - | ?DelCashItemSet@CGocInventory@@QEAA_NE@Z | 0x1400b8b10 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| - | - | ?UpdateCashItemSet@CGocInventory@@QEAA_NUPS_CASH_SET@@@Z | 0x1400b8c90 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| - | - | ?SendDBCashItemSet@CGocInventory@@QEAAXXZ | 0x1400b8e30 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| - | - | ?GetCurItemsExp@CGocInventory@@QEAAHAEAUPS_ITEM_SLOT_INFO@@AEAUPS_ITEM_SLOT_INFOS@@AEAHAEA_N@Z | 0x1400b8f40 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| CGocInventory | GocInventory.cpp | ?SendDBItemCooltimeInfo@CGocInventory@@QEAAXXZ | 0x1400b9610 | verified | GameServer PDB + IDA decompile/assembly + source build | yes | Sends `(actorID.dwActorID, GetCurDate())` via DB main 0x21/sub 0x46. |
+| CGocInventory | GocInventory.cpp | ?LoadCoolTime@CGocInventory@@QEAAXAEAUPS_ITEM_COOMTIME_LIST@@@Z | 0x1400b9770 | verified | GameServer PDB + IDA decompile/assembly + source build | yes | Inserts absent group entries into the persistent cooldown map and replaces each input remain date with `biRemainDate - GetCurDate()`. |
+| CGocInventory | GocInventory.cpp | ?SendItemCoolTimeInfo@CGocInventory@@QEAAXXZ | 0x1400b98e0 | verified | GameServer PDB + IDA decompile/assembly + source build | yes | Builds positive remaining persistent cooldown entries and sends them on client main 8/sub 0x66 only when non-empty. |
+| CGocInventory | GocInventory.cpp | ?AddCoolTime@CGocInventory@@QEAAXG_K_N@Z | 0x1400b9ab0 | verified | GameServer PDB + IDA decompile/assembly + source build | yes | Converts milliseconds to seconds, adds current date, updates the persistent or transient map, and sends the 0x21/0x47 DB payload for persistent cooldowns. |
+| CGocInventory | GocInventory.cpp | ?GetCoolTime@CGocInventory@@QEAA_KG_N@Z | 0x1400b9e20 | verified | GameServer PDB + IDA decompile/assembly + source build | yes | Looks up the selected cooldown map and returns persistent biRemainDate or transient end date, otherwise zero. |
+| CGocInventory | GocInventory.cpp | ?CheckTradePasswordState@CGocInventory@@QEAA_NAEAH@Z | 0x1400b9f00 | verified | GameServer PDB + IDA decompile/assembly + source build | yes | Returns true for state 2; maps state 3 to error 1234 and otherwise returns false after zeroing the output. |
+| CGocInventory | GocInventory.cpp | ?CheckTradePassword@CGocInventory@@QEAA_NAEAUPS_TRADE_PW_REQ@@@Z | 0x1400b9f60 | verified | GameServer PDB + IDA decompile/assembly + source build | yes | Preserves type 1/2 validation and DB routes 0x38/0x39, type 3/4 routes 0x3B/0x3A, and failure client route main 3/sub 0x18. |
+| CGocInventory | GocInventory.cpp | ?IsValidTradePassword@CGocInventory@@QEAA_NPEADAEAH@Z | 0x1400ba530 | verified | GameServer PDB + IDA decompile/assembly + source build | yes | Preserves four-character 0-7 validation, repeated-character rejection, and exact error IDs 59504/59505. |
+| CGocInventory | GocInventory.cpp | ?SendControlServerTradePassword@CGocInventory@@QEAAXXZ | 0x1400ba760 | verified | GameServer PDB + IDA decompile/assembly + source build | yes | Sends main 0xF3/sub 0x27 with the actor ID through `CGameControlSocket::SendCheck`. |
+| CGocInventory | GocInventory.cpp | ?GM_ChangeSecondPW@CGocInventory@@QEAAXPEA_W@Z | 0x1400ba860 | verified | GameServer PDB + IDA decompile/assembly + source build | yes | Constructs `PS_SECOND_PW_REQ`, sets check type 1, and performs the exact Windows wide-to-ANSI conversion into the seven-byte field. |
+| CGocInventory | GocInventory.cpp | ?GM_ChangeTradePW@CGocInventory@@QEAAXPEA_W@Z | 0x1400ba8e0 | verified | GameServer PDB + IDA decompile/assembly + source build | yes | Builds type 1 trade request, validates the four-byte password, then sends UAID plus request through AccountDB main 2/sub 0x38. |
+| - | - | ?UseGacha@CGocInventory@@QEAA_NKHAEAUPS_GACHA_LIST@@AEAUST_GET_INFO@@AEAUPS_RES_STORAGE_INFO@@2_N@Z | 0x1400baad0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| CGocInventory | GocInventory.cpp | ?SendDBAppearanceLoad@CGocInventory@@QEAAXXZ | 0x1400bb160 | verified | GameServer PDB + IDA decompile/assembly + source build | yes | Sends the actor ID through DB main 0x21/sub 0x29. |
+| - | - | ?LoadAppearanceList@CGocInventory@@QEAAXUST_APPEARANCE_LIST@@@Z | 0x1400bb270 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| CGocInventory | GocInventory.cpp | ?AddAppearance@CGocInventory@@QEAAXUST_APPEARANCE_LIST@@@Z | 0x1400bb640 | verified | GameServer PDB + IDA decompile/assembly + source build | yes | By-value appearance list iteration forwards each exact ID/end-date pair to the scalar overload. |
+| - | - | ?IsHaveAppearance@CGocInventory@@QEAA_NG@Z | 0x1400bb6e0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| CGocInventory | GocInventory.cpp | ?AddAppearance@CGocInventory@@QEAAXG_J@Z | 0x1400bb800 | verified | GameServer PDB + IDA decompile/assembly + source build | yes | Updates an existing unsigned-long appearance key or inserts the exact end date when absent. |
+| CGocInventory | GocInventory.cpp | ?UpdateAppearance@CGocInventory@@QEAAXG_JAEA_J@Z | 0x1400bb8c0 | verified | GameServer PDB + IDA decompile/assembly + source build | yes | Uses the later of current date and an existing unexpired date, adds biAddSec, and writes zero when the increment is zero. |
+| - | - | ?EquipAppearance@CGocInventory@@QEAAXTUAppearanceEx@@@Z | 0x1400bb9d0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| - | - | ?SendEquipAppearance@CGocInventory@@QEAAXXZ | 0x1400bbc70 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| - | - | ?OnAppearanceUpdate@CGocInventory@@QEAAXXZ | 0x1400bbdd0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| - | - | ?SendDBUseInfo@CGocInventory@@QEAAXXZ | 0x1400bc0e0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| - | - | ?ItemSocketLoad@CGocInventory@@QEAAXUPS_ITEM_SOCKET_LIST@@@Z | 0x1400bc1f0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| - | - | ?ItemBroachLoad@CGocInventory@@QEAAXUPS_ITEM_BROACH_LIST@@@Z | 0x1400bc460 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| - | - | ?GetSocketList@CGocInventory@@QEAAXEAEAUPS_ITEM_SOCKET_LIST@@@Z | 0x1400bc6d0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | - | - | ?GetBroachList@CGocInventory@@QEAAXEAEAUPS_ITEM_BROACH_LIST@@@Z | 0x1400bc770 | verified | IDA decompile + PDB signature + source build | yes | Routes types 0/3 to equipment and 4/6/17 to inventory. |
-| - | - | ?GetPackageList@CGocInventory@@QEAAXEAEAUPS_ITEM_PACKAGE_LIST@@@Z | 0x1400bc820 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| - | - | ?SendDBSocketLoad@CGocInventory@@QEAAX_N@Z | 0x1400bc880 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| - | - | ?CanUseItem_AkashicRecord@CGocInventory@@QEAA_NEF@Z | 0x1400bca40 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| - | - | ?UseItem_AkashicRecord@CGocInventory@@QEAA_NEF@Z | 0x1400bcd40 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| - | - | ?GetQuickSlotItem@CGocInventory@@QEAAXPEAH@Z | 0x1400bd210 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| - | - | ?SendDBBroachLoad@CGocInventory@@QEAAX_N@Z | 0x1400bd260 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| - | - | ?UnLockList@CGocInventory@@QEAAXUPS_RES_STORAGE_INFO@@@Z | 0x1400bd420 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| - | - | ?AddItem2@CGocInventory@@AEAA_NUST_CREATE_ITEMS@@E_NAEAUPS_RES_STORAGE_INFO@@2@Z | 0x1400bd4c0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| - | - | ?AddItem2@CGocInventory@@QEAA_NPEAUTB_ITEM@@FE_NAEAUPS_RES_STORAGE_INFO@@2@Z | 0x1400bd6c0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| - | - | ?AddItemCheck@CGocInventory@@AEAA_NAEAUPS_RES_STORAGE_INFO@@PEAUTB_ITEM@@AEAF@Z | 0x1400bdaa0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
+| - | - | ?GetPackageList@CGocInventory@@QEAAXEAEAUPS_ITEM_PACKAGE_LIST@@@Z | 0x1400bc820 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| - | - | ?SendDBSocketLoad@CGocInventory@@QEAAX_N@Z | 0x1400bc880 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| - | - | ?CanUseItem_AkashicRecord@CGocInventory@@QEAA_NEF@Z | 0x1400bca40 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| - | - | ?UseItem_AkashicRecord@CGocInventory@@QEAA_NEF@Z | 0x1400bcd40 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| CGocInventory | GocInventory.cpp | ?GetQuickSlotItem@CGocInventory@@QEAAXPEAH@Z | 0x1400bd210 | verified | GameServer PDB + IDA decompile/assembly + source build | yes | Copies the four contiguous m_nQuickSlotItem entries to the caller buffer. |
+| - | - | ?SendDBBroachLoad@CGocInventory@@QEAAX_N@Z | 0x1400bd260 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| - | - | ?UnLockList@CGocInventory@@QEAAXUPS_RES_STORAGE_INFO@@@Z | 0x1400bd420 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| - | - | ?AddItem2@CGocInventory@@AEAA_NUST_CREATE_ITEMS@@E_NAEAUPS_RES_STORAGE_INFO@@2@Z | 0x1400bd4c0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| - | - | ?AddItem2@CGocInventory@@QEAA_NPEAUTB_ITEM@@FE_NAEAUPS_RES_STORAGE_INFO@@2@Z | 0x1400bd6c0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| - | - | ?AddItemCheck@CGocInventory@@AEAA_NAEAUPS_RES_STORAGE_INFO@@PEAUTB_ITEM@@AEAF@Z | 0x1400bdaa0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | XGameServer | GocInventory.cpp | ?ReduceItem2@CGocInventory@@QEAA_NUST_CREATE_ITEMS@@EAEAUPS_RES_STORAGE_INFO@@@Z | 0x1400bdbf0 | verified | GameServer PDB + IDA decompile/disasm + source build | yes | By-value list reducer preserves input order, first-failure unlock, and staged-only transaction ownership. |
 | XGameServer | GocInventory.cpp | ?ReduceItem2@CGocInventory@@QEAA_NPEAUTB_ITEM@@FEAEAUPS_RES_STORAGE_INFO@@@Z | 0x1400bddb0 | verified | GameServer PDB + IDA decompile/disasm + source build | yes | Resolves item classification/inventory, consumes staged entries, then delegates the remainder to DelItemCount. |
 | XGameServer | GocInventory.cpp | ?ReduceItem3@CGocInventory@@QEAA_NEFFEAEAUPS_RES_STORAGE_INFO@@@Z | 0x1400bdf10 | verified | GameServer PDB + IDA decompile/disasm + source build | yes | Stages one unlocked slot reduction; nonzero counts use the caller lock and depletion uses lock 1. |
 | XGameServer/actor/component | GocInventory.cpp | ?ItemUseEffect@CGocInventory@@QEAA_NUPS_ITEM_SLOT_INFO@@0@Z | 0x1400be230 | verified | GameServer PDB + IDA decompile/disasm + source build | yes | By-value slot selectors preserve staged use-item reduction, commit-before-target-effect ordering, lock 0x42, subtype-75 log fields, and 0x81/0x23 GameDB persistence. |
 | XGameServer | GocInventory.cpp | ?ReduceItemCheck@CGocInventory@@QEAA_NPEAUTB_ITEM@@AEAFEAEAUPS_RES_STORAGE_INFO@@@Z | 0x1400beae0 | verified | GameServer PDB + IDA decompile/disasm + source build | yes | Consumes matching staged counts in order and locks depleted staged slots with literal 1. |
 | CGocInventory | GocInventory.cpp | ?CreateItem2@CGocInventory@@QEAA_NUST_CREATE_ITEMS@@E_NAEAUPS_RES_STORAGE_INFO@@2UST_LOG_GAME@@@Z | 0x1400bec70 | verified | GameServer PDB + IDA decompile + source build | yes | Preserves AddItem2, UpdateItemEnd, AddItemEnd order and unlocks both response lists when AddItem2 fails. |
-| - | - | ?AddItemEnd@CGocInventory@@QEAA_NEUPS_RES_STORAGE_INFO@@UST_LOG_GAME@@@Z | 0x1400beee0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| - | - | ?UpdateItemEnd@CGocInventory@@QEAA_NEUPS_RES_STORAGE_INFO@@UST_LOG_GAME@@@Z | 0x1400bf260 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| - | - | ?CanUseItemFPUseFree@CGocInventory@@QEAA_NEF@Z | 0x1400bf7b0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| - | - | ?ItemFPUseFree@CGocInventory@@QEAA_NEF@Z | 0x1400bfad0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| - | - | ?CanUseGraveInitItem@CGocInventory@@QEAA_NEF@Z | 0x1400bffc0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| - | - | ?UseGraveInitItem@CGocInventory@@QEAA_NEF@Z | 0x1400c0230 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| - | - | ?SendSocketUpdate@CGocInventory@@QEAAXUPS_ITEM_SOCKET_LIST@@@Z | 0x1400c0830 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| - | - | ?SendBroachUpdate@CGocInventory@@QEAAXUPS_ITEM_BROACH_LIST@@@Z | 0x1400c0910 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| - | - | ?SendPackageInfo@CGocInventory@@QEAAXUPS_ITEM_PACKAGE_LIST@@@Z | 0x1400c0a30 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| - | - | ?ItemMakeCheatByLevel@CGocInventory@@QEAA_NEE_NEE@Z | 0x1400c0b20 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
+| - | - | ?AddItemEnd@CGocInventory@@QEAA_NEUPS_RES_STORAGE_INFO@@UST_LOG_GAME@@@Z | 0x1400beee0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| - | - | ?UpdateItemEnd@CGocInventory@@QEAA_NEUPS_RES_STORAGE_INFO@@UST_LOG_GAME@@@Z | 0x1400bf260 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| - | - | ?CanUseItemFPUseFree@CGocInventory@@QEAA_NEF@Z | 0x1400bf7b0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| - | - | ?ItemFPUseFree@CGocInventory@@QEAA_NEF@Z | 0x1400bfad0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| - | - | ?CanUseGraveInitItem@CGocInventory@@QEAA_NEF@Z | 0x1400bffc0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| - | - | ?UseGraveInitItem@CGocInventory@@QEAA_NEF@Z | 0x1400c0230 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| - | - | ?SendSocketUpdate@CGocInventory@@QEAAXUPS_ITEM_SOCKET_LIST@@@Z | 0x1400c0830 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| - | - | ?SendBroachUpdate@CGocInventory@@QEAAXUPS_ITEM_BROACH_LIST@@@Z | 0x1400c0910 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| - | - | ?SendPackageInfo@CGocInventory@@QEAAXUPS_ITEM_PACKAGE_LIST@@@Z | 0x1400c0a30 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| - | - | ?ItemMakeCheatByLevel@CGocInventory@@QEAA_NEE_NEE@Z | 0x1400c0b20 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | - | - | ?CanUseItemTitle@CGocInventory@@QEAA_NV?$shared_ptr@VCItem@@@tr1@std@@@Z | 0x1400c1530 | implemented | IDA ?CanUseItemTitle@CGocInventory@@QEAA_NV?$shared_ptr@VCItem@@@tr1@std@@@Z | yes | - |
 | - | - | ?UseItemTitle@CGocInventory@@QEAA_NV?$shared_ptr@VCItem@@@tr1@std@@@Z | 0x1400c15a0 | implemented | IDA ?UseItemTitle@CGocInventory@@QEAA_NV?$shared_ptr@VCItem@@@tr1@std@@@Z | yes | - |
 | - | - | ?CanUseItemBooster@CGocInventory@@QEAA_NV?$shared_ptr@VCItem@@@tr1@std@@@Z | 0x1400c1c10 | implemented | IDA ?CanUseItemBooster@CGocInventory@@QEAA_NV?$shared_ptr@VCItem@@@tr1@std@@@Z | yes | - |
 | - | - | ?UseItemBooster@CGocInventory@@QEAA_N_NV?$shared_ptr@VCItem@@@tr1@std@@@Z | 0x1400c1e00 | implemented | IDA ?UseItemBooster@CGocInventory@@QEAA_N_NV?$shared_ptr@VCItem@@@tr1@std@@@Z | yes | - |
-| - | - | ?ItemMakeCheatOption@CGocInventory@@QEAA_NHHHH@Z | 0x1400c2690 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
+| - | - | ?ItemMakeCheatOption@CGocInventory@@QEAA_NHHHH@Z | 0x1400c2690 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | - | - | ?UseSocialItem@CGocInventory@@QEAA_NV?$shared_ptr@VCItem@@@tr1@std@@@Z | 0x1400c2ed0 | implemented | IDA ?UseSocialItem@CGocInventory@@QEAA_NV?$shared_ptr@VCItem@@@tr1@std@@@Z | yes | - |
-| - | - | ?LoadCashBuyCount@CGocInventory@@QEAAXUPS_CASH_BUY_COUNT_LIST@@@Z | 0x1400c33f0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| - | - | ?UpdateCashBuyCount@CGocInventory@@QEAA_NHHEHAEAUPS_CASH_BUY_COUNT_LIST@@@Z | 0x1400c3500 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| - | - | ?SendUpdateCashBuyCount@CGocInventory@@QEAAXUPS_CASH_BUY_COUNT_LIST@@@Z | 0x1400c3750 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| - | - | ?SendDBCashBuyCount@CGocInventory@@QEAAXXZ | 0x1400c39b0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
+| - | - | ?LoadCashBuyCount@CGocInventory@@QEAAXUPS_CASH_BUY_COUNT_LIST@@@Z | 0x1400c33f0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| - | - | ?UpdateCashBuyCount@CGocInventory@@QEAA_NHHEHAEAUPS_CASH_BUY_COUNT_LIST@@@Z | 0x1400c3500 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| - | - | ?SendUpdateCashBuyCount@CGocInventory@@QEAAXUPS_CASH_BUY_COUNT_LIST@@@Z | 0x1400c3750 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| - | - | ?SendDBCashBuyCount@CGocInventory@@QEAAXXZ | 0x1400c39b0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | - | - | ?CanUseBoxparClass@CGocInventory@@QEAA_NV?$shared_ptr@VCItem@@@tr1@std@@@Z | 0x1400c3b50 | implemented | IDA ?CanUseBoxparClass@CGocInventory@@QEAA_NV?$shared_ptr@VCItem@@@tr1@std@@@Z | yes | - |
 | - | - | ?UseBoxparClass@CGocInventory@@QEAA_N_NV?$shared_ptr@VCItem@@@tr1@std@@EFE@Z | 0x1400c3bd0 | implemented | IDA ?UseBoxparClass@CGocInventory@@QEAA_N_NV?$shared_ptr@VCItem@@@tr1@std@@EFE@Z | yes | - |
 | - | - | ?CanUseCasualItem@CGocInventory@@QEAA_NV?$shared_ptr@VCItem@@@tr1@std@@@Z | 0x1400c3fd0 | implemented | IDA ?CanUseCasualItem@CGocInventory@@QEAA_NV?$shared_ptr@VCItem@@@tr1@std@@@Z | yes | - |
 | - | - | ?UseCasualItem@CGocInventory@@QEAA_NV?$shared_ptr@VCItem@@@tr1@std@@F@Z | 0x1400c4970 | implemented | IDA ?UseCasualItem@CGocInventory@@QEAA_NV?$shared_ptr@VCItem@@@tr1@std@@F@Z | yes | - |
 | - | - | ?UseCasualRaidDecreaseEnterLimit@CGocInventory@@QEAA_NV?$shared_ptr@VCItem@@@tr1@std@@F@Z | 0x1400c4f40 | implemented | IDA ?UseCasualRaidDecreaseEnterLimit@CGocInventory@@QEAA_NV?$shared_ptr@VCItem@@@tr1@std@@F@Z | yes | - |
 | - | - | ?ItemLog@CGocInventory@@QEAAXV?$shared_ptr@VCItem@@@tr1@std@@USTItem@@UST_LOG_GAME@@@Z | 0x1400c5470 | implemented | IDA ?ItemLog@CGocInventory@@QEAAXV?$shared_ptr@VCItem@@@tr1@std@@USTItem@@UST_LOG_GAME@@@Z | yes | - |
-| - | - | ?ItemLogCharLevel@CGocInventory@@QEAAXHAEAUST_LOG_GAME@@@Z | 0x1400c5e00 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| - | - | ?ItemLogItemType@CGocInventory@@QEAAXHHAEAUST_LOG_GAME@@@Z | 0x1400c5f10 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| - | - | ?ItemLogBeforeCount@CGocInventory@@QEAAXHAEAUST_LOG_GAME@@@Z | 0x1400c6060 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| XGameServer | GocInventory.cpp | ?BuyItemByHanBillingRes2@CGocInventory@@QEAA_NAEAUPS_HAN_BILLING_ORDER_NO_VEC@@HAEAUPS_CASH_BUY_COUNT_LIST@@@Z | 0x1400c6090 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(���Ӻ���,TODO����) |
+| - | - | ?ItemLogCharLevel@CGocInventory@@QEAAXHAEAUST_LOG_GAME@@@Z | 0x1400c5e00 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| - | - | ?ItemLogItemType@CGocInventory@@QEAAXHHAEAUST_LOG_GAME@@@Z | 0x1400c5f10 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| - | - | ?ItemLogBeforeCount@CGocInventory@@QEAAXHAEAUST_LOG_GAME@@@Z | 0x1400c6060 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| XGameServer | GocInventory.cpp | ?BuyItemByHanBillingRes2@CGocInventory@@QEAA_NAEAUPS_HAN_BILLING_ORDER_NO_VEC@@HAEAUPS_CASH_BUY_COUNT_LIST@@@Z | 0x1400c6090 | blocked | IDA decompile | no | IDA��ȷ��ԭ(���Ӻ���,TODO����) |
 | - | - | ??1PS_DB_CASH_MILEAGE_LIST@@QEAA@XZ | 0x1400c71e0 | blocked | IDA ??1PS_DB_CASH_MILEAGE_LIST@@QEAA@XZ | yes | - |
 | - | - | ??0PS_DB_CASH_MILEAGE_LIST@@QEAA@AEBU0@@Z | 0x1400c7200 | blocked | IDA ??0PS_DB_CASH_MILEAGE_LIST@@QEAA@AEBU0@@Z | yes | - |
-| XGameServer | GocInventory.cpp | ?GiftItemByHanBillingRes2@CGocInventory@@QEAA_NAEAUPS_HAN_BILLING_ORDER_NO_VEC@@HAEAUPS_CASH_BUY_COUNT_LIST@@@Z | 0x1400c72b0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(���Ӻ���,TODO����) |
+| XGameServer | GocInventory.cpp | ?GiftItemByHanBillingRes2@CGocInventory@@QEAA_NAEAUPS_HAN_BILLING_ORDER_NO_VEC@@HAEAUPS_CASH_BUY_COUNT_LIST@@@Z | 0x1400c72b0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(���Ӻ���,TODO����) |
 | - | - | ??1PS_ACCOUNT_POST_LIST@@QEAA@XZ | 0x1400c7d70 | blocked | IDA ??1PS_ACCOUNT_POST_LIST@@QEAA@XZ | yes | - |
-| - | - | ?SetEnduranceLog@CGocInventory@@QEAAXUPS_ITEM_ENDURANCE_INFO@@@Z | 0x1400c7d90 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| - | - | ?SendEnduranceLog@CGocInventory@@QEAAXH@Z | 0x1400c7e70 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| - | - | ?CheckOverMoney@CGocInventory@@QEAA_NW4ePriceType@@_J@Z | 0x1400c80e0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| - | - | ?SendSocketLoad@CGocInventory@@QEAAXXZ | 0x1400c82c0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
+| - | - | ?SetEnduranceLog@CGocInventory@@QEAAXUPS_ITEM_ENDURANCE_INFO@@@Z | 0x1400c7d90 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| - | - | ?SendEnduranceLog@CGocInventory@@QEAAXH@Z | 0x1400c7e70 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| - | - | ?CheckOverMoney@CGocInventory@@QEAA_NW4ePriceType@@_J@Z | 0x1400c80e0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| - | - | ?SendSocketLoad@CGocInventory@@QEAAXXZ | 0x1400c82c0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | XGameServer | GocInventory.cpp | ?SendBroachLoad@CGocInventory@@QEAAXXZ | 0x1400c8420 | verified | PDB symbol + IDA decompile/disasm + source build | yes | Collects costume (4), bank (6/17), and equipment (0/3) broach groups in order; each copied stack list is consumed by SendBroachInfo on normal and unwind paths. |
-| - | - | ?SendSocketInfo@CGocInventory@@QEAAXUPS_ITEM_SOCKET_LIST@@E@Z | 0x1400c85a0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
+| - | - | ?SendSocketInfo@CGocInventory@@QEAAXUPS_ITEM_SOCKET_LIST@@E@Z | 0x1400c85a0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | XGameServer | GocInventory.cpp | ?SendBroachInfo@CGocInventory@@QEAAXUPS_ITEM_BROACH_LIST@@E@Z | 0x1400c86a0 | verified | PDB symbol + IDA decompile/disasm + source build | yes | Serializes copied broach list and bool flag in packet (8, 0x56), sends to the owner, then consumes the supplied stack-list temporary on normal and unwind paths. |
-| - | - | ?SendUseInfo@CGocInventory@@QEAAXXZ | 0x1400c87a0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| - | - | ?SendCashCount@CGocInventory@@QEAAXXZ | 0x1400c8960 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| - | - | ?SendCashSet@CGocInventory@@QEAAXXZ | 0x1400c8b00 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
+| - | - | ?SendUseInfo@CGocInventory@@QEAAXXZ | 0x1400c87a0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| - | - | ?SendCashCount@CGocInventory@@QEAAXXZ | 0x1400c8960 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| - | - | ?SendCashSet@CGocInventory@@QEAAXXZ | 0x1400c8b00 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | XGameServer | GocInventory.cpp | ?SendAppearacne@CGocInventory@@QEAAXXZ | 0x1400c8c30 | verified | GameServer PDB decorated ABI + IDA decompile/disasm + source build | yes | Zero-argument sorted appearance packet path (main 8, sub 0x50) verified. |
-| - | - | ?MoveItemToLeagueInven@CGocInventory@@QEAA_NUPS_ITEM_MOVE_LEAGUE_INVEN_FOR_GAME@@@Z | 0x1400c8dd0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
+| - | - | ?MoveItemToLeagueInven@CGocInventory@@QEAA_NUPS_ITEM_MOVE_LEAGUE_INVEN_FOR_GAME@@@Z | 0x1400c8dd0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | - | - | ??1PS_ITEM_MOVE_LEAGUE_INVEN_FOR_GAME@@QEAA@XZ | 0x1400c9d00 | blocked | IDA ??1PS_ITEM_MOVE_LEAGUE_INVEN_FOR_GAME@@QEAA@XZ | yes | - |
 | - | - | ?CheckOverMoneyDrop@CGocInventory@@QEAAXW4ePriceType@@AEA_J@Z | 0x1400c9d40 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(complete) |
-| - | - | ?AddRecycle@CGocInventory@@QEAAX_JEHH_N@Z | 0x1400c9e60 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
+| - | - | ?AddRecycle@CGocInventory@@QEAAX_JEHH_N@Z | 0x1400c9e60 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | - | - | ?SetRecycle@CGocInventory@@QEAAX_J@Z | 0x1400ca190 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(complete) |
-| - | - | ?SendRecycle@CGocInventory@@QEAAXUPS_DB_RECYCLE_UPDATE@@@Z | 0x1400ca210 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| - | - | ?ApplyItemReinforceOption@CGocInventory@@QEAAXEK_N0@Z | 0x1400ca300 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| - | - | ?WealthLog@CGocInventory@@QEAAXHFEUPS_RES_STORAGE_INFO@@@Z | 0x1400ca5b0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| - | - | ?CheckEquipSkillOptionItem@CGocInventory@@QEAAXH_N@Z | 0x1400ca990 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| - | - | ?CheckEquipSkillOptionItemPart@CGocInventory@@QEAAXH@Z | 0x1400cace0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| - | - | ?InitEmptySlot@CGocInventory@@QEAAXXZ | 0x1400cb000 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| - | - | ?IsEmptyInventory@CGocInventory@@QEAA_NHHHH@Z | 0x1400cb0a0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
+| - | - | ?SendRecycle@CGocInventory@@QEAAXUPS_DB_RECYCLE_UPDATE@@@Z | 0x1400ca210 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| - | - | ?ApplyItemReinforceOption@CGocInventory@@QEAAXEK_N0@Z | 0x1400ca300 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| - | - | ?WealthLog@CGocInventory@@QEAAXHFEUPS_RES_STORAGE_INFO@@@Z | 0x1400ca5b0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| - | - | ?CheckEquipSkillOptionItem@CGocInventory@@QEAAXH_N@Z | 0x1400ca990 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| - | - | ?CheckEquipSkillOptionItemPart@CGocInventory@@QEAAXH@Z | 0x1400cace0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| - | - | ?InitEmptySlot@CGocInventory@@QEAAXXZ | 0x1400cb000 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| - | - | ?IsEmptyInventory@CGocInventory@@QEAA_NHHHH@Z | 0x1400cb0a0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | - | - | ?ChangeActiveBroachEffect@CGocInventory@@QEAAXAEAUPS_ACTIVE_BROACH_EFFECT@@@Z | 0x1400cb320 | verified | IDA decompile + PDB signature + source build | yes | Validates buff membership, preserves errors 0xCE41/0xCE42, updates CUser, then sends (6, 0x19). |
-| - | - | ?InitWeMadeBilling@CGocInventory@@QEAAXXZ | 0x1400cb6d0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
+| - | - | ?InitWeMadeBilling@CGocInventory@@QEAAXXZ | 0x1400cb6d0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | - | - | ??R_lambda0_@?A0x0119f3d6@@QEBAXXZ | 0x1400cb770 | blocked | IDA ??R_lambda0_@?A0x0119f3d6@@QEBAXXZ | yes | - |
 | - | - | ??R_lambda1_@?A0x0119f3d6@@QEBAXXZ | 0x1400cbc00 | blocked | IDA ??R_lambda1_@?A0x0119f3d6@@QEBAXXZ | yes | - |
-| XGameServer | GocInventory.cpp | ?BuyItemByWMBillingReq@CGocInventory@@QEAAHKUST_CASH_ITEM_BUY_LIST@@_NKHPEBDPEB_WK@Z | 0x1400cbcc0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(���Ӻ���,TODO����) |
+| XGameServer | GocInventory.cpp | ?BuyItemByWMBillingReq@CGocInventory@@QEAAHKUST_CASH_ITEM_BUY_LIST@@_NKHPEBDPEB_WK@Z | 0x1400cbcc0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(���Ӻ���,TODO����) |
 | - | - | ??1PS_HAN_BILLING_ORDER_NO_VEC@@QEAA@XZ | 0x1400cd270 | blocked | IDA ??1PS_HAN_BILLING_ORDER_NO_VEC@@QEAA@XZ | yes | - |
-| XGameServer | GocInventory.cpp | ?BuyItemByWMBillingRes@CGocInventory@@QEAA_NAEAUPS_HAN_BILLING_ORDER_NO_VEC@@AEAUPS_CASH_BUY_COUNT_LIST@@@Z | 0x1400cd290 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(���Ӻ���,TODO����) |
-| XGameServer | GocInventory.cpp | ?GiftItemByWMBillingRes@CGocInventory@@QEAA_NAEAUPS_HAN_BILLING_ORDER_NO_VEC@@AEAUPS_CASH_BUY_COUNT_LIST@@@Z | 0x1400ce340 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(���Ӻ���,TODO����) |
+| XGameServer | GocInventory.cpp | ?BuyItemByWMBillingRes@CGocInventory@@QEAA_NAEAUPS_HAN_BILLING_ORDER_NO_VEC@@AEAUPS_CASH_BUY_COUNT_LIST@@@Z | 0x1400cd290 | blocked | IDA decompile | no | IDA��ȷ��ԭ(���Ӻ���,TODO����) |
+| XGameServer | GocInventory.cpp | ?GiftItemByWMBillingRes@CGocInventory@@QEAA_NAEAUPS_HAN_BILLING_ORDER_NO_VEC@@AEAUPS_CASH_BUY_COUNT_LIST@@@Z | 0x1400ce340 | blocked | IDA decompile | no | IDA��ȷ��ԭ(���Ӻ���,TODO����) |
 | - | - | ?IsValidSlotPos@CGocInventory@@QEAA_NFF@Z | 0x1400ced20 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(complete) |
-| - | - | ?DetachSocketItem@CGocInventory@@QEAAHUPS_REQ_SOCKET_DETACH@@AEAUPS_RES_STORAGE_INFO@@1AEA_J@Z | 0x1400ced70 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| - | - | ?RefineItemAbility@CGocInventory@@QEAAHUPS_REQ_ITEM_REFINE@@HH@Z | 0x1400cfb40 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
+| - | - | ?DetachSocketItem@CGocInventory@@QEAAHUPS_REQ_SOCKET_DETACH@@AEAUPS_RES_STORAGE_INFO@@1AEA_J@Z | 0x1400ced70 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| - | - | ?RefineItemAbility@CGocInventory@@QEAAHUPS_REQ_ITEM_REFINE@@HH@Z | 0x1400cfb40 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | - | - | ??1PS_DB_ITEM_TITLE_CHANGE@@QEAA@XZ | 0x1400d1d90 | blocked | IDA ??1PS_DB_ITEM_TITLE_CHANGE@@QEAA@XZ | yes | - |
-| - | - | ?AddRepurchaseSocketInfo@CGocInventory@@QEAAXUPS_ITEM_SOCKET_LIST@@@Z | 0x1400d1dc0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| - | - | ?AddRepurchaseBroachInfo@CGocInventory@@QEAAXUPS_ITEM_BROACH_LIST@@@Z | 0x1400d1f80 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| - | - | ?ExchangeSocket@CGocInventory@@QEAAHEKE@Z | 0x1400d2140 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| - | - | ?UpgradeSocket@CGocInventory@@QEAAHUPS_ITEM_SLOT_INFO@@HE_N@Z | 0x1400d29f0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
+| - | - | ?AddRepurchaseSocketInfo@CGocInventory@@QEAAXUPS_ITEM_SOCKET_LIST@@@Z | 0x1400d1dc0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| - | - | ?AddRepurchaseBroachInfo@CGocInventory@@QEAAXUPS_ITEM_BROACH_LIST@@@Z | 0x1400d1f80 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| - | - | ?ExchangeSocket@CGocInventory@@QEAAHEKE@Z | 0x1400d2140 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| - | - | ?UpgradeSocket@CGocInventory@@QEAAHUPS_ITEM_SLOT_INFO@@HE_N@Z | 0x1400d29f0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | - | - | ??1PS_DB_SOCKET_UPGRADE@@QEAA@XZ | 0x1400d34a0 | blocked | IDA ??1PS_DB_SOCKET_UPGRADE@@QEAA@XZ | yes | - |
-| - | - | ?UpgradeSocket@CGocInventory@@QEAAHUPS_ITEM_SLOT_INFO@@@Z | 0x1400d34e0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| - | - | ?IsValidExtractSocket@CGocInventory@@QEAAHKH_NAEAUPS_DB_SOCKET_EXTRACT@@AEA_J0@Z | 0x1400d3f70 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| - | - | ?ExtractSocket@CGocInventory@@QEAAHUPS_ITEM_SLOT_INFO@@HE_N@Z | 0x1400d4be0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| - | - | ?ExtractSocket@CGocInventory@@QEAAHUPS_ITEM_SLOT_INFO@@_N@Z | 0x1400d4ff0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| - | - | ?InsertToolSoulstoneInfo@CGocInventory@@QEAAXUST_CREATE_ITEM@@E@Z | 0x1400d5630 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| - | - | ?InsertToolSoulstoneInfo@CGocInventory@@QEAAXHE@Z | 0x1400d56c0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| - | - | ?GetToolDisassemble@CGocInventory@@QEAAXAEAUPS_RES_TOOL_DROP_INFO@@@Z | 0x1400d5750 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| - | - | ?InsertToolDisassemble@CGocInventory@@QEAAXUPS_ITEM_DISASSEMBLE@@@Z | 0x1400d5830 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| - | - | ?IsEmptyInventory@CGocInventory@@QEAA_NHH@Z | 0x1400d5860 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
+| - | - | ?UpgradeSocket@CGocInventory@@QEAAHUPS_ITEM_SLOT_INFO@@@Z | 0x1400d34e0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| - | - | ?IsValidExtractSocket@CGocInventory@@QEAAHKH_NAEAUPS_DB_SOCKET_EXTRACT@@AEA_J0@Z | 0x1400d3f70 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| - | - | ?ExtractSocket@CGocInventory@@QEAAHUPS_ITEM_SLOT_INFO@@HE_N@Z | 0x1400d4be0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| - | - | ?ExtractSocket@CGocInventory@@QEAAHUPS_ITEM_SLOT_INFO@@_N@Z | 0x1400d4ff0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| - | - | ?InsertToolSoulstoneInfo@CGocInventory@@QEAAXUST_CREATE_ITEM@@E@Z | 0x1400d5630 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| - | - | ?InsertToolSoulstoneInfo@CGocInventory@@QEAAXHE@Z | 0x1400d56c0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| - | - | ?GetToolDisassemble@CGocInventory@@QEAAXAEAUPS_RES_TOOL_DROP_INFO@@@Z | 0x1400d5750 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| - | - | ?InsertToolDisassemble@CGocInventory@@QEAAXUPS_ITEM_DISASSEMBLE@@@Z | 0x1400d5830 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| - | - | ?IsEmptyInventory@CGocInventory@@QEAA_NHH@Z | 0x1400d5860 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | - | - | ?CanUseItemWarp@CGocInventory@@QEAA_NV?$shared_ptr@VCItem@@@tr1@std@@@Z | 0x1400d5970 | implemented | IDA ?CanUseItemWarp@CGocInventory@@QEAA_NV?$shared_ptr@VCItem@@@tr1@std@@@Z | yes | - |
 | - | - | ?UseItemWarp@CGocInventory@@QEAA_N_NV?$shared_ptr@VCItem@@@tr1@std@@@Z | 0x1400d5e10 | implemented | IDA ?UseItemWarp@CGocInventory@@QEAA_N_NV?$shared_ptr@VCItem@@@tr1@std@@@Z | yes | - |
-| - | - | ?DeleteUsedWarpItem@CGocInventory@@QEAAXXZ | 0x1400d6d50 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| - | - | ?ClearUsedWarpItem@CGocInventory@@QEAAXE@Z | 0x1400d73d0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| - | - | ?CheckMoveMap@CGocInventory@@QEAAHHAEAUPS_ENTER_MAP_REQ@@@Z | 0x1400d76f0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| - | - | ?LoadLimitItemInfo@CGocInventory@@QEAAXUST_ITEM_LIMIT_LIST@@@Z | 0x1400d8740 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| - | - | ?UpdateLimitItemInfo@CGocInventory@@QEAA_NHFAEAF@Z | 0x1400d89f0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| - | - | ?ReviveCash@CGocInventory@@QEAA_NXZ | 0x1400d8ce0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
+| - | - | ?DeleteUsedWarpItem@CGocInventory@@QEAAXXZ | 0x1400d6d50 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| - | - | ?ClearUsedWarpItem@CGocInventory@@QEAAXE@Z | 0x1400d73d0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| - | - | ?CheckMoveMap@CGocInventory@@QEAAHHAEAUPS_ENTER_MAP_REQ@@@Z | 0x1400d76f0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| - | - | ?LoadLimitItemInfo@CGocInventory@@QEAAXUST_ITEM_LIMIT_LIST@@@Z | 0x1400d8740 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| - | - | ?UpdateLimitItemInfo@CGocInventory@@QEAA_NHFAEAF@Z | 0x1400d89f0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| - | - | ?ReviveCash@CGocInventory@@QEAA_NXZ | 0x1400d8ce0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | - | - | ?CanUseItemSelect@CGocInventory@@QEAA_NV?$shared_ptr@VCItem@@@tr1@std@@@Z | 0x1400d9400 | implemented | IDA ?CanUseItemSelect@CGocInventory@@QEAA_NV?$shared_ptr@VCItem@@@tr1@std@@@Z | yes | - |
-| - | - | ?UseItemSelect@CGocInventory@@QEAAHUPS_REQ_USE_ITEM_SELECT@@@Z | 0x1400d95a0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
+| - | - | ?UseItemSelect@CGocInventory@@QEAAHUPS_REQ_USE_ITEM_SELECT@@@Z | 0x1400d95a0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | - | - | ??1PS_REQ_USE_ITEM_SELECT@@QEAA@XZ | 0x1400da350 | blocked | IDA ??1PS_REQ_USE_ITEM_SELECT@@QEAA@XZ | yes | - |
 | - | - | ?CanUseItemCountBox@CGocInventory@@QEAA_NV?$shared_ptr@VCItem@@@tr1@std@@@Z | 0x1400da370 | implemented | IDA ?CanUseItemCountBox@CGocInventory@@QEAA_NV?$shared_ptr@VCItem@@@tr1@std@@@Z | yes | - |
 | - | - | ?UseItemCountBox@CGocInventory@@QEAA_N_NV?$shared_ptr@VCItem@@@tr1@std@@@Z | 0x1400da570 | implemented | IDA ?UseItemCountBox@CGocInventory@@QEAA_N_NV?$shared_ptr@VCItem@@@tr1@std@@@Z | yes | - |
 | - | - | ??1PS_DB_ITEM_COUNTBOX@@QEAA@XZ | 0x1400db560 | blocked | IDA ??1PS_DB_ITEM_COUNTBOX@@QEAA@XZ | yes | - |
 | - | - | ??4ST_GET_INFO@@QEAAAEAU0@AEBU0@@Z | 0x1400db5c0 | blocked | IDA ??4ST_GET_INFO@@QEAAAEAU0@AEBU0@@Z | yes | - |
-| - | - | ?InitLimitItemInfo@CGocInventory@@QEAAXVCTime@ATL@@_N@Z | 0x1400db6a0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| - | - | ?SendDBUpdateLimitItem@CGocInventory@@QEAAXUPS_ITEM_LIMIT@@@Z | 0x1400db840 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
+| - | - | ?InitLimitItemInfo@CGocInventory@@QEAAXVCTime@ATL@@_N@Z | 0x1400db6a0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| - | - | ?SendDBUpdateLimitItem@CGocInventory@@QEAAXUPS_ITEM_LIMIT@@@Z | 0x1400db840 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | XGameServer | GocInventory.cpp | ?ReduceItemList@CGocInventory@@QEAA_NAEAUST_CREATE_ITEMS@@EAEAUST_LOG_GAME@@@Z | 0x1400db970 | verified | GameServer PDB + IDA decompile/disasm + source build | yes | Preserves empty-list success, UpdateItemEnd commit boundary, and DB game packet 0x21/0x22 ordering. |
-| - | - | ?SendDBLimitItemInfo@CGocInventory@@QEAAXXZ | 0x1400dbc90 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| - | - | ?ReduceItemShop@CGocInventory@@QEAA_NPEAUTB_ITEM@@HEAEAUPS_RES_STORAGE_INFO@@@Z | 0x1400dbdf0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| - | - | ?ReduceItemCheckShop@CGocInventory@@QEAA_NPEAUTB_ITEM@@AEAHEAEAUPS_RES_STORAGE_INFO@@@Z | 0x1400dbf40 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
+| - | - | ?SendDBLimitItemInfo@CGocInventory@@QEAAXXZ | 0x1400dbc90 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| - | - | ?ReduceItemShop@CGocInventory@@QEAA_NPEAUTB_ITEM@@HEAEAUPS_RES_STORAGE_INFO@@@Z | 0x1400dbdf0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| - | - | ?ReduceItemCheckShop@CGocInventory@@QEAA_NPEAUTB_ITEM@@AEAHEAEAUPS_RES_STORAGE_INFO@@@Z | 0x1400dbf40 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | XGameServer | GocInventory.cpp | CGocInventory::CheckRandomOption | 0x1400DC0C0 | implemented | IDA decompile | yes | IDA精确还原 - 检查并重排随机选项，获取TB_ITEM和TB_ITEM_CLASSIFY，收集非空选项并重排 |
 | - | - | ?CanUseItemAppearance@CGocInventory@@QEAA_NV?$shared_ptr@VCItem@@@tr1@std@@@Z | 0x1400dc260 | implemented | IDA ?CanUseItemAppearance@CGocInventory@@QEAA_NV?$shared_ptr@VCItem@@@tr1@std@@@Z | yes | - |
 | - | - | ?UseItemAppearance@CGocInventory@@QEAA_NV?$shared_ptr@VCItem@@@tr1@std@@@Z | 0x1400dc450 | implemented | IDA ?UseItemAppearance@CGocInventory@@QEAA_NV?$shared_ptr@VCItem@@@tr1@std@@@Z | yes | - |
 | XGameServer | GocInventory.cpp | CGocInventory::IsRandomItemTitle | 0x1400DCA20 | implemented | IDA decompile | yes | IDA精确还原 - 检查物品称号是否随机，获取TB_ITEM_TITLE并检查多个Group_ID |
-| - | - | ?AddDisassembleLog@CGocInventory@@QEAAX_JUST_CREATE_ITEM@@@Z | 0x1400dcaa0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| - | - | ?GetDisassembleLog@CGocInventory@@QEAAX_JAEAUST_CREATE_ITEM@@@Z | 0x1400dcb30 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| - | - | ?ClearDissassembleLog@CGocInventory@@QEAAXXZ | 0x1400dcbb0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
+| - | - | ?AddDisassembleLog@CGocInventory@@QEAAX_JUST_CREATE_ITEM@@@Z | 0x1400dcaa0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| - | - | ?GetDisassembleLog@CGocInventory@@QEAAX_JAEAUST_CREATE_ITEM@@@Z | 0x1400dcb30 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| - | - | ?ClearDissassembleLog@CGocInventory@@QEAAXXZ | 0x1400dcbb0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | - | - | ?CanUseItemIncExp@CGocInventory@@QEAA_NV?$shared_ptr@VCItem@@@tr1@std@@@Z | 0x1400dcbe0 | implemented | IDA ?CanUseItemIncExp@CGocInventory@@QEAA_NV?$shared_ptr@VCItem@@@tr1@std@@@Z | yes | - |
 | - | - | ?UseItemIncExp@CGocInventory@@QEAA_NV?$shared_ptr@VCItem@@@tr1@std@@@Z | 0x1400dcfb0 | implemented | IDA ?UseItemIncExp@CGocInventory@@QEAA_NV?$shared_ptr@VCItem@@@tr1@std@@@Z | yes | - |
 | - | - | ?CanUseItemProfilePhoto@CGocInventory@@QEAA_NV?$shared_ptr@VCItem@@@tr1@std@@@Z | 0x1400dd7c0 | implemented | IDA ?CanUseItemProfilePhoto@CGocInventory@@QEAA_NV?$shared_ptr@VCItem@@@tr1@std@@@Z | yes | - |
-| - | - | ?CheckDyeInfo@CGocInventory@@QEAA_NW4E_DYE_TYPE@@HHHAEAHAEAUST_CREATE_ITEMS@@@Z | 0x1400dda40 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| - | - | ?IsValidDyeInfo@CGocInventory@@QEAA_NHH@Z | 0x1400ddf10 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
+| - | - | ?CheckDyeInfo@CGocInventory@@QEAA_NW4E_DYE_TYPE@@HHHAEAHAEAUST_CREATE_ITEMS@@@Z | 0x1400dda40 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| - | - | ?IsValidDyeInfo@CGocInventory@@QEAA_NHH@Z | 0x1400ddf10 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | - | - | ?CanUseItemQuestAccept@CGocInventory@@QEAA_NV?$shared_ptr@VCItem@@@tr1@std@@@Z | 0x1400ddfe0 | implemented | IDA ?CanUseItemQuestAccept@CGocInventory@@QEAA_NV?$shared_ptr@VCItem@@@tr1@std@@@Z | yes | - |
 | - | - | ?UseItemQuestAccept@CGocInventory@@QEAA_NV?$shared_ptr@VCItem@@@tr1@std@@@Z | 0x1400de730 | implemented | IDA ?UseItemQuestAccept@CGocInventory@@QEAA_NV?$shared_ptr@VCItem@@@tr1@std@@@Z | yes | - |
-| - | - | ?IsValidSlotItem@CGocInventory@@QEAA_NEFUSTItem@@@Z | 0x1400df110 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| - | - | ?AddItemEmptySlot@CGocInventory@@QEAAXXZ | 0x1400df260 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| - | - | ?SendDBItemMakeLimitInfo@CGocInventory@@QEAAXXZ | 0x1400df930 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| - | - | ?LoadItemMakeLimitInfo@CGocInventory@@QEAAXUPS_ITEM_MAKE_LIMIT_LIST@@@Z | 0x1400dfab0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
+| - | - | ?IsValidSlotItem@CGocInventory@@QEAA_NEFUSTItem@@@Z | 0x1400df110 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| - | - | ?AddItemEmptySlot@CGocInventory@@QEAAXXZ | 0x1400df260 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| - | - | ?SendDBItemMakeLimitInfo@CGocInventory@@QEAAXXZ | 0x1400df930 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| - | - | ?LoadItemMakeLimitInfo@CGocInventory@@QEAAXUPS_ITEM_MAKE_LIMIT_LIST@@@Z | 0x1400dfab0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | - | - | ??0PS_ITEM_MAKE_LIMIT_LIST@@QEAA@AEBU0@@Z | 0x1400dfd30 | blocked | IDA ??0PS_ITEM_MAKE_LIMIT_LIST@@QEAA@AEBU0@@Z | yes | - |
-| - | - | ?OnInitItemMakeLimit@CGocInventory@@QEAAXXZ | 0x1400dfd80 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| - | - | ?UpdateItemMakeLimit@CGocInventory@@QEAAXPEAUTB_MAKE@@EUPS_ITEM_MAKE_LIMIT_INFO@@AEAUPS_DB_ITEM_MAKE_LIMIT_UPDATE@@@Z | 0x1400e02b0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| - | - | ?CheckMakeLimitCount@CGocInventory@@QEAA_NHEAEAUPS_ITEM_MAKE_LIMIT_INFO@@@Z | 0x1400e06a0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| - | - | ?GetMakeLimitEndDate@CGocInventory@@QEAA_NPEAUTB_MAKE@@AEA_J@Z | 0x1400e09c0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| - | - | ?IsValidEquipItem@CGocInventory@@QEAA_NUPS_STORAGE_INFO@@@Z | 0x1400e0cb0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| - | - | ?GetMakeLimitInitDay@CGocInventory@@QEAAHW4E_MAKE_LIMIT_RESET_PERIOD_TYPE@@VCTime@ATL@@@Z | 0x1400e0de0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| - | - | ?ShowMakeLimitInfo@CGocInventory@@QEAAXH@Z | 0x1400e0fa0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| - | - | ?SetDyePoint@CGocInventory@@QEAAXH@Z | 0x1400e11f0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| - | - | ?AddDyePoint@CGocInventory@@QEAA_NH@Z | 0x1400e1270 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| - | - | ?IsHiddenDye@CGocInventory@@QEAA_NH@Z | 0x1400e1430 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| - | - | ?GetCommonValue@CGocInventory@@QEAAMH@Z | 0x1400e1480 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| - | - | ?CheckAddDyePoint@CGocInventory@@QEAA_NW4E_DYE_TYPE@@AEAH@Z | 0x1400e14d0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
+| - | - | ?OnInitItemMakeLimit@CGocInventory@@QEAAXXZ | 0x1400dfd80 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| - | - | ?UpdateItemMakeLimit@CGocInventory@@QEAAXPEAUTB_MAKE@@EUPS_ITEM_MAKE_LIMIT_INFO@@AEAUPS_DB_ITEM_MAKE_LIMIT_UPDATE@@@Z | 0x1400e02b0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| - | - | ?CheckMakeLimitCount@CGocInventory@@QEAA_NHEAEAUPS_ITEM_MAKE_LIMIT_INFO@@@Z | 0x1400e06a0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| - | - | ?GetMakeLimitEndDate@CGocInventory@@QEAA_NPEAUTB_MAKE@@AEA_J@Z | 0x1400e09c0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| - | - | ?GetMakeLimitInitDay@CGocInventory@@QEAAHW4E_MAKE_LIMIT_RESET_PERIOD_TYPE@@VCTime@ATL@@@Z | 0x1400e0de0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| - | - | ?ShowMakeLimitInfo@CGocInventory@@QEAAXH@Z | 0x1400e0fa0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| - | - | ?SetDyePoint@CGocInventory@@QEAAXH@Z | 0x1400e11f0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| - | - | ?AddDyePoint@CGocInventory@@QEAA_NH@Z | 0x1400e1270 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| CGocInventory | GocInventory.cpp | ?IsHiddenDye@CGocInventory@@QEAA_NH@Z | 0x1400e1430 | verified | GameServer PDB + IDA decompile/assembly + source build | yes | Queries TB_DYE by the signed int parameter and returns true only when Hidden_Info equals 1. |
+| CGocInventory | GocInventory.cpp | ?GetCommonValue@CGocInventory@@QEAAMH@Z | 0x1400e1480 | verified | GameServer PDB + IDA decompile/assembly + source build | yes | Returns TB_COMMON.Value for a found row and -1.0f when no row exists. |
+| - | - | ?CheckAddDyePoint@CGocInventory@@QEAA_NW4E_DYE_TYPE@@AEAH@Z | 0x1400e14d0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | - | - | ?GetViewItemInfo@CGocInventory@@QEAAXAEAV?$set@HU?$less@H@std@@V?$allocator@H@2@@std@@@Z | 0x1400e1600 | implemented | IDA ?GetViewItemInfo@CGocInventory@@QEAAXAEAV?$set@HU?$less@H@std@@V?$allocator@H@2@@std@@@Z | yes | - |
-| - | - | ?LoadGesture@CGocInventory@@QEAAXAEAUPS_GESTURE_SLOT@@@Z | 0x1400e1830 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
+| - | - | ?LoadGesture@CGocInventory@@QEAAXAEAUPS_GESTURE_SLOT@@@Z | 0x1400e1830 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | - | - | ?GetCostumeGestureInfo@CGocInventory@@QEAAXAEAV?$set@HU?$less@H@std@@V?$allocator@H@2@@std@@@Z | 0x1400e1ae0 | implemented | IDA ?GetCostumeGestureInfo@CGocInventory@@QEAAXAEAV?$set@HU?$less@H@std@@V?$allocator@H@2@@std@@@Z | yes | - |
-| - | - | ?CheckGestureInfo@CGocInventory@@QEAA_NUPS_GESTURE_SLOT@@@Z | 0x1400e1e30 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| - | - | ?UpdateGesture@CGocInventory@@QEAAXXZ | 0x1400e2120 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| - | - | ?IsUseGesture@CGocInventory@@QEAA_NH@Z | 0x1400e2460 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
+| - | - | ?CheckGestureInfo@CGocInventory@@QEAA_NUPS_GESTURE_SLOT@@@Z | 0x1400e1e30 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| - | - | ?UpdateGesture@CGocInventory@@QEAAXXZ | 0x1400e2120 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| - | - | ?IsUseGesture@CGocInventory@@QEAA_NH@Z | 0x1400e2460 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | - | - | ?GetCostumeEqualizerInfo@CGocInventory@@QEAAXAEAV?$vector@HV?$allocator@H@std@@@std@@@Z | 0x1400e2600 | implemented | IDA ?GetCostumeEqualizerInfo@CGocInventory@@QEAAXAEAV?$vector@HV?$allocator@H@std@@@std@@@Z | yes | - |
-| - | - | ?CheckEqualizerInfo@CGocInventory@@QEAA_NH@Z | 0x1400e2a80 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| - | - | ?UpdateEqualizerInfo@CGocInventory@@QEAAXXZ | 0x1400e2c80 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| - | - | ?IsReplaceItem@CGocInventory@@QEAA_NHK@Z | 0x1400e2f80 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
+| - | - | ?CheckEqualizerInfo@CGocInventory@@QEAA_NH@Z | 0x1400e2a80 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| - | - | ?UpdateEqualizerInfo@CGocInventory@@QEAAXXZ | 0x1400e2c80 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| - | - | ?IsReplaceItem@CGocInventory@@QEAA_NHK@Z | 0x1400e2f80 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | - | - | ?UseItemProfilePhoto@CGocInventory@@QEAA_NV?$shared_ptr@VCItem@@@tr1@std@@@Z | 0x1400e3010 | implemented | IDA ?UseItemProfilePhoto@CGocInventory@@QEAA_NV?$shared_ptr@VCItem@@@tr1@std@@@Z | yes | - |
 | - | - | ??1PS_DB_CARD_DECK_OPEN@@QEAA@XZ | 0x1400e37f0 | blocked | IDA ??1PS_DB_CARD_DECK_OPEN@@QEAA@XZ | yes | - |
-| - | - | ?ChangeItemTitle@CGocInventory@@QEAAHUPS_REQ_ITEM_TITLE_CHANGE@@AEAHAEA_NAEAUPS_RES_STORAGE_INFO@@@Z | 0x1400e3810 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| - | - | ?SetCashMileage@CGocInventory@@QEAAXPEAH_N@Z | 0x1400e4ea0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| XGameServer | GocInventory.cpp | ?SetCashMileage@CGocInventory@@QEAAXUPS_CASH_MILEAGE@@@Z | 0x1400e5020 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
-| XGameServer | GocInventory.cpp | ?GetCashMileage@CGocInventory@@QEAAHW4E_CASH_MILEAGE_TYPE@@@Z | 0x1400e5140 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
-| - | - | ?SendCashMileageLog@CGocInventory@@QEAAXEUPS_DB_CASH_MILEAGE_LIST@@K@Z | 0x1400e51a0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
+| - | - | ?ChangeItemTitle@CGocInventory@@QEAAHUPS_REQ_ITEM_TITLE_CHANGE@@AEAHAEA_NAEAUPS_RES_STORAGE_INFO@@@Z | 0x1400e3810 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| XGameServer | GocInventory.cpp | ?SetCashMileage@CGocInventory@@QEAAXPEAH_N@Z | 0x1400E4EA0 | verified | GameServer PDB decorated ABI + IDA decompile/disasm + source build | yes | Copies three mileage values, builds PS_CASH_MILEAGE_LIST, and conditionally sends main=3 sub=0x7B. |
+| XGameServer | GocInventory.cpp | ?SetCashMileage@CGocInventory@@QEAAXUPS_CASH_MILEAGE@@@Z | 0x1400E5020 | verified | GameServer PDB decorated ABI + IDA decompile/disasm + source build | yes | Updates one indexed mileage value, builds a one-entry list, and sends main=3 sub=0x7B. |
+| XGameServer | GocInventory.cpp | ?GetCashMileage@CGocInventory@@QEAAHW4E_CASH_MILEAGE_TYPE@@@Z | 0x1400E5140 | verified | GameServer PDB decorated ABI + IDA decompile/disasm + source build | yes | Switches the three PDB enum values to m_nCashMileage[0..2] and returns -1 for other values. |
+| - | - | ?SendCashMileageLog@CGocInventory@@QEAAXEUPS_DB_CASH_MILEAGE_LIST@@K@Z | 0x1400e51a0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | XGameServer | GocInventory.cpp | ?SendDBCashMileageUpdate@CGocInventory@@QEAAXUPS_DB_CASH_MILEAGE_LIST@@@Z | 0x1400e5500 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
-| - | - | ?SetRenovatePoint@CGocInventory@@QEAAXH@Z | 0x1400e5630 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| - | - | ?AddRenovatePoint@CGocInventory@@QEAA_NHE@Z | 0x1400e56b0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| - | - | ?SetRefinePoint@CGocInventory@@QEAAXH@Z | 0x1400e5890 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| - | - | ?AddRefinePoint@CGocInventory@@QEAA_NH@Z | 0x1400e5910 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| - | - | ?IsBuyCashLimitCount@CGocInventory@@QEAA_NW4E_CASH_SHOP_BUY@@AEA_J@Z | 0x1400e5ad0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| - | - | ?OnInitItemCashCount@CGocInventory@@QEAAXXZ | 0x1400e5fa0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| - | - | ?SendDBPackageLoad@CGocInventory@@QEAAX_N@Z | 0x1400e61f0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| - | - | ?ItemPackageLoad@CGocInventory@@QEAAXAEAUPS_ITEM_PACKAGE_LIST@@@Z | 0x1400e63b0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| - | - | ?SendPackageLoad@CGocInventory@@QEAAXXZ | 0x1400e64f0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
+| - | - | ?SetRenovatePoint@CGocInventory@@QEAAXH@Z | 0x1400e5630 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| - | - | ?AddRenovatePoint@CGocInventory@@QEAA_NHE@Z | 0x1400e56b0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| - | - | ?SetRefinePoint@CGocInventory@@QEAAXH@Z | 0x1400e5890 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| - | - | ?AddRefinePoint@CGocInventory@@QEAA_NH@Z | 0x1400e5910 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| - | - | ?IsBuyCashLimitCount@CGocInventory@@QEAA_NW4E_CASH_SHOP_BUY@@AEA_J@Z | 0x1400e5ad0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| - | - | ?OnInitItemCashCount@CGocInventory@@QEAAXXZ | 0x1400e5fa0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| - | - | ?SendDBPackageLoad@CGocInventory@@QEAAX_N@Z | 0x1400e61f0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| - | - | ?ItemPackageLoad@CGocInventory@@QEAAXAEAUPS_ITEM_PACKAGE_LIST@@@Z | 0x1400e63b0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| - | - | ?SendPackageLoad@CGocInventory@@QEAAXXZ | 0x1400e64f0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | - | - | ?CanUseItemResealPackage@CGocInventory@@QEAA_NV?$shared_ptr@VCItem@@@tr1@std@@@Z | 0x1400e6610 | implemented | IDA ?CanUseItemResealPackage@CGocInventory@@QEAA_NV?$shared_ptr@VCItem@@@tr1@std@@@Z | yes | - |
 | XGameServer | GocInventory.cpp | ?IsResealPackage@CGocInventory@@QEAA_NH@Z | 0x1400e6a90 | verified | GameServer PDB decorated ABI + IDA decompile/disasm + source build | yes | Signed package ID table-lookup predicate verified. |
-| XGameServer | GocInventory.cpp | ?IsResealPackageCount@CGocInventory@@QEAA_NHH@Z | 0x1400e6ad0 | verified | GameServer PDB decorated ABI + IDA decompile/disasm + source build | yes | Signed arguments and contiguous Item_01 through Item_13 count verified. |
+| XGameServer | GocInventory.cpp | ?IsResealPackageCount@CGocInventory@@QEAA_NHH@Z | 0x1400e6ad0 | verified | GameServer PDB decorated ABI + IDA decompile/disasm + source build | yes | Signed package ID and count, plus contiguous Item_01 through Item_13 count, verified.
 | - | - | ?UseItemResealPackage@CGocInventory@@QEAA_NV?$shared_ptr@VCItem@@@tr1@std@@@Z | 0x1400e6b70 | implemented | IDA ?UseItemResealPackage@CGocInventory@@QEAA_NV?$shared_ptr@VCItem@@@tr1@std@@@Z | yes | - |
-| XGameServer | GocInventory.cpp | ?AddItemUpgradeCount@CGocInventory@@AEAA_NPEAUTB_ITEM@@FEE_NAEAUPS_RES_STORAGE_INFO@@2@Z | 0x1400e77a0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(���Ӻ���,TODO����) |
+| XGameServer | GocInventory.cpp | ?AddItemUpgradeCount@CGocInventory@@AEAA_NPEAUTB_ITEM@@FEE_NAEAUPS_RES_STORAGE_INFO@@2@Z | 0x1400e77a0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(���Ӻ���,TODO����) |
 | - | - | ?CanUseItemIncRenovatePoint@CGocInventory@@QEAA_NV?$shared_ptr@VCItem@@@tr1@std@@@Z | 0x1400e7ba0 | implemented | IDA ?CanUseItemIncRenovatePoint@CGocInventory@@QEAA_NV?$shared_ptr@VCItem@@@tr1@std@@@Z | yes | - |
 | - | - | ?UseItemIncRenovatePoint@CGocInventory@@QEAA_NV?$shared_ptr@VCItem@@@tr1@std@@@Z | 0x1400e7d40 | implemented | IDA ?UseItemIncRenovatePoint@CGocInventory@@QEAA_NV?$shared_ptr@VCItem@@@tr1@std@@@Z | yes | - |
-| XGameServer | GocInventory.cpp | ?CalculateEquipStat@CGocInventory@@QEAAXE@Z | 0x1400e85d0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(���Ӻ���,TODO����) |
+| XGameServer | GocInventory.cpp | ?CalculateEquipStat@CGocInventory@@QEAAXE@Z | 0x1400e85d0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(���Ӻ���,TODO����) |
 | - | - | ??1?$map@_JUPS_STORAGE_INFO@@U?$less@_J@std@@V?$allocator@U?$pair@$$CB_JUPS_STORAGE_INFO@@@std@@@3@@std@@QEAA@XZ | 0x1400e8970 | blocked | IDA ??1?$map@_JUPS_STORAGE_INFO@@U?$less@_J@std@@V?$allocator@U?$pair@$$CB_JUPS_STORAGE_INFO@@@std@@@3@@std@@QEAA@XZ | yes | - |
 | - | - | ??1?$vector@UST_ITEM_SOCKET_EQUIP@@V?$allocator@UST_ITEM_SOCKET_EQUIP@@@std@@@std@@QEAA@XZ | 0x1400e8990 | blocked | IDA ??1?$vector@UST_ITEM_SOCKET_EQUIP@@V?$allocator@UST_ITEM_SOCKET_EQUIP@@@std@@@std@@QEAA@XZ | yes | - |
 | - | - | ?push_back@?$vector@UPS_OPEN_SLOT@@V?$allocator@UPS_OPEN_SLOT@@@std@@@std@@QEAAXAEBUPS_OPEN_SLOT@@@Z | 0x1400e89c0 | blocked | IDA ?push_back@?$vector@UPS_OPEN_SLOT@@V?$allocator@UPS_OPEN_SLOT@@@std@@@std@@QEAAXAEBUPS_OPEN_SLOT@@@Z | yes | - |
@@ -3837,18 +3635,18 @@
 | - | - | ??0PS_DB_ITEM_REFINE@@QEAA@XZ | 0x1400f7700 | blocked | IDA ??0PS_DB_ITEM_REFINE@@QEAA@XZ | yes | - |
 | - | - | ?GetTB_CREDIT_RAISE@XResourceMgr@@QEAAPEAUTB_CREDIT_RAISE@@G@Z | 0x1400f7770 | implemented | IDA ?GetTB_CREDIT_RAISE@XResourceMgr@@QEAAPEAUTB_CREDIT_RAISE@@G@Z | yes | - |
 | - | - | ?SetItem@CItem@@QEAAXAEAUSTItem@@@Z | 0x1400f77e0 | implemented | IDA ?SetItem@CItem@@QEAAXAEAUSTItem@@@Z | yes | - |
- | CGocInventory | GocInventory.cpp | ?GetRefinePoint@CGocInventory@@QEAAHXZ | 0x1400f7810 | implemented | IDA decompile | yes | Simple getter for m_nRefinePoint |
+ | CGocInventory | GocInventory.cpp | ?GetRefinePoint@CGocInventory@@QEAAHXZ | 0x1400f7810 | verified | GameServer PDB + IDA decompile/assembly + source build | yes | Returns m_nRefinePoint. |
 | - | - | ?GetTB_RANK_CHANGE@XResourceMgr@@QEAAPEAUTB_RANK_CHANGE@@K@Z | 0x1400f7830 | implemented | IDA ?GetTB_RANK_CHANGE@XResourceMgr@@QEAAPEAUTB_RANK_CHANGE@@K@Z | yes | - |
 | - | - | ?_Isnil@?$_Tree_val@V?$_Tmap_traits@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@V?$ObjectPtrT@VLogger@log4cxx@@@helpers@log4cxx@@U?$less@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@@2@V?$allocator@U?$pair@$$CBV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@V?$ObjectPtrT@VLogger@log4cxx@@@helpers@log4cxx@@@std@@@2@$0A@@std@@@std@@SAAEADPEAU_Node@?$_Tree_nod@V?$_Tmap_traits@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@V?$ObjectPtrT@VLogger@log4cxx@@@helpers@log4cxx@@U?$less@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@@2@V?$allocator@U?$pair@$$CBV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@V?$ObjectPtrT@VLogger@log4cxx@@@helpers@log4cxx@@@std@@@2@$0A@@std@@@2@@Z | 0x1400f78a0 | blocked | IDA ?_Isnil@?$_Tree_val@V?$_Tmap_traits@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@V?$ObjectPtrT@VLogger@log4cxx@@@helpers@log4cxx@@U?$less@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@@2@V?$allocator@U?$pair@$$CBV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@V?$ObjectPtrT@VLogger@log4cxx@@@helpers@log4cxx@@@std@@@2@$0A@@std@@@std@@SAAEADPEAU_Node@?$_Tree_nod@V?$_Tmap_traits@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@V?$ObjectPtrT@VLogger@log4cxx@@@helpers@log4cxx@@U?$less@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@@2@V?$allocator@U?$pair@$$CBV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@V?$ObjectPtrT@VLogger@log4cxx@@@helpers@log4cxx@@@std@@@2@$0A@@std@@@2@@Z | yes | - |
 | - | - | ?GetTB_SOCKET@XResourceMgr@@QEAAPEAUTB_SOCKET@@K@Z | 0x1400f78b0 | implemented | IDA ?GetTB_SOCKET@XResourceMgr@@QEAAPEAUTB_SOCKET@@K@Z | yes | - |
- | CGocInventory | GocInventory.cpp | ?SetRemoveSocket@CGocInventory@@QEAAX_N@Z | 0x1400f7920 | implemented | IDA decompile | yes | Simple setter for m_bReqSocketRemove |
+ | CGocInventory | GocInventory.cpp | ?SetRemoveSocket@CGocInventory@@QEAAX_N@Z | 0x1400f7920 | verified | GameServer PDB + IDA decompile/assembly + source build | yes | Assigns m_bReqSocketRemove. |
  | CGocInventory | GocInventory.cpp | ?GetCash@CGocInventory@@QEAAHXZ | 0x1400f7940 | implemented | IDA decompile | yes | Simple getter for m_nCash (duplicate) |
 | - | - | ?_Isnil@?$_Tree_val@V?$_Tmap_traits@GUTB_CASHBILLING_INFO@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_CASHBILLING_INFO@@@std@@@3@$0A@@std@@@std@@SAAEADPEAU_Node@?$_Tree_nod@V?$_Tmap_traits@GUTB_CASHBILLING_INFO@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_CASHBILLING_INFO@@@std@@@3@$0A@@std@@@2@@Z | 0x1400f7960 | blocked | IDA ?_Isnil@?$_Tree_val@V?$_Tmap_traits@GUTB_CASHBILLING_INFO@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_CASHBILLING_INFO@@@std@@@3@$0A@@std@@@std@@SAAEADPEAU_Node@?$_Tree_nod@V?$_Tmap_traits@GUTB_CASHBILLING_INFO@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_CASHBILLING_INFO@@@std@@@3@$0A@@std@@@2@@Z | yes | - |
 | - | - | ?_Lbound@?$_Tree@V?$_Tmap_traits@GUTB_CASHBILLING_INFO@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_CASHBILLING_INFO@@@std@@@3@$0A@@std@@@std@@IEAAPEAU_Node@?$_Tree_nod@V?$_Tmap_traits@GUTB_CASHBILLING_INFO@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_CASHBILLING_INFO@@@std@@@3@$0A@@std@@@2@AEBG@Z | 0x1400f7980 | blocked | IDA ?_Lbound@?$_Tree@V?$_Tmap_traits@GUTB_CASHBILLING_INFO@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_CASHBILLING_INFO@@@std@@@3@$0A@@std@@@std@@IEAAPEAU_Node@?$_Tree_nod@V?$_Tmap_traits@GUTB_CASHBILLING_INFO@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_CASHBILLING_INFO@@@std@@@3@$0A@@std@@@2@AEBG@Z | yes | - |
 | - | - | ?lower_bound@?$_Tree@V?$_Tmap_traits@GUTB_CASHBILLING_INFO@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_CASHBILLING_INFO@@@std@@@3@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@GUTB_CASHBILLING_INFO@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_CASHBILLING_INFO@@@std@@@3@$0A@@std@@@std@@@2@AEBG@Z | 0x1400f7a20 | blocked | IDA ?lower_bound@?$_Tree@V?$_Tmap_traits@GUTB_CASHBILLING_INFO@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_CASHBILLING_INFO@@@std@@@3@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@GUTB_CASHBILLING_INFO@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_CASHBILLING_INFO@@@std@@@3@$0A@@std@@@std@@@2@AEBG@Z | yes | - |
 | - | - | ?find@?$_Tree@V?$_Tmap_traits@GUTB_CASHBILLING_INFO@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_CASHBILLING_INFO@@@std@@@3@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@GUTB_CASHBILLING_INFO@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_CASHBILLING_INFO@@@std@@@3@$0A@@std@@@std@@@2@AEBG@Z | 0x1400f7a60 | blocked | IDA ?find@?$_Tree@V?$_Tmap_traits@GUTB_CASHBILLING_INFO@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_CASHBILLING_INFO@@@std@@@3@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@GUTB_CASHBILLING_INFO@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_CASHBILLING_INFO@@@std@@@3@$0A@@std@@@std@@@2@AEBG@Z | yes | - |
 | - | - | ?GetTB_CASHBILLING_INFO@XResourceMgr@@QEAAPEAUTB_CASHBILLING_INFO@@G@Z | 0x1400f7b20 | implemented | IDA ?GetTB_CASHBILLING_INFO@XResourceMgr@@QEAAPEAUTB_CASHBILLING_INFO@@G@Z | yes | - |
- | CGocInventory | GocInventory.cpp | ?GetHanBillNo@CGocInventory@@QEAAPEADXZ | 0x1400f7b90 | implemented | IDA decompile | yes | Simple getter for m_szHanBillNo |
+ | CGocInventory | GocInventory.cpp | ?GetHanBillNo@CGocInventory@@QEAAPEADXZ | 0x1400f7b90 | verified | GameServer PDB + IDA decompile/assembly + source build | yes | Returns m_szHanBillNo. |
 | - | - | ?_Tidy@?$vector@UPS_HAN_BILLING_ORDER_NO@@V?$allocator@UPS_HAN_BILLING_ORDER_NO@@@std@@@std@@IEAAXXZ | 0x1400f7bb0 | blocked | IDA ?_Tidy@?$vector@UPS_HAN_BILLING_ORDER_NO@@V?$allocator@UPS_HAN_BILLING_ORDER_NO@@@std@@@std@@IEAAXXZ | yes | - |
 | - | - | ??1?$vector@UPS_HAN_BILLING_ORDER_NO@@V?$allocator@UPS_HAN_BILLING_ORDER_NO@@@std@@@std@@QEAA@XZ | 0x1400f7c50 | blocked | IDA ??1?$vector@UPS_HAN_BILLING_ORDER_NO@@V?$allocator@UPS_HAN_BILLING_ORDER_NO@@@std@@@std@@QEAA@XZ | yes | - |
 | - | - | ??0PS_HAN_BILLING_ORDER_NO_VEC@@QEAA@XZ | 0x1400f7c80 | blocked | IDA ??0PS_HAN_BILLING_ORDER_NO_VEC@@QEAA@XZ | yes | - |
@@ -3915,7 +3713,7 @@
 | - | - | ?find@?$_Tree@V?$_Tmap_traits@GUTB_RANDOM_GET_GROUP@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_RANDOM_GET_GROUP@@@std@@@3@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@GUTB_RANDOM_GET_GROUP@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_RANDOM_GET_GROUP@@@std@@@3@$0A@@std@@@std@@@2@AEBG@Z | 0x1400f9260 | blocked | IDA ?find@?$_Tree@V?$_Tmap_traits@GUTB_RANDOM_GET_GROUP@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_RANDOM_GET_GROUP@@@std@@@3@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@GUTB_RANDOM_GET_GROUP@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_RANDOM_GET_GROUP@@@std@@@3@$0A@@std@@@std@@@2@AEBG@Z | yes | - |
 | - | - | ?GetTB_RANDOM_GET_GROUP@XResourceMgr@@QEAAPEAUTB_RANDOM_GET_GROUP@@G@Z | 0x1400f9320 | implemented | IDA ?GetTB_RANDOM_GET_GROUP@XResourceMgr@@QEAAPEAUTB_RANDOM_GET_GROUP@@G@Z | yes | - |
 | - | - | ??0PS_TRADE_PW_REQ@@QEAA@XZ | 0x1400f9390 | blocked | IDA ??0PS_TRADE_PW_REQ@@QEAA@XZ | yes | - |
- | CGocInventory | GocInventory.cpp | ?GetTradePasswordState@CGocInventory@@QEAAEXZ | 0x1400f93b0 | implemented | IDA decompile | yes | Simple getter for m_byTradePassword |
+ | CGocInventory | GocInventory.cpp | ?GetTradePasswordState@CGocInventory@@QEAAEXZ | 0x1400f93b0 | verified | GameServer PDB + IDA decompile/assembly + source build | yes | Returns m_byTradePassword. |
 | - | - | ??0PS_DB_ITEM_COOLTIME_UPDATE@@QEAA@XZ | 0x1400f93d0 | blocked | IDA ??0PS_DB_ITEM_COOLTIME_UPDATE@@QEAA@XZ | yes | - |
 | - | - | ??0PS_ITEM_COOLTIME_INFO@@QEAA@XZ | 0x1400f9400 | blocked | IDA ??0PS_ITEM_COOLTIME_INFO@@QEAA@XZ | yes | - |
 | - | - | ??$_Move@PEAUST_MYROOM_USED_USER@@PEAU1@@std@@YAPEAUST_MYROOM_USED_USER@@PEAU1@00@Z | 0x1400f9430 | blocked | IDA ??$_Move@PEAUST_MYROOM_USED_USER@@PEAU1@@std@@YAPEAUST_MYROOM_USED_USER@@PEAU1@00@Z | yes | - |
@@ -3939,10 +3737,10 @@
 | - | - | ?GetTB_REINFORCE@XResourceMgr@@QEAAPEAUTB_REINFORCE@@K@Z | 0x1400f9b10 | implemented | IDA ?GetTB_REINFORCE@XResourceMgr@@QEAAPEAUTB_REINFORCE@@K@Z | yes | - |
 | - | - | ??0STPrivateShopItem@@QEAA@XZ | 0x1400f9b80 | blocked | IDA ??0STPrivateShopItem@@QEAA@XZ | yes | - |
 | - | - | ??0PS_ITEM_UPDATE@@QEAA@XZ | 0x1400f9be0 | blocked | IDA ??0PS_ITEM_UPDATE@@QEAA@XZ | yes | - |
- | CGocInventory | GocInventory.cpp | ?GetTradeActorID@CGocInventory@@QEAA?ATUXActorID@@XZ | 0x1400f9c20 | implemented | IDA decompile | yes | Simple getter for m_uxTradeActorID |
- | CGocInventory | GocInventory.cpp | ?GetTradeState@CGocInventory@@QEAA?AW4eTRADE_STATE@@XZ | 0x1400f9c50 | implemented | IDA decompile | yes | Simple getter for m_eTradeState |
+ | CGocInventory | GocInventory.cpp | ?GetTradeActorID@CGocInventory@@QEAA?ATUXActorID@@XZ | 0x1400f9c20 | verified | GameServer PDB + IDA decompile/assembly + source build | yes | Returns m_uxTradeActorID by value. |
+ | CGocInventory | GocInventory.cpp | ?GetTradeState@CGocInventory@@QEAA?AW4eTRADE_STATE@@XZ | 0x1400f9c50 | verified | GameServer PDB + IDA decompile/assembly + source build | yes | Returns the PDB eTRADE_STATE value from m_eTradeState. |
 | - | - | ??0ST_TRADE_ITEM@@QEAA@XZ | 0x1400f9c70 | blocked | IDA ??0ST_TRADE_ITEM@@QEAA@XZ | yes | - |
- | CGocInventory | GocInventory.cpp | ?GetTradeMoney@CGocInventory@@QEAA_JXZ | 0x1400f9cb0 | implemented | IDA decompile | yes | Simple getter for m_stTradeInfo.biMoney |
+ | CGocInventory | GocInventory.cpp | ?GetTradeMoney@CGocInventory@@QEAA_JXZ | 0x1400f9cb0 | verified | GameServer PDB + IDA decompile/assembly + source build | yes | Returns m_stTradeInfo.biMoney. |
 | - | - | ?SetAkashicTable@CItemAkashic@@QEAAXPEAUTB_AKASHIC_RECORDS@@@Z | 0x1400f9cd0 | implemented | IDA ?SetAkashicTable@CItemAkashic@@QEAAXPEAUTB_AKASHIC_RECORDS@@@Z | yes | - |
 | - | - | ?CanUse@CItemAkashic@@UEAA_NXZ | 0x1400f9cf0 | implemented | IDA ?CanUse@CItemAkashic@@UEAA_NXZ | yes | - |
 | - | - | ??0CItemAkashic@@QEAA@XZ | 0x1400f9d30 | implemented | IDA ??0CItemAkashic@@QEAA@XZ | yes | - |
@@ -4018,9 +3816,9 @@
 | CGocMyroom | GocMyroom.cpp | ??1CGocMyroom@@UEAA@XZ | 0x1400fade0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ-�������� |
 | CGocMyroom | GocMyroom.cpp | ?Init@CGocMyroom@@QEAAXXZ | 0x1400fae90 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
 | CGocMyroom | GocMyroom.cpp | ?Clear@CGocMyroom@@QEAAXXZ | 0x1400faeb0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
-| CGocMyroom | GocMyroom.cpp | ?OnUpdate@CGocMyroom@@QEAAXM@Z | 0x1400faf50 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| CGocMyroom | GocMyroom.cpp | ?UpdateData@CGocMyroom@@QEAAXXZ | 0x1400fb0f0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| CGocMyroom | GocMyroom.cpp | ?UpdateData@CGocMyroom@@QEAAXUPS_MYROOM_RECOMMEND_LIST@@UPS_MYROOM_RANK_LIST@@1UPS_MYROOM_RANK_INFO@@2@Z | 0x1400fb220 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
+| CGocMyroom | GocMyroom.cpp | ?OnUpdate@CGocMyroom@@QEAAXM@Z | 0x1400faf50 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| CGocMyroom | GocMyroom.cpp | ?UpdateData@CGocMyroom@@QEAAXXZ | 0x1400fb0f0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| CGocMyroom | GocMyroom.cpp | ?UpdateData@CGocMyroom@@QEAAXUPS_MYROOM_RECOMMEND_LIST@@UPS_MYROOM_RANK_LIST@@1UPS_MYROOM_RANK_INFO@@2@Z | 0x1400fb220 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | - | - | ??4PS_MYROOM_RANK_LIST@@QEAAAEAU0@AEBU0@@Z | 0x1400fb500 | blocked | IDA ??4PS_MYROOM_RANK_LIST@@QEAAAEAU0@AEBU0@@Z | yes | - |
 | CGocMyroom | GocMyroom.cpp | ?LoadPollenInfo@CGocMyroom@@QEAAXUPS_MYROOM_POLLEN_LIST@@@Z | 0x1400fb530 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
 | - | - | ??1PS_MYROOM_POLLEN_LIST@@QEAA@XZ | 0x1400fb650 | blocked | IDA ??1PS_MYROOM_POLLEN_LIST@@QEAA@XZ | yes | - |
@@ -4315,7 +4113,7 @@
 | CGocParty | GocParty.cpp | ?Send@CGocParty@@QEAAXAEAVXSendPacket@@@Z | 0x14010b1a0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
 | CGocParty | GocParty.cpp | ?SendPartyInfo@CGocParty@@QEAAXE@Z | 0x14010b1f0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
 | CGocParty | GocParty.cpp | ?SaveRecode@CGocParty@@QEAAXXZ | 0x14010b340 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
-| CGocForce | GocForce.cpp | ?LoadRecode@CGocForce@@QEAAXXZ | 0x14010b430 | implemented | IDA decompile | yes | IDA精确还原(stub) |
+| CGocForce | GocForce.cpp | ?LoadRecode@CGocForce@@QEAAXXZ | 0x14010b430 | blocked | IDA decompile | no | IDA精确还原(stub) |
 | CGocParty | GocParty.cpp | ?SetHP@CGocParty@@QEAAXH@Z | 0x14010b540 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
 | CGocParty | GocParty.cpp | ?SetMaxHP@CGocParty@@QEAAXH@Z | 0x14010b600 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
 | CGocParty | GocParty.cpp | ?SetLevel@CGocParty@@QEAAXH@Z | 0x14010b6c0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
@@ -4324,21 +4122,21 @@
 | CGocParty | GocParty.cpp | ?Logout@CGocParty@@QEAAXXZ | 0x14010b840 | implemented | IDA ?Logout@CGocParty@@QEAAXXZ | yes | - |
 | - | - | ??0ST_UPDATE_PARTY_MEMBER@@QEAA@XZ | 0x14010bb00 | blocked | IDA ??0ST_UPDATE_PARTY_MEMBER@@QEAA@XZ | yes | - |
 | CGocParty | GocParty.cpp | ?ShowMyPartyInfo@CGocParty@@QEAAXXZ | 0x14010bb30 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
-| CGocForce | GocForce.cpp | ?IsMember@CGocForce@@QEAA_NPEAVXActor@@@Z | 0x14010bbb0 | implemented | IDA decompile | yes | IDA精确还原(stub) |
+| CGocForce | GocForce.cpp | ?IsMember@CGocForce@@QEAA_NPEAVXActor@@@Z | 0x14010bbb0 | blocked | IDA decompile | no | IDA精确还原(stub) |
 | CGocParty | GocParty.cpp | ?SetMapID@CGocParty@@QEAAXHHTUXMapID@@@Z | 0x14010bc20 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
 | CGocParty | GocParty.cpp | ?KickOut@CGocParty@@QEAA_NKPEAVCUser@@@Z | 0x14010bcc0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
 | CGocParty | GocParty.cpp | ?Leave@CGocParty@@QEAAXXZ | 0x14010c250 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
 | CGocParty | GocParty.cpp | ?ChangeMaster@CGocParty@@QEAAXK@Z | 0x14010c540 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
-| CGocForce | GocForce.cpp | ?NeedReviveBuffUser@CGocForce@@QEAA_NXZ | 0x14010c7a0 | implemented | IDA decompile | yes | IDA精确还原(stub) |
+| CGocForce | GocForce.cpp | ?NeedReviveBuffUser@CGocForce@@QEAA_NXZ | 0x14010c7a0 | blocked | IDA decompile | no | IDA精确还原(stub) |
 | CGocParty | GocParty.cpp | ?UpdatePartyBooster@CGocParty@@QEAAXXZ | 0x14010c8f0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
-| CGocForce | GocForce.cpp | ?DeletePartyBoost@CGocForce@@QEAAXXZ | 0x14010c940 | implemented | IDA decompile | yes | IDA精确还原(stub) |
+| CGocForce | GocForce.cpp | ?DeletePartyBoost@CGocForce@@QEAAXXZ | 0x14010c940 | blocked | IDA decompile | no | IDA精确还原(stub) |
 | - | - | ?GetForceMember@CGocForce@@QEAAXPEAVCUser@@AEAV?$vector@PEAVCForceMember@@V?$allocator@PEAVCForceMember@@@std@@@std@@_N@Z | 0x14010c9b0 | implemented | IDA ?GetForceMember@CGocForce@@QEAAXPEAVCUser@@AEAV?$vector@PEAVCForceMember@@V?$allocator@PEAVCForceMember@@@std@@@std@@_N@Z | yes | - |
 | CGocParty | GocParty.cpp | ?SetExp@CGocParty@@QEAAXPEAVCUser@@MH@Z | 0x14010cc20 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
 | - | - | ?GetMemberInMap@CGocParty@@QEAAXAEAV?$vector@PEAVCMover@@V?$allocator@PEAVCMover@@@std@@@std@@@Z | 0x14010d130 | implemented | IDA ?GetMemberInMap@CGocParty@@QEAAXAEAV?$vector@PEAVCMover@@V?$allocator@PEAVCMover@@@std@@@std@@@Z | yes | - |
-| CGocForce | GocForce.cpp | ?GetForceUserCount@CGocForce@@QEAAEXZ | 0x14010d330 | implemented | IDA decompile | yes | IDA精确还原(stub) |
+| CGocForce | GocForce.cpp | ?GetForceUserCount@CGocForce@@QEAAEXZ | 0x14010d330 | blocked | IDA decompile | no | IDA精确还原(stub) |
 | CGocParty | GocParty.cpp | ?IsFull@CGocParty@@QEAA_NXZ | 0x14010d370 | implemented | IDA ?IsFull@CGocParty@@QEAA_NXZ | yes | - |
 | CGocParty | GocParty.cpp | ?IsMatchingDate@CGocParty@@QEAA_NXZ | 0x14010d3c0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
-| CGocForce | GocForce.cpp | ?GetMasterID@CGocForce@@QEAAKXZ | 0x14010d410 | implemented | IDA decompile | yes | IDA精确还原(stub) |
+| CGocForce | GocForce.cpp | ?GetMasterID@CGocForce@@QEAAKXZ | 0x14010d410 | blocked | IDA decompile | no | IDA精确还原(stub) |
 | CGocParty | GocParty.cpp | ?ChangePartyMemberName@CGocParty@@QEAAXAEAUPS_CHANGE_NAME@@@Z | 0x14010d460 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
 | - | - | ?reset@?$shared_ptr@VCItem@@@tr1@std@@QEAAXXZ | 0x14010d4b0 | blocked | IDA ?reset@?$shared_ptr@VCItem@@@tr1@std@@QEAAXXZ | yes | - |
 | - | - | ??E?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@HPEAUSTMagePotalBox@@U?$less@H@std@@V?$allocator@U?$pair@$$CBHPEAUSTMagePotalBox@@@std@@@3@$0A@@std@@@std@@@std@@QEAA?AV01@H@Z | 0x14010d4f0 | blocked | IDA ??E?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@HPEAUSTMagePotalBox@@U?$less@H@std@@V?$allocator@U?$pair@$$CBHPEAUSTMagePotalBox@@@std@@@3@$0A@@std@@@std@@@std@@QEAA?AV01@H@Z | yes | - |
@@ -4364,7 +4162,7 @@
 | CGocPost | GocPost.cpp | ?Init@CGocPost@@QEAAXXZ | 0x14010dac0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
 | CGocPost | GocPost.cpp | ?SetPostListRefreshTime@CGocPost@@QEAAXE@Z | 0x14010dbe0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
 | CGocPost | GocPost.cpp | ?CheckListRefreshTime@CGocPost@@QEAA_NE@Z | 0x14010dc40 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
-| CGocPost | GocPost.cpp | ?SendCoupounReward@CGocPost@@QEAAXHHE@Z | 0x14010dca0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(����TODO) |
+| CGocPost | GocPost.cpp | ?SendCoupounReward@CGocPost@@QEAAXHHE@Z | 0x14010dca0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(����TODO) |
 | CGocPost | GocPost.cpp | ?GetSendPostData@CGocPost@@QEAA_N_JAEAUST_POST_DATA@@@Z | 0x14010df10 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
 | CGocPost | GocPost.cpp | ?GetRecvPostData@CGocPost@@QEAA_N_JAEAUST_POST_DATA@@@Z | 0x14010df90 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
 | CGocPost | GocPost.cpp | ?GetDelDate@CGocPost@@QEAA_J_J@Z | 0x14010e010 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
@@ -4378,63 +4176,62 @@
 | CGocPost | GocPost.cpp | ?GetRecvSerial@CGocPost@@QEAA_JXZ | 0x14010e620 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
 | CGocPost | GocPost.cpp | ?GetAccountPostSerial@CGocPost@@QEAA_JXZ | 0x14010e670 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
 | CGocPost | GocPost.cpp | ?GetLastSendPost@CGocPost@@QEAA_JXZ | 0x14010e6d0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
-| CGocPost | GocPost.cpp | ?SystemPostSend@CGocPost@@QEAA_NEG_JK@Z | 0x14010e790 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub����������) |
-| CGocPost | GocPost.cpp | ?SystemPostSend@CGocPost@@QEAA_NEG_J@Z | 0x14010e940 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub����������) |
-| CGocPost | GocPost.cpp | ?SystemPostSend@CGocPost@@QEAA_NHFEGH@Z | 0x14010eb30 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub����������) |
-| CGocPost | GocPost.cpp | ?SystemPostSend@CGocPost@@QEAA_NPEAUTB_ITEM@@FEGKPEA_W@Z | 0x14010ebc0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub����������) |
-| CGocPost | GocPost.cpp | ?SystemPostSend@CGocPost@@QEAA_NAEAUST_CREATE_ITEMS@@EGKPEA_W@Z | 0x14010efc0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub����������) |
-| CGocPost | GocPost.cpp | ?DBReqGMTSendPostList@CGocPost@@QEAA_NH@Z | 0x14010f3f0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(����TODO) |
-| CGocPost | GocPost.cpp | ?CheckGMTSystemPostSendCondition@CGocPost@@QEAA_NAEAUST_GMT_POST_CONDITION@@@Z | 0x14010f530 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(����TODO) |
-| CGocPost | GocPost.cpp | ?GMTSystemPostSend@CGocPost@@QEAA_NAEAUPS_GMT_POST_LIST@@@Z | 0x14010f6b0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(����TODO) |
-| CGocPost | GocPost.cpp | ?BuyCashItem@CGocPost@@QEAAHKAEAUST_CASH_ITEM_BUY_LIST@@@Z | 0x140113040 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub����������) |
-| CGocPost | GocPost.cpp | ?CashGiftSend@CGocPost@@QEAA_NKAEAUST_CREATE_ITEMS@@PEB_WAEAUPS_CASH_BUY_COUNT_LIST@@@Z | 0x14010fbd0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub����������) |
-| CGocPost | GocPost.cpp | ?RecvPostInfo@CGocPost@@QEAAXUST_POST_DATA@@G@Z | 0x1401100c0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(����TODO) |
+| CGocPost | GocPost.cpp | ?SystemPostSend@CGocPost@@QEAA_NEG_JK@Z | 0x14010e790 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub����������) |
+| CGocPost | GocPost.cpp | ?SystemPostSend@CGocPost@@QEAA_NEG_J@Z | 0x14010e940 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub����������) |
+| CGocPost | GocPost.cpp | ?SystemPostSend@CGocPost@@QEAA_NHFEGH@Z | 0x14010eb30 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub����������) |
+| CGocPost | GocPost.cpp | ?SystemPostSend@CGocPost@@QEAA_NPEAUTB_ITEM@@FEGKPEA_W@Z | 0x14010ebc0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub����������) |
+| CGocPost | GocPost.cpp | ?SystemPostSend@CGocPost@@QEAA_NAEAUST_CREATE_ITEMS@@EGKPEA_W@Z | 0x14010efc0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub����������) |
+| CGocPost | GocPost.cpp | ?DBReqGMTSendPostList@CGocPost@@QEAA_NH@Z | 0x14010f3f0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(����TODO) |
+| CGocPost | GocPost.cpp | ?CheckGMTSystemPostSendCondition@CGocPost@@QEAA_NAEAUST_GMT_POST_CONDITION@@@Z | 0x14010f530 | blocked | IDA decompile | no | IDA��ȷ��ԭ(����TODO) |
+| CGocPost | GocPost.cpp | ?GMTSystemPostSend@CGocPost@@QEAA_NAEAUPS_GMT_POST_LIST@@@Z | 0x14010f6b0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(����TODO) |
+| CGocPost | GocPost.cpp | ?CashGiftSend@CGocPost@@QEAA_NKAEAUST_CREATE_ITEMS@@PEB_WAEAUPS_CASH_BUY_COUNT_LIST@@@Z | 0x14010fbd0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub����������) |
+| CGocPost | GocPost.cpp | ?RecvPostInfo@CGocPost@@QEAAXUST_POST_DATA@@G@Z | 0x1401100c0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(����TODO) |
 | CGocPost | GocPost.cpp | ?CanSavePost@CGocPost@@QEAA_N_JAEAUST_POST_DATA@@@Z | 0x140110210 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
 | CGocPost | GocPost.cpp | ?CanSaveDel@CGocPost@@QEAA_N_JAEA_N@Z | 0x1401102c0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
 | CGocPost | GocPost.cpp | ?CheckAccountPost@CGocPost@@QEAA_N_J@Z | 0x140110380 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
 | CGocPost | GocPost.cpp | ?CanReadSavePost@CGocPost@@QEAA_N_JAEAE@Z | 0x1401103f0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
 | CGocPost | GocPost.cpp | ?GetAccountPostData@CGocPost@@QEAA_N_JAEAUST_ACCOUNT_POST_DATA@@@Z | 0x1401104b0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
 | - | - | ??4ST_ACCOUNT_POST_DATA@@QEAAAEAU0@AEAU0@@Z | 0x140110540 | blocked | IDA ??4ST_ACCOUNT_POST_DATA@@QEAAAEAU0@AEAU0@@Z | yes | - |
-| CGocPost | GocPost.cpp | ?ReqPostReceipt@CGocPost@@QEAAXK_J@Z | 0x140110780 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub����������) |
+| CGocPost | GocPost.cpp | ?ReqPostReceipt@CGocPost@@QEAAXK_J@Z | 0x140110780 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub����������) |
 | CGocPost | GocPost.cpp | ?CanAccountPostReceipt@CGocPost@@QEAA_N_JAEAE@Z | 0x140112c80 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
 | CGocPost | GocPost.cpp | ?PostReceipt@CGocPost@@QEAAX_J@Z | 0x140112d60 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
 | CGocPost | GocPost.cpp | ?SetPostAccountReceipt@CGocPost@@QEAAX_J@Z | 0x140112e50 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
 | CGocPost | GocPost.cpp | ?CanAccountPostDel@CGocPost@@QEAA_N_JAEA_NAEA_J@Z | 0x140112f40 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
-| CGocPost | GocPost.cpp | ?BuyCashItem@CGocPost@@QEAAHKAEAUST_CASH_ITEM_BUY_LIST@@@Z | 0x140113040 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub����������) |
-| CGocPost | GocPost.cpp | ?CashBuySend@CGocPost@@QEAA_NAEAUST_CREATE_ITEMS@@AEAUPS_CASH_BUY_COUNT_LIST@@AEAUST_APPEARANCE_LIST@@AEAUPS_SHOP_FAIL_ITEM@@@Z | 0x1401145b0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub����������) |
-| CGocPost | GocPost.cpp | ?SendDBPostList@CGocPost@@QEAAXXZ | 0x140114ab0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(����TODO) |
-| CGocPost | GocPost.cpp | ?SendPostSendList@CGocPost@@QEAAXXZ | 0x140115000 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(����TODO) |
+| CGocPost | GocPost.cpp | ?BuyCashItem@CGocPost@@QEAAHKAEAUST_CASH_ITEM_BUY_LIST@@@Z | 0x140113040 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub����������) |
+| CGocPost | GocPost.cpp | ?CashBuySend@CGocPost@@QEAA_NAEAUST_CREATE_ITEMS@@AEAUPS_CASH_BUY_COUNT_LIST@@AEAUST_APPEARANCE_LIST@@AEAUPS_SHOP_FAIL_ITEM@@@Z | 0x1401145b0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub����������) |
+| CGocPost | GocPost.cpp | ?SendDBPostList@CGocPost@@QEAAXXZ | 0x140114ab0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(����TODO) |
+| CGocPost | GocPost.cpp | ?SendPostSendList@CGocPost@@QEAAXXZ | 0x140115000 | blocked | IDA decompile | no | IDA��ȷ��ԭ(����TODO) |
 | - | - | ??1ST_POST_LIST@@QEAA@XZ | 0x140115270 | blocked | IDA ??1ST_POST_LIST@@QEAA@XZ | yes | - |
-| CGocPost | GocPost.cpp | ?SendPostRecvList@CGocPost@@QEAAXXZ | 0x140115290 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(����TODO) |
-| CGocPost | GocPost.cpp | ?SendPostAccountList@CGocPost@@QEAAXXZ | 0x140115500 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(����TODO) |
+| CGocPost | GocPost.cpp | ?SendPostRecvList@CGocPost@@QEAAXXZ | 0x140115290 | blocked | IDA decompile | no | IDA��ȷ��ԭ(����TODO) |
+| CGocPost | GocPost.cpp | ?SendPostAccountList@CGocPost@@QEAAXXZ | 0x140115500 | blocked | IDA decompile | no | IDA��ȷ��ԭ(����TODO) |
 | - | - | ??0ST_ACCOUNT_POST_DATA@@QEAA@AEBU0@@Z | 0x140115770 | blocked | IDA ??0ST_ACCOUNT_POST_DATA@@QEAA@AEBU0@@Z | yes | - |
-| CGocPost | GocPost.cpp | ?SendPostSaveList@CGocPost@@QEAAXXZ | 0x140115930 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(����TODO) |
-| CGocPost | GocPost.cpp | ?SetDBSync@CGocPost@@QEAAXH_N@Z | 0x140115bb0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(����TODO) |
+| CGocPost | GocPost.cpp | ?SendPostSaveList@CGocPost@@QEAAXXZ | 0x140115930 | blocked | IDA decompile | no | IDA��ȷ��ԭ(����TODO) |
+| CGocPost | GocPost.cpp | ?SetDBSync@CGocPost@@QEAAXH_N@Z | 0x140115bb0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(����TODO) |
 | CGocPost | GocPost.cpp | ?GetDeletePostList@CGocPost@@QEAAXEAEAUPS_POST_DELETE_ALL_SERVER@@@Z | 0x140115e60 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
-| CGocPost | GocPost.cpp | ?DeletePostAll@CGocPost@@QEAAXUPS_POST_DELETE_ALL_SERVER@@@Z | 0x1401162a0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(����TODO) |
+| CGocPost | GocPost.cpp | ?DeletePostAll@CGocPost@@QEAAXUPS_POST_DELETE_ALL_SERVER@@@Z | 0x1401162a0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(����TODO) |
 | - | - | ??1PS_POST_DELETE_ALL_SERVER@@QEAA@XZ | 0x140116a70 | blocked | IDA ??1PS_POST_DELETE_ALL_SERVER@@QEAA@XZ | yes | - |
 | - | - | ??1PS_RES_POST_DELETE@@QEAA@XZ | 0x140116ab0 | blocked | IDA ??1PS_RES_POST_DELETE@@QEAA@XZ | yes | - |
-| CGocPost | GocPost.cpp | ?ReqPostReceiptAll@CGocPost@@QEAAX_JAEAH@Z | 0x140116ad0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub����������) |
+| CGocPost | GocPost.cpp | ?ReqPostReceiptAll@CGocPost@@QEAAX_JAEAH@Z | 0x140116ad0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub����������) |
 | - | - | ??1PS_POST_RECEIPT_ALL_SERVER@@QEAA@XZ | 0x1401188f0 | blocked | IDA ??1PS_POST_RECEIPT_ALL_SERVER@@QEAA@XZ | yes | - |
 | - | - | ??4ST_APPEARANCE_LIST@@QEAAAEAU0@AEBU0@@Z | 0x140118970 | blocked | IDA ??4ST_APPEARANCE_LIST@@QEAAAEAU0@AEBU0@@Z | yes | - |
 | CGocPost | GocPost.cpp | ?GetRecvPostList@CGocPost@@QEAAXEAEAUPS_RES_POST_DELETE@@@Z | 0x1401189a0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
 | CGocPost | GocPost.cpp | ?CheckDeletePost@CGocPost@@QEAAXAEAUPS_POST_DELETE_ALL_SERVER@@@Z | 0x140118ae0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
-| CGocPost | GocPost.cpp | ?ReqPostAccountReceiptAll@CGocPost@@QEAAX_JAEAH@Z | 0x140118cb0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub����������) |
-| CGocPost | GocPost.cpp | ?ReceiptPostReceiveList@CGocPost@@QEAAXUPS_POST_RECEIPT_ALL_SERVER@@AEAUPS_RES_POST_RECEIPT@@@Z | 0x14011a290 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub����������) |
-| CGocPost | GocPost.cpp | ?ReceiptPostAccountList@CGocPost@@QEAAXUPS_POST_RECEIPT_ALL_SERVER@@AEAUPS_RES_POST_RECEIPT@@@Z | 0x14011b720 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub����������) |
+| CGocPost | GocPost.cpp | ?ReqPostAccountReceiptAll@CGocPost@@QEAAX_JAEAH@Z | 0x140118cb0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub����������) |
+| CGocPost | GocPost.cpp | ?ReceiptPostReceiveList@CGocPost@@QEAAXUPS_POST_RECEIPT_ALL_SERVER@@AEAUPS_RES_POST_RECEIPT@@@Z | 0x14011a290 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub����������) |
+| CGocPost | GocPost.cpp | ?ReceiptPostAccountList@CGocPost@@QEAAXUPS_POST_RECEIPT_ALL_SERVER@@AEAUPS_RES_POST_RECEIPT@@@Z | 0x14011b720 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub����������) |
 | CGocPost | GocPost.cpp | ?CanReceiptAll@CGocPost@@QEAA_N_JAEAEEAEA_N@Z | 0x14011c210 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
-| CGocPost | GocPost.cpp | ?SendAutoMail@CGocPost@@QEAA_NH@Z | 0x14011c450 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub����������) |
+| CGocPost | GocPost.cpp | ?SendAutoMail@CGocPost@@QEAA_NH@Z | 0x14011c450 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub����������) |
 | CGocPost | GocPost.cpp | ?SetLevelUpEvent@CGocPost@@QEAAXHHH@Z | 0x14011ce60 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
-| CGocPost | GocPost.cpp | ?SendLevelUpEvent@CGocPost@@QEAAXHH@Z | 0x14011cf40 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub����������) |
-| CGocPost | GocPost.cpp | ?SendLevelUpEventPost@CGocPost@@QEAA_NPEAUTB_LEVEL_MAIL@@@Z | 0x14011d9d0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub����������) |
-| CGocPost | GocPost.cpp | ?ResetLevelUpEvent@CGocPost@@QEAAXXZ | 0x14011e100 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub����������) |
+| CGocPost | GocPost.cpp | ?SendLevelUpEvent@CGocPost@@QEAAXHH@Z | 0x14011cf40 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub����������) |
+| CGocPost | GocPost.cpp | ?SendLevelUpEventPost@CGocPost@@QEAA_NPEAUTB_LEVEL_MAIL@@@Z | 0x14011d9d0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub����������) |
+| CGocPost | GocPost.cpp | ?ResetLevelUpEvent@CGocPost@@QEAAXXZ | 0x14011e100 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub����������) |
 | CGocPost | GocPost.cpp | ?SetPostFlag@CGocPost@@QEAAX_JE@Z | 0x14011f240 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
-| CGocPost | GocPost.cpp | ?LoadRestoreItem@CGocPost@@QEAAXUPS_ITEM_RESTORE_LIST@@@Z | 0x14011e240 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub����������) |
+| CGocPost | GocPost.cpp | ?LoadRestoreItem@CGocPost@@QEAAXUPS_ITEM_RESTORE_LIST@@@Z | 0x14011e240 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub����������) |
 | - | - | ??4PS_ITEM_RESTORE_LIST@@QEAAAEAU0@AEBU0@@Z | 0x14011e650 | blocked | IDA ??4PS_ITEM_RESTORE_LIST@@QEAAAEAU0@AEBU0@@Z | yes | - |
-| CGocPost | GocPost.cpp | ?SendRestorePost@CGocPost@@QEAAXXZ | 0x14011e680 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub����������) |
+| CGocPost | GocPost.cpp | ?SendRestorePost@CGocPost@@QEAAXXZ | 0x14011e680 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub����������) |
 | - | - | ??1PS_GMT_POST_LIST@@QEAA@XZ | 0x14011ec30 | blocked | IDA ??1PS_GMT_POST_LIST@@QEAA@XZ | yes | - |
-| CGocPost | GocPost.cpp | ?SendRestoreAttendancePost@CGocPost@@QEAAXUPS_ITEM_RESTORE_LIST@@@Z | 0x14011ec50 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub����������) |
-| CGocPost | GocPost.cpp | ?AccountPostSend@CGocPost@@QEAA_NUST_CREATE_ITEMS@@EG@Z | 0x14011ef60 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub����������) |
+| CGocPost | GocPost.cpp | ?SendRestoreAttendancePost@CGocPost@@QEAAXUPS_ITEM_RESTORE_LIST@@@Z | 0x14011ec50 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub����������) |
+| CGocPost | GocPost.cpp | ?AccountPostSend@CGocPost@@QEAA_NUST_CREATE_ITEMS@@EG@Z | 0x14011ef60 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub����������) |
 | - | - | ?SetPostFlag@CGocPost@@QEAAX_JE@Z | 0x14011f240 | implemented | IDA ?SetPostFlag@CGocPost@@QEAAX_JE@Z | yes | - |
 | - | - | ??4?$vector@UST_WEEKLY_MISSION_INFO@@V?$allocator@UST_WEEKLY_MISSION_INFO@@@std@@@std@@QEAAAEAV01@AEBV01@@Z | 0x14011f2c0 | blocked | IDA ??4?$vector@UST_WEEKLY_MISSION_INFO@@V?$allocator@UST_WEEKLY_MISSION_INFO@@@std@@@std@@QEAAAEAV01@AEBV01@@Z | yes | - |
 | - | - | ??4?$vector@UPS_ITEM_RESTORE_INFO@@V?$allocator@UPS_ITEM_RESTORE_INFO@@@std@@@std@@QEAAAEAV01@AEBV01@@Z | 0x14011f4c0 | blocked | IDA ??4?$vector@UPS_ITEM_RESTORE_INFO@@V?$allocator@UPS_ITEM_RESTORE_INFO@@@std@@@std@@QEAAAEAV01@AEBV01@@Z | yes | - |
@@ -4994,14 +4791,11 @@
 | XGameServer | GocRecode.cpp | ?ResetEnterMazeLimiteCount@CGocRecode@@QEAAXH@Z | 0x140153020 | implemented | IDA decompile | yes | ��ȷ��ԭ-�����Թ��������ƴ��� |
 | XGameServer | GocRecode.cpp | ?DecreaseEnterCasualMazeLimiteCount@CGocRecode@@QEAAXXZ | 0x140153920 | implemented | IDA decompile | yes | ��ȷ��ԭ-���������Թ��������ƴ��� |
 | XGameServer | GocRecode.cpp | ?SendEnterMazeLimitCount@CGocRecode@@QEAAXXZ | 0x140153cb0 | implemented | IDA decompile | yes | ��ȷ��ԭ-���ͽ���������ͻ���?|
-| XGameServer | GocRecode.cpp | ?RankingDataUpdate@CGocRecode@@QEAAXKKH@Z | 0x140154150 | implemented | IDA decompile | yes | ��ȷ��ԭ-�������ݸ��� |
 | XGameServer | GocRecode.cpp | ?CanRecvRankingReward@CGocRecode@@QEAAHGAEAUST_USER_LAST_RANKING_INFO@@@Z | 0x1401553d0 | implemented | IDA decompile | yes | ��ȷ��ԭ-����Ƿ����ȡ�������� |
 | XGameServer | GocRecode.cpp | ?SetRankingMyInfo@CGocRecode@@QEAAXG_NAEAUST_USER_RANKING_INFO@@_K@Z | 0x1401554b0 | implemented | IDA decompile | yes | ��ȷ��ԭ-���������ҵ���Ϣ |
 | XGameServer | GocRecode.cpp | ?ReqRankingList@CGocRecode@@QEAA_NAEAUPS_RANKING_LIST_REQ@@@Z | 0x140155bc0 | implemented | IDA decompile | yes | ��ȷ��ԭ-���������б� |
-| XGameServer | GocRecode.cpp | ?ResRankingMyInfo@CGocRecode@@QEAAXAEAUPS_DB_MY_RANKING_INFO_RES@@@Z | 0x140156540 | implemented | IDA decompile | yes | ��ȷ��ԭ-��Ӧ�����ҵ���Ϣ |
 | XGameServer | GocRecode.cpp | ?ReqRankingReward@CGocRecode@@QEAAXAEAUPS_RANKING_REWARD_REQ@@@Z | 0x1401569d0 | implemented | IDA decompile | yes | ��ȷ��ԭ-������������ |
 | - | - | ??1PS_DB_RANKING_REWARD@@QEAA@XZ | 0x1401583c0 | blocked | IDA ??1PS_DB_RANKING_REWARD@@QEAA@XZ | yes | - |
-| XGameServer | GocRecode.cpp | ?ResRankingReward@CGocRecode@@QEAAXAEAUPS_DB_RANKING_REWARD@@@Z | 0x140158410 | implemented | IDA decompile | yes | ��ȷ��ԭ-��Ӧ�������� |
 | XGameServer | GocRecode.cpp | ?SendLeagueWealth@CGocRecode@@QEAAXFH@Z | 0x1401588f0 | implemented | IDA decompile | yes | ��ȷ��ԭ-���������Ƹ������������� |
 | XGameServer | GocRecode.cpp | ?SetOverIndulgence@CGocRecode@@QEAAX_J000@Z | 0x140158a90 | implemented | IDA decompile | yes | ��ȷ��ԭ-���÷�������Ϣ |
 | XGameServer | GocRecode.cpp | ?SaveOverIndulgence@CGocRecode@@QEAAXXZ | 0x1401590b0 | implemented | IDA decompile | yes | ��ȷ��ԭ-������������?|
@@ -5229,7 +5023,6 @@
 | - | - | ??$?0AEAGAEAUST_USER_RANKING_INFO@@@?$_Pair_base@$$CBGUST_USER_RANKING_INFO@@@std@@QEAA@AEAGAEAUST_USER_RANKING_INFO@@@Z | 0x140165140 | blocked | IDA ??$?0AEAGAEAUST_USER_RANKING_INFO@@@?$_Pair_base@$$CBGUST_USER_RANKING_INFO@@@std@@QEAA@AEAGAEAUST_USER_RANKING_INFO@@@Z | yes | - |
 | - | - | ??$_Uninit_copy@V?$_Vector_const_iterator@V?$_Vector_val@HV?$allocator@H@std@@@std@@@std@@PEAHV?$allocator@H@2@@std@@YAPEAHV?$_Vector_const_iterator@V?$_Vector_val@HV?$allocator@H@std@@@std@@@0@0PEAHAEAV?$allocator@H@0@U_Nonscalar_ptr_iterator_tag@0@@Z | 0x1401651c0 | blocked | IDA ??$_Uninit_copy@V?$_Vector_const_iterator@V?$_Vector_val@HV?$allocator@H@std@@@std@@@std@@PEAHV?$allocator@H@2@@std@@YAPEAHV?$_Vector_const_iterator@V?$_Vector_val@HV?$allocator@H@std@@@std@@@0@0PEAHAEAV?$allocator@H@0@U_Nonscalar_ptr_iterator_tag@0@@Z | yes | - |
 | - | - | ?GetSystemType@XOption@@QEAA?AW4SYSTEM_TYPE@@XZ | 0x140165250 | implemented | IDA ?GetSystemType@XOption@@QEAA?AW4SYSTEM_TYPE@@XZ | yes | - |
-| XGameServer | User.cpp | ?GetMaxComboCount@CUser@@QEAAGXZ | 0x140165270 | implemented | IDA decompile | yes | ???????????? |
 | - | - | ?_Lbound@?$_Tree@V?$_Tmap_traits@GUTB_DAILYMAZE_PORTAL@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_DAILYMAZE_PORTAL@@@std@@@3@$0A@@std@@@std@@IEAAPEAU_Node@?$_Tree_nod@V?$_Tmap_traits@GUTB_DAILYMAZE_PORTAL@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_DAILYMAZE_PORTAL@@@std@@@3@$0A@@std@@@2@AEBG@Z | 0x140165290 | blocked | IDA ?_Lbound@?$_Tree@V?$_Tmap_traits@GUTB_DAILYMAZE_PORTAL@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_DAILYMAZE_PORTAL@@@std@@@3@$0A@@std@@@std@@IEAAPEAU_Node@?$_Tree_nod@V?$_Tmap_traits@GUTB_DAILYMAZE_PORTAL@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_DAILYMAZE_PORTAL@@@std@@@3@$0A@@std@@@2@AEBG@Z | yes | - |
 | - | - | ?lower_bound@?$_Tree@V?$_Tmap_traits@GUTB_DAILYMAZE_PORTAL@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_DAILYMAZE_PORTAL@@@std@@@3@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@GUTB_DAILYMAZE_PORTAL@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_DAILYMAZE_PORTAL@@@std@@@3@$0A@@std@@@std@@@2@AEBG@Z | 0x140165330 | blocked | IDA ?lower_bound@?$_Tree@V?$_Tmap_traits@GUTB_DAILYMAZE_PORTAL@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_DAILYMAZE_PORTAL@@@std@@@3@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@GUTB_DAILYMAZE_PORTAL@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_DAILYMAZE_PORTAL@@@std@@@3@$0A@@std@@@std@@@2@AEBG@Z | yes | - |
 | - | - | ?find@?$_Tree@V?$_Tmap_traits@GUTB_DAILYMAZE_PORTAL@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_DAILYMAZE_PORTAL@@@std@@@3@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@GUTB_DAILYMAZE_PORTAL@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_DAILYMAZE_PORTAL@@@std@@@3@$0A@@std@@@std@@@2@AEBG@Z | 0x140165370 | blocked | IDA ?find@?$_Tree@V?$_Tmap_traits@GUTB_DAILYMAZE_PORTAL@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_DAILYMAZE_PORTAL@@@std@@@3@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@GUTB_DAILYMAZE_PORTAL@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_DAILYMAZE_PORTAL@@@std@@@3@$0A@@std@@@std@@@2@AEBG@Z | yes | - |
@@ -5681,12 +5474,9 @@
 | XGameServer | GocWeeklyMission.cpp | ?ReqWeeklyMissionReward@CGocWeeklyMission@@QEAAXAEAUPS_WEEKLY_MISSION_REWARD_REQ@@@Z | 0x14017f0e0 | implemented | IDA decompile | yes | ��ȷ��ԭ-������������ |
 | XGameServer | GocWeeklyMission.cpp | ?ReqWeeklyMissionRewardWeek@CGocWeeklyMission@@QEAAXAEAUPS_WEEKLY_MISSION_REWARD_WEEK_REQ@@@Z | 0x1401802a0 | implemented | IDA decompile | yes | ��ȷ��ԭ-�����������ܽ��� |
 | XGameServer | GocWeeklyMission.cpp | ?ResWeeklyMissionReward@CGocWeeklyMission@@QEAAXAEAUPS_DB_WEEKLY_MISSION_REWARD_RES@@@Z | 0x1401810a0 | implemented | IDA decompile | yes | ��ȷ��ԭ-���������������ݿ���Ӧ |
-| XGameServer | GocWeeklyMission.cpp | ?ResWeeklyMissionRewardWeek@CGocWeeklyMission@@QEAAXAEAUPS_DB_WEEKLY_MISSION_REWARD_WEEK_RES@@@Z | 0x140181590 | implemented | IDA decompile | yes | ��ȷ��ԭ-�����������ܽ������ݿ���Ӧ |
 | XGameServer | GocWeeklyMission.cpp | ?SendToDBWeeklyMissionLoad@CGocWeeklyMission@@QEAAXXZ | 0x140181a30 | implemented | IDA decompile | yes | ��ȷ��ԭ-��������������������ݿ�?|
 | - | - | ??1?$set@EU?$less@E@std@@V?$allocator@E@2@@std@@QEAA@XZ | 0x1401823f0 | blocked | IDA ??1?$set@EU?$less@E@std@@V?$allocator@E@2@@std@@QEAA@XZ | yes | - |
-| XGameServer | GocWeeklyMission.cpp | ?SendToDBWeeklyMissionUpdate@CGocWeeklyMission@@QEAAXAEAUPS_DB_WEEKLY_MISSION_UPDATE@@@Z | 0x140182410 | implemented | IDA decompile | yes | ��ȷ��ԭ-������������µ����ݿ�?|
 | XGameServer | GocWeeklyMission.cpp | ?SendToDBWeeklyMissionReward@CGocWeeklyMission@@QEAAXAEAUPS_DB_WEEKLY_MISSION_REWARD_REQ@@@Z | 0x1401827c0 | implemented | IDA decompile | yes | ��ȷ��ԭ-�������������������ݿ� |
-| XGameServer | GocWeeklyMission.cpp | ?SendToDBWeeklyMissionRewardWeek@CGocWeeklyMission@@QEAAXAEAUPS_DB_WEEKLY_MISSION_REWARD_WEEK_REQ@@@Z | 0x140182980 | implemented | IDA decompile | yes | ��ȷ��ԭ-�����������ܽ����������ݿ� |
 | XGameServer | GocWeeklyMission.cpp | ?SendToDBWeeklyMissionReset@CGocWeeklyMission@@QEAAXE@Z | 0x140182b40 | implemented | IDA decompile | yes | ��ȷ��ԭ-�������������õ����ݿ� |
 | XGameServer | GocWeeklyMission.cpp | ?SendWeeklyMissionLoad@CGocWeeklyMission@@QEAAXXZ | 0x140182d70 | implemented | IDA decompile | yes | ��ȷ��ԭ-������������ظ��ͻ���?|
 | XGameServer | GocWeeklyMission.cpp | ?SendWeeklyMissionUpdate@CGocWeeklyMission@@QEAAXAEAUST_WEEKLY_MISSION_INFO@@@Z | 0x140182f60 | implemented | IDA decompile | yes | ��ȷ��ԭ-������������¸��ͻ���?|
@@ -5854,7 +5644,7 @@
 | - | - | ??_ECInteractionObject@@WKI@EAAPEAXI@Z | 0x140188cc0 | blocked | IDA ??_ECInteractionObject@@WKI@EAAPEAXI@Z | yes | - |
 | - | - | ??_ECInteractionObject@@WBMA@EAAPEAXI@Z | 0x140188cd0 | blocked | IDA ??_ECInteractionObject@@WBMA@EAAPEAXI@Z | yes | - |
 | - | - | ??_ECInteractionObject@@WHA@EAAPEAXI@Z | 0x140188ce0 | blocked | IDA ??_ECInteractionObject@@WHA@EAAPEAXI@Z | yes | - |
-| - | - | ?SendWorldEventBooster@XActor@@UEAAXK_J@Z | 0x140188cf0 | implemented | IDA decompile | yes | XActor.h inline stub (empty function) |
+| XCore | XArea/XActor.cpp | ?SendWorldEventBooster@XActor@@UEAAXK_J@Z | 0x140188CF0 | verified | IDA decompile + PDB virtual ABI + active GameServer build | yes | Base virtual no-op retained; CUser overrides the propagation endpoint. |
 | - | - | ?SetNation@XActor@@UEAAXE@Z | 0x140188d00 | implemented | IDA decompile | yes | XActor.h inline (sets m_byNation) |
 | - | - | ?GetArea@XActor@@UEAAPEAVXArea@@XZ | 0x140188d20 | implemented | IDA decompile | yes | XActor.h inline (returns m_pArea) |
 | - | - | ?SetSessionID@IXObject@@UEAAXH@Z | 0x140188d30 | implemented | IDA ?SetSessionID@IXObject@@UEAAXH@Z | yes | - |
@@ -5878,7 +5668,6 @@
 | - | - | ?CheckPassiveSkill@CMoverEx@@UEAAXEE@Z | 0x140188fc0 | implemented | IDA ?CheckPassiveSkill@CMoverEx@@UEAAXEE@Z | yes | - |
 | - | - | ?CheckContinousAttack@CMoverEx@@UEAAGE@Z | 0x140188fd0 | implemented | IDA ?CheckContinousAttack@CMoverEx@@UEAAGE@Z | yes | - |
 | - | - | ?SetDie@CMover@@UEAAXFH_N@Z | 0x140188fe0 | implemented | IDA ?SetDie@CMover@@UEAAXFH_N@Z | yes | - |
-| XGameServer | MoverEx.cpp | ?IsBattlePose@CMoverEx@@UEAA_NXZ | 0x140189000 | implemented | IDA decompile | yes | IDA精确还原 - 返回m_bBattlePose |
 | XGameServer | MoverEx.cpp | ?GetSkillTable@CMoverEx@@UEAAPEAUTB_SKILL@@XZ | 0x140189020 | implemented | IDA decompile | yes | ???????? |
 | XGameServer | User.cpp | ?GetSkillLevel@CMoverEx@@UEAAEXZ | 0x140189040 | implemented | IDA decompile | yes | IDA������ʵ��
 | XGameServer | MoverEx.cpp | ?GetCombatType@CMoverEx@@UEAAHXZ | 0x140189080 | implemented | IDA decompile | yes | ?????????? |
@@ -6132,10 +5921,10 @@
 | XGameServer | VaccumCube.cpp | ?ClearTakeVaccum@CVaccumCube@@QEAAXXZ | 0x140191450 | implemented | IDA decompile | yes | ���ռ��״�?|
 | XGameServer | VaccumCube.cpp | ?IsTakeUser@CVaccumCube@@QEAA_NPEAVXActor@@@Z | 0x1401915c0 | implemented | IDA decompile | yes | �Ƿ���ָ���û�ռ�� |
 | XGameServer | VaccumCube.cpp | ?BuildInfoPacket@CVaccumCube@@QEAAXAEAUPS_VACCUM_CUBE_IN@@@Z | 0x140191660 | implemented | IDA decompile/disasm + source/build check | yes | Confirmed IDA packet layout: nID at offset 0, nTableID at offset 4, byInType at offset 8. |
-| XGameServer | VaccumCube.cpp | ?SetInfoPacket@CVaccumCube@@UEAAXAEAVXSendPacket@@@Z | 0x1401916f0 | implemented | IDA decompile/disasm + source/build check | yes | Replaced placeholder log with IDA-equivalent XParse serialization of PS_VACCUM_CUBE_IN fields. |
-| XGameServer | VaccumCube.cpp | ?SetInfoLeavePacket@CVaccumCube@@QEAAXAEAVXSendPacket@@_N@Z | 0x140191750 | implemented | IDA decompile/disasm + source/build check | yes | Replaced placeholder log with IDA-equivalent XParse serialization of nID and !bDestroy state. |
+| XGameServer | VaccumCube.cpp | ?SetInfoPacket@CVaccumCube@@UEAAXAEAVXSendPacket@@@Z | 0x1401916f0 | blocked | IDA decompile/disasm + source/build check | no | Replaced placeholder log with IDA-equivalent XParse serialization of PS_VACCUM_CUBE_IN fields. |
+| XGameServer | VaccumCube.cpp | ?SetInfoLeavePacket@CVaccumCube@@QEAAXAEAVXSendPacket@@_N@Z | 0x140191750 | blocked | IDA decompile/disasm + source/build check | no | Replaced placeholder log with IDA-equivalent XParse serialization of nID and !bDestroy state. |
 | XGameServer | VaccumGroup.cpp | ??0CVaccumGroup@@QEAA@PEAVCVaccumManager@@_N@Z | 0x1401917d0 | implemented | IDA decompile | yes | CVaccumGroup���캯�� |
-| XGameServer | VaccumGroup.cpp | ?AddVaccumCube@CVaccumGroup@@QEAA_NTUXActorID@@PEAUVInterActionBoxInfo@@@Z | 0x140191840 | implemented | IDA decompile + source/build check | yes | Restored the IDA-backed ThreadLocalData::GetInstance()->CreateVaccumCubeObject(vecPos) object creation path instead of direct CVaccumCube::CreateObject; BattleZone position virtual remains a separate TODO. |
+| XGameServer | VaccumGroup.cpp | ?AddVaccumCube@CVaccumGroup@@QEAA_NTUXActorID@@PEAUVInterActionBoxInfo@@@Z | 0x140191840 | blocked | IDA decompile + source/build check | no | Restored the IDA-backed ThreadLocalData::GetInstance()->CreateVaccumCubeObject(vecPos) object creation path instead of direct CVaccumCube::CreateObject; BattleZone position virtual remains a separate TODO. |
 | XGameServer | VaccumGroup.cpp | ?GetRandomValue@CVaccumGroup@@QEAAHXZ | 0x140191a90 | implemented | IDA decompile | yes | ��ȡ����?|
 | XGameServer | VaccumGroup.cpp | ?Update@CVaccumGroup@@QEAAXXZ | 0x140191ac0 | implemented | IDA decompile + source/build check | yes | Updated during the CVaccumManager routing round; build verified, but no runtime verification was performed. |
 | XGameServer | VaccumGroup.cpp | ?Click@CVaccumGroup@@QEAAHHPEAVXActor@@@Z | 0x140191f60 | implemented | IDA decompile | yes | ������������ |
@@ -6151,7 +5940,7 @@
 | XGameServer | VaccumGroup.cpp | ?ActiveVaccumCube@CVaccumGroup@@QEAAXXZ | 0x140192f10 | implemented | IDA decompile | yes | �������������?|
 | - | - | ?FindVaccumGroup@CVaccumManager@@QEAA?AV?$shared_ptr@VCVaccumGroup@@@tr1@std@@H@Z | 0x1401930b0 | implemented | IDA ?FindVaccumGroup@CVaccumManager@@QEAA?AV?$shared_ptr@VCVaccumGroup@@@tr1@std@@H@Z | yes | - |
 | XGameServer | VaccumManager.cpp | ?AddVaccumGroupForCheat@CVaccumManager@@QEAAXPEAUVInterActionBoxInfo@@@Z | 0x140193150 | implemented | IDA decompile + source/build check | yes | Restored cheat interaction mapping: null guard, append pInfo->iID when m_iInteractionID already exists, otherwise create a vector containing pInfo->iID and insert it by m_iInteractionID. |
-| XGameServer | VaccumManager.cpp | ?GetVaccumBoxIDForCheat@CVaccumManager@@QEAAHH@Z | 0x1401932b0 | implemented | IDA decompile + source/build check | yes | Removed placeholder comments and retained the IDA-backed lookup path through m_mapVaccumCheat, m_mapVaccumGroup, and CVaccumGroup::GetFirstVaccumCubeID helper. |
+| XGameServer | VaccumManager.cpp | ?GetVaccumBoxIDForCheat@CVaccumManager@@QEAAHH@Z | 0x1401932b0 | blocked | IDA decompile + source/build check | no | Removed placeholder comments and retained the IDA-backed lookup path through m_mapVaccumCheat, m_mapVaccumGroup, and CVaccumGroup::GetFirstVaccumCubeID helper. |
 | - | - | ??0?$priority_queue@PEAVCVaccumCube@@V?$vector@PEAVCVaccumCube@@V?$allocator@PEAVCVaccumCube@@@std@@@std@@VPrioritize@@@std@@QEAA@XZ | 0x140193410 | blocked | IDA ??0?$priority_queue@PEAVCVaccumCube@@V?$vector@PEAVCVaccumCube@@V?$allocator@PEAVCVaccumCube@@@std@@@std@@VPrioritize@@@std@@QEAA@XZ | yes | - |
 | - | - | ?empty@?$priority_queue@PEAVCVaccumCube@@V?$vector@PEAVCVaccumCube@@V?$allocator@PEAVCVaccumCube@@@std@@@std@@VPrioritize@@@std@@QEBA_NXZ | 0x140193450 | blocked | IDA ?empty@?$priority_queue@PEAVCVaccumCube@@V?$vector@PEAVCVaccumCube@@V?$allocator@PEAVCVaccumCube@@@std@@@std@@VPrioritize@@@std@@QEBA_NXZ | yes | - |
 | - | - | ?top@?$priority_queue@PEAVCVaccumCube@@V?$vector@PEAVCVaccumCube@@V?$allocator@PEAVCVaccumCube@@@std@@@std@@VPrioritize@@@std@@QEAAAEAPEAVCVaccumCube@@XZ | 0x140193470 | blocked | IDA ?top@?$priority_queue@PEAVCVaccumCube@@V?$vector@PEAVCVaccumCube@@V?$allocator@PEAVCVaccumCube@@@std@@@std@@VPrioritize@@@std@@QEAAAEAPEAVCVaccumCube@@XZ | yes | - |
@@ -6392,9 +6181,9 @@
 | - | - | ?SetUseCount@CItem@@QEAAXE@Z | 0x14019d1d0 | implemented | IDA ?SetUseCount@CItem@@QEAAXE@Z | yes | - |
 | - | - | ?GetTargetSightDistance@CAi@@QEAAMXZ | 0x14019d1f0 | implemented | IDA ?GetTargetSightDistance@CAi@@QEAAMXZ | yes | - |
 | - | - | ?GetSuicideTime@CAi@@QEAAMXZ | 0x14019d210 | implemented | IDA ?GetSuicideTime@CAi@@QEAAMXZ | yes | - |
-| XCore | HavokTypes.h | ?setTransform@hkaiPointCloudSilhouetteGenerator@@QEAAXAEBVhkQTransform@@@Z | 0x14019d230 | implemented | IDA decompile | yes | Stub in HavokTypes.h - copies transform to m_transform at offset 0x40 |
-| XCore | HavokTypes.h | ?setEnabled@hkaiPointCloudSilhouetteGenerator@@QEAAX_N@Z | 0x14019d260 | implemented | IDA decompile | yes | Stub in HavokTypes.h - sets m_isEnabled bool |
-| XCore | HavokTypes.h | ?setWeldTolerance@hkaiPointCloudSilhouetteGenerator@@QEAAXM@Z | 0x14019d290 | implemented | IDA decompile | yes | Stub in HavokTypes.h - sets m_weldTolerance float |
+| XCore | HavokTypes.h | ?setTransform@hkaiPointCloudSilhouetteGenerator@@QEAAXAEBVhkQTransform@@@Z | 0x14019d230 | blocked | IDA decompile | no | Stub in HavokTypes.h - copies transform to m_transform at offset 0x40 |
+| XCore | HavokTypes.h | ?setEnabled@hkaiPointCloudSilhouetteGenerator@@QEAAX_N@Z | 0x14019d260 | blocked | IDA decompile | no | Stub in HavokTypes.h - sets m_isEnabled bool |
+| XCore | HavokTypes.h | ?setWeldTolerance@hkaiPointCloudSilhouetteGenerator@@QEAAXM@Z | 0x14019d290 | blocked | IDA decompile | no | Stub in HavokTypes.h - sets m_weldTolerance float |
 | XGameServer | BattleZone.cpp | ??0CBattleZone@@QEAA@XZ | 0x14019d2b0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ-���캯����ʼ������ͳ��?|
 | - | - | ??_GCBattleZone@@UEAAPEAXI@Z | 0x14019d460 | blocked | IDA ??_GCBattleZone@@UEAAPEAXI@Z | yes | - |
 | - | - | ??1?$map@HV?$shared_ptr@VCDropItemGroup@@@tr1@std@@U?$less@H@3@V?$allocator@U?$pair@$$CBHV?$shared_ptr@VCDropItemGroup@@@tr1@std@@@std@@@3@@std@@QEAA@XZ | 0x14019d4a0 | blocked | IDA ??1?$map@HV?$shared_ptr@VCDropItemGroup@@@tr1@std@@U?$less@H@3@V?$allocator@U?$pair@$$CBHV?$shared_ptr@VCDropItemGroup@@@tr1@std@@@std@@@3@@std@@QEAA@XZ | yes | - |
@@ -6437,10 +6226,6 @@
 | XGameServer | BattleZone.cpp | ?ChangePacketOptimization_GM@CBattleZone@@UEAAXG@Z | 0x1401a59c0 | implemented | IDA decompile | yes | GM�޸İ��Ż� |
 | XGameServer | BattleZone.cpp | ?ResetPacketOptimization_GM@CBattleZone@@UEAAXXZ | 0x1401a5a80 | implemented | IDA decompile | yes | GM���ð��Ż� |
 | XGameServer | BattleZone.cpp | ?ExcuteSpawnBoxCheck@CBattleZone@@QEAAXHW4E_SEND_INFO_TYPE@IXArea@@_N@Z | 0x1401a5b40 | implemented | IDA decompile | yes | IDA��ȷ��ԭ-��鲢����������?�����ӳٺͼ��� |
-| XGameServer | BattleZone.cpp | ?AddMonsterSpawnInfo@CBattleZone@@QEAAXHK@Z | 0x1401a5ce0 | implemented | IDA decompile | yes | ���ӹ���������Ϣ |
-| XGameServer | BattleZone.cpp | ?SendPotalInfos@CBattleZone@@QEAAXPEAVXActor@@@Z | 0x1401a6490 | implemented | IDA decompile | yes | ���ʹ�������Ϣ |
-| XGameServer | BattleZone.cpp | ?SetPotalFlag@CBattleZone@@QEAAXH_N@Z | 0x1401a6760 | implemented | IDA decompile | yes | ���ô����ű�־ |
-| XGameServer | BattleZone.cpp | ?SetWorldModeSync@CBattleZone@@QEAAXPEAVCUser@@@Z | 0x1401a6ca0 | implemented | IDA decompile | yes | ͬ������ģʽ״̬ |
 | XGameServer | BattleZone.cpp | ?AddMonsterSpawnInfo@CBattleZone@@QEAAXHK@Z | 0x1401a5ce0 | implemented | IDA decompile | yes | ���ӹ���������Ϣӳ�� |
 | - | - | ??1?$pair@$$CBHV?$list@HV?$allocator@H@std@@@std@@@std@@QEAA@XZ | 0x1401a5e20 | blocked | IDA ??1?$pair@$$CBHV?$list@HV?$allocator@H@std@@@std@@@std@@QEAA@XZ | yes | - |
 | - | - | ??1ST_MY_TRADE_INFO@@QEAA@XZ | 0x1401a5e40 | blocked | IDA ??1ST_MY_TRADE_INFO@@QEAA@XZ | yes | - |
@@ -6459,8 +6244,6 @@
 | XGameServer | BattleZone.cpp | ?SaveDamageInfo@CBattleZone@@QEAAXV?$list@UST_MONSTER_DAMAGE_INFO@@V?$allocator@UST_MONSTER_DAMAGE_INFO@@@std@@@std@@@Z | 0x1401a7bc0 | implemented | IDA decompile + PDB types | yes | Verified: iterates listHitID, inserts dwUCID into m_setWorldModeHitUser |
 | XGameServer | BattleZone.cpp | ?AppearEventMonster@CBattleZone@@UEAAXH_J0H00@Z | 0x1401a7c60 | implemented | IDA decompile | yes | �㲥����ģʽ��ʼ |
 | - | - | ?ProcessMonsterQuest@CBattleZone@@QEAAXV?$list@UST_MONSTER_DAMAGE_INFO@@V?$allocator@UST_MONSTER_DAMAGE_INFO@@@std@@@std@@PEAUTB_MONSTER@@@Z | 0x1401a7dc0 | implemented | IDA ?ProcessMonsterQuest@CBattleZone@@QEAAXV?$list@UST_MONSTER_DAMAGE_INFO@@V?$allocator@UST_MONSTER_DAMAGE_INFO@@@std@@@std@@PEAUTB_MONSTER@@@Z | yes | - |
-| XGameServer | BattleZone.cpp | ?InitKRRMonster@CBattleZone@@QEAAXXZ | 0x1401a7ff0 | implemented | IDA decompile | yes | ��ʼ��KRR���� |
-| XGameServer | BattleZone.cpp | ?SendWorldModeInfo@CBattleZone@@QEAAXPEAVXActor@@@Z | 0x1401a8410 | implemented | IDA decompile | yes | ��������ģʽ��Ϣ-����m_vecWorldModeList�����?|
 | XGameServer | BattleZone.cpp | ?InitKRRMonster@CBattleZone@@QEAAXXZ | 0x1401a7ff0 | implemented | IDA decompile | yes | ��ʼ��KRR���� |
 | XGameServer | BattleZone.cpp | ?SendWorldModeInfo@CBattleZone@@QEAAXPEAVXActor@@@Z | 0x1401a8410 | implemented | IDA decompile | yes | ��������ģʽ��Ϣ-����m_vecWorldModeList�����?|
 | XGameServer | BattleZone.cpp | ?IsWorldModeBoss@CBattleZone@@QEAA_NXZ | 0x1401a8560 | implemented | IDA decompile | yes | ��ȷ��ԭ-����m_mapGameWorldMode���Start_Type==1��GetState==1 |
@@ -6572,12 +6355,12 @@
 | - | - | ??$insert@H@?$list@HV?$allocator@H@std@@@std@@QEAA?AV?$_List_iterator@V?$_List_val@HV?$allocator@H@std@@@std@@@1@V?$_List_const_iterator@V?$_List_val@HV?$allocator@H@std@@@std@@@1@$$QEAH@Z | 0x1401acde0 | blocked | IDA ??$insert@H@?$list@HV?$allocator@H@std@@@std@@QEAA?AV?$_List_iterator@V?$_List_val@HV?$allocator@H@std@@@std@@@1@V?$_List_const_iterator@V?$_List_val@HV?$allocator@H@std@@@std@@@1@$$QEAH@Z | yes | - |
 | - | - | ??$_Uninit_copy@V?$_Vector_iterator@V?$_Vector_val@PEAVCMover@@V?$allocator@PEAVCMover@@@std@@@std@@@std@@PEAPEAVCMover@@V?$allocator@PEAVCMover@@@2@@std@@YAPEAPEAVCMover@@V?$_Vector_iterator@V?$_Vector_val@PEAVCMover@@V?$allocator@PEAVCMover@@@std@@@std@@@0@0PEAPEAV1@AEAV?$allocator@PEAVCMover@@@0@U_Nonscalar_ptr_iterator_tag@0@@Z | 0x1401ace30 | blocked | IDA ??$_Uninit_copy@V?$_Vector_iterator@V?$_Vector_val@PEAVCMover@@V?$allocator@PEAVCMover@@@std@@@std@@@std@@PEAPEAVCMover@@V?$allocator@PEAVCMover@@@2@@std@@YAPEAPEAVCMover@@V?$_Vector_iterator@V?$_Vector_val@PEAVCMover@@V?$allocator@PEAVCMover@@@std@@@std@@@0@0PEAPEAV1@AEAV?$allocator@PEAVCMover@@@0@U_Nonscalar_ptr_iterator_tag@0@@Z | yes | - |
 | - | - | ??$emplace@H@?$list@HV?$allocator@H@std@@@std@@QEAA?AV?$_List_iterator@V?$_List_val@HV?$allocator@H@std@@@std@@@1@V?$_List_const_iterator@V?$_List_val@HV?$allocator@H@std@@@std@@@1@$$QEAH@Z | 0x1401acec0 | blocked | IDA ??$emplace@H@?$list@HV?$allocator@H@std@@@std@@QEAA?AV?$_List_iterator@V?$_List_val@HV?$allocator@H@std@@@std@@@1@V?$_List_const_iterator@V?$_List_val@HV?$allocator@H@std@@@std@@@1@$$QEAH@Z | yes | - |
-| - | - | ?GetExitDistrictID@XArea@@UEAA_NKAEAGAEAHAEAUXVec3@@@Z | 0x1401acf20 | implemented | IDA decompile | yes | XArea.h inline stub (returns false) |
+| - | - | ?GetExitDistrictID@XArea@@UEAA_NKAEAGAEAHAEAUXVec3@@@Z | 0x1401acf20 | blocked | IDA decompile | no | XArea.h inline stub (returns false) |
 | XGameServer | BattleZone.cpp | ?GetNavMeshInstance@CBattleZone@@UEAAPEAVDohHavokNavMeshInstance@@XZ | 0x1401acf40 | implemented | IDA decompile | yes | ��ȡ��������ʵ�� |
 | - | - | ?GetObjectResource@XDistrict@@UEAAPEAVVEventObjectResource@@XZ | 0x1401acf60 | implemented | IDA ?GetObjectResource@XDistrict@@UEAAPEAVVEventObjectResource@@XZ | yes | - |
-| - | - | ?ProcessExp@XArea@@UEAAXPEAVXActor@@MH@Z | 0x1401acf80 | implemented | IDA decompile | yes | XArea.h inline stub (empty function) |
+| - | - | ?ProcessExp@XArea@@UEAAXPEAVXActor@@MH@Z | 0x1401acf80 | blocked | IDA decompile | no | XArea.h inline stub (empty function) |
 | - | - | ?GetSkillLevel@CMover@@UEAAEXZ | 0x1401acfa0 | implemented | IDA ?GetSkillLevel@CMover@@UEAAEXZ | yes | - |
-| - | - | ?MoveActor@XArea@@UEAAGTUXActorID@@AEAUXVec3@@M@Z | 0x1401acfb0 | implemented | IDA decompile | yes | XArea.h inline stub (returns 0) |
+| - | - | ?MoveActor@XArea@@UEAAGTUXActorID@@AEAUXVec3@@M@Z | 0x1401acfb0 | blocked | IDA decompile | no | XArea.h inline stub (returns 0) |
 | - | - | ?GetEnterDistrictPos@CUser@@QEAAXAEAUSTPosInfo@@@Z | 0x1401acfd0 | implemented | IDA decompile | yes | User.cpp (copies m_stEnterDistrictPos to output) |
 | CMonster | Monster.cpp | ?SetSummonLifeTime@CMonster@@QEAAXM@Z | 0x1401ad000 | implemented | IDA ?SetSummonLifeTime@CMonster@@QEAAXM@Z | yes | - |
 | - | - | ?GetOwnerID@CMoverEx@@QEAAKXZ | 0x1401ad020 | implemented | IDA ?GetOwnerID@CMoverEx@@QEAAKXZ | yes | - |
@@ -6589,7 +6372,7 @@
 | - | - | ??0PS_WORLD_MODE_START@@QEAA@XZ | 0x1401ad280 | blocked | IDA ??0PS_WORLD_MODE_START@@QEAA@XZ | yes | - |
 | - | - | ??0PS_CHAT_NOTICE_EX@@QEAA@XZ | 0x1401ad2f0 | blocked | IDA ??0PS_CHAT_NOTICE_EX@@QEAA@XZ | yes | - |
 | - | - | ?GetTB_DROPRATE_MOB@XResourceMgr@@QEAAPEAUTB_DROPRATE_MOB@@E@Z | 0x1401ad340 | implemented | IDA ?GetTB_DROPRATE_MOB@XResourceMgr@@QEAAPEAUTB_DROPRATE_MOB@@E@Z | yes | - |
-| XCore | HavokTypes.h | ?setLazyRecomputeDisplacementThreshold@hkaiSilhouetteGenerator@@QEAAXM@Z | 0x1401ad3b0 | implemented | IDA decompile | yes | Stub in HavokTypes.h - sets m_lazyRecomputeDisplacementThreshold |
+| XCore | HavokTypes.h | ?setLazyRecomputeDisplacementThreshold@hkaiSilhouetteGenerator@@QEAAXM@Z | 0x1401ad3b0 | blocked | IDA decompile | no | Stub in HavokTypes.h - sets m_lazyRecomputeDisplacementThreshold |
 | XCore | HavokTypes.h | ??0hkQuaternion@@QEAA@AEBV0@@Z | 0x1401ad3d0 | implemented | IDA decompile | yes | Default copy constructor |
 | XCore | HavokTypes.h | ??0hkQTransform@@QEAA@AEBVhkQuaternion@@AEBVhkVector4@@@Z | 0x1401ad400 | implemented | IDA decompile | yes | Constructor from quaternion and translation |
 | XCore | HavokTypes.h | ??0hkAabb@@QEAA@XZ | 0x1401ad450 | implemented | IDA decompile | yes | Default constructor - zero AABB |
@@ -11674,7 +11457,7 @@
 | - | - | ??$_Construct@UST_PARTY_RECRUIT@@AEBU1@@std@@YAXPEAUST_PARTY_RECRUIT@@AEBU1@@Z | 0x14025c950 | blocked | IDA ??$_Construct@UST_PARTY_RECRUIT@@AEBU1@@std@@YAXPEAUST_PARTY_RECRUIT@@AEBU1@@Z | yes | - |
 | - | - | ??$_Construct@UST_EXCHANGE_PRICE_INFO@@AEBU1@@std@@YAXPEAUST_EXCHANGE_PRICE_INFO@@AEBU1@@Z | 0x14025ca00 | blocked | IDA ??$_Construct@UST_EXCHANGE_PRICE_INFO@@AEBU1@@std@@YAXPEAUST_EXCHANGE_PRICE_INFO@@AEBU1@@Z | yes | - |
 | - | - | ?SetLeagueName@CUser@@QEAAXPEA_W@Z | 0x14025cab0 | implemented | IDA ?SetLeagueName@CUser@@QEAAXPEA_W@Z | yes | - |
-| XGameServer | GocInventory.cpp | ?SetReqLeagueNameChange@CGocInventory@@QEAAX_N@Z | 0x14025cae0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
+| XGameServer | GocInventory.cpp | ?SetReqLeagueNameChange@CGocInventory@@QEAAX_N@Z | 0x14025cae0 | verified | GameServer PDB + IDA decompile/assembly + source build | yes | Assigns m_bReqLeagueNameChange. |
 | - | - | ??0PS_LEAGUE_NAME_CHANGE_SERVER@@QEAA@XZ | 0x14025cb00 | blocked | IDA ??0PS_LEAGUE_NAME_CHANGE_SERVER@@QEAA@XZ | yes | - |
 | - | - | ??0PS_SERVER_MODE_MAZE_MATCHING_TIME_INFO@@QEAA@XZ | 0x14025cb70 | blocked | IDA ??0PS_SERVER_MODE_MAZE_MATCHING_TIME_INFO@@QEAA@XZ | yes | - |
 | - | - | ??0PS_MODE_MAZE_MATCHING_WAIT@@QEAA@XZ | 0x14025cbd0 | blocked | IDA ??0PS_MODE_MAZE_MATCHING_WAIT@@QEAA@XZ | yes | - |
@@ -12123,9 +11906,9 @@
 | XCore | HavokTypes.h | ??1?$hkArray@IUhkContainerHeapAllocator@@@@QEAA@XZ | 0x1402771a0 | implemented | IDA decompile | yes | hkArray destructor |
 | XCore | HavokTypes.h | ??1FindPathInput@hkaiPathfindingUtil@@UEAA@XZ | 0x1402771d0 | implemented | IDA decompile | yes | FindPathInput destructor |
 | XCore | HavokTypes.h | ??0GetClosestPointInput@hkaiNavMeshQueryMediator@@QEAA@AEBVhkVector4@@AEBVhkSimdReal@@@Z | 0x140277240 | implemented | IDA decompile | yes | Constructor - sets point and radius for closest point query |
-| XCore | HavokTypes.h | ?getClosestPoint@hkaiNavMeshQueryMediator@@QEBAIAEBVhkVector4@@MAEAV2@@Z | 0x1402772c0 | implemented | IDA decompile | yes | Stub in HavokTypes.h - finds closest point on navmesh |
+| XCore | HavokTypes.h | ?getClosestPoint@hkaiNavMeshQueryMediator@@QEBAIAEBVhkVector4@@MAEAV2@@Z | 0x1402772c0 | blocked | IDA decompile | no | Stub in HavokTypes.h - finds closest point on navmesh |
 | XCore | HavokTypes.h | ??0QueryInputBase@hkaiNavMeshQueryMediator@@QEAA@XZ | 0x140277350 | implemented | IDA decompile | yes | Default constructor for query input |
-| XCore | HavokTypes.h | ?getStreamingCollection@hkaiWorld@@QEAAPEAVhkaiStreamingCollection@@XZ | 0x1402773a0 | implemented | IDA decompile | yes | Stub in HavokTypes.h - returns streaming collection |
+| XCore | HavokTypes.h | ?getStreamingCollection@hkaiWorld@@QEAAPEAVhkaiStreamingCollection@@XZ | 0x1402773a0 | blocked | IDA decompile | no | Stub in HavokTypes.h - returns streaming collection |
 | - | - | ?apply@?$unroll_store@$02$0A@@hkVector4_AdvancedInterface@@SAXAEBT__m128@@PEIAM@Z | 0x1402773c0 | implemented | IDA decompile | yes | hkVector4_AdvancedInterface::unroll_store<3,0> |
 | - | - | ?apply@?$unroll_store@$02$00@hkVector4_AdvancedInterface@@SAXAEBT__m128@@PEIAM@Z | 0x140277480 | blocked | IDA ?apply@?$unroll_store@$02$00@hkVector4_AdvancedInterface@@SAXAEBT__m128@@PEIAM@Z | yes | - |
 | - | - | ??$store@$02$00@hkVector4@@QEBAXPEAM@Z | 0x1402774b0 | implemented | IDA decompile | yes | hkVector4::store<3,1> |
@@ -13624,7 +13407,7 @@
 | XGameServer | GameServer.cpp | ?SendDBLog@XGameServer@@QEAA_NAEAVXSendDBPacket@@@Z | 0x1402db1a0 | implemented | IDA decompile | yes | ?????? |
 | XGameServer | GameServer.cpp | ?SendDBAccount@XGameServer@@QEAA_NAEAVXSendDBPacket@@@Z | 0x1402db250 | implemented | IDA decompile | yes | ?????? |
 | XGameServer | GameServer.cpp | ?SendDBStatistics@XGameServer@@QEAA_NAEAVXSendDBPacket@@@Z | 0x1402db300 | implemented | IDA decompile | yes | ?????? |
-| XGameServer | GameServer.cpp | ?SyncUsersInfo@XGameServer@@QEAA_NH@Z | 0x1402db3b0 | implemented | IDA decompile | yes | stub(awaiting boost::multi_index and CLogicThreadManager dependencies) |
+| XGameServer | GameServer.cpp | ?SyncUsersInfo@XGameServer@@QEAA_NH@Z | 0x1402db3b0 | blocked | IDA decompile | no | stub(awaiting boost::multi_index and CLogicThreadManager dependencies) |
 | - | - | ??R_lambda0_@?A0xb3d19fe2@@QEBAXXZ | 0x1402dbed0 | blocked | IDA ??R_lambda0_@?A0xb3d19fe2@@QEBAXXZ | yes | - |
 | - | - | ??1PS_USERS_INFO@@QEAA@XZ | 0x1402dc3c0 | blocked | IDA ??1PS_USERS_INFO@@QEAA@XZ | yes | - |
 | - | - | ??1PS_USER_INFO_FOR_RELAY@@QEAA@XZ | 0x1402dc3e0 | blocked | IDA ??1PS_USER_INFO_FOR_RELAY@@QEAA@XZ | yes | - |
@@ -14216,7 +13999,7 @@
 | - | - | ??DDiyFp@internal@rapidjson@@QEBA?AU012@AEBU012@@Z | 0x1402f4870 | blocked | IDA ??DDiyFp@internal@rapidjson@@QEBA?AU012@AEBU012@@Z | yes | - |
 | - | - | ?Normalize@DiyFp@internal@rapidjson@@QEBA?AU123@XZ | 0x1402f4910 | blocked | IDA ?Normalize@DiyFp@internal@rapidjson@@QEBA?AU123@XZ | yes | - |
 | - | - | ?EffectiveSignificandSize@Double@internal@rapidjson@@SAIH@Z | 0x1402f4980 | blocked | IDA ?EffectiveSignificandSize@Double@internal@rapidjson@@SAIH@Z | yes | - |
-| - | - | ?ToDouble@DiyFp@internal@rapidjson@@QEBANXZ | 0x1402f49c0 | blocked | IDA ?ToDouble@DiyFp@internal@rapidjson@@QEBANXZ | yes | - |
+| - | - | ?ToDouble@DiyFp@internal@rapidjson@@QEBANXZ | 0x1402f49c0 | blocked | IDA ?ToDouble@DiyFp@internal@rapidjson@@QEBANXZ | no | - |
 | - | - | ?StrtodDiyFp@internal@rapidjson@@YA_NPEBD_K1HPEAN@Z | 0x1402f4a50 | blocked | IDA ?StrtodDiyFp@internal@rapidjson@@YA_NPEBD_K1HPEAN@Z | yes | - |
 | - | - | ?ParseUint64@BigInteger@internal@rapidjson@@CA_KPEBD0@Z | 0x1402f5090 | blocked | IDA ?ParseUint64@BigInteger@internal@rapidjson@@CA_KPEBD0@Z | yes | - |
 | - | - | ??YBigInteger@internal@rapidjson@@QEAAAEAV012@_K@Z | 0x1402f5100 | blocked | IDA ??YBigInteger@internal@rapidjson@@QEAAAEAV012@_K@Z | yes | - |
@@ -14331,7 +14114,7 @@
 | - | - | ?init@DohHavokHelper@@SAXXZ | 0x1402f7910 | implemented | IDA ?init@DohHavokHelper@@SAXXZ | yes | - |
 | - | - | ?deinit@DohHavokHelper@@SAXXZ | 0x1402f7960 | implemented | IDA ?deinit@DohHavokHelper@@SAXXZ | yes | - |
 | - | - | ?initDefault@hkMemoryInitUtil@@YAPEAVhkMemoryRouter@@PEAVhkMemoryAllocator@@AEBUFrameInfo@hkMemorySystem@@@Z | 0x1402f7980 | implemented | IDA decompile | yes | hkMemoryInitUtil::initDefault |
-| XCore | HavokTypes.h | ?setLocalPoints@hkaiPointCloudSilhouetteGenerator@@QEAAXAEBV?$hkArrayBase@VhkVector4@@@@@Z | 0x1402f79b0 | implemented | IDA decompile | yes | Stub in HavokTypes.h - copies points array and marks localPointsChanged |
+| XCore | HavokTypes.h | ?setLocalPoints@hkaiPointCloudSilhouetteGenerator@@QEAAXAEBV?$hkArrayBase@VhkVector4@@@@@Z | 0x1402f79b0 | blocked | IDA decompile | no | Stub in HavokTypes.h - copies points array and marks localPointsChanged |
 | - | - | getRandomPoints | 0x1402f7a50 | blocked | IDA getRandomPoints | yes | - |
 | XGameServer | DohHavokNavMeshInstance.cpp | ??0DohHavokNavMeshInstance@@QEAA@PEAVHavokNavMeshResource@@H@Z | 0x1402f7b10 | implemented | IDA decompile | yes | Havok navmesh constructor - initializes hkaiWorld and silhouette generators |
 | - | - | ??_EDohHavokNavMeshInstance@@UEAAPEAXI@Z | 0x1402f7fd0 | blocked | IDA ??_EDohHavokNavMeshInstance@@UEAAPEAXI@Z | yes | - |
@@ -14688,12 +14471,12 @@
 | - | - | ??1XGameDBSocket@@UEAA@XZ | 0x1403088f0 | blocked | IDA ??1XGameDBSocket@@UEAA@XZ | yes | - |
 | - | - | ?FindUser@XGameDBSocket@@MEAAPEAVCUser@@H@Z | 0x140308940 | implemented | IDA ?FindUser@XGameDBSocket@@MEAAPEAVCUser@@H@Z | yes | - |
 | - | - | ?SetInfomation@XGameDBSocket@@MEAAXXZ | 0x140308970 | implemented | IDA ?SetInfomation@XGameDBSocket@@MEAAXXZ | yes | - |
-| - | - | ?DBParse@XGameDBSocket@@MEAA_NPEAVCUser@@AEAVXPacket@@@Z | 0x140308a00 | implemented | IDA ?DBParse@XGameDBSocket@@MEAA_NPEAVCUser@@AEAVXPacket@@@Z | yes | - |
+| XGameServer | GameDBSocket.cpp | ?DBParse@XGameDBSocket@@MEAA_NPEAVCUser@@AEAVXPacket@@@Z | 0x140308A00 | verified | IDA decompile + active CMake build | yes | Includes the main=1 System DB route and the active process routes. |
 | - | - | ?OnDisConnect@XGameDBSocket@@MEAAXXZ | 0x140309140 | implemented | IDA ?OnDisConnect@XGameDBSocket@@MEAAXXZ | yes | - |
 | - | - | ?OnNotConnect@XGameDBSocket@@MEAAXXZ | 0x140309210 | implemented | IDA ?OnNotConnect@XGameDBSocket@@MEAAXXZ | yes | - |
 | - | - | ?OnStartThread@XGameDBSocket@@MEAAXXZ | 0x1403092b0 | implemented | IDA ?OnStartThread@XGameDBSocket@@MEAAXXZ | yes | - |
 | - | - | ?OnFinishThread@XGameDBSocket@@MEAAXXZ | 0x1403093b0 | implemented | IDA ?OnFinishThread@XGameDBSocket@@MEAAXXZ | yes | - |
-| - | - | ?SystemDBParse@XGameDBSocket@@QEAA_NPEAVCUser@@EAEAVXPacket@@@Z | 0x140309420 | implemented | IDA ?SystemDBParse@XGameDBSocket@@QEAA_NPEAVCUser@@EAEAVXPacket@@@Z | yes | - |
+| XGameServer | GameDBSocket.cpp | ?SystemDBParse@XGameDBSocket@@QEAA_NPEAVCUser@@EAEAVXPacket@@@Z | 0x140309420 | verified | IDA decompile + source implementation + active CMake build | yes | Dispatches subcommands 1, 3, and 4 to the restored system DB handlers. |
 | - | - | ?RankingDBParse@XGameDBSocket@@QEAA_NPEAVCUser@@EAEAVXPacket@@@Z | 0x1403094a0 | implemented | IDA ?RankingDBParse@XGameDBSocket@@QEAA_NPEAVCUser@@EAEAVXPacket@@@Z | yes | - |
 | - | - | ?MyRoomDBParse@XGameDBSocket@@QEAA_NPEAVCUser@@EAEAVXPacket@@@Z | 0x1403094e0 | implemented | IDA ?MyRoomDBParse@XGameDBSocket@@QEAA_NPEAVCUser@@EAEAVXPacket@@@Z | yes | - |
 | - | - | ??0_lambda0_@?A0x2b941273@@QEAA@AEBHAEBKAEB_JAEBUST_MYROOM_USER@@AEBUST_MYROOM_ITEM_LIST@@1@Z | 0x14030a600 | blocked | IDA ??0_lambda0_@?A0x2b941273@@QEAA@AEBHAEBKAEB_JAEBUST_MYROOM_USER@@AEBUST_MYROOM_ITEM_LIST@@1@Z | yes | - |
@@ -14717,13 +14500,13 @@
 | - | - | ??0_lambda1_@?A0x2b941273@@QEAA@AEBV01@@Z | 0x14030ad60 | blocked | IDA ??0_lambda1_@?A0x2b941273@@QEAA@AEBV01@@Z | yes | - |
 | - | - | ??1_lambda6_@?A0x2b941273@@QEAA@XZ | 0x14030adb0 | blocked | IDA ??1_lambda6_@?A0x2b941273@@QEAA@XZ | yes | - |
 | - | - | ??0_lambda6_@?A0x2b941273@@QEAA@AEBV01@@Z | 0x14030add0 | blocked | IDA ??0_lambda6_@?A0x2b941273@@QEAA@AEBV01@@Z | yes | - |
-| - | - | ?ResConnectHanNetCafeList@XGameDBSocket@@QEAA_NAEAVXPacket@@@Z | 0x14030ae30 | implemented | IDA ?ResConnectHanNetCafeList@XGameDBSocket@@QEAA_NAEAVXPacket@@@Z | yes | - |
+| XGameServer | GameDBSocket.cpp | ?ResConnectHanNetCafeList@XGameDBSocket@@QEAA_NAEAVXPacket@@@Z | 0x14030AE30 | verified | IDA decompile + source implementation + active CMake build | yes | Deserializes PS_DB_HAN_NET_CAFE_LIST and returns true. |
 | - | - | ??1PS_DB_HAN_NET_CAFE_LIST@@QEAA@XZ | 0x14030ae80 | blocked | IDA ??1PS_DB_HAN_NET_CAFE_LIST@@QEAA@XZ | yes | - |
-| - | - | ?ResWorldEventInfoSync@XGameDBSocket@@QEAA_NAEAVXPacket@@@Z | 0x14030aea0 | implemented | IDA ?ResWorldEventInfoSync@XGameDBSocket@@QEAA_NAEAVXPacket@@@Z | yes | - |
+| XGameServer | GameDBSocket.cpp | ?ResWorldEventInfoSync@XGameDBSocket@@QEAA_NAEAVXPacket@@@Z | 0x14030AEA0 | verified | IDA decompile + source implementation + active CMake build | yes | Copies the response into a common job and calls CWorldEventMgr::UpdateTotalCount. |
 | - | - | ??0_lambda8_@?A0x2b941273@@QEAA@AEBUPS_WORLD_EVENT_INFO_RES@@@Z | 0x14030afa0 | blocked | IDA ??0_lambda8_@?A0x2b941273@@QEAA@AEBUPS_WORLD_EVENT_INFO_RES@@@Z | yes | - |
 | - | - | ??R_lambda8_@?A0x2b941273@@QEBAXXZ | 0x14030afd0 | blocked | IDA ??R_lambda8_@?A0x2b941273@@QEBAXXZ | yes | - |
 | - | - | ??1PS_DB_WORLD_EVENT_INFO_RES@@QEAA@XZ | 0x14030b010 | blocked | IDA ??1PS_DB_WORLD_EVENT_INFO_RES@@QEAA@XZ | yes | - |
-| - | - | ?ResGetDBTime@XGameDBSocket@@QEAA_NPEAVCUser@@AEAVXPacket@@@Z | 0x14030b030 | implemented | IDA ?ResGetDBTime@XGameDBSocket@@QEAA_NPEAVCUser@@AEAVXPacket@@@Z | yes | - |
+| XGameServer | GameDBSocket.cpp | ?ResGetDBTime@XGameDBSocket@@QEAA_NPEAVCUser@@AEAVXPacket@@@Z | 0x14030B030 | verified | IDA decompile + PDB lambda evidence + active CMake build | yes | Preserves packet extraction, area/job-count checks, two map-keyed jobs, client notice send, and decrement callback. |
 | - | - | ??0_lambda9_@?A0x2b941273@@QEAA@AEBQEAVCUser@@AEBUPS_CHAT_NOTICE@@@Z | 0x14030b260 | blocked | IDA ??0_lambda9_@?A0x2b941273@@QEAA@AEBQEAVCUser@@AEBUPS_CHAT_NOTICE@@@Z | yes | - |
 | - | - | ??R_lambda9_@?A0x2b941273@@QEBAXXZ | 0x14030b2d0 | blocked | IDA ??R_lambda9_@?A0x2b941273@@QEBAXXZ | yes | - |
 | - | - | ?ResRankingList@XGameDBSocket@@QEAA_NAEAVXPacket@@@Z | 0x14030b3e0 | implemented | IDA ?ResRankingList@XGameDBSocket@@QEAA_NAEAVXPacket@@@Z | yes | - |
@@ -14975,7 +14758,6 @@
 | - | - | ?GetGameModeMgr@ThreadLocalData@@QEAAPEAVGameModeMgr@@XZ | 0x140310490 | implemented | IDA ?GetGameModeMgr@ThreadLocalData@@QEAAPEAVGameModeMgr@@XZ | yes | - |
 | - | - | ?IsMaster@CGocParty@@QEAA_NXZ | 0x1403104b0 | implemented | IDA ?IsMaster@CGocParty@@QEAA_NXZ | yes | - |
 | - | - | ?IsSendMsgSectorClear@CGocQuest@@QEAA_NXZ | 0x140310530 | implemented | IDA ?IsSendMsgSectorClear@CGocQuest@@QEAA_NXZ | yes | - |
-| XGameServer | Maze.cpp | ??0XMaze@@QEAA@XZ | 0x140310550 | implemented | IDA decompile | yes | IDA������ʵ��
 | - | - | ??_EXMaze@@UEAAPEAXI@Z | 0x140310ba0 | blocked | IDA ??_EXMaze@@UEAAPEAXI@Z | yes | - |
 | - | - | ??1?$map@KUST_MAZE_WAIT_ENTER_USER_INFO@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUST_MAZE_WAIT_ENTER_USER_INFO@@@std@@@3@@std@@QEAA@XZ | 0x140310be0 | blocked | IDA ??1?$map@KUST_MAZE_WAIT_ENTER_USER_INFO@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUST_MAZE_WAIT_ENTER_USER_INFO@@@std@@@3@@std@@QEAA@XZ | yes | - |
 | - | - | ??1?$map@HUSTMonterGroupMonsterInfo@@U?$less@H@std@@V?$allocator@U?$pair@$$CBHUSTMonterGroupMonsterInfo@@@std@@@3@@std@@QEAA@XZ | 0x140310c00 | blocked | IDA ??1?$map@HUSTMonterGroupMonsterInfo@@U?$less@H@std@@V?$allocator@U?$pair@$$CBHUSTMonterGroupMonsterInfo@@@std@@@3@@std@@QEAA@XZ | yes | - |
@@ -14986,7 +14768,6 @@
 | - | - | ??1?$map@HUST_RANDOM_BUFF@@U?$less@H@std@@V?$allocator@U?$pair@$$CBHUST_RANDOM_BUFF@@@std@@@3@@std@@QEAA@XZ | 0x140310cc0 | blocked | IDA ??1?$map@HUST_RANDOM_BUFF@@U?$less@H@std@@V?$allocator@U?$pair@$$CBHUST_RANDOM_BUFF@@@std@@@3@@std@@QEAA@XZ | yes | - |
 | - | - | ??1?$map@HUST_TIME_STEP_TIMER@@U?$less@H@std@@V?$allocator@U?$pair@$$CBHUST_TIME_STEP_TIMER@@@std@@@3@@std@@QEAA@XZ | 0x140310ce0 | blocked | IDA ??1?$map@HUST_TIME_STEP_TIMER@@U?$less@H@std@@V?$allocator@U?$pair@$$CBHUST_TIME_STEP_TIMER@@@std@@@3@@std@@QEAA@XZ | yes | - |
 | XGameServer | Maze.cpp | ??1XMaze@@UEAA@XZ | 0x140310d00 | implemented | IDA decompile | yes | IDA������ʵ��
-| XGameServer | Maze.cpp | ?Init@XMaze@@UEAA_NXZ | 0x140311210 | implemented | IDA decompile | yes | IDA������ʵ��
 | XGameServer | Maze.cpp | ?StartMazeTime@XMaze@@QEAAXXZ | 0x140311b70 | implemented | IDA decompile | yes | ״̬Ϊ0ʱ����״̬1,��¼��ʼʱ��,����SectorAI |
 | XGameServer | Maze.cpp | ?FinishMazeTime@XMaze@@QEAAXXZ | 0x140311bd0 | implemented | IDA decompile | yes | ����״̬4,��������ʱ�� |
 | XGameServer | Maze.cpp | ?MazePlayTime_Now@XMaze@@QEAAKXZ | 0x140311c10 | implemented | IDA decompile | yes | ���ص�ǰ����ʱ��(��) |
@@ -15003,7 +14784,6 @@
 | - | - | ??1CWeeklyMission_Day@@QEAA@XZ | 0x140315730 | blocked | IDA ??1CWeeklyMission_Day@@QEAA@XZ | yes | - |
 | XGameServer | Maze.cpp | ?MoveActor@XMaze@@QEAA?AV?$TResult@V?$optional@VXVec3@@@@@@@@PEAVXActor@@AEAUXVec3@@M@Z | 0x140315750 | implemented | IDA decompile | yes | 精确还原-RTTI转换并调用SetPosInfo |
 | XGameServer | Maze.cpp | ?MoveActor@XMaze@@QEAA?AV?$TResult@V?$optional@VXVec3@@@@@@@@TUXActorID@@AEAUXVec3@@M@Z | 0x140315800 | implemented | IDA decompile | yes | 精确还原-查找Actor后委托给XActor版本 |
-| XGameServer | Maze.cpp | ?Create@XMaze@@UEAA_NAEAUST_CREATE_MAZE@@@Z | 0x140315870 | implemented | IDA decompile | yes | IDA������ʵ��
 | - | - | ??4ST_CREATE_MAZE@@QEAAAEAU0@AEBU0@@Z | 0x140315a30 | blocked | IDA ??4ST_CREATE_MAZE@@QEAAAEAU0@AEBU0@@Z | yes | - |
 | - | - | ??4ST_MAP_INFO@@QEAAAEAU0@AEBU0@@Z | 0x140315b10 | blocked | IDA ??4ST_MAP_INFO@@QEAAAEAU0@AEBU0@@Z | yes | - |
 | - | - | ?SetParty@XMaze@@QEAAXV?$shared_ptr@VCParty@@@tr1@std@@@Z | 0x140315c40 | implemented | IDA decompile | yes | - |
@@ -15783,8 +15563,6 @@
 | XGameServer | Monster.cpp | ?CheckTurnOrMovePacket@CMonster@@UEAAXXZ | 0x14035af30 | implemented | IDA decompile | yes | ���ת����ƶ��� |
 | XGameServer | Monster.cpp | ?StartMoving@CMonster@@UEAAHXZ | 0x14035b1e0 | implemented | IDA decompile | yes | ��ʼ�ƶ� |
 | XGameServer | Monster.cpp | ?IsNoRotate@CMonster@@QEAA_NXZ | 0x14035b260 | implemented | IDA decompile | yes | �Ƿ���ת |
-| XGameServer | Monster.cpp | ?StartMoving@CMonster@@UEAAHXZ | 0x14035b1e0 | implemented | IDA decompile | yes | ��ʼ�ƶ� |
-| XGameServer | Monster.cpp | ?IsNoRotate@CMonster@@QEAA_NXZ | 0x14035b260 | implemented | IDA decompile | yes | �Ƿ���ת |
 | XGameServer | Monster.cpp | ?IsCanRotate@CMonster@@QEAA_NXZ | 0x14035b2a0 | implemented | IDA decompile | yes | �Ƿ�������?|
 | XGameServer | Monster.cpp | ?SetDirectionTo@CMonster@@UEAAXAEBVhkvVec3@@@Z | 0x14035b2f0 | implemented | IDA decompile | yes | ���÷���Ŀ�� |
 | XGameServer | Monster.cpp | ?SetDirectionYaw@CMonster@@UEAAXME@Z | 0x14035b370 | implemented | IDA decompile | yes | ���÷���ƫ���� |
@@ -15837,7 +15615,6 @@
 | XGameServer | Monster.cpp | ?IsFollowObject@CMonster@@QEAAHXZ | 0x140360850 | implemented | IDA decompile | yes | IDA������ʵ��
 | XGameServer | Monster.cpp | ?IsMonsterDamageCount@CMonster@@QEAAHXZ | 0x140360890 | implemented | IDA decompile | yes | ����Ƿ��˺���������?|
 | XGameServer | Monster.cpp | ?IsDedicated@CMonster@@QEAAHXZ | 0x1403608d0 | implemented | IDA decompile | yes | ����Ƿ�ר������?|
-| XGameServer | Monster.cpp | ?IsMonsterCombo@CMonster@@QEAAHXZ | 0x140360910 | implemented | IDA decompile | yes | �Ƿ��������� |
 | XGameServer | Monster.cpp | ?IsMercenary@CMonster@@QEAAHXZ | 0x140360950 | implemented | IDA decompile | yes | �Ƿ��Ӷ��?|
 | XGameServer | Monster.cpp | ?IsHelper@CMonster@@QEAAHXZ | 0x140360990 | implemented | IDA decompile | yes | �Ƿ����� |
 | XGameServer | Monster.cpp | ?IsRealHelper@CMonster@@QEAAHXZ | 0x1403609d0 | implemented | IDA decompile | yes | �Ƿ���ʵ���� |
@@ -16001,10 +15778,8 @@ yes | ?????????????|
 | - | - | ?IsRegisterAnimInfo@CMover@@QEAAHFFVVString@@H@Z | 0x140367ae0 | implemented | IDA ?IsRegisterAnimInfo@CMover@@QEAAHFFVVString@@H@Z | yes | - |
 yes | ?????????? |
 | XGameServer | Mover.cpp | ?IsDamageMotionDisplay@CMover@@UEAAHE@Z | 0x140367bd0 | implemented | IDA decompile | yes | ??????????????|
-| XGameServer | Mover.cpp | ?CheckAnimationEnd@CMover@@QEAAXXZ | 0x140367c80 | implemented | IDA decompile | yes | 精确还原-检查动画结束并处理偏移移动 |
 | XGameServer | Mover.cpp | ?CheckMoveCollision@CMover@@QEAAPEAV1@AEAVhkvVec3@@@Z | 0x1403681b0 | implemented | IDA decompile | yes | 检查移动碰�?|
 | - | - | ?GetBoneCurrentWorldSpaceTranslation@CMover@@QEAAHHVhkvVec3@@AEAV2@@Z | 0x140368690 | implemented | IDA ?GetBoneCurrentWorldSpaceTranslation@CMover@@QEAAHHVhkvVec3@@AEAV2@@Z | yes | - |
-| XGameServer | Mover.cpp | ?GetBoneYaw@CMover@@QEAAMH@Z | 0x140368880 | implemented | IDA decompile | yes | 获取骨骼偏航�?|
 yes | ????????????|
 | - | - | ?GetAnimIndex@CMover@@QEAAKVVString@@@Z | 0x140368960 | implemented | IDA ?GetAnimIndex@CMover@@QEAAKVVString@@@Z | yes | - |
 | XGameServer | ActionResMgr.cpp | ?GetAnimIndex@XActionResMgr@@IEAAKFFH@Z | 0x140368a30 | implemented | IDA decompile | yes | ��ȡ�������� |
@@ -16030,14 +15805,12 @@ yes | ?????????? |
 | - | - | ?ResetAllBuff@CMover@@QEAAXXZ | 0x14036a860 | implemented | IDA ?ResetAllBuff@CMover@@QEAAXXZ | yes | - |
 | - | - | ?ClearBuffByType@CMover@@QEAAXE@Z | 0x14036a8e0 | implemented | IDA ?ClearBuffByType@CMover@@QEAAXE@Z | yes | - |
 | - | - | ?ClearBuffByEffectType@CMover@@QEAAXE@Z | 0x14036a990 | implemented | IDA ?ClearBuffByEffectType@CMover@@QEAAXE@Z | yes | - |
-| XGameServer | Mover.cpp | ?AllBuffClear@CMover@@QEAAXE@Z | 0x14036aa40 | implemented | IDA decompile | yes | 清除所有Buff |
 | - | - | ?CheckBuffByLocation@CMover@@UEAAXPEAVXArea@@@Z | 0x14036abf0 | implemented | IDA ?CheckBuffByLocation@CMover@@UEAAXPEAVXArea@@@Z | yes | - |
 | - | - | ?IsCanApplyBuff@CMover@@UEAAHGPEAVXArea@@@Z | 0x14036acc0 | implemented | IDA decompile | yes | 检查是否可应用Buff（区域限制检查） |
 | - | - | ?UpdateBuffCount@CMover@@QEAAXEH@Z | 0x14036ae70 | implemented | IDA ?UpdateBuffCount@CMover@@QEAAXEH@Z | yes | - |
 | - | - | ?IsCanCalculateStat@CMover@@QEAAHH@Z | 0x14036afd0 | implemented | IDA ?IsCanCalculateStat@CMover@@QEAAHH@Z | yes | - |
 | - | - | ?GetBuffCategory@CMover@@QEAAEE@Z | 0x14036b000 | implemented | IDA ?GetBuffCategory@CMover@@QEAAEE@Z | yes | - |
 | - | - | ?GetResistStatIndexByBuff@CMover@@QEAAHE@Z | 0x14036b070 | implemented | IDA ?GetResistStatIndexByBuff@CMover@@QEAAHE@Z | yes | - |
-| XGameServer | Mover.cpp | ?SetBuffTime@CMover@@QEAAXFME@Z | 0x14036b0f0 | implemented | IDA decompile | yes | 设置Buff时间 |
 | - | - | ?ProcessBuffStatus@CMover@@QEAAXM@Z | 0x14036b1d0 | implemented | IDA ?ProcessBuffStatus@CMover@@QEAAXM@Z | yes | - |
 | - | - | ?UpdateDefenseDisableBuff@CMover@@QEAAXXZ | 0x14036b420 | implemented | IDA ?UpdateDefenseDisableBuff@CMover@@QEAAXXZ | yes | - |
 | XGameServer | Mover.cpp | ?CanUseItem@CMover@@QEAAHKAEAK@Z | 0x14036b530 | implemented | IDA decompile | yes | 精确还原-检查物品使用条�?复活/Buff/组队) |
@@ -16050,9 +15823,9 @@ yes | ?????????? |
 | - | - | ?ResetAkashicActionInfo@CMover@@QEAAXXZ | 0x14036c600 | implemented | IDA ?ResetAkashicActionInfo@CMover@@QEAAXXZ | yes | - |
 | - | - | ??_GVAnimationInfo@@QEAAPEAXI@Z | 0x14036c6d0 | blocked | IDA ??_GVAnimationInfo@@QEAAPEAXI@Z | yes | - |
 | - | - | ??1VAnimationInfo@@QEAA@XZ | 0x14036c710 | blocked | IDA ??1VAnimationInfo@@QEAA@XZ | yes | - |
-| XGameServer | MoverLinkStubs.cpp | ?CreateAkashicActionInfo@CMover@@QEAAXPEBD@Z | 0x14036c770 | implemented | IDA decompile | yes | IDA exact restoration - creates Akashic action info |
+| XGameServer | MoverLinkStubs.cpp | ?CreateAkashicActionInfo@CMover@@QEAAXPEBD@Z | 0x14036c770 | blocked | IDA decompile | no | IDA exact restoration - creates Akashic action info |
 | XGameServer | Mover.cpp | ?GetActionDesc@CMover@@QEAAPEBVVAnimationInfo@@PEBD@Z | 0x14036c910 | implemented | IDA decompile | yes | IDA exact restoration - get animation description info |
-| XGameServer | MoverLinkStubs.cpp | ?ChangeActionTrigger@CMover@@QEAAXPEBD@Z | 0x14036CA80 | implemented | IDA decompile | yes | IDA exact restoration - changes current action trigger |
+| XGameServer | MoverLinkStubs.cpp | ?ChangeActionTrigger@CMover@@QEAAXPEBD@Z | 0x14036CA80 | blocked | IDA decompile | no | IDA exact restoration - changes current action trigger |
 | - | - | ?SceneChanged@CMover@@UEAAXXZ | 0x14036cab0 | implemented | IDA ?SceneChanged@CMover@@UEAAXXZ | yes | - |
 | - | - | ?SetDirectionTo@CMover@@UEAAXAEBVhkvVec3@@@Z | 0x14036cad0 | implemented | IDA ?SetDirectionTo@CMover@@UEAAXAEBVhkvVec3@@@Z | yes | - |
 | - | - | ?SetMovePosition@CMover@@QEAAXMM@Z | 0x14036cb40 | implemented | IDA ?SetMovePosition@CMover@@QEAAXMM@Z | yes | - |
@@ -16064,7 +15837,6 @@ yes | ?????????? |
 | - | - | ?IsFriendForChain@CMover@@UEAAHPEAV1@@Z | 0x14036ce40 | implemented | IDA ?IsFriendForChain@CMover@@UEAAHPEAV1@@Z | yes | - |
 | XGameServer | Mover.cpp | ?CheckReactionTarget@CMover@@UEAAHHPEAV1@_N@Z | 0x14036ce70 | implemented | IDA decompile | yes | ��鷴ӦĿ��?|
 | - | - | ?GetHeight@CMover@@QEAA_NAEAVhkvVec3@@M@Z | 0x14036d130 | implemented | IDA ?GetHeight@CMover@@QEAA_NAEAVhkvVec3@@M@Z | yes | - |
-| XGameServer | Mover.cpp | ?GetMoverObject@CMover@@QEAAPEAV1@K@Z | 0x14036D1E0 | implemented | IDA decompile | yes | IDA exact restoration - get mover by actor ID |
 | - | - | ?SetFlyState@CMover@@QEAAX_N@Z | 0x14036d2f0 | implemented | IDA ?SetFlyState@CMover@@QEAAX_N@Z | yes | - |
 | - | - | ?SetCollisionEnable@CMover@@QEAAXHH@Z | 0x14036d340 | implemented | IDA ?SetCollisionEnable@CMover@@QEAAXHH@Z | yes | - |
 | XGameServer | Mover.cpp | ?FindTargetPos@CMover@@QEAAEPEAV1@@Z | 0x14036d380 | implemented | IDA decompile | yes | 查找目标位置槽位 |
@@ -16081,8 +15853,6 @@ yes | ?????????? |
 | - | - | ?Move@CMover@@UEAAGAEAUXVec3@@M@Z | 0x14036ddd0 | implemented | IDA ?Move@CMover@@UEAAGAEAUXVec3@@M@Z | yes | - |
 | XGameServer | Mover.cpp | ?GetTableIDString@CMover@@QEAAPEBDXZ | 0x14036de70 | implemented | IDA decompile | yes | ?????ID?????|
 | - | - | ?CheckMoveDestPos@CMover@@UEAA_NAEAVhkvVec3@@HH@Z | 0x14036dee0 | implemented | IDA ?CheckMoveDestPos@CMover@@UEAA_NAEAVhkvVec3@@HH@Z | yes | - |
-| XGameServer | Mover.cpp | ?GetSGAbsorbRate@CMover@@QEAAMXZ | 0x14036e200 | implemented | IDA decompile | yes | 获取SG吸收�?|
-| XGameServer | Mover.cpp | ?SetStat@CMover@@QEAAXHM@Z | 0x14036e290 | implemented | IDA decompile | yes | 设置属性�?|
 | XGameServer | Mover.cpp | ?SetContinousCost@CMover@@QEAAXHM@Z | 0x14036e330 | implemented | IDA decompile | yes | 设置持续消�?|
 | XGameServer | Mover.cpp | ?SetAllowPassiveType@CMover@@QEAAXH@Z | 0x14036e3b0 | implemented | IDA decompile | yes | 设置允许的被动技能类�?|
 | - | - | ?CreateRandomTrapIndex@CMover@@QEAAHXZ | 0x14036e3e0 | implemented | IDA ?CreateRandomTrapIndex@CMover@@QEAAHXZ | yes | - |
@@ -16310,15 +16080,15 @@ yes | ?????????? |
 | CGocAttribute | GocAttribute.cpp | ?GetHP@CGocAttribute@@QEAAHXZ | 0x140378810 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
 | CMover | Mover.cpp | ?ClearActionBuffer@CMover@@QEAAXXZ | 0x140378840 | implemented | IDA decompile | yes | IDA confirmed - Clear action buffer wrapper |
 | - | - | ?set@hkvVec3@@QEAAXM@Z | 0x140378870 | implemented | VisionEngineTypes/hkvVec3.h | yes | hkvVec3::set - set all components to same value |
-| hkvAlignedBBox | VisionEngineTypes.h | ?setInvalid@hkvAlignedBBox@@QEAAXXZ | 0x1403788b0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| - | - | ??_ECActionBuffer@@UEAAPEAXI@Z | 0x1403788f0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| - | - | ??1CActionBuffer@@UEAA@XZ | 0x140378930 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
+| hkvAlignedBBox | VisionEngineTypes.h | ?setInvalid@hkvAlignedBBox@@QEAAXXZ | 0x1403788b0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| - | - | ??_ECActionBuffer@@UEAAPEAXI@Z | 0x1403788f0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| - | - | ??1CActionBuffer@@UEAA@XZ | 0x140378930 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | SDefenseChangeInfo | VisionEngineTypes.h | ?Clear@SDefenseChangeInfo@@QEAAXXZ | 0x140378970 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
 | SDefenseChangeInfo | VisionEngineTypes.h | ??0SDefenseChangeInfo@@QEAA@XZ | 0x1403789a0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
 | tagTIME_SLOW | VisionEngineTypes.h | ?Clear@tagTIME_SLOW@@QEAAXXZ | 0x1403789c0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
 | tagTIME_SLOW | VisionEngineTypes.h | ??0tagTIME_SLOW@@QEAA@XZ | 0x1403789f0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
-| - | - | ??0tagEXTRA_MOVEPOS@@QEAA@XZ | 0x140378a10 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| - | - | ?GetActorID@CMover@@UEAA?ATUXActorID@@XZ | 0x140378a30 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
+| - | - | ??0tagEXTRA_MOVEPOS@@QEAA@XZ | 0x140378a10 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| - | - | ?GetActorID@CMover@@UEAA?ATUXActorID@@XZ | 0x140378a30 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | XGameServer | MoverEx.cpp | ??0CMoverEx@@QEAA@XZ | 0x140378a60 | implemented | PDB publics + transcript decompile | yes | CMoverEx??????|
 | - | - | ??_GCMoverEx@@UEAAPEAXI@Z | 0x1403796c0 | blocked | IDA ??_GCMoverEx@@UEAAPEAXI@Z | yes | - |
 | - | - | ?Reset@CMoverEx@@UEAAXXZ | 0x140379700 | implemented | IDA ?Reset@CMoverEx@@UEAAXXZ | yes | - |
@@ -16328,8 +16098,8 @@ yes | ?????????? |
 | CMoverEx | MoverEx.cpp | ?UpdateAttackKeyPress@CMoverEx@@QEAAXH@Z | 0x14037a2a0 | implemented | IDA decompile | yes | IDA confirmed - Implemented from IDA decompile |
 | CMoverEx | MoverEx.cpp | ?UpdatePreTargetSkill@CMoverEx@@QEAAXXZ | 0x14037a3d0 | implemented | IDA decompile | yes | IDA confirmed - Implemented from IDA decompile |
 | CMoverEx | MoverEx.cpp | ?UpdateTargetByPretarget@CMoverEx@@QEAAXXZ | 0x14037a430 | implemented | IDA decompile | yes | IDA confirmed - Implemented from IDA decompile |
-| - | - | ??1PS_DB_WORLD_EVENT_REWARD@@QEAA@XZ | 0x14006b2c0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
-| - | - | ?SceneChanged@CMoverEx@@UEAAXXZ | 0x14037a4c0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
+| - | - | ??1PS_DB_WORLD_EVENT_REWARD@@QEAA@XZ | 0x14006b2c0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| - | - | ?SceneChanged@CMoverEx@@UEAAXXZ | 0x14037a4c0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | CMoverEx | MoverEx.cpp | ?ThinkFunction@CMoverEx@@UEAAXXZ | 0x14037a4f0 | implemented | IDA decompile | yes | IDA confirmed - Main think function with frame update logic |
 | - | - | ?ProcessSkillAnimation@CMoverEx@@UEAAXM@Z | 0x14037b560 | implemented | IDA ?ProcessSkillAnimation@CMoverEx@@UEAAXM@Z | yes | - |
 | - | - | ?MessageFunction@CMoverEx@@UEAAXH_J0@Z | 0x14037b870 | blocked | IDA ?MessageFunction@CMoverEx@@UEAAXH_J0@Z | yes | - |
@@ -16455,7 +16225,7 @@ yes | ?????????? |
 | - | - | ?SetInvisible@CMoverEx@@QEAAXHKHHHHH@Z | 0x140394ec0 | implemented | IDA ?SetInvisible@CMoverEx@@QEAAXHKHHHHH@Z | yes | - |
 | - | - | ?WarpToPoint@CMoverEx@@QEAAXHHM@Z | 0x140395090 | implemented | IDA ?WarpToPoint@CMoverEx@@QEAAXHHM@Z | yes | - |
 | - | - | ?SummonAkashic@CMoverEx@@QEAAXPEAVAkashicTrigger@@@Z | 0x140395310 | implemented | IDA ?SummonAkashic@CMoverEx@@QEAAXPEAVAkashicTrigger@@@Z | yes | - |
-| XGameServer | MoverLinkStubs.cpp | ?ChangeToAkashicData@CMoverEx@@QEAAXPEBDH@Z | 0x140395820 | implemented | IDA decompile | yes | IDA exact restoration - modifies animation for Akashic skills |
+| XGameServer | MoverLinkStubs.cpp | ?ChangeToAkashicData@CMoverEx@@QEAAXPEBDH@Z | 0x140395820 | blocked | IDA decompile | no | IDA exact restoration - modifies animation for Akashic skills |
 | - | - | ?SetMoveTrapPos@CMoverEx@@UEAAXH@Z | 0x140395a20 | implemented | IDA ?SetMoveTrapPos@CMoverEx@@UEAAXH@Z | yes | - |
 | - | - | ?SetMouseOnTrapPos@CMoverEx@@QEAAXVhkvVec3@@@Z | 0x140395af0 | implemented | IDA ?SetMouseOnTrapPos@CMoverEx@@QEAAXVhkvVec3@@@Z | yes | - |
 | - | - | ?IsMouseOnTarget@CMoverEx@@UEAAHXZ | 0x140395b50 | implemented | IDA ?IsMouseOnTarget@CMoverEx@@UEAAHXZ | yes | - |
@@ -16493,8 +16263,8 @@ yes | ?????????? |
 | - | - | ?EndCharging@CMoverEx@@QEAAXXZ | 0x140398680 | implemented | IDA ?EndCharging@CMoverEx@@QEAAXXZ | yes | - |
 | - | - | ?CalcBothClickChargingValue@CMoverEx@@QEAAX_N@Z | 0x1403986e0 | implemented | IDA ?CalcBothClickChargingValue@CMoverEx@@QEAAX_N@Z | yes | - |
 | - | - | ?CalcRotationBlending@CMoverEx@@QEAAMMMM@Z | 0x1403987e0 | implemented | IDA ?CalcRotationBlending@CMoverEx@@QEAAMMMM@Z | yes | - |
-| XGameServer | MoverLinkStubs.cpp | ?DeleteActionBuffer@CMoverEx@@UEAAXXZ | 0x1403989a0 | implemented | IDA decompile | yes | IDA exact restoration - deletes all action buffers except special cases |
-| XGameServer | MoverLinkStubs.cpp | ?ExcuteActionTrigger@CMoverEx@@UEAAXE@Z | 0x140398b60 | implemented | IDA decompile | yes | IDA exact restoration - executes all action triggers with given code |
+| XGameServer | MoverLinkStubs.cpp | ?DeleteActionBuffer@CMoverEx@@UEAAXXZ | 0x1403989a0 | blocked | IDA decompile | no | IDA exact restoration - deletes all action buffers except special cases |
+| XGameServer | MoverLinkStubs.cpp | ?ExcuteActionTrigger@CMoverEx@@UEAAXE@Z | 0x140398b60 | blocked | IDA decompile | no | IDA exact restoration - executes all action triggers with given code |
 | - | - | ?GetOwnerPlayer@CMoverEx@@QEAAPEAV1@XZ | 0x140398bf0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ-��ȡ��������Ҷ���?|
 | - | - | ?GetControlType@CMoverEx@@QEAAEPEAUTB_SKILL@@@Z | 0x140398c30 | implemented | IDA decompile | yes | 检查Divergence表或技能表的Control_Type |
 | - | - | ?GetCameraLock@CMoverEx@@QEAAEPEAUTB_SKILL@@@Z | 0x140398c90 | implemented | IDA ?GetCameraLock@CMoverEx@@QEAAEPEAUTB_SKILL@@@Z | yes | - |
@@ -16625,7 +16395,7 @@ yes | ?????????? |
 | CMoverEx | MoverEx.h | ?SetGrapTarget@CMoverEx@@QEAAXPEAV1@@Z | 0x1403a1eb0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(����) |
 | hkvVec3 | VisionEngineTypes.h | ?Clear@hkvVec3@@QEAAXXZ | 0x1403a1ed0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(����) |
 | CMoverEx | MoverEx.h | ?SetGrapStep@CMoverEx@@QEAAXE@Z | 0x1403a1ef0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(����) |
-| - | - | ?ResetPosition@tagACTION_BUFFER@@QEAAXXZ | 0x1403a1f10 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
+| - | - | ?ResetPosition@tagACTION_BUFFER@@QEAAXXZ | 0x1403a1f10 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | VPList | VisionEngineTypes.h | ?AddUnique@VPList@@QEAA_NPEAX@Z | 0x1403a1f30 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
 | CMoverEx | MoverEx.h | ?GetAttachedOffset@CMoverEx@@QEAA?AVhkvVec3@@XZ | 0x1403a1f70 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(����) |
 | CMoverEx | MoverEx.h | ?GetAttachedDir@CMoverEx@@QEAA?AVhkvVec3@@XZ | 0x1403a1fc0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(����) |
@@ -16634,7 +16404,7 @@ yes | ?????????? |
 | VPList | VisionEngineTypes.h | ?GetLength@VPList@@QEBAHXZ | 0x1403a2050 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
 | hkvVec3 | VisionEngineTypes.h | ?GetLength@hkvVec3@@QEBAMXZ | 0x1403a2060 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(����) |
 | hkvResult | VisionEngineTypes.h | ??8hkvResult@@QEBA_NW4hkvResultEnum@@@Z | 0x1403a2080 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(����) |
-| hkvVec3 | VisionEngineTypes.h | ?Normalize@hkvVec3@@QEAAHXZ | 0x1403a20c0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(stub) |
+| hkvVec3 | VisionEngineTypes.h | ?Normalize@hkvVec3@@QEAAHXZ | 0x1403a20c0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | CMoverEx | MoverEx.h | ?SetAutoRotation@CMoverEx@@QEAAXMM@Z | 0x1403a2110 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(����) |
 | CMySkillList | MySkillList.cpp | ?SetCheckContinuousMelee@CMySkillList@@QEAAX_N@Z | 0x1403a2150 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
 | CMySkillList | MySkillList.cpp | ?SetCheckDelayedProjectile@CMySkillList@@QEAAX_N@Z | 0x1403a2170 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
@@ -18300,7 +18070,7 @@ yes | ?????????? |
 | - | - | ?construct@?$allocator@UST_USE_ITEM_INFO@@@std@@QEAAXPEAUST_USE_ITEM_INFO@@AEBU3@@Z | 0x1403e12f0 | blocked | IDA ?construct@?$allocator@UST_USE_ITEM_INFO@@@std@@QEAAXPEAUST_USE_ITEM_INFO@@AEBU3@@Z | yes | - |
 | - | - | ??$_Construct@UST_USE_ITEM_INFO@@AEBU1@@std@@YAXPEAUST_USE_ITEM_INFO@@AEBU1@@Z | 0x1403e1320 | blocked | IDA ??$_Construct@UST_USE_ITEM_INFO@@AEBU1@@std@@YAXPEAUST_USE_ITEM_INFO@@AEBU1@@Z | yes | - |
 | - | - | ??$_Destroy@V?$_Impl_no_alloc0@U?$_Callable_obj@V_lambda38_@?A0x94708582@@$0A@@tr1@std@@X@tr1@std@@@std@@YAXPEAV?$_Impl_no_alloc0@U?$_Callable_obj@V_lambda38_@?A0x94708582@@$0A@@tr1@std@@X@tr1@0@@Z | 0x1403e13b0 | blocked | IDA ??$_Destroy@V?$_Impl_no_alloc0@U?$_Callable_obj@V_lambda38_@?A0x94708582@@$0A@@tr1@std@@X@tr1@std@@@std@@YAXPEAV?$_Impl_no_alloc0@U?$_Callable_obj@V_lambda38_@?A0x94708582@@$0A@@tr1@std@@X@tr1@0@@Z | yes | - |
-| XGameServer | GocInventory.cpp | ?SetRenovatePointItem@CGocInventory@@QEAAX_N@Z | 0x1403e13d0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
+| XGameServer | GocInventory.cpp | ?SetRenovatePointItem@CGocInventory@@QEAAX_N@Z | 0x1403e13d0 | verified | GameServer PDB + IDA decompile/assembly + source build | yes | Assigns m_bRenovateItem. |
 | - | - | ??0PS_DB_CASH_MILEAGE_INFO@@QEAA@XZ | 0x1403e13f0 | blocked | IDA ??0PS_DB_CASH_MILEAGE_INFO@@QEAA@XZ | yes | - |
 | - | - | ??0PS_OTHER_CHARACTER_INFO_RES@@QEAA@XZ | 0x1403e1430 | blocked | IDA ??0PS_OTHER_CHARACTER_INFO_RES@@QEAA@XZ | yes | - |
 | - | - | ??0ST_OTHER_CHARINFO@@QEAA@XZ | 0x1403e1470 | blocked | IDA ??0ST_OTHER_CHARINFO@@QEAA@XZ | yes | - |
@@ -18741,8 +18511,8 @@ yes | ?????????? |
 | - | - | ??0PS_GESTURE_SHOW@@QEAA@XZ | 0x140407010 | blocked | IDA ??0PS_GESTURE_SHOW@@QEAA@XZ | yes | - |
 | - | - | ?SetTestMode@CUser@@QEAAX_N@Z | 0x140407070 | implemented | IDA ?SetTestMode@CUser@@QEAAX_N@Z | yes | - |
 | - | - | ?SetTestMode@CMySkillList@@QEAAXH@Z | 0x140407090 | implemented | IDA ?SetTestMode@CMySkillList@@QEAAXH@Z | yes | - |
-| XGameServer | GocInventory.cpp | ?CheatGetAbsoluteUpgrade@CGocInventory@@QEAA_NXZ | 0x1404070b0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
-| XGameServer | GocInventory.cpp | ?CheatSetAbsoluteUpgrade@CGocInventory@@QEAAX_N@Z | 0x1404070d0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
+| XGameServer | GocInventory.cpp | ?CheatGetAbsoluteUpgrade@CGocInventory@@QEAA_NXZ | 0x1404070b0 | verified | GameServer PDB + IDA decompile/assembly + source build | yes | Returns m_bAbsoluteUpgade. |
+| XGameServer | GocInventory.cpp | ?CheatSetAbsoluteUpgrade@CGocInventory@@QEAAX_N@Z | 0x1404070d0 | verified | GameServer PDB + IDA decompile/assembly + source build | yes | Assigns m_bAbsoluteUpgade. |
 | - | - | ??0PS_REQ_ITEM_USE@@QEAA@XZ | 0x1404070f0 | blocked | IDA ??0PS_REQ_ITEM_USE@@QEAA@XZ | yes | - |
 | - | - | ?SetUpgrade@CItem@@QEAAXE@Z | 0x140407130 | implemented | IDA ?SetUpgrade@CItem@@QEAAXE@Z | yes | - |
 | - | - | ?SetOpenSlot_Cheat@XBaseInventory@@QEAAXF@Z | 0x140407150 | implemented | IDA ?SetOpenSlot_Cheat@XBaseInventory@@QEAAXF@Z | yes | - |
@@ -21075,19 +20845,19 @@ yes | ?????????? |
 | - | - | ??R_lambda0_@?A0x9b200487@@QEBAXXZ | 0x1404533a0 | blocked | IDA ??R_lambda0_@?A0x9b200487@@QEBAXXZ | yes | - |
 | - | - | ?ReqBankInfo@CItemProcess@@QEAA_NAEAVXPacket@@@Z | 0x140453410 | implemented | IDA ?ReqBankInfo@CItemProcess@@QEAA_NAEAVXPacket@@@Z | yes | - |
 | - | - | ??R_lambda2_@?A0x9b200487@@QEBAXXZ | 0x1404535c0 | blocked | IDA ??R_lambda2_@?A0x9b200487@@QEBAXXZ | yes | - |
-| - | - | ?ReqItemMove@CItemProcess@@QEAA_NAEAVXPacket@@@Z | 0x140453630 | implemented | IDA ?ReqItemMove@CItemProcess@@QEAA_NAEAVXPacket@@@Z | yes | - |
+| XGameServer | Process/ItemProcess.cpp | ?ReqItemMove@CItemProcess@@QEAA_NAEAVXPacket@@@Z | 0x140453630 | verified | GameServer PDB decorated ABI + IDA decompile/disasm + source build | yes | Active CMake request path verified, including appearance, ability, and normal-item branches. |
 | - | - | ??0_lambda4_@?A0x9b200487@@QEAA@AEBQEAVCUser@@AEBUPS_REQ_ITEM_MOVE@@AEBUPS_REQ_TICKCOUNT@@AEB_KQEAVCItemProcess@@@Z | 0x140453890 | blocked | IDA ??0_lambda4_@?A0x9b200487@@QEAA@AEBQEAVCUser@@AEBUPS_REQ_ITEM_MOVE@@AEBUPS_REQ_TICKCOUNT@@AEB_KQEAVCItemProcess@@@Z | yes | - |
-| - | - | ??R_lambda4_@?A0x9b200487@@QEBAXXZ | 0x140453940 | blocked | IDA ??R_lambda4_@?A0x9b200487@@QEBAXXZ | yes | - |
+| - | - | ??R_lambda4_@?A0x9b200487@@QEBAXXZ | 0x140453940 | blocked | IDA ??R_lambda4_@?A0x9b200487@@QEBAXXZ | no | - |
 | - | - | ??1PS_DB_ITEM_MOVE_VEC@@QEAA@XZ | 0x140454030 | blocked | IDA ??1PS_DB_ITEM_MOVE_VEC@@QEAA@XZ | yes | - |
-| - | - | ?ReqItemCombine@CItemProcess@@QEAA_NAEAVXPacket@@@Z | 0x140454050 | implemented | IDA ?ReqItemCombine@CItemProcess@@QEAA_NAEAVXPacket@@@Z | yes | - |
+| XGameServer | Process/ItemProcess.cpp | ?ReqItemCombine@CItemProcess@@QEAA_NAEAVXPacket@@@Z | 0x140454050 | verified | GameServer PDB decorated ABI + IDA decompile/disasm + source build | yes | Active CMake request path verified with item identity, serial, stack, lock, and DB move branches. |
 | - | - | ??0_lambda0_@?A0x8e74403f@@QEAA@AEBQEAVCUser@@AEBUPS_GESTURE_SHOW@@QEAVCGestureProcess@@@Z | 0x140454260 | blocked | IDA ??0_lambda0_@?A0x8e74403f@@QEAA@AEBQEAVCUser@@AEBUPS_GESTURE_SHOW@@QEAVCGestureProcess@@@Z | yes | - |
-| - | - | ??R_lambda6_@?A0x9b200487@@QEBAXXZ | 0x1404542d0 | blocked | IDA ??R_lambda6_@?A0x9b200487@@QEBAXXZ | yes | - |
+| - | - | ??R_lambda6_@?A0x9b200487@@QEBAXXZ | 0x1404542d0 | blocked | IDA ??R_lambda6_@?A0x9b200487@@QEBAXXZ | no | - |
 | - | - | ??0PS_DB_ITEM_MOVE@@QEAA@XZ | 0x140455670 | blocked | IDA ??0PS_DB_ITEM_MOVE@@QEAA@XZ | yes | - |
-| - | - | ?ReqItemDivide@CItemProcess@@QEAA_NAEAVXPacket@@@Z | 0x1404556b0 | implemented | IDA ?ReqItemDivide@CItemProcess@@QEAA_NAEAVXPacket@@@Z | yes | - |
-| - | - | ??R_lambda8_@?A0x9b200487@@QEBAXXZ | 0x1404558c0 | blocked | IDA ??R_lambda8_@?A0x9b200487@@QEBAXXZ | yes | - |
-| - | - | ?ReqItemBreak@CItemProcess@@QEAA_NAEAVXPacket@@@Z | 0x1404569d0 | implemented | IDA ?ReqItemBreak@CItemProcess@@QEAA_NAEAVXPacket@@@Z | yes | - |
+| XGameServer | Process/ItemProcess.cpp | ?ReqItemDivide@CItemProcess@@QEAA_NAEAVXPacket@@@Z | 0x1404556b0 | verified | GameServer PDB decorated ABI + IDA decompile/disasm + source build | yes | Active CMake request path verified, including seven source-inventory mapping diagnostics and storage actor routing. |
+| - | - | ??R_lambda8_@?A0x9b200487@@QEBAXXZ | 0x1404558c0 | blocked | IDA ??R_lambda8_@?A0x9b200487@@QEBAXXZ | no | - |
+| XGameServer | Process/ItemProcess.cpp | ?ReqItemBreak@CItemProcess@@QEAA_NAEAVXPacket@@@Z | 0x1404569d0 | verified | GameServer PDB decorated ABI + IDA decompile/disasm + source build | yes | Active CMake request path verified with break validation, statistics cleanup, and period-item system-post side effect. |
 | - | - | ??0_lambda10_@?A0x9b200487@@QEAA@AEBQEAVCUser@@AEBEAEBFAEB_JAEBHQEAVCItemProcess@@@Z | 0x140456c50 | blocked | IDA ??0_lambda10_@?A0x9b200487@@QEAA@AEBQEAVCUser@@AEBEAEBFAEB_JAEBHQEAVCItemProcess@@@Z | yes | - |
-| - | - | ??R_lambda10_@?A0x9b200487@@QEBAXXZ | 0x140456cd0 | blocked | IDA ??R_lambda10_@?A0x9b200487@@QEBAXXZ | yes | - |
+| - | - | ??R_lambda10_@?A0x9b200487@@QEBAXXZ | 0x140456cd0 | blocked | IDA ??R_lambda10_@?A0x9b200487@@QEBAXXZ | no | - |
 | - | - | ?ReqItemLineUp@CItemProcess@@QEAA_NAEAVXPacket@@@Z | 0x140457650 | implemented | IDA ?ReqItemLineUp@CItemProcess@@QEAA_NAEAVXPacket@@@Z | yes | - |
 | - | - | ??R_lambda12_@?A0x9b200487@@QEBAXXZ | 0x140457830 | blocked | IDA ??R_lambda12_@?A0x9b200487@@QEBAXXZ | yes | - |
 | - | - | ?ReqItemUpdateQuickSlotCard@CItemProcess@@QEAA_NAEAVXPacket@@@Z | 0x140457930 | implemented | IDA ?ReqItemUpdateQuickSlotCard@CItemProcess@@QEAA_NAEAVXPacket@@@Z | yes | - |
@@ -21098,7 +20868,7 @@ yes | ?????????? |
 | - | - | ?ReqItemAddSlot@CItemProcess@@QEAA_NAEAVXPacket@@@Z | 0x1404581c0 | implemented | IDA ?ReqItemAddSlot@CItemProcess@@QEAA_NAEAVXPacket@@@Z | yes | - |
 | - | - | ??0_lambda8_@?A0xe16c5b9c@@QEAA@AEBQEAVCUser@@AEBEQEAVCTradeProcess@@@Z | 0x1404583b0 | blocked | IDA ??0_lambda8_@?A0xe16c5b9c@@QEAA@AEBQEAVCUser@@AEBEQEAVCTradeProcess@@@Z | yes | - |
 | - | - | ??R_lambda18_@?A0x9b200487@@QEBAXXZ | 0x140458400 | blocked | IDA ??R_lambda18_@?A0x9b200487@@QEBAXXZ | yes | - |
-| - | - | ?ReqItemUse@CItemProcess@@QEAA_NAEAVXPacket@@@Z | 0x140458c20 | implemented | IDA ?ReqItemUse@CItemProcess@@QEAA_NAEAVXPacket@@@Z | yes | - |
+| XGameServer | Process/ItemProcess.cpp | ?ReqItemUse@CItemProcess@@QEAA_NAEAVXPacket@@@Z | 0x140458c20 | verified | GameServer PDB decorated ABI + IDA decompile/disasm + source build | yes | Active CMake request path verified with slot, CanUseItem, UseItem, maze-condition, and title-update branches. |
 | - | - | ??R_lambda20_@?A0x9b200487@@QEBAXXZ | 0x140458e10 | blocked | IDA ??R_lambda20_@?A0x9b200487@@QEBAXXZ | yes | - |
 | - | - | ?CheckSrcEquipItem@CItemProcess@@QEAA_NAEAUPS_REQ_ITEM_MOVE@@V?$shared_ptr@VCItem@@@tr1@std@@W4eITEM_INVEN_TYPE@@W4eITEM_USE_TYPE@@@Z | 0x1404591d0 | implemented | IDA ?CheckSrcEquipItem@CItemProcess@@QEAA_NAEAUPS_REQ_ITEM_MOVE@@V?$shared_ptr@VCItem@@@tr1@std@@W4eITEM_INVEN_TYPE@@W4eITEM_USE_TYPE@@@Z | yes | - |
 | - | - | ?CheckDestEquipItem@CItemProcess@@QEAA_NAEAUPS_REQ_ITEM_MOVE@@V?$shared_ptr@VCItem@@@tr1@std@@W4eITEM_INVEN_TYPE@@@Z | 0x140459630 | implemented | IDA ?CheckDestEquipItem@CItemProcess@@QEAA_NAEAUPS_REQ_ITEM_MOVE@@V?$shared_ptr@VCItem@@@tr1@std@@W4eITEM_INVEN_TYPE@@@Z | yes | - |
@@ -21169,14 +20939,14 @@ yes | ?????????? |
 | - | - | ??0_lambda48_@?A0x9b200487@@QEAA@AEBQEAVCUser@@AEBUPS_RES_STORAGE_INFO@@1AEBUST_CREATE_ITEM@@2AEBE@Z | 0x140464b00 | blocked | IDA ??0_lambda48_@?A0x9b200487@@QEAA@AEBQEAVCUser@@AEBUPS_RES_STORAGE_INFO@@1AEBUST_CREATE_ITEM@@2AEBE@Z | yes | - |
 | - | - | ??R_lambda48_@?A0x9b200487@@QEBAXXZ | 0x140464ba0 | blocked | IDA ??R_lambda48_@?A0x9b200487@@QEBAXXZ | yes | - |
 | - | - | ??0_lambda48_@?A0x9b200487@@QEAA@AEBV01@@Z | 0x140464f20 | blocked | IDA ??0_lambda48_@?A0x9b200487@@QEAA@AEBV01@@Z | yes | - |
-| - | - | ?ResEquipSlotOpen@CItemProcess@@QEAA_NAEAVXPacket@@@Z | 0x140464fc0 | implemented | IDA ?ResEquipSlotOpen@CItemProcess@@QEAA_NAEAVXPacket@@@Z | yes | - |
+| - | - | ?ResEquipSlotOpen@CItemProcess@@QEAA_NAEAVXPacket@@@Z | 0x140464fc0 | blocked | PDB decorated symbol + IDA decompile + source body | no | ItemProcess.cpp is excluded from the active CMake target; DBItemParse and RegisterProcess are not active. |
 | - | - | ??0_lambda50_@?A0x9b200487@@QEAA@AEBQEAVCUser@@AEBUPS_RES_STORAGE_INFO@@AEBHAEBE@Z | 0x1404652f0 | blocked | IDA ??0_lambda50_@?A0x9b200487@@QEAA@AEBQEAVCUser@@AEBUPS_RES_STORAGE_INFO@@AEBHAEBE@Z | yes | - |
 | - | - | ??R_lambda50_@?A0x9b200487@@QEBAXXZ | 0x140465360 | blocked | IDA ??R_lambda50_@?A0x9b200487@@QEBAXXZ | yes | - |
 | - | - | ??0_lambda50_@?A0x9b200487@@QEAA@AEBV01@@Z | 0x140465490 | blocked | IDA ??0_lambda50_@?A0x9b200487@@QEAA@AEBV01@@Z | yes | - |
-| - | - | ?ResItemUseInfoSelect@CItemProcess@@QEAA_NAEAVXPacket@@@Z | 0x140465500 | implemented | IDA ?ResItemUseInfoSelect@CItemProcess@@QEAA_NAEAVXPacket@@@Z | yes | - |
+| - | - | ?ResItemUseInfoSelect@CItemProcess@@QEAA_NAEAVXPacket@@@Z | 0x140465500 | blocked | PDB decorated symbol + IDA decompile + source body | no | ItemProcess.cpp is excluded from the active CMake target; DBItemParse and RegisterProcess are not active. |
 | - | - | ??R_lambda52_@?A0x9b200487@@QEBAXXZ | 0x140465760 | blocked | IDA ??R_lambda52_@?A0x9b200487@@QEBAXXZ | yes | - |
 | - | - | ??1_lambda54_@?A0x9b200487@@QEAA@XZ | 0x140465840 | blocked | IDA ??1_lambda54_@?A0x9b200487@@QEAA@XZ | yes | - |
-| - | - | ?ResItemUseInfoUpdate@CItemProcess@@QEAA_NAEAVXPacket@@@Z | 0x140465860 | implemented | IDA ?ResItemUseInfoUpdate@CItemProcess@@QEAA_NAEAVXPacket@@@Z | yes | - |
+| - | - | ?ResItemUseInfoUpdate@CItemProcess@@QEAA_NAEAVXPacket@@@Z | 0x140465860 | blocked | PDB decorated symbol + IDA decompile + source body | no | ItemProcess.cpp is excluded from the active CMake target; DBItemParse and RegisterProcess are not active. |
 | - | - | ??R_lambda54_@?A0x9b200487@@QEBAXXZ | 0x140465ac0 | blocked | IDA ??R_lambda54_@?A0x9b200487@@QEBAXXZ | yes | - |
 | - | - | ?ResItemAppearacneLoad@CItemProcess@@QEAA_NAEAVXPacket@@@Z | 0x140465bf0 | implemented | IDA ?ResItemAppearacneLoad@CItemProcess@@QEAA_NAEAVXPacket@@@Z | yes | - |
 | - | - | ??0_lambda82_@?A0x9b200487@@QEAA@AEBQEAVCUser@@AEBUST_ITEM_LIMIT_LIST@@@Z | 0x140465e30 | blocked | IDA ??0_lambda82_@?A0x9b200487@@QEAA@AEBQEAVCUser@@AEBUST_ITEM_LIMIT_LIST@@@Z | yes | - |
@@ -22514,7 +22284,7 @@ yes | ?????????? |
 | - | - | ??0PS_ITEM_MAKE_LIMIT_LIST@@QEAA@XZ | 0x14048cdd0 | blocked | IDA ??0PS_ITEM_MAKE_LIMIT_LIST@@QEAA@XZ | yes | - |
 | - | - | ??0PS_ITEM_SELECT_LIST@@QEAA@XZ | 0x14048ce10 | blocked | IDA ??0PS_ITEM_SELECT_LIST@@QEAA@XZ | yes | - |
 | - | - | ??0PS_RES_MOVE_MONEY@@QEAA@XZ | 0x14048ce40 | blocked | IDA ??0PS_RES_MOVE_MONEY@@QEAA@XZ | yes | - |
- | CGocInventory | GocInventory.cpp | ?GetBankMoney@CGocInventory@@QEAA_JXZ | 0x14048ce70 | implemented | IDA decompile | yes | Simple getter for m_nBankMoney |
+ | CGocInventory | GocInventory.cpp | ?GetBankMoney@CGocInventory@@QEAA_JXZ | 0x14048ce70 | verified | GameServer PDB + IDA decompile/assembly + source build | yes | Returns m_nBankMoney. |
 | - | - | ??0PS_DB_MOVE_MONEY@@QEAA@XZ | 0x14048ce90 | blocked | IDA ??0PS_DB_MOVE_MONEY@@QEAA@XZ | yes | - |
 | - | - | ??0PS_REQ_MOVE_MONEY@@QEAA@XZ | 0x14048ced0 | blocked | IDA ??0PS_REQ_MOVE_MONEY@@QEAA@XZ | yes | - |
 | - | - | ??0PS_SERVER_CHANGE_CHARACTER_NAME@@QEAA@XZ | 0x14048cef0 | blocked | IDA ??0PS_SERVER_CHANGE_CHARACTER_NAME@@QEAA@XZ | yes | - |
@@ -24327,7 +24097,7 @@ yes | ?????????? |
 | - | - | ??0PS_RES_ITEM_DYE@@QEAA@XZ | 0x1404ea6e0 | blocked | IDA ??0PS_RES_ITEM_DYE@@QEAA@XZ | yes | - |
 | - | - | ??0PS_DB_ITEM_DYE@@QEAA@XZ | 0x1404ea740 | blocked | IDA ??0PS_DB_ITEM_DYE@@QEAA@XZ | yes | - |
 | - | - | ?SetDyeID@CItem@@QEAAXH@Z | 0x1404ea7c0 | implemented | IDA ?SetDyeID@CItem@@QEAAXH@Z | yes | - |
- | CGocInventory | GocInventory.cpp | ?GetDyePoint@CGocInventory@@QEAAHXZ | 0x1404ea7e0 | implemented | IDA decompile | yes | Simple getter for m_nDyePoint (duplicate) |
+ | CGocInventory | GocInventory.cpp | ?GetDyePoint@CGocInventory@@QEAAHXZ | 0x1404ea7e0 | verified | GameServer PDB + IDA decompile/assembly + source build | yes | Returns m_nDyePoint. |
 | - | - | ??0PS_RES_ITEM_TITLE_CHANGE@@QEAA@XZ | 0x1404ea800 | blocked | IDA ??0PS_RES_ITEM_TITLE_CHANGE@@QEAA@XZ | yes | - |
 | - | - | ??0PS_DB_ITEM_TITLE_CHANGE@@QEAA@XZ | 0x1404ea830 | blocked | IDA ??0PS_DB_ITEM_TITLE_CHANGE@@QEAA@XZ | yes | - |
 | - | - | ?SetItemTitle@CItem@@QEAAXH@Z | 0x1404ea890 | implemented | IDA ?SetItemTitle@CItem@@QEAAXH@Z | yes | - |
@@ -24338,25 +24108,25 @@ yes | ?????????? |
 | - | - | ??0PS_RES_AKASHIC_COMPOSE@@QEAA@XZ | 0x1404ea9e0 | blocked | IDA ??0PS_RES_AKASHIC_COMPOSE@@QEAA@XZ | yes | - |
 | - | - | ??0PS_DB_AKASHIC_COMPOSE@@QEAA@XZ | 0x1404eaa10 | blocked | IDA ??0PS_DB_AKASHIC_COMPOSE@@QEAA@XZ | yes | - |
 | - | - | ??0PS_AKASHIC_COMPOSE@@QEAA@XZ | 0x1404eaa90 | blocked | IDA ??0PS_AKASHIC_COMPOSE@@QEAA@XZ | yes | - |
- | CGocInventory | GocInventory.cpp | ?SetSocketExtract@CGocInventory@@QEAAX_N@Z | 0x1404eaad0 | implemented | IDA decompile | yes | Simple setter for m_bReqSocketExtract |
- | CGocInventory | GocInventory.cpp | ?GetSocketExtract@CGocInventory@@QEAA_NXZ | 0x1404eaaf0 | implemented | IDA decompile | yes | Simple getter for m_bReqSocketExtract |
- | CGocInventory | GocInventory.cpp | ?SetSocketUpgrade@CGocInventory@@QEAAX_N@Z | 0x1404eab10 | implemented | IDA decompile | yes | Simple setter for m_bReqSocketUpgrade |
- | CGocInventory | GocInventory.cpp | ?GetSocketUpgrade@CGocInventory@@QEAA_NXZ | 0x1404eab30 | implemented | IDA decompile | yes | Simple getter for m_bReqSocketUpgrade |
+ | CGocInventory | GocInventory.cpp | ?SetSocketExtract@CGocInventory@@QEAAX_N@Z | 0x1404eaad0 | verified | GameServer PDB + IDA decompile/assembly + source build | yes | Assigns m_bReqSocketExtract. |
+ | CGocInventory | GocInventory.cpp | ?GetSocketExtract@CGocInventory@@QEAA_NXZ | 0x1404eaaf0 | verified | GameServer PDB + IDA decompile/assembly + source build | yes | Returns m_bReqSocketExtract. |
+ | CGocInventory | GocInventory.cpp | ?SetSocketUpgrade@CGocInventory@@QEAAX_N@Z | 0x1404eab10 | verified | GameServer PDB + IDA decompile/assembly + source build | yes | Assigns m_bReqSocketUpgrade. |
+ | CGocInventory | GocInventory.cpp | ?GetSocketUpgrade@CGocInventory@@QEAA_NXZ | 0x1404eab30 | verified | GameServer PDB + IDA decompile/assembly + source build | yes | Returns m_bReqSocketUpgrade. |
 | - | - | ??0PS_RES_SOCKET_UPGRADE@@QEAA@XZ | 0x1404eab50 | blocked | IDA ??0PS_RES_SOCKET_UPGRADE@@QEAA@XZ | yes | - |
  | CGocInventory | GocInventory.cpp | ?SetSocketExchange@CGocInventory@@QEAAX_N@Z | 0x1404eab80 | implemented | IDA decompile | yes | Simple setter for m_bReqSocketExchange |
- | CGocInventory | GocInventory.cpp | ?GetSocketExchange@CGocInventory@@QEAA_NXZ | 0x1404eaba0 | implemented | IDA decompile | yes | Simple getter for m_bReqSocketExchange |
+ | CGocInventory | GocInventory.cpp | ?GetSocketExchange@CGocInventory@@QEAA_NXZ | 0x1404eaba0 | verified | GameServer PDB + IDA decompile/assembly + source build | yes | Returns m_bReqSocketExchange. |
 | - | - | ??0PS_RES_ITEM_REFINE@@QEAA@XZ | 0x1404eabc0 | blocked | IDA ??0PS_RES_ITEM_REFINE@@QEAA@XZ | yes | - |
- | CGocInventory | GocInventory.cpp | ?SetItemRefineReq@CGocInventory@@QEAAX_N@Z | 0x1404eac00 | implemented | IDA decompile | yes | Simple setter for m_bReqItemRefine |
-| XGameServer | GocInventory.cpp | ?GetItemRefineReq@CGocInventory@@QEAA_NXZ | 0x1404eac20 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
+ | CGocInventory | GocInventory.cpp | ?SetItemRefineReq@CGocInventory@@QEAAX_N@Z | 0x1404eac00 | verified | GameServer PDB + IDA decompile/assembly + source build | yes | Assigns m_bReqItemRefine. |
+| CGocInventory | GocInventory.cpp | ?GetItemRefineReq@CGocInventory@@QEAA_NXZ | 0x1404eac20 | verified | GameServer PDB + IDA decompile/assembly + source build | yes | Returns m_bReqItemRefine. |
 | - | - | ??0PS_DB_BROACH_REMOVE@@QEAA@XZ | 0x1404eac40 | blocked | IDA ??0PS_DB_BROACH_REMOVE@@QEAA@XZ | yes | - |
 | - | - | ?erase@?$vector@UPS_ITEM_DISASSEMBLE@@V?$allocator@UPS_ITEM_DISASSEMBLE@@@std@@@std@@QEAA?AV?$_Vector_iterator@V?$_Vector_val@UPS_ITEM_DISASSEMBLE@@V?$allocator@UPS_ITEM_DISASSEMBLE@@@std@@@std@@@2@V?$_Vector_const_iterator@V?$_Vector_val@UPS_ITEM_DISASSEMBLE@@V?$allocator@UPS_ITEM_DISASSEMBLE@@@std@@@std@@@2@0@Z | 0x1404ead10 | blocked | IDA ?erase@?$vector@UPS_ITEM_DISASSEMBLE@@V?$allocator@UPS_ITEM_DISASSEMBLE@@@std@@@std@@QEAA?AV?$_Vector_iterator@V?$_Vector_val@UPS_ITEM_DISASSEMBLE@@V?$allocator@UPS_ITEM_DISASSEMBLE@@@std@@@std@@@2@V?$_Vector_const_iterator@V?$_Vector_val@UPS_ITEM_DISASSEMBLE@@V?$allocator@UPS_ITEM_DISASSEMBLE@@@std@@@std@@@2@0@Z | yes | - |
 | - | - | ?clear@?$vector@UST_ITEM_PACKAGE_PARTS@@V?$allocator@UST_ITEM_PACKAGE_PARTS@@@std@@@std@@QEAAXXZ | 0x1404eade0 | blocked | IDA ?clear@?$vector@UST_ITEM_PACKAGE_PARTS@@V?$allocator@UST_ITEM_PACKAGE_PARTS@@@std@@@std@@QEAAXXZ | yes | - |
 | - | - | ??0ST_ITEM_LIMIT_LIST@@QEAA@XZ | 0x1404eae40 | blocked | IDA ??0ST_ITEM_LIMIT_LIST@@QEAA@XZ | yes | - |
-| XGameServer | GocInventory.cpp | ?SetRemoveBroach@CGocInventory@@QEAAX_N@Z | 0x1404eae70 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
-| XGameServer | GocInventory.cpp | ?GetRemoveBroach@CGocInventory@@QEAA_NXZ | 0x1404eae90 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
+| CGocInventory | GocInventory.cpp | ?SetRemoveBroach@CGocInventory@@QEAAX_N@Z | 0x1404eae70 | verified | GameServer PDB + IDA decompile/assembly + source build | yes | Assigns m_bReqBroachRemove. |
+| CGocInventory | GocInventory.cpp | ?GetRemoveBroach@CGocInventory@@QEAA_NXZ | 0x1404eae90 | verified | GameServer PDB + IDA decompile/assembly + source build | yes | Returns m_bReqBroachRemove. |
 | - | - | ??0PS_RES_ITEM_RENOVATE@@QEAA@XZ | 0x1404eaeb0 | blocked | IDA ??0PS_RES_ITEM_RENOVATE@@QEAA@XZ | yes | - |
 | - | - | ??0PS_DB_ITEM_RENOVATE@@QEAA@XZ | 0x1404eaef0 | blocked | IDA ??0PS_DB_ITEM_RENOVATE@@QEAA@XZ | yes | - |
-| XGameServer | GocInventory.cpp | ?GetRenovatePoint@CGocInventory@@QEAAHXZ | 0x1404eaf50 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
+| CGocInventory | GocInventory.cpp | ?GetRenovatePoint@CGocInventory@@QEAAHXZ | 0x1404eaf50 | verified | GameServer PDB + IDA decompile/assembly + source build | yes | Returns m_nRenovatePoint. |
 | - | - | ?_Myval@?$_Tree_val@V?$_Tmap_traits@HPEAUSTMageGateBox@@U?$less@H@std@@V?$allocator@U?$pair@$$CBHPEAUSTMageGateBox@@@std@@@3@$0A@@std@@@std@@SAAEAU?$pair@$$CBHPEAUSTMageGateBox@@@2@PEAU_Node@?$_Tree_nod@V?$_Tmap_traits@HPEAUSTMageGateBox@@U?$less@H@std@@V?$allocator@U?$pair@$$CBHPEAUSTMageGateBox@@@std@@@3@$0A@@std@@@2@@Z | 0x1404eaf70 | blocked | IDA ?_Myval@?$_Tree_val@V?$_Tmap_traits@HPEAUSTMageGateBox@@U?$less@H@std@@V?$allocator@U?$pair@$$CBHPEAUSTMageGateBox@@@std@@@3@$0A@@std@@@std@@SAAEAU?$pair@$$CBHPEAUSTMageGateBox@@@2@PEAU_Node@?$_Tree_nod@V?$_Tmap_traits@HPEAUSTMageGateBox@@U?$less@H@std@@V?$allocator@U?$pair@$$CBHPEAUSTMageGateBox@@@std@@@3@$0A@@std@@@2@@Z | yes | - |
 | - | - | ?GetTB_RANDOM_CHANGE@XResourceMgr@@QEAAPEAUTB_RANDOM_CHANGE@@K@Z | 0x1404eaf80 | implemented | IDA ?GetTB_RANDOM_CHANGE@XResourceMgr@@QEAAPEAUTB_RANDOM_CHANGE@@K@Z | yes | - |
 | - | - | ??0PS_ITEM_RENOVATE@@QEAA@XZ | 0x1404eaff0 | blocked | IDA ??0PS_ITEM_RENOVATE@@QEAA@XZ | yes | - |
@@ -24387,7 +24157,7 @@ yes | ?????????? |
 | - | - | ?UpgradeLimitInc@CItem@@QEAAXE@Z | 0x1404eb7f0 | implemented | IDA ?UpgradeLimitInc@CItem@@QEAAXE@Z | yes | - |
 | - | - | ?GetTB_ITEM_EVOLUTION@XResourceMgr@@QEAAPEAUTB_ITEM_EVOLUTION@@K@Z | 0x1404eb820 | implemented | IDA ?GetTB_ITEM_EVOLUTION@XResourceMgr@@QEAAPEAUTB_ITEM_EVOLUTION@@K@Z | yes | - |
 | - | - | ??0PS_DB_SOCKET_DETACH@@QEAA@XZ | 0x1404eb890 | blocked | IDA ??0PS_DB_SOCKET_DETACH@@QEAA@XZ | yes | - |
-| XGameServer | GocInventory.cpp | ?GetRemoveSocket@CGocInventory@@QEAA_NXZ | 0x1404eb900 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
+| CGocInventory | GocInventory.cpp | ?GetRemoveSocket@CGocInventory@@QEAA_NXZ | 0x1404eb900 | verified | GameServer PDB + IDA decompile/assembly + source build | yes | Returns m_bReqSocketRemove. |
 | - | - | ??0PS_REQ_SOCKET_DETACH@@QEAA@XZ | 0x1404eb920 | blocked | IDA ??0PS_REQ_SOCKET_DETACH@@QEAA@XZ | yes | - |
 | - | - | ?GetTB_REINFORCE_EXCHANGE@XResourceMgr@@QEAAPEAUTB_REINFORCE_EXCHANGE@@K@Z | 0x1404eb940 | implemented | IDA ?GetTB_REINFORCE_EXCHANGE@XResourceMgr@@QEAAPEAUTB_REINFORCE_EXCHANGE@@K@Z | yes | - |
 | - | - | ?GetNpcTableRef@CNpc@@QEAAPEAUTB_NPC@@XZ | 0x1404eb9b0 | implemented | IDA ?GetNpcTableRef@CNpc@@QEAAPEAUTB_NPC@@XZ | yes | - |
@@ -25032,7 +24802,7 @@ yes | ?????????? |
 | - | - | ?find@?$_Tree@V?$_Tmap_traits@KUTB_REINFORCE_OPTION@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_REINFORCE_OPTION@@@std@@@3@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@KUTB_REINFORCE_OPTION@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_REINFORCE_OPTION@@@std@@@3@$0A@@std@@@std@@@2@AEBK@Z | 0x140504090 | blocked | IDA ?find@?$_Tree@V?$_Tmap_traits@KUTB_REINFORCE_OPTION@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_REINFORCE_OPTION@@@std@@@3@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@KUTB_REINFORCE_OPTION@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_REINFORCE_OPTION@@@std@@@3@$0A@@std@@@std@@@2@AEBK@Z | yes | - |
 | - | - | ?GetTB_LEAGUE_SKILL@XResourceMgr@@QEAAPEAUTB_LEAGUE_SKILL@@K@Z | 0x140504150 | implemented | IDA ?GetTB_LEAGUE_SKILL@XResourceMgr@@QEAAPEAUTB_LEAGUE_SKILL@@K@Z | yes | - |
 | - | - | ??0PS_REQ_SOCKET_EXCHANGE@@QEAA@XZ | 0x1405041c0 | blocked | IDA ??0PS_REQ_SOCKET_EXCHANGE@@QEAA@XZ | yes | - |
-| XGameServer | GocInventory.cpp | ?GetReqLeagueNameChange@CGocInventory@@QEAA_NXZ | 0x140504200 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
+| XGameServer | GocInventory.cpp | ?GetReqLeagueNameChange@CGocInventory@@QEAA_NXZ | 0x140504200 | verified | GameServer PDB + IDA decompile/assembly + source build | yes | Returns m_bReqLeagueNameChange. |
 | - | - | ??0ST_REQ_LEAGUE_APPLICANT_ACCEPT@@QEAA@XZ | 0x140504220 | blocked | IDA ??0ST_REQ_LEAGUE_APPLICANT_ACCEPT@@QEAA@XZ | yes | - |
 | - | - | ?GetLeagueWithdrawPenalty@CUser@@QEAA_JXZ | 0x140504270 | implemented | IDA ?GetLeagueWithdrawPenalty@CUser@@QEAA_JXZ | yes | - |
 | - | - | ??0PS_LEAGUE_CREATE_FOR_SERVER@@QEAA@XZ | 0x140504290 | blocked | IDA ??0PS_LEAGUE_CREATE_FOR_SERVER@@QEAA@XZ | yes | - |
@@ -25223,7 +24993,7 @@ yes | ?????????? |
 | - | - | ??$_ApplyX@X@?$_Callable_obj@V_lambda10_@?A0x8d89eab2@@$0A@@tr1@std@@QEAAXXZ | 0x14050a000 | blocked | IDA ??$_ApplyX@X@?$_Callable_obj@V_lambda10_@?A0x8d89eab2@@$0A@@tr1@std@@QEAAXXZ | yes | - |
 | - | - | ?SetLastAccountComeBackDate@CUser@@QEAAX_J@Z | 0x14050a020 | implemented | IDA ?SetLastAccountComeBackDate@CUser@@QEAAX_J@Z | yes | - |
 | - | - | ?SetAccountCreateDate@CUser@@QEAAX_J@Z | 0x14050a040 | implemented | IDA ?SetAccountCreateDate@CUser@@QEAAX_J@Z | yes | - |
-| XGameServer | GocInventory.cpp | ?SetProcessBilling@CGocInventory@@QEAAX_N@Z | 0x14050a060 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
+| XGameServer | GocInventory.cpp | ?SetProcessBilling@CGocInventory@@QEAAX_N@Z | 0x14050a060 | verified | GameServer PDB + IDA decompile/assembly + source build | yes | Assigns m_bProcessBilling. |
 | - | - | ??0CMazeProcess@@QEAA@XZ | 0x14050a080 | blocked | IDA ??0CMazeProcess@@QEAA@XZ | yes | - |
 | - | - | ??_ECMazeProcess@@UEAAPEAXI@Z | 0x14050a100 | blocked | IDA ??_ECMazeProcess@@UEAAPEAXI@Z | yes | - |
 | - | - | ??1CMazeProcess@@UEAA@XZ | 0x14050a140 | blocked | IDA ??1CMazeProcess@@UEAA@XZ | yes | - |
@@ -25645,12 +25415,12 @@ yes | ?????????? |
 | XGameServer | Process/MonsterProcess.cpp | ??1CMonsterProcess@@UEAA@XZ | 0x140518f10 | implemented | IDA decompile | yes | CMonsterProcess destructor |
 | XGameServer | Process/MonsterProcess.cpp | ?Parse@CMonsterProcess@@UEAA_NAEAVXPacket@@@Z | 0x140518f40 | implemented | IDA decompile | yes | Main packet parser - dispatches to handlers based on subcmd |
 | XGameServer | Process/MonsterProcess.cpp | ?ReqTargetChange@CMonsterProcess@@IEAA_NAEAVXPacket@@@Z | 0x140519060 | implemented | IDA decompile | yes | Request target change handler |
-| XGameServer | Process/MonsterProcess.cpp | ?ReqDefensiveWeaponStart@CMonsterProcess@@IEAA_NAEAVXPacket@@@Z | 0x140519170 | implemented | IDA decompile | yes | Start defensive weapon mode handler (TODO: lambda callbacks) |
+| XGameServer | Process/MonsterProcess.cpp | ?ReqDefensiveWeaponStart@CMonsterProcess@@IEAA_NAEAVXPacket@@@Z | 0x140519170 | blocked | IDA decompile | no | Start defensive weapon mode handler (TODO: lambda callbacks) |
 | - | - | ??R_lambda0_@?A0x6a02b118@@QEBAXXZ | 0x140519360 | blocked | IDA ??R_lambda0_@?A0x6a02b118@@QEBAXXZ | yes | - |
-| XGameServer | Process/MonsterProcess.cpp | ?ReqDefensiveWeaponEnd@CMonsterProcess@@IEAA_NAEAVXPacket@@@Z | 0x140519550 | implemented | IDA decompile | yes | End defensive weapon mode handler (TODO: lambda callbacks) |
+| XGameServer | Process/MonsterProcess.cpp | ?ReqDefensiveWeaponEnd@CMonsterProcess@@IEAA_NAEAVXPacket@@@Z | 0x140519550 | blocked | IDA decompile | no | End defensive weapon mode handler (TODO: lambda callbacks) |
 | - | - | ??R_lambda2_@?A0x6a02b118@@QEBAXXZ | 0x140519740 | blocked | IDA ??R_lambda2_@?A0x6a02b118@@QEBAXXZ | yes | - |
-| XGameServer | Process/MonsterProcess.cpp | ?ReqDefensiveWeaponAttack@CMonsterProcess@@IEAA_NAEAVXPacket@@@Z | 0x1405198f0 | implemented | IDA decompile | yes | Defensive weapon attack handler (TODO: lambda callbacks) |
-| XGameServer | Process/MonsterProcess.cpp | ?ReqControlMonsterAttack@CMonsterProcess@@IEAA_NAEAVXPacket@@@Z | 0x140519b00 | implemented | IDA decompile | yes | Control monster attack handler (TODO: lambda callbacks) |
+| XGameServer | Process/MonsterProcess.cpp | ?ReqDefensiveWeaponAttack@CMonsterProcess@@IEAA_NAEAVXPacket@@@Z | 0x1405198f0 | blocked | IDA decompile | no | Defensive weapon attack handler (TODO: lambda callbacks) |
+| XGameServer | Process/MonsterProcess.cpp | ?ReqControlMonsterAttack@CMonsterProcess@@IEAA_NAEAVXPacket@@@Z | 0x140519b00 | blocked | IDA decompile | no | Control monster attack handler (TODO: lambda callbacks) |
 | - | - | ??R_lambda4_@?A0x6a02b118@@QEBAXXZ | 0x140519d10 | blocked | IDA ??R_lambda4_@?A0x6a02b118@@QEBAXXZ | yes | - |
 | XGameServer | Process/MonsterProcess.cpp | ?ReqMonsterWrongPos@CMonsterProcess@@IEAA_NAEAVXPacket@@@Z | 0x140519df0 | implemented | IDA decompile | yes | Report monster wrong position handler |
 | - | - | ??$?0V_lambda0_@?A0x6a02b118@@@?$function@$$A6AXXZ@tr1@std@@QEAA@V_lambda0_@?A0x6a02b118@@@Z | 0x140519ec0 | blocked | IDA ??$?0V_lambda0_@?A0x6a02b118@@@?$function@$$A6AXXZ@tr1@std@@QEAA@V_lambda0_@?A0x6a02b118@@@Z | yes | - |
@@ -30926,10 +30696,10 @@ yes | ?????????? |
 | - | - | ??$_ApplyX@X@?$_Callable_obj@V_lambda49_@?A0xa93faaa1@@$0A@@tr1@std@@QEAAXXZ | 0x1405dac00 | blocked | IDA ??$_ApplyX@X@?$_Callable_obj@V_lambda49_@?A0xa93faaa1@@$0A@@tr1@std@@QEAAXXZ | yes | - |
 | - | - | ??0ST_CASH_ITEM_GIFT@@QEAA@XZ | 0x1405dac20 | blocked | IDA ??0ST_CASH_ITEM_GIFT@@QEAA@XZ | yes | - |
 | - | - | ??0PS_REQ_ITEM_SELL@@QEAA@XZ | 0x1405dac70 | blocked | IDA ??0PS_REQ_ITEM_SELL@@QEAA@XZ | yes | - |
-| XGameServer | GocInventory.cpp | ?GetRecycle@CGocInventory@@QEAA_JXZ | 0x1405dacb0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
-| XGameServer | GocInventory.cpp | ?SetMileageShopBuyItem@CGocInventory@@QEAAX_N@Z | 0x1405dacd0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
-| XGameServer | GocInventory.cpp | ?GetMileageShopBuyItem@CGocInventory@@QEAA_NXZ | 0x1405dacf0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
-| XGameServer | GocInventory.cpp | ?IsProcessBilling@CGocInventory@@QEAA_NXZ | 0x1405dad10 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
+| XGameServer | GocInventory.cpp | ?GetRecycle@CGocInventory@@QEAA_JXZ | 0x1405dacb0 | verified | GameServer PDB + IDA decompile/assembly + source build | yes | Returns m_biRecycle. |
+| XGameServer | GocInventory.cpp | ?SetMileageShopBuyItem@CGocInventory@@QEAAX_N@Z | 0x1405dacd0 | verified | GameServer PDB + IDA decompile/assembly + source build | yes | Assigns m_bReqShopBuy. |
+| XGameServer | GocInventory.cpp | ?GetMileageShopBuyItem@CGocInventory@@QEAA_NXZ | 0x1405DACF0 | verified | GameServer PDB decorated ABI + IDA decompile/disasm + source build | yes | Returns m_bReqShopBuy with the PDB-required non-const member ABI. |
+| XGameServer | GocInventory.cpp | ?IsProcessBilling@CGocInventory@@QEAA_NXZ | 0x1405DAD10 | verified | GameServer PDB decorated ABI + IDA decompile/disasm + source build | yes | Returns m_bProcessBilling with the PDB-required non-const member ABI. |
 | XGameServer | GocSkill.cpp | ?DefualtDeckCount@CGocSkill@@QEAAXXZ | 0x1405dad30 | implemented | IDA decompile | yes | ��ȷ��ԭ-����Ĭ�Ͽ���������? |
 | XGameServer | GocSkill.cpp | ?GetDeckCount@CGocSkill@@QEAAGXZ | 0x1405dad50 | implemented | IDA decompile | yes | ��ȷ��ԭ-��ȡ���������?|
 | XGameServer | GocSkill.cpp | ?GetPageDeckCount@CGocSkill@@QEAAEXZ | 0x1405dad70 | implemented | IDA decompile | yes | ��ȷ��ԭ-��ȡҳ�������� |
@@ -32189,18 +31959,18 @@ yes | ?????????? |
 | - | - | ?ReqToolItemSoulStone@CToolProcess@@QEAA_NAEAVXPacket@@@Z | 0x14060c970 | implemented | IDA ?ReqToolItemSoulStone@CToolProcess@@QEAA_NAEAVXPacket@@@Z | yes | - |
 | - | - | ?ReqToolItemDisassemble@CToolProcess@@QEAA_NAEAVXPacket@@@Z | 0x14060d0e0 | implemented | IDA ?ReqToolItemDisassemble@CToolProcess@@QEAA_NAEAVXPacket@@@Z | yes | - |
 | - | - | ??A?$vector@UPS_TOOL_ITEM_INFO@@V?$allocator@UPS_TOOL_ITEM_INFO@@@std@@@std@@QEAAAEAUPS_TOOL_ITEM_INFO@@_K@Z | 0x14060d750 | blocked | IDA ??A?$vector@UPS_TOOL_ITEM_INFO@@V?$allocator@UPS_TOOL_ITEM_INFO@@@std@@@std@@QEAAAEAUPS_TOOL_ITEM_INFO@@_K@Z | yes | - |
-| XGameServer | GocInventory.cpp | ?ClearToolDisassemlbe@CGocInventory@@QEAAXXZ | 0x14060d770 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
-| XGameServer | GocInventory.cpp | ?ClearToolSoulstoneInfo@CGocInventory@@QEAAXXZ | 0x14060d790 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
+| XGameServer | GocInventory.cpp | ?ClearToolDisassemlbe@CGocInventory@@QEAAXXZ | 0x14060D770 | verified | GameServer PDB decorated ABI + IDA decompile/disasm + source build | yes | Clears m_stToolDisassemble.vecInfo. |
+| XGameServer | GocInventory.cpp | ?ClearToolSoulstoneInfo@CGocInventory@@QEAAXXZ | 0x14060D790 | verified | GameServer PDB decorated ABI + IDA decompile/disasm + source build | yes | Clears m_stToolSoulstone.vecInfo. |
 | - | - | ?_Buy@?$vector@UPS_TOOL_SOULSTONE_INFO@@V?$allocator@UPS_TOOL_SOULSTONE_INFO@@@std@@@std@@IEAA_N_K@Z | 0x14060d7b0 | blocked | IDA ?_Buy@?$vector@UPS_TOOL_SOULSTONE_INFO@@V?$allocator@UPS_TOOL_SOULSTONE_INFO@@@std@@@std@@IEAA_N_K@Z | yes | - |
 | - | - | ??$_Uninitialized_copy@PEAUPS_TOOL_SOULSTONE_INFO@@PEAU1@V?$allocator@UPS_TOOL_SOULSTONE_INFO@@@std@@@std@@YAPEAUPS_TOOL_SOULSTONE_INFO@@PEAU1@00AEAV?$allocator@UPS_TOOL_SOULSTONE_INFO@@@0@@Z | 0x14060d860 | blocked | IDA ??$_Uninitialized_copy@PEAUPS_TOOL_SOULSTONE_INFO@@PEAU1@V?$allocator@UPS_TOOL_SOULSTONE_INFO@@@std@@@std@@YAPEAUPS_TOOL_SOULSTONE_INFO@@PEAU1@00AEAV?$allocator@UPS_TOOL_SOULSTONE_INFO@@@0@@Z | yes | - |
 | - | - | ??$_Ucopy@PEAUPS_TOOL_ITEM_INFO@@@?$vector@UPS_TOOL_ITEM_INFO@@V?$allocator@UPS_TOOL_ITEM_INFO@@@std@@@std@@IEAAPEAUPS_TOOL_ITEM_INFO@@PEAU2@00@Z | 0x14060d8c0 | blocked | IDA ??$_Ucopy@PEAUPS_TOOL_ITEM_INFO@@@?$vector@UPS_TOOL_ITEM_INFO@@V?$allocator@UPS_TOOL_ITEM_INFO@@@std@@@std@@IEAAPEAUPS_TOOL_ITEM_INFO@@PEAU2@00@Z | yes | - |
 | - | - | ??4PS_RES_TOOL_SOULSTONE@@QEAAAEAU0@AEBU0@@Z | 0x14060d900 | blocked | IDA ??4PS_RES_TOOL_SOULSTONE@@QEAAAEAU0@AEBU0@@Z | yes | - |
 | XGameServer | GocInventory.cpp | ?GetToolSoulstone@CGocInventory@@QEAAXAEAUPS_RES_TOOL_SOULSTONE@@@Z | 0x14060d950 | verified | GameServer PDB decorated ABI + IDA decompile/disasm + source build | yes | Direct PS_RES_TOOL_SOULSTONE assignment verified. |
 | - | - | ??0PS_TOOL_SOULSTONE_INFO@@QEAA@XZ | 0x14060d980 | blocked | IDA ??0PS_TOOL_SOULSTONE_INFO@@QEAA@XZ | yes | - |
-| XGameServer | GocInventory.cpp | ?ClearToolGachaInfo@CGocInventory@@QEAAXXZ | 0x14060d9b0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
-| XGameServer | GocInventory.cpp | ?GetToolGachaInfo@CGocInventory@@QEAAXAEAUPS_RES_TOOL_DROP_INFO@@@Z | 0x14060d9d0 | verified | GameServer PDB decorated ABI + IDA decompile/disasm + source build | yes | Direct PS_RES_TOOL_DROP_INFO assignment verified. |
-| XGameServer | GocInventory.cpp | ?ClearToolRandomBoxInfo@CGocInventory@@QEAAXXZ | 0x14060da00 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
-| XGameServer | GocInventory.cpp | ?GetToolRandomBoxInfo@CGocInventory@@QEAAXAEAUST_CREATE_ITEMS@@@Z | 0x14060da20 | verified | GameServer PDB decorated ABI + IDA decompile/disasm + source build | yes | Direct ST_CREATE_ITEMS assignment verified. |
+| XGameServer | GocInventory.cpp | ?ClearToolGachaInfo@CGocInventory@@QEAAXXZ | 0x14060D9B0 | verified | GameServer PDB decorated ABI + IDA decompile/disasm + source build | yes | Clears m_stToolItemInfo.vecInfo. |
+| XGameServer | GocInventory.cpp | ?GetToolGachaInfo@CGocInventory@@QEAAXAEAUPS_RES_TOOL_DROP_INFO@@@Z | 0x14060D9D0 | verified | GameServer PDB decorated ABI + IDA decompile/disasm + source build | yes | Direct PS_RES_TOOL_DROP_INFO assignment verified. |
+| XGameServer | GocInventory.cpp | ?ClearToolRandomBoxInfo@CGocInventory@@QEAAXXZ | 0x14060DA00 | verified | GameServer PDB decorated ABI + IDA decompile/disasm + source build | yes | Clears m_stToolRandomBoxRes.vecInfo. |
+| XGameServer | GocInventory.cpp | ?GetToolRandomBoxInfo@CGocInventory@@QEAAXAEAUST_CREATE_ITEMS@@@Z | 0x14060DA20 | verified | GameServer PDB decorated ABI + IDA decompile/disasm + source build | yes | Direct ST_CREATE_ITEMS assignment verified. |
 | - | - | ??0PS_TOOL_DROP_MONSTER@@QEAA@XZ | 0x14060da50 | blocked | IDA ??0PS_TOOL_DROP_MONSTER@@QEAA@XZ | yes | - |
 | XGameServer | GocRecode.h | ?SetToolInfo@CGocRecode@@QEAAXHH@Z | 0x14060dae0 | implemented | IDA decompile | yes | ��ȷ��ԭ-���ù�����Ϣ |
 | - | - | ?ClearToolDropItem@CDropProcess@@QEAAXXZ | 0x14060db10 | implemented | IDA ?ClearToolDropItem@CDropProcess@@QEAAXXZ | yes | - |
@@ -32617,7 +32387,7 @@ yes | ?????????? |
 | - | - | ??$_Allocate@V?$_Impl_no_alloc0@U?$_Callable_obj@V_lambda1_@?A0x8d89eab2@@$0A@@tr1@std@@X@tr1@std@@@std@@YAPEAV?$_Impl_no_alloc0@U?$_Callable_obj@V_lambda1_@?A0x8d89eab2@@$0A@@tr1@std@@X@tr1@0@_KPEAV120@@Z | 0x140622360 | blocked | IDA ??$_Allocate@V?$_Impl_no_alloc0@U?$_Callable_obj@V_lambda1_@?A0x8d89eab2@@$0A@@tr1@std@@X@tr1@std@@@std@@YAPEAV?$_Impl_no_alloc0@U?$_Callable_obj@V_lambda1_@?A0x8d89eab2@@$0A@@tr1@std@@X@tr1@0@_KPEAV120@@Z | yes | - |
 | - | - | ??$_ApplyX@X@?$_Callable_obj@V_lambda28_@?A0xe16c5b9c@@$0A@@tr1@std@@QEAAXXZ | 0x1406223f0 | blocked | IDA ??$_ApplyX@X@?$_Callable_obj@V_lambda28_@?A0xe16c5b9c@@$0A@@tr1@std@@QEAAXXZ | yes | - |
 | - | - | ??$_ApplyX@X@?$_Callable_obj@V_lambda30_@?A0xe16c5b9c@@$0A@@tr1@std@@QEAAXXZ | 0x140622410 | blocked | IDA ??$_ApplyX@X@?$_Callable_obj@V_lambda30_@?A0xe16c5b9c@@$0A@@tr1@std@@QEAAXXZ | yes | - |
-| XGameServer | GocInventory.cpp | ?GetPrivateShopItemCount@CGocInventory@@QEAAFXZ | 0x140622430 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
+| XGameServer | GocInventory.cpp | ?GetPrivateShopItemCount@CGocInventory@@QEAAFXZ | 0x140622430 | verified | GameServer PDB decorated ABI + IDA decompile/disasm + source build | yes | Returns the list size as the PDB-required signed 16-bit non-const member result. |
 | - | - | ?PrivateShopStart@CUser@@QEAAXPEA_W@Z | 0x140622460 | implemented | IDA ?PrivateShopStart@CUser@@QEAAXPEA_W@Z | yes | - |
 | - | - | ?PrivateShopName@CUser@@QEAAXPEA_W@Z | 0x1406224e0 | implemented | IDA ?PrivateShopName@CUser@@QEAAXPEA_W@Z | yes | - |
 | - | - | ?SetPrivateShopState@CUser@@QEAAXE@Z | 0x140622560 | implemented | IDA ?SetPrivateShopState@CUser@@QEAAXE@Z | yes | - |
@@ -34526,7 +34296,7 @@ yes | ?????????? |
 | XGameServer | ThreadLocalData.cpp | ?DeleteChainLightning@ThreadLocalData@@QEAAXPEAVVChainLightningObject@@@Z | 0x1406d8cb0 | implemented | IDA decompile | yes | ��ȷ��ԭ-ɾ���������� |
 | XGameServer | ThreadLocalData.cpp | ?CreateInteractionObject@ThreadLocalData@@QEAAPEAVCInteractionObject@@UXVec3@@@Z | 0x1406d8ce0 | implemented | IDA decompile | yes | ��ȷ��ԭ-������������ |
 | XGameServer | ThreadLocalData.cpp | ?DeleteInteractionObject@ThreadLocalData@@QEAAXPEAVCInteractionObject@@@Z | 0x1406d8d30 | implemented | IDA decompile | yes | ��ȷ��ԭ-ɾ���������� |
-| XGameServer | ThreadLocalData_Stub.cpp | ?CreateVaccumCubeObject@ThreadLocalData@@QEAAPEAVCVaccumCube@@UXVec3@@@Z | 0x1406d8d60 | implemented | IDA decompile + source/build check | yes | Active GameServer build uses ThreadLocalData_Stub.cpp; added source-compatible helper that creates a CVaccumCube object and applies the IDA-observed position assignment. |
+| XGameServer | ThreadLocalData_Stub.cpp | ?CreateVaccumCubeObject@ThreadLocalData@@QEAAPEAVCVaccumCube@@UXVec3@@@Z | 0x1406d8d60 | blocked | IDA decompile + source/build check | no | Active GameServer build uses ThreadLocalData_Stub.cpp; added source-compatible helper that creates a CVaccumCube object and applies the IDA-observed position assignment. |
 | XGameServer | ThreadLocalData.cpp | ?DeleteVaccumCubeObject@ThreadLocalData@@QEAAXPEAVCVaccumCube@@@Z | 0x1406d8db0 | implemented | IDA decompile | yes | ��ȷ��ԭ-ɾ�����������?|
 | XGameServer | ThreadLocalData.cpp | ?CreateSocialItemObject@ThreadLocalData@@QEAAPEAVCSocialItemObject@@UXVec3@@@Z | 0x1406d8de0 | implemented | IDA decompile | yes | ��ȷ��ԭ-�����罻��Ʒ |
 | XGameServer | ThreadLocalData.cpp | ?DeleteSocialItemObject@ThreadLocalData@@QEAAXPEAVCSocialItemObject@@@Z | 0x1406d8e30 | implemented | IDA decompile | yes | ��ȷ��ԭ-ɾ���罻��Ʒ |
@@ -34558,7 +34328,7 @@ yes | ?????????? |
 | - | - | ??4PS_RES_ITEM_MOVE_LEAGUE_INVEN@@QEAAAEAU0@AEAU0@@Z | 0x1406da550 | blocked | IDA ??4PS_RES_ITEM_MOVE_LEAGUE_INVEN@@QEAAAEAU0@AEAU0@@Z | yes | - |
 | - | - | ?SendDayEvent@ThreadLocalData@@QEAAXAEAUPS_DAY_EVENT_LIST@@@Z | 0x1406da650 | implemented | IDA ?SendDayEvent@ThreadLocalData@@QEAAXAEAUPS_DAY_EVENT_LIST@@@Z | yes | - |
 | - | - | ?SendOperationTime@ThreadLocalData@@QEAAXXZ | 0x1406da6f0 | implemented | IDA ?SendOperationTime@ThreadLocalData@@QEAAXXZ | yes | - |
-| - | - | ?SendWorldEventBooster@ThreadLocalData@@QEAAXK_J@Z | 0x1406da780 | implemented | IDA ?SendWorldEventBooster@ThreadLocalData@@QEAAXK_J@Z | yes | - |
+| XGameServer | ThreadLocalData_Stub.cpp | ?SendWorldEventBooster@ThreadLocalData@@QEAAXK_J@Z | 0x1406DA780 | blocked | IDA decompile + active GameServer stub build | no | Iterates the thread-local area map and forwards the booster to each area. |
 | - | - | ?CompareLeagueInventoryCount@ThreadLocalData@@QEAA_NHK@Z | 0x1406da820 | implemented | IDA ?CompareLeagueInventoryCount@ThreadLocalData@@QEAA_NHK@Z | yes | - |
 | - | - | ?MyRoomPollenCancel@ThreadLocalData@@QEAAXHTUXMapID@@H@Z | 0x1406da8a0 | implemented | IDA ?MyRoomPollenCancel@ThreadLocalData@@QEAAXHTUXMapID@@H@Z | yes | - |
 | - | - | ?StartWorldMode@ThreadLocalData@@QEAAXAEAUST_WORLD_MODE_INFO@@@Z | 0x1406da940 | implemented | IDA ?StartWorldMode@ThreadLocalData@@QEAAXAEAUST_WORLD_MODE_INFO@@@Z | yes | - |
@@ -34747,7 +34517,7 @@ yes | ?????????? |
 | - | - | ?Clear@CTimeEventMgr@@QEAAXXZ | 0x1406e0880 | implemented | IDA ?Clear@CTimeEventMgr@@QEAAXXZ | yes | - |
 | - | - | ?Update@CTimeEventMgr@@QEAAXXZ | 0x1406e09b0 | implemented | IDA ?Update@CTimeEventMgr@@QEAAXXZ | yes | - |
 | - | - | ?AddTimeEvent@CTimeEventMgr@@QEAA_NAEAUST_GM_TIME_EVENT_INFO@@@Z | 0x1406e0a80 | implemented | IDA ?AddTimeEvent@CTimeEventMgr@@QEAA_NAEAUST_GM_TIME_EVENT_INFO@@@Z | yes | - |
-| XGameServer | ManagerStubs.h | ?CheckTimeEvent@CTimeEventMgr@@QEAAXAEAV?$vector@UST_GM_TIME_EVENT_INFO@@V?$allocator@UST_GM_TIME_EVENT_INFO@@@std@@@std@@@Z | 0x1406e0be0 | implemented | IDA decompile | yes | Added IDA-backed active/expired time event scan over m_mapTimeEvent with write-lock protection, output vector clearing, active event push, expired key collection, and removal pass. |
+| XGameServer | ManagerStubs.h | ?CheckTimeEvent@CTimeEventMgr@@QEAAXAEAV?$vector@UST_GM_TIME_EVENT_INFO@@V?$allocator@UST_GM_TIME_EVENT_INFO@@@std@@@std@@@Z | 0x1406e0be0 | blocked | IDA decompile | no | Added IDA-backed active/expired time event scan over m_mapTimeEvent with write-lock protection, output vector clearing, active event push, expired key collection, and removal pass. |
 | - | - | ?AddValueEvent@CTimeEventMgr@@QEAAXAEAUPS_GM_VALUE_EVENT_LIST@@@Z | 0x1406e0e70 | implemented | IDA ?AddValueEvent@CTimeEventMgr@@QEAAXAEAUPS_GM_VALUE_EVENT_LIST@@@Z | yes | - |
 | - | - | ?CheckValueEvent@CTimeEventMgr@@QEAA_NW4ENUM_GM_VALUE_EVENT_TYPE@@AEAUST_GM_VALUE_EVENT_INFO@@@Z | 0x1406e1100 | implemented | IDA ?CheckValueEvent@CTimeEventMgr@@QEAA_NW4ENUM_GM_VALUE_EVENT_TYPE@@AEAUST_GM_VALUE_EVENT_INFO@@@Z | yes | - |
 | - | - | ?CheckDecreaseFatigue@CTimeEventMgr@@QEAAXAEAF@Z | 0x1406e1240 | implemented | IDA ?CheckDecreaseFatigue@CTimeEventMgr@@QEAAXAEAF@Z | yes | - |
@@ -34819,7 +34589,7 @@ yes | ?????????? |
 | - | - | ?Clear@CUser@@QEAAXXZ | 0x1406e36a0 | blocked | IDA ?Clear@CUser@@QEAAXXZ | yes | - |
 | - | - | ?Exit@CUser@@QEAAXXZ | 0x1406e4370 | implemented | IDA decompile | yes | IDA精确还原-退出区域时保存状态并重置 |
 | - | - | ?Reset@CUser@@UEAAXXZ | 0x1406e4640 | blocked | IDA ?Reset@CUser@@UEAAXXZ | yes | - |
-| - | - | ?RegisterProcess@CUser@@MEAA_NXZ | 0x1406e4b70 | implemented | IDA ?RegisterProcess@CUser@@MEAA_NXZ | yes | - |
+| XGameServer | User.cpp | ?RegisterProcess@CUser@@MEAA_NXZ | 0x1406E4B70 | verified | IDA decompile + PDB decorated ABI + active CMake build | yes | Protected virtual registration of the active GameServer process subset. |
 | - | - | ?Init@CUser@@UEAA_NPEAVXIOCPServer@@@Z | 0x1406e5c20 | implemented | IDA ?Init@CUser@@UEAA_NPEAVXIOCPServer@@@Z | yes | - |
 | - | - | ?InitComponant@CUser@@QEAAXXZ | 0x1406e5d80 | implemented | IDA ?InitComponant@CUser@@QEAAXXZ | yes | - |
 | - | - | ?Parse@CUser@@UEAA_NAEAVXPacket@@@Z | 0x1406e6560 | blocked | IDA ?Parse@CUser@@UEAA_NAEAVXPacket@@@Z | yes | - |
@@ -34838,7 +34608,7 @@ yes | ?????????? |
 | - | - | ?SendTimeEvent@CUser@@UEAAXAEAUST_GM_TIME_EVENT_INFO@@@Z | 0x1406e8f80 | blocked | IDA ?SendTimeEvent@CUser@@UEAAXAEAUST_GM_TIME_EVENT_INFO@@@Z | yes | - |
 | - | - | ?SendServerOption@CUser@@UEAAXAEAUPS_CONTENTS_INFO@@@Z | 0x1406e9050 | implemented | IDA ?SendServerOption@CUser@@UEAAXAEAUPS_CONTENTS_INFO@@@Z | yes | - |
 | - | - | ?SendOperationTime@CUser@@UEAAXXZ | 0x1406e9120 | blocked | IDA ?SendOperationTime@CUser@@UEAAXXZ | yes | - |
-| - | - | ?SendWorldEventBooster@CUser@@UEAAXK_J@Z | 0x1406e9740 | blocked | IDA ?SendWorldEventBooster@CUser@@UEAAXK_J@Z | yes | - |
+| XGameServer | User.cpp | ?SendWorldEventBooster@CUser@@UEAAXK_J@Z | 0x1406E9740 | verified | IDA decompile + PDB type record + active GameServer build + K_J symbol check | yes | Sends the event booster through the user's CGocBooster component; generated ABI is the PDB-required K_J form. |
 | - | - | ?IsLive@CUser@@UEAA_NXZ | 0x1406e97c0 | blocked | IDA ?IsLive@CUser@@UEAA_NXZ | yes | - |
 | - | - | ?IsCounterAttackHit@CUser@@UEAAHXZ | 0x1406e9820 | blocked | IDA ?IsCounterAttackHit@CUser@@UEAAHXZ | yes | - |
 | - | - | ?SendCharacterInfo@CUser@@QEAAXXZ | 0x1406e9950 | implemented | IDA ?SendCharacterInfo@CUser@@QEAAXXZ | yes | - |
@@ -35635,9 +35405,9 @@ yes | ?????????? |
 | - | - | ??1CWorldEventMgr@@QEAA@XZ | 0x14071e4c0 | blocked | IDA ??1CWorldEventMgr@@QEAA@XZ | yes | - |
 | - | - | ?Clear@CWorldEventMgr@@QEAAXXZ | 0x14071e500 | implemented | IDA ?Clear@CWorldEventMgr@@QEAAXXZ | yes | - |
 | - | - | ?Update@CWorldEventMgr@@QEAAX_K@Z | 0x14071e550 | implemented | IDA ?Update@CWorldEventMgr@@QEAAX_K@Z | yes | - |
-| - | - | ?UpdateTotalCount@CWorldEventMgr@@QEAAXHH@Z | 0x14071ea90 | implemented | IDA ?UpdateTotalCount@CWorldEventMgr@@QEAAXHH@Z | yes | - |
+| XGameServer | GameServer.cpp | ?UpdateTotalCount@CWorldEventMgr@@QEAAXHH@Z | 0x14071EA90 | verified | IDA decompile + PDB table/layout evidence + active CMake build | yes | Restores date validation, percentage/reward scan, booster map update, and DoJobAllThread propagation. |
 | - | - | ??R_lambda0_@?A0x649438cf@@QEBAXXZ | 0x14071f220 | blocked | IDA ??R_lambda0_@?A0x649438cf@@QEBAXXZ | yes | - |
-| XGameServer | ManagerStubs.h | ?CheckWorldEvent@CWorldEventMgr@@QEAAXAEAV?$vector@UST_WORLD_EVENT_BOOSTER@@V?$allocator@UST_WORLD_EVENT_BOOSTER@@@std@@@std@@@Z | 0x14071f250 | implemented | IDA decompile | yes | Added IDA-backed active/expired world event booster scan over m_mapWorldEventBooster with write-lock protection, output vector clearing, active booster push, and expired key removal. |
+| XGameServer | ManagerStubs.h | ?CheckWorldEvent@CWorldEventMgr@@QEAAXAEAV?$vector@UST_WORLD_EVENT_BOOSTER@@V?$allocator@UST_WORLD_EVENT_BOOSTER@@@std@@@std@@@Z | 0x14071f250 | blocked | IDA decompile | no | Added IDA-backed active/expired world event booster scan over m_mapWorldEventBooster with write-lock protection, output vector clearing, active booster push, and expired key removal. |
 | - | - | ??E?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@KUTB_WORLD_EVENT@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_WORLD_EVENT@@@std@@@3@$0A@@std@@@std@@@std@@QEAAAEAV01@XZ | 0x14071f4b0 | blocked | IDA ??E?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@KUTB_WORLD_EVENT@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_WORLD_EVENT@@@std@@@3@$0A@@std@@@std@@@std@@QEAAAEAV01@XZ | yes | - |
 | - | - | ?push_back@?$vector@UPS_DB_ITEM_MAKE_LIMIT_INFO@@V?$allocator@UPS_DB_ITEM_MAKE_LIMIT_INFO@@@std@@@std@@QEAAXAEBUPS_DB_ITEM_MAKE_LIMIT_INFO@@@Z | 0x14071f4d0 | blocked | IDA ?push_back@?$vector@UPS_DB_ITEM_MAKE_LIMIT_INFO@@V?$allocator@UPS_DB_ITEM_MAKE_LIMIT_INFO@@@std@@@std@@QEAAXAEBUPS_DB_ITEM_MAKE_LIMIT_INFO@@@Z | yes | - |
 | - | - | ?clear@?$vector@UST_WORLD_EVENT_BOOSTER@@V?$allocator@UST_WORLD_EVENT_BOOSTER@@@std@@@std@@QEAAXXZ | 0x14071f620 | blocked | IDA ?clear@?$vector@UST_WORLD_EVENT_BOOSTER@@V?$allocator@UST_WORLD_EVENT_BOOSTER@@@std@@@std@@QEAAXXZ | yes | - |
@@ -36168,10 +35938,10 @@ yes | ?????????? |
 | - | - | ??5@YAAEAVXPacket@@AEAV0@AEAUST_PRIVATE_SHOP_LIST@@@Z | 0x140738230 | blocked | IDA ??5@YAAEAVXPacket@@AEAV0@AEAUST_PRIVATE_SHOP_LIST@@@Z | yes | - |
 | - | - | ??6@YAAEAVXPacket@@AEAV0@AEAUST_GET_INFO@@@Z | 0x1407382f0 | blocked | IDA ??6@YAAEAVXPacket@@AEAV0@AEAUST_GET_INFO@@@Z | yes | - |
 | - | - | ??5@YAAEAVXPacket@@AEAV0@AEAUST_GET_INFO@@@Z | 0x140738410 | blocked | IDA ??5@YAAEAVXPacket@@AEAV0@AEAUST_GET_INFO@@@Z | yes | - |
-| - | - | ??6@YAAEAVXPacket@@AEAV0@AEAUST_USE_ITEM_INFO@@@Z | 0x140738530 | blocked | IDA ??6@YAAEAVXPacket@@AEAV0@AEAUST_USE_ITEM_INFO@@@Z | yes | - |
-| - | - | ??5@YAAEAVXPacket@@AEAV0@AEAUST_USE_ITEM_INFO@@@Z | 0x1407385a0 | blocked | IDA ??5@YAAEAVXPacket@@AEAV0@AEAUST_USE_ITEM_INFO@@@Z | yes | - |
-| - | - | ??6@YAAEAVXPacket@@AEAV0@AEAUST_USE_ITEM_INFO_LIST@@@Z | 0x140738610 | blocked | IDA ??6@YAAEAVXPacket@@AEAV0@AEAUST_USE_ITEM_INFO_LIST@@@Z | yes | - |
-| - | - | ??5@YAAEAVXPacket@@AEAV0@AEAUST_USE_ITEM_INFO_LIST@@@Z | 0x140738690 | blocked | IDA ??5@YAAEAVXPacket@@AEAV0@AEAUST_USE_ITEM_INFO_LIST@@@Z | yes | - |
+| - | - | ??6@YAAEAVXPacket@@AEAV0@AEAUST_USE_ITEM_INFO@@@Z | 0x140738530 | verified | PDB decorated symbol + IDA decompile + source build | yes | Non-const ST_USE_ITEM_INFO reference; nItemType, byCount, and nUseDate emitted in order. |
+| - | - | ??5@YAAEAVXPacket@@AEAV0@AEAUST_USE_ITEM_INFO@@@Z | 0x1407385a0 | verified | PDB decorated symbol + IDA decompile + source build | yes | Non-const ST_USE_ITEM_INFO reference; nItemType, byCount, and nUseDate read in order. |
+| - | - | ??6@YAAEAVXPacket@@AEAV0@AEAUST_USE_ITEM_INFO_LIST@@@Z | 0x140738610 | verified | PDB decorated symbol + IDA decompile + source build | yes | Non-const list reference; signed char count and signed char element loop restored. |
+| - | - | ??5@YAAEAVXPacket@@AEAV0@AEAUST_USE_ITEM_INFO_LIST@@@Z | 0x140738690 | verified | PDB decorated symbol + IDA decompile + source build | yes | Non-const list reference; signed char count and signed char element loop restored. |
 | - | - | ??6@YAAEAVXPacket@@AEAV0@AEAUPS_REWARD_INFINITE_TOWER@@@Z | 0x140738710 | blocked | IDA ??6@YAAEAVXPacket@@AEAV0@AEAUPS_REWARD_INFINITE_TOWER@@@Z | yes | - |
 | - | - | ??6@YAAEAVXPacket@@AEAV0@AEAUPS_CASH_SET@@@Z | 0x1407387c0 | blocked | IDA ??6@YAAEAVXPacket@@AEAV0@AEAUPS_CASH_SET@@@Z | yes | - |
 | - | - | ??5@YAAEAVXPacket@@AEAV0@AEAUPS_CASH_SET@@@Z | 0x1407388a0 | blocked | IDA ??5@YAAEAVXPacket@@AEAV0@AEAUPS_CASH_SET@@@Z | yes | - |
@@ -38001,8 +37771,8 @@ yes | ?????????? |
 | XCore | HavokTypes.cpp | ?setFromEulerAngles_Approximate@hkQuaternion@@QEAAXAEBVhkSimdReal@@00@Z | 0x14078c770 | implemented | IDA decompile | yes | hkQuaternion::setFromEulerAngles_Approximate (simplified) |
 | XCore | HavokTypes.h | ?isOk@hkQuaternion@@QEBAIM@Z | 0x14078c8b0 | implemented | IDA decompile | yes | hkQuaternion::isOk - checks for NaN and length near 1 |
 | XCore | HavokTypes.cpp | ?set@hkQuaternion@@QEAAXAEBVhkRotation@@@Z | 0x14078c910 | implemented | IDA decompile | yes | hkQuaternion::set (rotation matrix to quaternion) |
-| XCore | HavokTypes.h | ?setFlippedRotation@hkQuaternion@@QEAAXAEBVhkVector4@@@Z | 0x14078cac0 | implemented | IDA decompile | yes | hkQuaternion::setFlippedRotation - simplified stub |
-| XCore | HavokTypes.cpp | ?removeAxisComponent@hkQuaternion@@QEAAXAEBVhkVector4@@@Z | 0x14078cbc0 | implemented | IDA decompile | yes | hkQuaternion::removeAxisComponent (simplified stub) |
+| XCore | HavokTypes.h | ?setFlippedRotation@hkQuaternion@@QEAAXAEBVhkVector4@@@Z | 0x14078cac0 | blocked | IDA decompile | no | hkQuaternion::setFlippedRotation - simplified stub |
+| XCore | HavokTypes.cpp | ?removeAxisComponent@hkQuaternion@@QEAAXAEBVhkVector4@@@Z | 0x14078cbc0 | blocked | IDA decompile | no | hkQuaternion::removeAxisComponent (simplified stub) |
 | XCore | HavokTypes.cpp | ?decomposeRestAxis@hkQuaternion@@QEBAXAEBVhkVector4@@AEAV1@AEAVhkSimdReal@@@Z | 0x14078cf60 | implemented | IDA decompile | yes | hkQuaternion::decomposeRestAxis (simplified) |
 | XCore | HavokTypes.cpp | ?setSlerp@hkQuaternion@@QEAAXAEBV1@0AEBVhkSimdReal@@@Z | 0x14078d1b0 | implemented | IDA decompile | yes | hkQuaternion::setSlerp - spherical linear interpolation |
 | XCore | HavokTypes.cpp | ?setBarycentric@hkQuaternion@@QEAAXPEIBV1@AEBVhkVector4@@@Z | 0x14078d530 | implemented | IDA decompile | yes | hkQuaternion::setBarycentric (simplified approximation) |
@@ -38020,14 +37790,14 @@ yes | ?????????? |
 | XCore | HavokTypes.h | ?getInstance@hkMemorySystem@@SAAEAV1@XZ | 0x14078e250 | implemented | IDA decompile | yes | returns *s_instance |
 | XCore | HavokTypes.h | ?getInstancePtr@hkMemorySystem@@SAPEAV1@XZ | 0x14078e260 | implemented | IDA decompile | yes | returns s_instance pointer |
 | XCore | HavokTypes.h | ??1hkMemorySystem@@UEAA@XZ | 0x14078e270 | implemented | IDA decompile | yes | virtual destructor |
-| XCore | HavokTypes.h | ?garbageCollectThread@hkMemorySystem@@UEAAXAEAVhkMemoryRouter@@@Z | 0x14078e290 | implemented | IDA decompile | yes | virtual stub |
-| XCore | HavokTypes.h | ?garbageCollectShared@hkMemorySystem@@UEAAXXZ | 0x14078e2a0 | implemented | IDA decompile | yes | virtual stub |
-| XCore | HavokTypes.h | ?setHeapSoftLimit@hkMemorySystem@@UEAA?AUhkResult@@H@Z | 0x14078e2b0 | implemented | IDA decompile | yes | virtual stub |
-| XCore | HavokTypes.h | ?getHeapSoftLimit@hkMemorySystem@@UEBAHXZ | 0x14078e2c0 | implemented | IDA decompile | yes | virtual stub |
-| XCore | HavokTypes.h | ?solverCanAllocSingleBlock@hkMemorySystem@@UEAA_NH@Z | 0x14078e2d0 | implemented | IDA decompile | yes | virtual stub |
-| XCore | HavokTypes.h | ?heapCanAllocTotal@hkMemorySystem@@UEAA_NH@Z | 0x14078e2e0 | implemented | IDA decompile | yes | virtual stub |
-| XCore | HavokTypes.h | ?garbageCollect@hkMemorySystem@@UEAAXXZ | 0x14078e2f0 | implemented | IDA decompile | yes | virtual stub |
-| XCore | HavokTypes.h | ?debugFindBaseAddress@hkMemorySystem@@UEAAPEBXPEBXH@Z | 0x14078e330 | implemented | IDA decompile | yes | virtual stub |
+| XCore | HavokTypes.h | ?garbageCollectThread@hkMemorySystem@@UEAAXAEAVhkMemoryRouter@@@Z | 0x14078e290 | blocked | IDA decompile | no | virtual stub |
+| XCore | HavokTypes.h | ?garbageCollectShared@hkMemorySystem@@UEAAXXZ | 0x14078e2a0 | blocked | IDA decompile | no | virtual stub |
+| XCore | HavokTypes.h | ?setHeapSoftLimit@hkMemorySystem@@UEAA?AUhkResult@@H@Z | 0x14078e2b0 | blocked | IDA decompile | no | virtual stub |
+| XCore | HavokTypes.h | ?getHeapSoftLimit@hkMemorySystem@@UEBAHXZ | 0x14078e2c0 | blocked | IDA decompile | no | virtual stub |
+| XCore | HavokTypes.h | ?solverCanAllocSingleBlock@hkMemorySystem@@UEAA_NH@Z | 0x14078e2d0 | blocked | IDA decompile | no | virtual stub |
+| XCore | HavokTypes.h | ?heapCanAllocTotal@hkMemorySystem@@UEAA_NH@Z | 0x14078e2e0 | blocked | IDA decompile | no | virtual stub |
+| XCore | HavokTypes.h | ?garbageCollect@hkMemorySystem@@UEAAXXZ | 0x14078e2f0 | blocked | IDA decompile | no | virtual stub |
+| XCore | HavokTypes.h | ?debugFindBaseAddress@hkMemorySystem@@UEAAPEBXPEBXH@Z | 0x14078e330 | blocked | IDA decompile | no | virtual stub |
 | XCore | HavokTypes.h | ??_GhkMemorySystem@@UEAAPEAXI@Z | 0x14078e340 | implemented | IDA decompile | yes | scalar deleting destructor |
 | - | - | showHavokBuild | 0x14078e360 | blocked | IDA showHavokBuild | yes | - |
 | XCore | HavokTypes.h | ?isInitialized@hkBaseSystem@@YA?AVhkBool@@XZ | 0x14078e370 | implemented | IDA decompile | yes | hkBaseSystem::isInitialized - returns initialization flag |
@@ -38070,8 +37840,6 @@ yes | ?????????? |
 | XCore | HavokTypes.h | ?_reserveMore@hkArrayUtil@@SAXAEAVhkMemoryAllocator@@PEAXH@Z | 0x14078f170 | implemented | IDA decompile | yes | Double array capacity |
 | XCore | HavokTypes.h | ?_reduce@hkArrayUtil@@SAXAEAVhkMemoryAllocator@@PEAXHPEADH@Z | 0x14078f210 | implemented | IDA decompile | yes | Reduce array capacity |
 | - | - | _anonymous_namespace_::onQuit | 0x14078f2c0 | blocked | IDA _anonymous_namespace_::onQuit | yes | - |
-| - | - | ?initFreeListLargeBlock@hkMemoryInitUtil@@YAPEAVhkMemoryRouter@@PEAVhkMemoryAllocator@@AEBUFrameInfo@hkMemorySystem@@PEBUCinfo@hkFreeListAllocator@@W4SetupFlags@hkFreeListMemorySystem@@@Z | 0x14078f310 | blocked | IDA ?initFreeListLargeBlock@hkMemoryInitUtil@@YAPEAVhkMemoryRouter@@PEAVhkMemoryAllocator@@AEBUFrameInfo@hkMemorySystem@@PEBUCinfo@hkFreeListAllocator@@W4SetupFlags@hkFreeListMemorySystem@@@Z | yes | - |
-| - | - | ?initHeapAllocator@hkMemoryInitUtil@@YAPEAVhkMemoryRouter@@PEAVhkMemoryAllocator@@0PEAUExtendedInterface@3@AEBUFrameInfo@hkMemorySystem@@@Z | 0x14078f3f0 | blocked | IDA ?initHeapAllocator@hkMemoryInitUtil@@YAPEAVhkMemoryRouter@@PEAVhkMemoryAllocator@@0PEAUExtendedInterface@3@AEBUFrameInfo@hkMemorySystem@@@Z | yes | - |
 | XCore | HavokTypes.cpp | ?blockAlloc@hkMallocAllocator@@UEAAPEAXH@Z | 0x14078f450 | implemented | IDA decompile | yes | uses _aligned_malloc with peak tracking |
 | XCore | HavokTypes.cpp | ?blockFree@hkMallocAllocator@@UEAAXPEAXH@Z | 0x14078f480 | implemented | IDA decompile | yes | uses _aligned_free with atomic subtraction |
 | XCore | HavokTypes.cpp | ?getMemoryStatistics@hkMallocAllocator@@UEAAXAEAUMemoryStatistics@hkMemoryAllocator@@@Z | 0x14078f4a0 | implemented | IDA decompile | yes | sets m_allocated and m_peakInUse |
@@ -38109,8 +37877,8 @@ yes | ?????????? |
 | - | - | ?getInheritanceDepth@hkClass@@QEBAHXZ | 0x140790430 | implemented | HavokTypes.h | yes | - |
 | - | - | ?isSuperClass@hkClass@@QEBA?AVhkBool@@AEBV1@@Z | 0x140790460 | implemented | HavokTypes.h | yes | - |
 | - | - | ?getNumInterfaces@hkClass@@QEBAHXZ | 0x1407904f0 | implemented | HavokTypes.h | yes | - |
-| - | - | ?getInterface@hkClass@@QEBAPEBV1@H@Z | 0x140790520 | implemented | HavokTypes.h | yes | stub |
-| - | - | ?getDeclaredInterface@hkClass@@QEBAPEBV1@H@Z | 0x140790530 | implemented | HavokTypes.h | yes | stub |
+| - | - | ?getInterface@hkClass@@QEBAPEBV1@H@Z | 0x140790520 | blocked | HavokTypes.h | no | stub |
+| - | - | ?getDeclaredInterface@hkClass@@QEBAPEBV1@H@Z | 0x140790530 | blocked | HavokTypes.h | no | stub |
 | - | - | ?getNumDeclaredInterfaces@hkClass@@QEBAHXZ | 0x140790540 | implemented | HavokTypes.h | yes | - |
 | - | - | ?getNumEnums@hkClass@@QEBAHXZ | 0x140790550 | implemented | HavokTypes.h | yes | - |
 | - | - | ?getEnum@hkClass@@QEBAAEBVhkClassEnum@@H@Z | 0x140790580 | implemented | HavokTypes.cpp | yes | - |
@@ -38128,7 +37896,7 @@ yes | ?????????? |
 | - | - | ?getDeclaredMemberIndexByName@hkClass@@QEBAHPEBD@Z | 0x1407908c0 | implemented | HavokTypes.h | yes | - |
 | - | - | ?getObjectSize@hkClass@@QEBAHXZ | 0x140790940 | implemented | HavokTypes.h | yes | - |
 | - | - | ?setObjectSize@hkClass@@QEAAXH@Z | 0x140790950 | implemented | HavokTypes.h | yes | - |
-| - | - | ?hasVtable@hkClass@@QEBA?AVhkBool@@XZ | 0x140790960 | implemented | HavokTypes.h | yes | stub |
+| - | - | ?hasVtable@hkClass@@QEBA?AVhkBool@@XZ | 0x140790960 | blocked | HavokTypes.h | no | stub |
 | - | - | ?getDescribedVersion@hkClass@@QEBAHXZ | 0x1407909a0 | implemented | HavokTypes.h | yes | - |
 | - | - | ?retrieveMember@hkClass@@AEBA?AUhkResult@@HAEAPEBXAEAPEBVhkClassMember@@@Z | 0x1407909b0 | implemented | HavokTypes.cpp | yes | - |
 | - | - | ?hasDefault@hkClass@@QEBAIH@Z | 0x140790a50 | implemented | HavokTypes.h | yes | - |
@@ -38137,7 +37905,7 @@ yes | ?????????? |
 | - | - | ?getDefault@hkClass@@QEBA?AUhkResult@@HPEAVhkStreamWriter@@@Z | 0x140790b10 | blocked | IDA ?getDefault@hkClass@@QEBA?AUhkResult@@HPEAVhkStreamWriter@@@Z | yes | - |
 | - | - | ?getDeclaredDefault@hkClass@@QEBA?AUhkResult@@HPEAVhkStreamWriter@@@Z | 0x140790b80 | blocked | IDA ?getDeclaredDefault@hkClass@@QEBA?AUhkResult@@HPEAVhkStreamWriter@@@Z | yes | - |
 | - | - | ?getDeclaredDefault@hkClass@@QEBAPEBXH@Z | 0x140790c30 | blocked | IDA ?getDeclaredDefault@hkClass@@QEBAPEBXH@Z | yes | - |
-| - | - | ?getAttribute@hkClass@@QEBAPEBUhkVariant@@PEBD@Z | 0x140790c70 | implemented | HavokTypes.cpp | yes | stub |
+| - | - | ?getAttribute@hkClass@@QEBAPEBUhkVariant@@PEBD@Z | 0x140790c70 | blocked | HavokTypes.cpp | no | stub |
 | - | - | ?getFlags@hkClass@@QEBAAEBV?$hkFlags@W4FlagValues@hkClass@@I@@XZ | 0x140790c90 | implemented | HavokTypes.h | yes | - |
 | - | - | ?getFlags@hkClass@@QEAAAEAV?$hkFlags@W4FlagValues@hkClass@@I@@XZ | 0x140790ca0 | implemented | HavokTypes.h | yes | - |
 | - | - | ??0hkClass@@QEAA@PEBDPEBV0@HPEAPEBV0@HPEBVhkClassEnum@@HPEBVhkClassMember@@HPEBXPEBVhkCustomAttributes@@II@Z | 0x140790cb0 | implemented | HavokTypes.h | yes | - |
@@ -38148,42 +37916,42 @@ yes | ?????????? |
 | - | - | ?getSignature@hkClass@@QEBAIH@Z | 0x140791290 | blocked | IDA ?getSignature@hkClass@@QEBAIH@Z | yes | - |
 | - | - | ?getCrc@?$hkCrcStreamWriter@I$0ONLIIDCA@@@QEBAIXZ | 0x140791310 | implemented | HavokTypes.h | yes | - |
 | - | - | ?write@?$hkCrcStreamWriter@I$0ONLIIDCA@@@UEAAHPEBXH@Z | 0x140791320 | implemented | HavokTypes.h | yes | - |
-| - | - | ?staticClass@hkRangeRealAttribute@@SAAEBVhkClass@@XZ | 0x140791390 | implemented | IDA decompile | yes | hkRangeRealAttribute::staticClass - returns stub hkClass |
+| - | - | ?staticClass@hkRangeRealAttribute@@SAAEBVhkClass@@XZ | 0x140791390 | blocked | IDA decompile | no | hkRangeRealAttribute::staticClass - returns stub hkClass |
 | - | - | cleanupLoadedObjecthkRangeRealAttribute | 0x1407913a0 | implemented | IDA decompile | yes | POD type - empty cleanup |
-| - | - | ?staticClass@hkRangeInt32Attribute@@SAAEBVhkClass@@XZ | 0x1407913b0 | implemented | IDA decompile | yes | hkRangeInt32Attribute::staticClass - returns stub hkClass |
+| - | - | ?staticClass@hkRangeInt32Attribute@@SAAEBVhkClass@@XZ | 0x1407913b0 | blocked | IDA decompile | no | hkRangeInt32Attribute::staticClass - returns stub hkClass |
 | - | - | cleanupLoadedObjecthkRangeInt32Attribute | 0x1407913c0 | implemented | IDA decompile | yes | POD type - empty cleanup |
-| - | - | ?staticClass@hkUiAttribute@@SAAEBVhkClass@@XZ | 0x1407913d0 | implemented | IDA decompile | yes | hkUiAttribute::staticClass - returns stub hkClass |
+| - | - | ?staticClass@hkUiAttribute@@SAAEBVhkClass@@XZ | 0x1407913d0 | blocked | IDA decompile | no | hkUiAttribute::staticClass - returns stub hkClass |
 | - | - | cleanupLoadedObjecthkUiAttribute | 0x1407913e0 | implemented | IDA decompile | yes | POD type - empty cleanup |
-| - | - | ?staticClass@hkGizmoAttribute@@SAAEBVhkClass@@XZ | 0x1407913f0 | implemented | IDA decompile | yes | hkGizmoAttribute::staticClass - returns stub hkClass |
+| - | - | ?staticClass@hkGizmoAttribute@@SAAEBVhkClass@@XZ | 0x1407913f0 | blocked | IDA decompile | no | hkGizmoAttribute::staticClass - returns stub hkClass |
 | - | - | cleanupLoadedObjecthkGizmoAttribute | 0x140791400 | implemented | IDA decompile | yes | POD type - empty cleanup |
-| - | - | ?staticClass@hkModelerNodeTypeAttribute@@SAAEBVhkClass@@XZ | 0x140791410 | implemented | IDA decompile | yes | hkModelerNodeTypeAttribute::staticClass - returns stub hkClass |
+| - | - | ?staticClass@hkModelerNodeTypeAttribute@@SAAEBVhkClass@@XZ | 0x140791410 | blocked | IDA decompile | no | hkModelerNodeTypeAttribute::staticClass - returns stub hkClass |
 | - | - | cleanupLoadedObjecthkModelerNodeTypeAttribute | 0x140791420 | implemented | IDA decompile | yes | POD type - empty cleanup |
-| - | - | ?staticClass@hkLinkAttribute@@SAAEBVhkClass@@XZ | 0x140791430 | implemented | IDA decompile | yes | hkLinkAttribute::staticClass - returns stub hkClass |
+| - | - | ?staticClass@hkLinkAttribute@@SAAEBVhkClass@@XZ | 0x140791430 | blocked | IDA decompile | no | hkLinkAttribute::staticClass - returns stub hkClass |
 | - | - | cleanupLoadedObjecthkLinkAttribute | 0x140791440 | implemented | IDA decompile | yes | POD type - empty cleanup |
-| - | - | ?staticClass@hkSemanticsAttribute@@SAAEBVhkClass@@XZ | 0x140791450 | implemented | IDA decompile | yes | hkSemanticsAttribute::staticClass - returns stub hkClass |
+| - | - | ?staticClass@hkSemanticsAttribute@@SAAEBVhkClass@@XZ | 0x140791450 | blocked | IDA decompile | no | hkSemanticsAttribute::staticClass - returns stub hkClass |
 | - | - | cleanupLoadedObjecthkSemanticsAttribute | 0x140791460 | implemented | IDA decompile | yes | POD type - empty cleanup |
-| - | - | ?staticClass@hkDescriptionAttribute@@SAAEBVhkClass@@XZ | 0x140791470 | implemented | IDA decompile | yes | hkDescriptionAttribute::staticClass - returns stub hkClass |
+| - | - | ?staticClass@hkDescriptionAttribute@@SAAEBVhkClass@@XZ | 0x140791470 | blocked | IDA decompile | no | hkDescriptionAttribute::staticClass - returns stub hkClass |
 | - | - | cleanupLoadedObjecthkDescriptionAttribute | 0x140791480 | implemented | IDA decompile | yes | POD type - empty cleanup |
-| - | - | ?staticClass@hkArrayTypeAttribute@@SAAEBVhkClass@@XZ | 0x140791490 | implemented | IDA decompile | yes | hkArrayTypeAttribute::staticClass - returns stub hkClass |
+| - | - | ?staticClass@hkArrayTypeAttribute@@SAAEBVhkClass@@XZ | 0x140791490 | blocked | IDA decompile | no | hkArrayTypeAttribute::staticClass - returns stub hkClass |
 | - | - | cleanupLoadedObjecthkArrayTypeAttribute | 0x1407914a0 | implemented | IDA decompile | yes | POD type - empty cleanup |
-| - | - | ?staticClass@hkDataObjectTypeAttribute@@SAAEBVhkClass@@XZ | 0x1407914b0 | implemented | IDA decompile | yes | hkDataObjectTypeAttribute::staticClass - returns stub hkClass |
+| - | - | ?staticClass@hkDataObjectTypeAttribute@@SAAEBVhkClass@@XZ | 0x1407914b0 | blocked | IDA decompile | no | hkDataObjectTypeAttribute::staticClass - returns stub hkClass |
 | - | - | cleanupLoadedObjecthkDataObjectTypeAttribute | 0x1407914c0 | implemented | IDA decompile | yes | POD type - empty cleanup |
-| - | - | ?staticClass@hkDocumentationAttribute@@SAAEBVhkClass@@XZ | 0x1407914d0 | implemented | IDA decompile | yes | hkDocumentationAttribute::staticClass - returns stub hkClass |
+| - | - | ?staticClass@hkDocumentationAttribute@@SAAEBVhkClass@@XZ | 0x1407914d0 | blocked | IDA decompile | no | hkDocumentationAttribute::staticClass - returns stub hkClass |
 | - | - | cleanupLoadedObjecthkDocumentationAttribute | 0x1407914e0 | implemented | IDA decompile | yes | POD type - empty cleanup |
-| - | - | ?staticClass@hkPostFinishAttribute@@SAAEBVhkClass@@XZ | 0x1407914f0 | implemented | IDA decompile | yes | hkPostFinishAttribute::staticClass - returns stub hkClass |
+| - | - | ?staticClass@hkPostFinishAttribute@@SAAEBVhkClass@@XZ | 0x1407914f0 | blocked | IDA decompile | no | hkPostFinishAttribute::staticClass - returns stub hkClass |
 | - | - | cleanupLoadedObjecthkPostFinishAttribute | 0x140791500 | implemented | IDA decompile | yes | POD type - empty cleanup |
-| - | - | ?staticClass@hkScriptableAttribute@@SAAEBVhkClass@@XZ | 0x140791510 | implemented | IDA decompile | yes | hkScriptableAttribute::staticClass - returns stub hkClass |
+| - | - | ?staticClass@hkScriptableAttribute@@SAAEBVhkClass@@XZ | 0x140791510 | blocked | IDA decompile | no | hkScriptableAttribute::staticClass - returns stub hkClass |
 | - | - | cleanupLoadedObjecthkScriptableAttribute | 0x140791520 | implemented | IDA decompile | yes | POD type - empty cleanup |
-| XCore | HavokTypes.cpp | ?staticClass@hkAabb@@SAAEBVhkClass@@XZ | 0x140791530 | implemented | IDA decompile | yes | Returns static hkClass stub |
+| XCore | HavokTypes.cpp | ?staticClass@hkAabb@@SAAEBVhkClass@@XZ | 0x140791530 | blocked | IDA decompile | no | Returns static hkClass stub |
 | XCore | HavokTypes.cpp | cleanupLoadedObjecthkAabb | 0x140791540 | implemented | IDA decompile | yes | Empty - POD type |
-| XCore | HavokTypes.cpp | ?staticClass@hkAabbUint32@@SAAEBVhkClass@@XZ | 0x140791550 | implemented | IDA decompile | yes | Returns static hkClass stub |
+| XCore | HavokTypes.cpp | ?staticClass@hkAabbUint32@@SAAEBVhkClass@@XZ | 0x140791550 | blocked | IDA decompile | no | Returns static hkClass stub |
 | XCore | HavokTypes.cpp | cleanupLoadedObjecthkAabbUint32 | 0x140791560 | implemented | IDA decompile | yes | Empty - POD type |
-| - | - | ?staticClass@hkLocalFrame@@SAAEBVhkClass@@XZ | 0x140791570 | implemented | IDA decompile | yes | hkLocalFrame::staticClass - returns stub hkClass |
-| - | - | ?staticClass@hkLocalFrameGroup@@SAAEBVhkClass@@XZ | 0x140791580 | implemented | IDA decompile | yes | hkLocalFrameGroup::staticClass - returns stub hkClass |
+| - | - | ?staticClass@hkLocalFrame@@SAAEBVhkClass@@XZ | 0x140791570 | blocked | IDA decompile | no | hkLocalFrame::staticClass - returns stub hkClass |
+| - | - | ?staticClass@hkLocalFrameGroup@@SAAEBVhkClass@@XZ | 0x140791580 | blocked | IDA decompile | no | hkLocalFrameGroup::staticClass - returns stub hkClass |
 | - | - | finishLoadedObjecthkLocalFrameGroup | 0x140791590 | implemented | IDA decompile | yes | sets vtable pointer |
 | - | - | cleanupLoadedObjecthkLocalFrameGroup | 0x1407915c0 | implemented | IDA decompile | yes | calls virtual destructor |
 | - | - | getVtablehkLocalFrameGroup | 0x1407915d0 | implemented | IDA decompile | yes | returns vtable pointer |
-| - | - | ?staticClass@hkSimpleLocalFrame@@SAAEBVhkClass@@XZ | 0x140791600 | implemented | IDA decompile | yes | hkSimpleLocalFrame::staticClass - returns stub hkClass |
+| - | - | ?staticClass@hkSimpleLocalFrame@@SAAEBVhkClass@@XZ | 0x140791600 | blocked | IDA decompile | no | hkSimpleLocalFrame::staticClass - returns stub hkClass |
 | - | - | cleanupLoadedObjecthkSimpleLocalFrame | 0x140791610 | implemented | IDA decompile | yes | calls virtual destructor |
 | - | - | finishLoadedObjecthkSimpleLocalFrame | 0x140791620 | implemented | IDA decompile | yes | sets vtable pointer |
 | - | - | getVtablehkSimpleLocalFrame | 0x140791650 | implemented | IDA decompile | yes | returns vtable pointer |
@@ -38193,42 +37961,42 @@ yes | ?????????? |
 | XCore | HavokTypes.h | ?getGroup@hkSimpleLocalFrame@@UEBAPEAXI@Z | 0x140791710 | implemented | IDA decompile | yes | hkSimpleLocalFrame::getGroup - returns m_group |
 | - | - | ?getName@hkMemoryMeshBody@@UEBAPEBDXZ | 0x140791720 | blocked | IDA ?getName@hkMemoryMeshBody@@UEBAPEBDXZ | yes | - |
 | - | - | ??_EhkSimpleLocalFrame@@UEAAPEAXI@Z | 0x140791730 | blocked | IDA ??_EhkSimpleLocalFrame@@UEAAPEAXI@Z | yes | - |
-| - | - | ?staticClass@Attribute@hkCustomAttributes@@SAAEBVhkClass@@XZ | 0x140791790 | implemented | IDA decompile | yes | hkCustomAttributes::Attribute::staticClass - returns stub hkClass |
+| - | - | ?staticClass@Attribute@hkCustomAttributes@@SAAEBVhkClass@@XZ | 0x140791790 | blocked | IDA decompile | no | hkCustomAttributes::Attribute::staticClass - returns stub hkClass |
 | - | - | cleanupLoadedObjecthkCustomAttributesAttribute | 0x1407917a0 | implemented | IDA decompile | yes | POD type - empty cleanup |
-| - | - | ?staticClass@hkCustomAttributes@@SAAEBVhkClass@@XZ | 0x1407917b0 | implemented | IDA decompile | yes | hkCustomAttributes::staticClass - returns stub hkClass |
+| - | - | ?staticClass@hkCustomAttributes@@SAAEBVhkClass@@XZ | 0x1407917b0 | blocked | IDA decompile | no | hkCustomAttributes::staticClass - returns stub hkClass |
 | - | - | cleanupLoadedObjecthkCustomAttributes | 0x1407917c0 | implemented | IDA decompile | yes | POD type - empty cleanup |
-| XCore | HavokTypes.cpp | ?staticClass@hkSphere@@SAAEBVhkClass@@XZ | 0x1407917d0 | implemented | IDA decompile | yes | Returns static hkClass stub |
+| XCore | HavokTypes.cpp | ?staticClass@hkSphere@@SAAEBVhkClass@@XZ | 0x1407917d0 | blocked | IDA decompile | no | Returns static hkClass stub |
 | XCore | HavokTypes.cpp | cleanupLoadedObjecthkSphere | 0x1407917e0 | implemented | IDA decompile | yes | Empty - POD type |
-| - | - | ?staticClass@Entry@hkRefCountedProperties@@SAAEBVhkClass@@XZ | 0x1407917f0 | implemented | IDA decompile | yes | hkRefCountedProperties::Entry::staticClass - returns stub hkClass |
-| - | - | ?staticClass@hkRefCountedProperties@@SAAEBVhkClass@@XZ | 0x140791800 | implemented | IDA decompile | yes | hkRefCountedProperties::staticClass - returns stub hkClass |
+| - | - | ?staticClass@Entry@hkRefCountedProperties@@SAAEBVhkClass@@XZ | 0x1407917f0 | blocked | IDA decompile | no | hkRefCountedProperties::Entry::staticClass - returns stub hkClass |
+| - | - | ?staticClass@hkRefCountedProperties@@SAAEBVhkClass@@XZ | 0x140791800 | blocked | IDA decompile | no | hkRefCountedProperties::staticClass - returns stub hkClass |
 | - | - | finishLoadedObjecthkRefCountedProperties | 0x140791810 | implemented | IDA decompile | yes | sets vtable pointer |
 | - | - | cleanupLoadedObjecthkRefCountedProperties | 0x140791830 | implemented | IDA decompile | yes | calls virtual destructor |
 | - | - | getVtablehkRefCountedProperties | 0x140791840 | implemented | IDA decompile | yes | returns vtable pointer |
 | - | - | finishLoadedObjecthkRefCountedPropertiesEntry | 0x140791860 | implemented | IDA decompile | yes | POD type - empty finish |
 | - | - | cleanupLoadedObjecthkRefCountedPropertiesEntry | 0x140791870 | implemented | IDA decompile | yes | POD type - empty cleanup |
-| - | - | ?staticClass@hkClassMember@@SAAEBVhkClass@@XZ | 0x1407918a0 | implemented | IDA decompile | yes | hkClassMember::staticClass - returns stub hkClass |
+| - | - | ?staticClass@hkClassMember@@SAAEBVhkClass@@XZ | 0x1407918a0 | blocked | IDA decompile | no | hkClassMember::staticClass - returns stub hkClass |
 | - | - | cleanupLoadedObjecthkClassMember | 0x1407918b0 | implemented | IDA decompile | yes | POD type - empty cleanup |
-| - | - | ?staticClass@Triangle@hkGeometry@@SAAEBVhkClass@@XZ | 0x1407918c0 | implemented | IDA decompile | yes | hkGeometry::Triangle::staticClass - returns stub hkClass |
+| - | - | ?staticClass@Triangle@hkGeometry@@SAAEBVhkClass@@XZ | 0x1407918c0 | blocked | IDA decompile | no | hkGeometry::Triangle::staticClass - returns stub hkClass |
 | - | - | cleanupLoadedObjecthkGeometryTriangle | 0x1407918d0 | implemented | IDA decompile | yes | POD type - empty cleanup |
-| - | - | ?staticClass@hkGeometry@@SAAEBVhkClass@@XZ | 0x1407918e0 | implemented | IDA decompile | yes | hkGeometry::staticClass - returns stub hkClass |
+| - | - | ?staticClass@hkGeometry@@SAAEBVhkClass@@XZ | 0x1407918e0 | blocked | IDA decompile | no | hkGeometry::staticClass - returns stub hkClass |
 | - | - | finishLoadedObjecthkGeometry | 0x1407918f0 | implemented | IDA decompile | yes | placement new hkGeometry(hkFinishLoadedObjectFlag) |
 | - | - | cleanupLoadedObjecthkGeometry | 0x140791910 | implemented | IDA decompile | yes | calls ForwardReferences destructor |
 | - | - | ??1ForwardReferences@Reader@?A0x4b29148f@@QEAA@XZ | 0x140791920 | blocked | IDA ??1ForwardReferences@Reader@?A0x4b29148f@@QEAA@XZ | yes | - |
-| - | - | ?staticClass@hkUFloat8@@SAAEBVhkClass@@XZ | 0x1407919b0 | implemented | IDA decompile | yes | hkUFloat8::staticClass - returns stub hkClass |
+| - | - | ?staticClass@hkUFloat8@@SAAEBVhkClass@@XZ | 0x1407919b0 | blocked | IDA decompile | no | hkUFloat8::staticClass - returns stub hkClass |
 | - | - | cleanupLoadedObjecthkUFloat8 | 0x1407919c0 | implemented | IDA decompile | yes | POD type - empty cleanup |
-| XCore | HavokTypes.cpp | ?staticClass@hkAabbHalf@@SAAEBVhkClass@@XZ | 0x1407919d0 | implemented | IDA decompile | yes | Returns static hkClass stub |
+| XCore | HavokTypes.cpp | ?staticClass@hkAabbHalf@@SAAEBVhkClass@@XZ | 0x1407919d0 | blocked | IDA decompile | no | Returns static hkClass stub |
 | XCore | HavokTypes.cpp | cleanupLoadedObjecthkAabbHalf | 0x1407919e0 | implemented | IDA decompile | yes | Empty - POD type |
-| - | - | ?staticClass@hkClass@@SAAEBV1@XZ | 0x1407919f0 | implemented | IDA decompile | yes | hkClass::staticClass - returns stub hkClass |
+| - | - | ?staticClass@hkClass@@SAAEBV1@XZ | 0x1407919f0 | blocked | IDA decompile | no | hkClass::staticClass - returns stub hkClass |
 | - | - | cleanupLoadedObjecthkClass | 0x140791a00 | implemented | IDA decompile | yes | POD type - empty cleanup |
-| - | - | ?staticClass@hkMotionState@@SAAEBVhkClass@@XZ | 0x140791a10 | implemented | IDA decompile | yes | hkMotionState::staticClass - returns stub hkClass |
+| - | - | ?staticClass@hkMotionState@@SAAEBVhkClass@@XZ | 0x140791a10 | blocked | IDA decompile | no | hkMotionState::staticClass - returns stub hkClass |
 | - | - | cleanupLoadedObjecthkMotionState | 0x140791a20 | implemented | IDA decompile | yes | POD type - empty cleanup |
-| - | - | ?staticClass@StringMap@hkMonitorStreamStringMap@@SAAEBVhkClass@@XZ | 0x140791a30 | implemented | IDA decompile | yes | hkMonitorStreamStringMap::StringMap::staticClass - returns stub hkClass |
+| - | - | ?staticClass@StringMap@hkMonitorStreamStringMap@@SAAEBVhkClass@@XZ | 0x140791a30 | blocked | IDA decompile | no | hkMonitorStreamStringMap::StringMap::staticClass - returns stub hkClass |
 | XCore | HavokTypes.cpp | finishLoadedObjecthkMonitorStreamStringMapStringMap | 0x140791a40 | implemented | IDA decompile | yes | Havok serialization finish |
-| - | - | ?staticClass@hkMonitorStreamStringMap@@SAAEBVhkClass@@XZ | 0x140791a60 | implemented | IDA decompile | yes | hkMonitorStreamStringMap::staticClass - returns stub hkClass |
+| - | - | ?staticClass@hkMonitorStreamStringMap@@SAAEBVhkClass@@XZ | 0x140791a60 | blocked | IDA decompile | no | hkMonitorStreamStringMap::staticClass - returns stub hkClass |
 | XCore | HavokTypes.cpp | finishLoadedObjecthkMonitorStreamStringMap | 0x140791a70 | implemented | IDA decompile | yes | Havok serialization finish |
-| - | - | ?staticClass@hkMonitorStreamFrameInfo@@SAAEBVhkClass@@XZ | 0x140791a90 | implemented | IDA decompile | yes | hkMonitorStreamFrameInfo::staticClass - returns stub hkClass |
-| - | - | ?staticClass@ColorPair@hkMonitorStreamColorTable@@SAAEBVhkClass@@XZ | 0x140791aa0 | implemented | IDA decompile | yes | hkMonitorStreamColorTable::ColorPair::staticClass - returns stub hkClass |
-| - | - | ?staticClass@hkMonitorStreamColorTable@@SAAEBVhkClass@@XZ | 0x140791ab0 | implemented | IDA decompile | yes | hkMonitorStreamColorTable::staticClass - returns stub hkClass |
+| - | - | ?staticClass@hkMonitorStreamFrameInfo@@SAAEBVhkClass@@XZ | 0x140791a90 | blocked | IDA decompile | no | hkMonitorStreamFrameInfo::staticClass - returns stub hkClass |
+| - | - | ?staticClass@ColorPair@hkMonitorStreamColorTable@@SAAEBVhkClass@@XZ | 0x140791aa0 | blocked | IDA decompile | no | hkMonitorStreamColorTable::ColorPair::staticClass - returns stub hkClass |
+| - | - | ?staticClass@hkMonitorStreamColorTable@@SAAEBVhkClass@@XZ | 0x140791ab0 | blocked | IDA decompile | no | hkMonitorStreamColorTable::staticClass - returns stub hkClass |
 | - | - | cleanupLoadedObjecthkMonitorStreamColorTable | 0x140791ac0 | implemented | IDA decompile | yes | POD type - empty cleanup |
 | XCore | HavokTypes.cpp | finishLoadedObjecthkMonitorStreamFrameInfo | 0x140791ad0 | implemented | IDA decompile | yes | Havok serialization finish |
 | XCore | HavokTypes.cpp | finishLoadedObjecthkMonitorStreamColorTableColorPair | 0x140791af0 | implemented | IDA decompile | yes | Havok serialization finish |
@@ -38241,51 +38009,51 @@ yes | ?????????? |
 | - | - | ??1hkMonitorStreamColorTable@@UEAA@XZ | 0x140791b80 | blocked | IDA ??1hkMonitorStreamColorTable@@UEAA@XZ | yes | - |
 | - | - | ??1hkMonitorStreamStringMap@@QEAA@XZ | 0x140791c10 | blocked | IDA ??1hkMonitorStreamStringMap@@QEAA@XZ | yes | - |
 | - | - | ??_EhkMonitorStreamColorTable@@UEAAPEAXI@Z | 0x140791c90 | blocked | IDA ??_EhkMonitorStreamColorTable@@UEAAPEAXI@Z | yes | - |
-| - | - | ?staticClass@hkContactPoint@@SAAEBVhkClass@@XZ | 0x140791cf0 | implemented | IDA decompile | yes | hkContactPoint::staticClass - returns stub hkClass |
+| - | - | ?staticClass@hkContactPoint@@SAAEBVhkClass@@XZ | 0x140791cf0 | blocked | IDA decompile | no | hkContactPoint::staticClass - returns stub hkClass |
 | - | - | cleanupLoadedObjecthkContactPoint | 0x140791d00 | implemented | IDA decompile | yes | POD type - empty cleanup |
-| - | - | ?staticClass@hkColor@@CAAEBVhkClass@@XZ | 0x140791d10 | implemented | IDA decompile | yes | hkColor::staticClass - returns stub hkClass |
+| - | - | ?staticClass@hkColor@@CAAEBVhkClass@@XZ | 0x140791d10 | blocked | IDA decompile | no | hkColor::staticClass - returns stub hkClass |
 | - | - | cleanupLoadedObjecthkColor | 0x140791d20 | implemented | IDA decompile | yes | POD type - empty cleanup |
-| - | - | ?staticClass@Item@hkClassEnum@@SAAEBVhkClass@@XZ | 0x140791d30 | implemented | IDA decompile | yes | hkClassEnum::Item::staticClass - returns stub hkClass |
+| - | - | ?staticClass@Item@hkClassEnum@@SAAEBVhkClass@@XZ | 0x140791d30 | blocked | IDA decompile | no | hkClassEnum::Item::staticClass - returns stub hkClass |
 | - | - | cleanupLoadedObjecthkClassEnumItem | 0x140791d40 | implemented | IDA decompile | yes | POD type - empty cleanup |
-| - | - | ?staticClass@hkClassEnum@@SAAEBVhkClass@@XZ | 0x140791d50 | implemented | IDA decompile | yes | hkClassEnum::staticClass - returns stub hkClass |
+| - | - | ?staticClass@hkClassEnum@@SAAEBVhkClass@@XZ | 0x140791d50 | blocked | IDA decompile | no | hkClassEnum::staticClass - returns stub hkClass |
 | - | - | cleanupLoadedObjecthkClassEnum | 0x140791d60 | implemented | IDA decompile | yes | POD type - empty cleanup |
-| - | - | ?staticClass@hkFloat16@@SAAEBVhkClass@@XZ | 0x140791d70 | implemented | IDA decompile | yes | hkFloat16::staticClass - returns stub hkClass |
+| - | - | ?staticClass@hkFloat16@@SAAEBVhkClass@@XZ | 0x140791d70 | blocked | IDA decompile | no | hkFloat16::staticClass - returns stub hkClass |
 | - | - | cleanupLoadedObjecthkFloat16 | 0x140791d80 | implemented | IDA decompile | yes | POD type - empty cleanup |
 | - | - | ?staticClass@hkSetUint32@@SAAEBVhkClass@@XZ | 0x140791d90 | implemented | HavokTypes.cpp | yes | hkSetUint32::staticClass |
 | XCore | HavokTypes.cpp | finishLoadedObjecthkSetUint32 | 0x140791da0 | implemented | IDA decompile | yes | Havok serialization finish |
 | XCore | HavokTypes.cpp | finishLoadedObjecthkSetunsignedinthkContainerHeapAllocatorhkMapOperationsunsignedint | 0x140791db0 | implemented | IDA decompile | yes | Havok serialization finish |
 | XCore | HavokTypes.cpp | cleanupLoadedObjecthkSetunsignedinthkContainerHeapAllocatorhkMapOperationsunsignedint | 0x140791dc0 | implemented | IDA decompile | yes | Havok serialization cleanup |
 | XCore | HavokTypes.cpp | cleanupLoadedObjecthkSetUint32 | 0x140791e30 | implemented | IDA decompile | yes | Havok serialization cleanup |
-| - | - | ?staticClass@hkFourTransposedPoints@@SAAEBVhkClass@@XZ | 0x140791e90 | implemented | IDA decompile | yes | hkFourTransposedPoints::staticClass - returns stub hkClass |
+| - | - | ?staticClass@hkFourTransposedPoints@@SAAEBVhkClass@@XZ | 0x140791e90 | blocked | IDA decompile | no | hkFourTransposedPoints::staticClass - returns stub hkClass |
 | - | - | cleanupLoadedObjecthkFourTransposedPoints | 0x140791ea0 | implemented | IDA decompile | yes | POD type - empty cleanup |
-| - | - | ?staticClass@hkSymmetricMatrix3@@SAAEBVhkClass@@XZ | 0x140791eb0 | implemented | IDA decompile | yes | hkSymmetricMatrix3::staticClass - returns stub hkClass |
+| - | - | ?staticClass@hkSymmetricMatrix3@@SAAEBVhkClass@@XZ | 0x140791eb0 | blocked | IDA decompile | no | hkSymmetricMatrix3::staticClass - returns stub hkClass |
 | - | - | cleanupLoadedObjecthkSymmetricMatrix3 | 0x140791ec0 | implemented | IDA decompile | yes | POD type - empty cleanup |
-| - | - | ?staticClass@hkSweptTransform@@SAAEBVhkClass@@XZ | 0x140791ed0 | implemented | IDA decompile | yes | hkSweptTransform::staticClass - returns stub hkClass |
+| - | - | ?staticClass@hkSweptTransform@@SAAEBVhkClass@@XZ | 0x140791ed0 | blocked | IDA decompile | no | hkSweptTransform::staticClass - returns stub hkClass |
 | - | - | cleanupLoadedObjecthkSweptTransform | 0x140791ee0 | implemented | IDA decompile | yes | POD type - empty cleanup |
-| - | - | ?staticClass@hkQTransform@@SAAEBVhkClass@@XZ | 0x140791ef0 | implemented | IDA decompile | yes | hkQTransform::staticClass - returns stub hkClass |
+| - | - | ?staticClass@hkQTransform@@SAAEBVhkClass@@XZ | 0x140791ef0 | blocked | IDA decompile | no | hkQTransform::staticClass - returns stub hkClass |
 | - | - | cleanupLoadedObjecthkQTransform | 0x140791f00 | implemented | IDA decompile | yes | POD type - empty cleanup |
 | - | - | finishLoadedObjecthkQTransform | 0x140791f10 | implemented | IDA decompile | yes | POD type - empty finish |
-| - | - | ?staticClass@hkPackedVector3@@SAAEBVhkClass@@XZ | 0x140791f20 | implemented | IDA decompile | yes | hkPackedVector3::staticClass - returns stub hkClass |
+| - | - | ?staticClass@hkPackedVector3@@SAAEBVhkClass@@XZ | 0x140791f20 | blocked | IDA decompile | no | hkPackedVector3::staticClass - returns stub hkClass |
 | - | - | cleanupLoadedObjecthkPackedVector3 | 0x140791f30 | implemented | IDA decompile | yes | POD type - empty cleanup |
-| - | - | ?staticClass@hkPackedVector8_3@@SAAEBVhkClass@@XZ | 0x140791f40 | implemented | IDA decompile | yes | hkPackedVector8_3::staticClass - returns stub hkClass |
+| - | - | ?staticClass@hkPackedVector8_3@@SAAEBVhkClass@@XZ | 0x140791f40 | blocked | IDA decompile | no | hkPackedVector8_3::staticClass - returns stub hkClass |
 | - | - | cleanupLoadedObjecthkPackedVector8_3 | 0x140791f50 | implemented | IDA decompile | yes | POD type - empty cleanup |
-| - | - | ?staticClass@hkBitField@@SAAEBVhkClass@@XZ | 0x140791f60 | implemented | IDA decompile | yes | hkBitField::staticClass - returns stub hkClass |
+| - | - | ?staticClass@hkBitField@@SAAEBVhkClass@@XZ | 0x140791f60 | blocked | IDA decompile | no | hkBitField::staticClass - returns stub hkClass |
 | - | - | finishLoadedObjecthkBitField | 0x140791f70 | implemented | IDA decompile | yes | empty finish for serialization |
 | - | - | cleanupLoadedObjecthkBitField | 0x140791f80 | implemented | IDA decompile | yes | frees data buffer if owned |
 | - | - | ??1hkBitField@@QEAA@XZ | 0x140791fe0 | implemented | IDA decompile | yes | hkBitField destructor - frees owned storage |
-| XCore | HavokTypes.h | ?staticClass@hkReferencedObject@@SAAEBVhkClass@@XZ | 0x140792040 | implemented | HavokTypes.h | yes | stub |
+| XCore | HavokTypes.h | ?staticClass@hkReferencedObject@@SAAEBVhkClass@@XZ | 0x140792040 | blocked | HavokTypes.h | no | stub |
 | XCore | HavokTypes.cpp | finishLoadedObjecthkReferencedObject | 0x140792050 | implemented | IDA decompile | yes | Sets vtable pointer after loading |
 | XCore | HavokTypes.cpp | cleanupLoadedObjecthkReferencedObject | 0x140792070 | implemented | IDA decompile | yes | Calls virtual destructor |
 | XCore | HavokTypes.cpp | getVtablehkReferencedObject | 0x140792080 | implemented | IDA decompile | yes | Returns vtable pointer |
-| - | - | ?staticClass@hkContactPointMaterial@@SAAEBVhkClass@@XZ | 0x140792090 | implemented | IDA decompile | yes | hkContactPointMaterial::staticClass - returns stub hkClass |
+| - | - | ?staticClass@hkContactPointMaterial@@SAAEBVhkClass@@XZ | 0x140792090 | blocked | IDA decompile | no | hkContactPointMaterial::staticClass - returns stub hkClass |
 | - | - | cleanupLoadedObjecthkContactPointMaterial | 0x1407920a0 | implemented | IDA decompile | yes | POD type - empty cleanup |
-| - | - | ?staticClass@hkMultiThreadCheck@@SAAEBVhkClass@@XZ | 0x1407920b0 | implemented | IDA decompile | yes | hkMultiThreadCheck::staticClass - returns stub hkClass |
+| - | - | ?staticClass@hkMultiThreadCheck@@SAAEBVhkClass@@XZ | 0x1407920b0 | blocked | IDA decompile | no | hkMultiThreadCheck::staticClass - returns stub hkClass |
 | - | - | cleanupLoadedObjecthkMultiThreadCheck | 0x1407920c0 | implemented | IDA decompile | yes | POD type - empty cleanup |
-| - | - | ?staticClass@Title@hkTraceStream@@SAAEBVhkClass@@XZ | 0x1407920d0 | implemented | IDA decompile | yes | hkTraceStream::Title::staticClass - returns stub hkClass |
+| - | - | ?staticClass@Title@hkTraceStream@@SAAEBVhkClass@@XZ | 0x1407920d0 | blocked | IDA decompile | no | hkTraceStream::Title::staticClass - returns stub hkClass |
 | - | - | cleanupLoadedObjecthkTraceStreamTitle | 0x1407920e0 | implemented | IDA decompile | yes | POD type - empty cleanup |
-| - | - | ?staticClass@hkFloat16Transform@@SAAEBVhkClass@@XZ | 0x1407920f0 | implemented | IDA decompile | yes | hkFloat16Transform::staticClass - returns stub hkClass |
+| - | - | ?staticClass@hkFloat16Transform@@SAAEBVhkClass@@XZ | 0x1407920f0 | blocked | IDA decompile | no | hkFloat16Transform::staticClass - returns stub hkClass |
 | - | - | cleanupLoadedObjecthkFloat16Transform | 0x140792100 | implemented | IDA decompile | yes | POD type - empty cleanup |
-| XCore | HavokTypes.cpp | ?staticClass@hkAabb16@@SAAEBVhkClass@@XZ | 0x140792110 | implemented | IDA decompile | yes | Returns static hkClass stub |
+| XCore | HavokTypes.cpp | ?staticClass@hkAabb16@@SAAEBVhkClass@@XZ | 0x140792110 | blocked | IDA decompile | no | Returns static hkClass stub |
 | XCore | HavokTypes.cpp | cleanupLoadedObjecthkAabb16 | 0x140792120 | implemented | IDA decompile | yes | Empty - POD type |
 | XCore | HavokTypes.h | ?numExternalAllocations@hkLifoAllocator@@QEBAHXZ | 0x140792130 | implemented | IDA decompile | yes | Get external allocation count from m_impl |
 | XCore | HavokTypes.h | hkMath::min2_int__1 | 0x140792140 | implemented | IDA decompile | yes | hkMath::min2_int_1 - minimum of two ints |
@@ -38295,9 +38063,9 @@ yes | ?????????? |
 | XCore | HavokTypes.h | ?isEmpty@hkLifoAllocator@@QEBAIXZ | 0x1407922c0 | implemented | IDA decompile | yes | Check if allocator has no allocations |
 | XCore | HavokTypes.cpp | ?popNonLifoFrees@hkLifoAllocator@@IEAAXXZ | 0x1407922e0 | implemented | IDA decompile | yes | hkLifoAllocator::popNonLifoFrees - pops matching frees and slabs |
 | XCore | HavokTypes.cpp | ?quit@hkLifoAllocator@@QEAAXQEAPEAVhkMemoryAllocator@@@Z | 0x140792410 | implemented | IDA decompile | yes | hkLifoAllocator::quit - frees all resources |
-| XCore | HavokTypes.h | ?allocateFromNewSlab@hkLifoAllocator@@IEAAPEAXH@Z | 0x140792520 | implemented | IDA decompile | yes | hkLifoAllocator::allocateFromNewSlab - stub implementation |
+| XCore | HavokTypes.h | ?allocateFromNewSlab@hkLifoAllocator@@IEAAPEAXH@Z | 0x140792520 | blocked | IDA decompile | no | hkLifoAllocator::allocateFromNewSlab - stub implementation |
 | XCore | HavokTypes.cpp | ?insertNonLifoFree@hkLifoAllocator@@IEAAXPEAXH@Z | 0x140792660 | implemented | IDA decompile | yes | hkLifoAllocator::insertNonLifoFree - insert with coalescing |
-| XCore | HavokTypes.h | ?slowBlockFree@hkLifoAllocator@@IEAAXPEAXH@Z | 0x140792810 | implemented | IDA decompile | yes | hkLifoAllocator::slowBlockFree - stub implementation |
+| XCore | HavokTypes.h | ?slowBlockFree@hkLifoAllocator@@IEAAXPEAXH@Z | 0x140792810 | blocked | IDA decompile | no | hkLifoAllocator::slowBlockFree - stub implementation |
 | XCore | HavokTypes.h | ?blockAlloc@hkLifoAllocator@@UEAAPEAXH@Z | 0x140792870 | implemented | IDA decompile | yes | hkLifoAllocator::blockAlloc - aligns and allocates from slab |
 | XCore | HavokTypes.h | ?blockFree@hkLifoAllocator@@UEAAXPEAXH@Z | 0x1407928b0 | implemented | IDA decompile | yes | hkLifoAllocator::blockFree - handles LIFO and non-LIFO frees |
 | XCore | HavokTypes.h | ?bufAlloc@hkLifoAllocator@@UEAAPEAXAEAH@Z | 0x1407928f0 | implemented | IDA decompile | yes | Buffer allocation with alignment |
@@ -38707,7 +38475,7 @@ yes | ?????????? |
 | XCore | HavokTypes.h | ??4hkStringPtr@@QEAAAEAV0@AEBV0@@Z | 0x14079db80 | implemented | IDA decompile | yes | hkStringPtr::operator=(hkStringPtr&) - calls assign with cString() |
 | XCore | HavokTypes.h | ?set@hkStringPtr@@QEAAXPEBDH@Z | 0x14079dbb0 | implemented | IDA decompile | yes | hkStringPtr::set - calls assign |
 | XCore | HavokTypes.h | ?setPointerAligned@hkStringPtr@@QEAAXPEBD@Z | 0x14079dbc0 | implemented | IDA decompile | yes | Set unowned pointer directly |
-| XCore | HavokTypes.h | ?printf@hkStringPtr@@QEAAXPEBDZZ | 0x14079dc00 | implemented | IDA decompile | yes | Printf format (stub) |
+| XCore | HavokTypes.h | ?printf@hkStringPtr@@QEAAXPEBDZZ | 0x14079dc00 | blocked | IDA decompile | no | Printf format (stub) |
 | - | - | ?replaceProperty@hkRefCountedProperties@@QEAAXGPEAVhkReferencedObject@@@Z | 0x14079dd50 | implemented | HavokTypes.cpp | yes | - |
 | - | - | ?accessProperty@hkRefCountedProperties@@QEBAPEAVhkReferencedObject@@G@Z | 0x14079de60 | implemented | HavokTypes.h | yes | - |
 | - | - | ?addPropertyInternal@hkRefCountedProperties@@IEAAXGPEAVhkReferencedObject@@W4ReferenceCountHandling@1@@Z | 0x14079deb0 | implemented | HavokTypes.cpp | yes | - |
@@ -38720,7 +38488,7 @@ yes | ?????????? |
 | - | - | ?clear@hkGeometry@@QEAAXXZ | 0x14079e290 | implemented | IDA decompile | yes | hkGeometry::clear - sets sizes to 0 |
 | - | - | ??0hkGeometry@@QEAA@AEBU0@@Z | 0x14079e2a0 | implemented | IDA decompile | yes | hkGeometry copy constructor |
 | - | - | ??0hkGeometry@@QEAA@VhkFinishLoadedObjectFlag@@@Z | 0x14079e420 | implemented | IDA decompile | yes | hkGeometry serialization constructor |
-| - | - | ?appendGeometry@hkGeometry@@QEAAXAEBU1@PEBVhkMatrix4@@@Z | 0x14079e430 | implemented | IDA decompile | yes | stub - needs hkMatrix4 |
+| - | - | ?appendGeometry@hkGeometry@@QEAAXAEBU1@PEBVhkMatrix4@@@Z | 0x14079e430 | blocked | IDA decompile | no | stub - needs hkMatrix4 |
 | - | - | ?_append@?$hkArrayBase@UTriangle@hkGeometry@@@@QEAAXAEAVhkMemoryAllocator@@PEBUTriangle@hkGeometry@@H@Z | 0x14079e560 | blocked | IDA ?_append@?$hkArrayBase@UTriangle@hkGeometry@@@@QEAAXAEAVhkMemoryAllocator@@PEBUTriangle@hkGeometry@@H@Z | yes | - |
 | - | - | ?_append@?$hkArrayBase@VhkVector4@@@@QEAAXAEAVhkMemoryAllocator@@PEBVhkVector4@@H@Z | 0x14079e610 | implemented | HavokTypes.h | yes | - |
 | - | - | ??0StringMap@hkMonitorStreamStringMap@@QEAA@XZ | 0x14079e6b0 | blocked | IDA ??0StringMap@hkMonitorStreamStringMap@@QEAA@XZ | yes | - |
@@ -39334,7 +39102,7 @@ yes | ?????????? |
 | - | - | ??0hkVersionPatchManager@@QEAA@XZ | 0x1407b79e0 | blocked | IDA ??0hkVersionPatchManager@@QEAA@XZ | yes | - |
 | - | - | ?clearPatches@hkVersionPatchManager@@QEAAXXZ | 0x1407b7ab0 | blocked | IDA ?clearPatches@hkVersionPatchManager@@QEAAXXZ | yes | - |
 | - | - | ?recomputePatchDependencies@hkVersionPatchManager@@QEBA?AUhkResult@@XZ | 0x1407b7b80 | blocked | IDA ?recomputePatchDependencies@hkVersionPatchManager@@QEBA?AUhkResult@@XZ | yes | - |
-| - | - | setAllDependeciesToDo | 0x1407b8900 | blocked | IDA setAllDependeciesToDo | yes | - |
+| - | - | setAllDependeciesToDo | 0x1407b8900 | blocked | IDA setAllDependeciesToDo | no | - |
 | - | - | ?preparePatches@hkVersionPatchManager@@AEBA?AUhkResult@@AEAVhkDataWorld@@PEAVClassWrapper@1@AEAV?$hkArray@PEBUPatchInfo@hkVersionPatchManager@@UhkContainerHeapAllocator@@@@@Z | 0x1407b8aa0 | blocked | IDA ?preparePatches@hkVersionPatchManager@@AEBA?AUhkResult@@AEAVhkDataWorld@@PEAVClassWrapper@1@AEAV?$hkArray@PEBUPatchInfo@hkVersionPatchManager@@UhkContainerHeapAllocator@@@@@Z | yes | - |
 | - | - | ?applyPatches@hkVersionPatchManager@@QEBA?AUhkResult@@AEAVhkDataWorld@@PEAVClassWrapper@1@@Z | 0x1407b9660 | blocked | IDA ?applyPatches@hkVersionPatchManager@@QEBA?AUhkResult@@AEAVhkDataWorld@@PEAVClassWrapper@1@@Z | yes | - |
 | - | - | ?applyPatchesDebug@hkVersionPatchManager@@QEBA?AUhkResult@@AEAVhkDataWorld@@@Z | 0x1407b9790 | blocked | IDA ?applyPatchesDebug@hkVersionPatchManager@@QEBA?AUhkResult@@AEAVhkDataWorld@@@Z | yes | - |
@@ -39549,8 +39317,8 @@ yes | ?????????? |
 | - | - | ?callListenerAndCache@ListenerCache@Writer@?A0x386fb16f@@QEAA?AVhkDataObject@@AEBV4@@Z | 0x1407c4af0 | blocked | IDA ?callListenerAndCache@ListenerCache@Writer@?A0x386fb16f@@QEAA?AVhkDataObject@@AEBV4@@Z | yes | - |
 | - | - | ??0MemberWriteFlags@Writer@?A0x386fb16f@@QEAA@H@Z | 0x1407c4d20 | blocked | IDA ??0MemberWriteFlags@Writer@?A0x386fb16f@@QEAA@H@Z | yes | - |
 | - | - | ?writeClass@Writer@?A0x386fb16f@@QEAAHAEBVhkDataClass@@@Z | 0x1407c4de0 | blocked | IDA ?writeClass@Writer@?A0x386fb16f@@QEAAHAEBVhkDataClass@@@Z | yes | - |
-| - | - | ?scanArray@Writer@?A0x386fb16f@@QEAAXAEAVhkDataArray@@AEAV?$hkArray@UTodoItem@Writer@?A0x386fb16f@@UhkContainerTempAllocator@@@@I@Z | 0x1407c50f0 | blocked | IDA ?scanArray@Writer@?A0x386fb16f@@QEAAXAEAVhkDataArray@@AEAV?$hkArray@UTodoItem@Writer@?A0x386fb16f@@UhkContainerTempAllocator@@@@I@Z | yes | - |
-| - | - | ?scanObjectForPointers@Writer@?A0x386fb16f@@QEAAXAEBVhkDataObject@@AEAV?$hkArray@UTodoItem@Writer@?A0x386fb16f@@UhkContainerTempAllocator@@@@I@Z | 0x1407c5590 | blocked | IDA ?scanObjectForPointers@Writer@?A0x386fb16f@@QEAAXAEBVhkDataObject@@AEAV?$hkArray@UTodoItem@Writer@?A0x386fb16f@@UhkContainerTempAllocator@@@@I@Z | yes | - |
+| - | - | ?scanArray@Writer@?A0x386fb16f@@QEAAXAEAVhkDataArray@@AEAV?$hkArray@UTodoItem@Writer@?A0x386fb16f@@UhkContainerTempAllocator@@@@I@Z | 0x1407c50f0 | blocked | IDA ?scanArray@Writer@?A0x386fb16f@@QEAAXAEAVhkDataArray@@AEAV?$hkArray@UTodoItem@Writer@?A0x386fb16f@@UhkContainerTempAllocator@@@@I@Z | no | - |
+| - | - | ?scanObjectForPointers@Writer@?A0x386fb16f@@QEAAXAEBVhkDataObject@@AEAV?$hkArray@UTodoItem@Writer@?A0x386fb16f@@UhkContainerTempAllocator@@@@I@Z | 0x1407c5590 | blocked | IDA ?scanObjectForPointers@Writer@?A0x386fb16f@@QEAAXAEBVhkDataObject@@AEAV?$hkArray@UTodoItem@Writer@?A0x386fb16f@@UhkContainerTempAllocator@@@@I@Z | no | - |
 | - | - | ?scanObjectTree@Writer@?A0x386fb16f@@QEAAXPEBVhkDataWorld@@AEBVhkDataObject@@I@Z | 0x1407c5860 | blocked | IDA ?scanObjectTree@Writer@?A0x386fb16f@@QEAAXPEBVhkDataWorld@@AEBVhkDataObject@@I@Z | yes | - |
 | - | - | ?_writeArrayItems@Writer@?A0x386fb16f@@QEAAXAEBVhkDataArray@@H@Z | 0x1407c5d00 | blocked | IDA ?_writeArrayItems@Writer@?A0x386fb16f@@QEAAXAEBVhkDataArray@@H@Z | yes | - |
 | - | - | ?writeBinaryValue@Writer@?A0x386fb16f@@QEAAXAEBVhkDataObject_Value@@AEBUhkDataClass_MemberInfo@@@Z | 0x1407c6490 | blocked | IDA ?writeBinaryValue@Writer@?A0x386fb16f@@QEAAXAEBVhkDataObject_Value@@AEBUhkDataClass_MemberInfo@@@Z | yes | - |
@@ -40448,155 +40216,155 @@ yes | ?????????? |
 | - | - | ?staticClass@DynamicStorage5@hkcdStaticTree@@SAAEBVhkClass@@XZ | 0x1407f1900 | implemented | HavokTypes.cpp | yes | hkcdStaticTree::DynamicStorage5::staticClass |
 | - | - | ?staticClass@DynamicStorage6@hkcdStaticTree@@SAAEBVhkClass@@XZ | 0x1407f1910 | implemented | HavokTypes.cpp | yes | hkcdStaticTree::DynamicStorage6::staticClass |
 | - | - | ?staticClass@DynamicStorage32@hkcdStaticTree@@SAAEBVhkClass@@XZ | 0x1407f1920 | implemented | HavokTypes.cpp | yes | hkcdStaticTree::DynamicStorage32::staticClass |
-| - | - | finishLoadedObjecthkcdStaticTreeDynamicStorage4 | 0x1407f1930 | implemented | HavokTypes.cpp | yes | serialization stub |
-| - | - | finishLoadedObjecthkcdStaticTreeDynamicStorage5 | 0x1407f1940 | implemented | HavokTypes.cpp | yes | serialization stub |
-| - | - | finishLoadedObjecthkcdStaticTreeDynamicStorage6 | 0x1407f1950 | implemented | HavokTypes.cpp | yes | serialization stub |
-| - | - | finishLoadedObjecthkcdStaticTreeDynamicStorage32 | 0x1407f1960 | implemented | HavokTypes.cpp | yes | serialization stub |
-| - | - | finishLoadedObjecthkcdStaticTreeDynamicStoragehkcdStaticTreeCodec3Axis4 | 0x1407f1970 | implemented | HavokTypes.cpp | yes | serialization stub |
-| - | - | finishLoadedObjecthkcdStaticTreeDynamicStoragehkcdStaticTreeCodec3Axis5 | 0x1407f1980 | implemented | HavokTypes.cpp | yes | serialization stub |
-| - | - | finishLoadedObjecthkcdStaticTreeDynamicStoragehkcdStaticTreeCodec3Axis6 | 0x1407f1990 | implemented | HavokTypes.cpp | yes | serialization stub |
-| - | - | finishLoadedObjecthkcdStaticTreeDynamicStoragehkcdStaticTreeCodecRaw | 0x1407f19a0 | implemented | HavokTypes.cpp | yes | serialization stub |
-| - | - | cleanupLoadedObjecthkcdStaticTreeDynamicStorage6 | 0x1407f19b0 | implemented | HavokTypes.cpp | yes | serialization stub |
-| - | - | cleanupLoadedObjecthkcdStaticTreeDynamicStoragehkcdStaticTreeCodec3Axis4 | 0x1407f1a20 | implemented | HavokTypes.cpp | yes | serialization stub |
-| - | - | cleanupLoadedObjecthkcdStaticTreeDynamicStoragehkcdStaticTreeCodec3Axis5 | 0x1407f1a90 | implemented | HavokTypes.cpp | yes | serialization stub |
-| - | - | cleanupLoadedObjecthkcdStaticTreeDynamicStoragehkcdStaticTreeCodec3Axis6 | 0x1407f1b00 | implemented | HavokTypes.cpp | yes | serialization stub |
-| - | - | cleanupLoadedObjecthkcdStaticTreeDynamicStoragehkcdStaticTreeCodecRaw | 0x1407f1b70 | implemented | HavokTypes.cpp | yes | serialization stub |
-| - | - | cleanupLoadedObjecthkcdStaticTreeDynamicStorage4 | 0x1407f1be0 | implemented | HavokTypes.cpp | yes | serialization stub |
-| - | - | cleanupLoadedObjecthkcdStaticTreeDynamicStorage5 | 0x1407f1c50 | implemented | HavokTypes.cpp | yes | serialization stub |
-| - | - | cleanupLoadedObjecthkcdStaticTreeDynamicStorage32 | 0x1407f1cc0 | implemented | HavokTypes.cpp | yes | serialization stub |
+| - | - | finishLoadedObjecthkcdStaticTreeDynamicStorage4 | 0x1407f1930 | blocked | HavokTypes.cpp | no | serialization stub |
+| - | - | finishLoadedObjecthkcdStaticTreeDynamicStorage5 | 0x1407f1940 | blocked | HavokTypes.cpp | no | serialization stub |
+| - | - | finishLoadedObjecthkcdStaticTreeDynamicStorage6 | 0x1407f1950 | blocked | HavokTypes.cpp | no | serialization stub |
+| - | - | finishLoadedObjecthkcdStaticTreeDynamicStorage32 | 0x1407f1960 | blocked | HavokTypes.cpp | no | serialization stub |
+| - | - | finishLoadedObjecthkcdStaticTreeDynamicStoragehkcdStaticTreeCodec3Axis4 | 0x1407f1970 | blocked | HavokTypes.cpp | no | serialization stub |
+| - | - | finishLoadedObjecthkcdStaticTreeDynamicStoragehkcdStaticTreeCodec3Axis5 | 0x1407f1980 | blocked | HavokTypes.cpp | no | serialization stub |
+| - | - | finishLoadedObjecthkcdStaticTreeDynamicStoragehkcdStaticTreeCodec3Axis6 | 0x1407f1990 | blocked | HavokTypes.cpp | no | serialization stub |
+| - | - | finishLoadedObjecthkcdStaticTreeDynamicStoragehkcdStaticTreeCodecRaw | 0x1407f19a0 | blocked | HavokTypes.cpp | no | serialization stub |
+| - | - | cleanupLoadedObjecthkcdStaticTreeDynamicStorage6 | 0x1407f19b0 | blocked | HavokTypes.cpp | no | serialization stub |
+| - | - | cleanupLoadedObjecthkcdStaticTreeDynamicStoragehkcdStaticTreeCodec3Axis4 | 0x1407f1a20 | blocked | HavokTypes.cpp | no | serialization stub |
+| - | - | cleanupLoadedObjecthkcdStaticTreeDynamicStoragehkcdStaticTreeCodec3Axis5 | 0x1407f1a90 | blocked | HavokTypes.cpp | no | serialization stub |
+| - | - | cleanupLoadedObjecthkcdStaticTreeDynamicStoragehkcdStaticTreeCodec3Axis6 | 0x1407f1b00 | blocked | HavokTypes.cpp | no | serialization stub |
+| - | - | cleanupLoadedObjecthkcdStaticTreeDynamicStoragehkcdStaticTreeCodecRaw | 0x1407f1b70 | blocked | HavokTypes.cpp | no | serialization stub |
+| - | - | cleanupLoadedObjecthkcdStaticTreeDynamicStorage4 | 0x1407f1be0 | blocked | HavokTypes.cpp | no | serialization stub |
+| - | - | cleanupLoadedObjecthkcdStaticTreeDynamicStorage5 | 0x1407f1c50 | blocked | HavokTypes.cpp | no | serialization stub |
+| - | - | cleanupLoadedObjecthkcdStaticTreeDynamicStorage32 | 0x1407f1cc0 | blocked | HavokTypes.cpp | no | serialization stub |
 | - | - | ?staticClass@DefaultTreePtrStorage@hkcdDynamicTree@@SAAEBVhkClass@@XZ | 0x1407f1d20 | implemented | HavokTypes.cpp | yes | hkcdDynamicTree::DefaultTreePtrStorage::staticClass |
 | - | - | ?staticClass@DefaultTree48Storage@hkcdDynamicTree@@SAAEBVhkClass@@XZ | 0x1407f1d30 | implemented | HavokTypes.cpp | yes | hkcdDynamicTree::DefaultTree48Storage::staticClass |
 | - | - | ?staticClass@DefaultTree32Storage@hkcdDynamicTree@@SAAEBVhkClass@@XZ | 0x1407f1d40 | implemented | HavokTypes.cpp | yes | hkcdDynamicTree::DefaultTree32Storage::staticClass |
 | - | - | ?staticClass@DefaultTreeInt16Storage@hkcdDynamicTree@@SAAEBVhkClass@@XZ | 0x1407f1d50 | implemented | HavokTypes.cpp | yes | hkcdDynamicTree::DefaultTreeInt16Storage::staticClass |
-| - | - | finishLoadedObjecthkcdDynamicTreeDefaultTreePtrStorage | 0x1407f1d60 | implemented | HavokTypes.cpp | yes | serialization stub |
-| - | - | finishLoadedObjecthkcdDynamicTreeDefaultTree48Storage | 0x1407f1d70 | implemented | HavokTypes.cpp | yes | serialization stub |
-| - | - | finishLoadedObjecthkcdDynamicTreeDefaultTree32Storage | 0x1407f1d80 | implemented | HavokTypes.cpp | yes | serialization stub |
-| - | - | finishLoadedObjecthkcdDynamicTreeDefaultTreeInt16Storage | 0x1407f1d90 | implemented | HavokTypes.cpp | yes | serialization stub |
-| - | - | finishLoadedObjecthkcdDynamicTreeTreehkcdDynamicTreeDynamicStoragePtr | 0x1407f1da0 | implemented | HavokTypes.cpp | yes | serialization stub |
-| - | - | cleanupLoadedObjecthkcdDynamicTreeTreehkcdDynamicTreeDynamicStoragePtr | 0x1407f1db0 | implemented | HavokTypes.cpp | yes | serialization stub |
-| - | - | finishLoadedObjecthkcdDynamicTreeTreehkcdDynamicTreeDynamicStorage32 | 0x1407f1e20 | implemented | HavokTypes.cpp | yes | serialization stub |
-| - | - | cleanupLoadedObjecthkcdDynamicTreeTreehkcdDynamicTreeDynamicStorage32 | 0x1407f1e30 | implemented | HavokTypes.cpp | yes | serialization stub |
-| - | - | finishLoadedObjecthkcdDynamicTreeTreehkcdDynamicTreeDynamicStorage16 | 0x1407f1ea0 | implemented | HavokTypes.cpp | yes | serialization stub |
-| - | - | cleanupLoadedObjecthkcdDynamicTreeTreehkcdDynamicTreeDynamicStorage16 | 0x1407f1eb0 | implemented | HavokTypes.cpp | yes | serialization stub |
-| - | - | finishLoadedObjecthkcdDynamicTreeTreehkcdDynamicTreeDynamicStorageInt16 | 0x1407f1f20 | implemented | HavokTypes.cpp | yes | serialization stub |
-| - | - | cleanupLoadedObjecthkcdDynamicTreeTreehkcdDynamicTreeDynamicStorageInt16 | 0x1407f1f30 | implemented | HavokTypes.cpp | yes | serialization stub |
-| - | - | cleanupLoadedObjecthkcdDynamicTreeDefaultTreePtrStorage | 0x1407f1fa0 | implemented | HavokTypes.cpp | yes | serialization stub |
-| - | - | cleanupLoadedObjecthkcdDynamicTreeDefaultTree48Storage | 0x1407f2010 | implemented | HavokTypes.cpp | yes | serialization stub |
-| - | - | cleanupLoadedObjecthkcdDynamicTreeDefaultTree32Storage | 0x1407f2080 | implemented | HavokTypes.cpp | yes | serialization stub |
-| - | - | cleanupLoadedObjecthkcdDynamicTreeDefaultTreeInt16Storage | 0x1407f20f0 | implemented | HavokTypes.cpp | yes | serialization stub |
+| - | - | finishLoadedObjecthkcdDynamicTreeDefaultTreePtrStorage | 0x1407f1d60 | blocked | HavokTypes.cpp | no | serialization stub |
+| - | - | finishLoadedObjecthkcdDynamicTreeDefaultTree48Storage | 0x1407f1d70 | blocked | HavokTypes.cpp | no | serialization stub |
+| - | - | finishLoadedObjecthkcdDynamicTreeDefaultTree32Storage | 0x1407f1d80 | blocked | HavokTypes.cpp | no | serialization stub |
+| - | - | finishLoadedObjecthkcdDynamicTreeDefaultTreeInt16Storage | 0x1407f1d90 | blocked | HavokTypes.cpp | no | serialization stub |
+| - | - | finishLoadedObjecthkcdDynamicTreeTreehkcdDynamicTreeDynamicStoragePtr | 0x1407f1da0 | blocked | HavokTypes.cpp | no | serialization stub |
+| - | - | cleanupLoadedObjecthkcdDynamicTreeTreehkcdDynamicTreeDynamicStoragePtr | 0x1407f1db0 | blocked | HavokTypes.cpp | no | serialization stub |
+| - | - | finishLoadedObjecthkcdDynamicTreeTreehkcdDynamicTreeDynamicStorage32 | 0x1407f1e20 | blocked | HavokTypes.cpp | no | serialization stub |
+| - | - | cleanupLoadedObjecthkcdDynamicTreeTreehkcdDynamicTreeDynamicStorage32 | 0x1407f1e30 | blocked | HavokTypes.cpp | no | serialization stub |
+| - | - | finishLoadedObjecthkcdDynamicTreeTreehkcdDynamicTreeDynamicStorage16 | 0x1407f1ea0 | blocked | HavokTypes.cpp | no | serialization stub |
+| - | - | cleanupLoadedObjecthkcdDynamicTreeTreehkcdDynamicTreeDynamicStorage16 | 0x1407f1eb0 | blocked | HavokTypes.cpp | no | serialization stub |
+| - | - | finishLoadedObjecthkcdDynamicTreeTreehkcdDynamicTreeDynamicStorageInt16 | 0x1407f1f20 | blocked | HavokTypes.cpp | no | serialization stub |
+| - | - | cleanupLoadedObjecthkcdDynamicTreeTreehkcdDynamicTreeDynamicStorageInt16 | 0x1407f1f30 | blocked | HavokTypes.cpp | no | serialization stub |
+| - | - | cleanupLoadedObjecthkcdDynamicTreeDefaultTreePtrStorage | 0x1407f1fa0 | blocked | HavokTypes.cpp | no | serialization stub |
+| - | - | cleanupLoadedObjecthkcdDynamicTreeDefaultTree48Storage | 0x1407f2010 | blocked | HavokTypes.cpp | no | serialization stub |
+| - | - | cleanupLoadedObjecthkcdDynamicTreeDefaultTree32Storage | 0x1407f2080 | blocked | HavokTypes.cpp | no | serialization stub |
+| - | - | cleanupLoadedObjecthkcdDynamicTreeDefaultTreeInt16Storage | 0x1407f20f0 | blocked | HavokTypes.cpp | no | serialization stub |
 | - | - | ??_GDefaultTree48Storage@hkcdDynamicTree@@QEAAPEAXI@Z | 0x1407f2150 | blocked | IDA ??_GDefaultTree48Storage@hkcdDynamicTree@@QEAAPEAXI@Z | yes | - |
 | - | - | ?staticClass@DefaultTreeStorage4@hkcdStaticTree@@SAAEBVhkClass@@XZ | 0x1407f21d0 | implemented | HavokTypes.cpp | yes | hkcdStaticTree::DefaultTreeStorage4::staticClass |
 | - | - | ?staticClass@DefaultTreeStorage5@hkcdStaticTree@@SAAEBVhkClass@@XZ | 0x1407f21e0 | implemented | HavokTypes.cpp | yes | hkcdStaticTree::DefaultTreeStorage5::staticClass |
 | - | - | ?staticClass@DefaultTreeStorage6@hkcdStaticTree@@SAAEBVhkClass@@XZ | 0x1407f21f0 | implemented | HavokTypes.cpp | yes | hkcdStaticTree::DefaultTreeStorage6::staticClass |
 | - | - | ?staticClass@DefaultTreeStorage32@hkcdStaticTree@@SAAEBVhkClass@@XZ | 0x1407f2200 | implemented | HavokTypes.cpp | yes | hkcdStaticTree::DefaultTreeStorage32::staticClass |
-| - | - | finishLoadedObjecthkcdStaticTreeDefaultTreeStorage4 | 0x1407f2210 | implemented | HavokTypes.cpp | yes | serialization stub |
-| - | - | finishLoadedObjecthkcdStaticTreeDefaultTreeStorage5 | 0x1407f2220 | implemented | HavokTypes.cpp | yes | serialization stub |
-| - | - | finishLoadedObjecthkcdStaticTreeDefaultTreeStorage6 | 0x1407f2230 | implemented | HavokTypes.cpp | yes | serialization stub |
-| - | - | finishLoadedObjecthkcdStaticTreeDefaultTreeStorage32 | 0x1407f2240 | implemented | HavokTypes.cpp | yes | serialization stub |
-| - | - | finishLoadedObjecthkcdStaticTreeTreehkcdStaticTreeDynamicStorage4 | 0x1407f2250 | implemented | HavokTypes.cpp | yes | serialization stub |
-| - | - | finishLoadedObjecthkcdStaticTreeTreehkcdStaticTreeDynamicStorage5 | 0x1407f2260 | implemented | HavokTypes.cpp | yes | serialization stub |
-| - | - | finishLoadedObjecthkcdStaticTreeTreehkcdStaticTreeDynamicStorage6 | 0x1407f2270 | implemented | HavokTypes.cpp | yes | serialization stub |
-| - | - | finishLoadedObjecthkcdStaticTreeTreehkcdStaticTreeDynamicStorage32 | 0x1407f2280 | implemented | HavokTypes.cpp | yes | serialization stub |
-| - | - | cleanupLoadedObjecthkcdStaticTreeDefaultTreeStorage6 | 0x1407f2290 | implemented | HavokTypes.cpp | yes | serialization stub |
-| - | - | cleanupLoadedObjecthkcdStaticTreeTreehkcdStaticTreeDynamicStorage4 | 0x1407f2300 | implemented | HavokTypes.cpp | yes | serialization stub |
-| - | - | cleanupLoadedObjecthkcdStaticTreeTreehkcdStaticTreeDynamicStorage5 | 0x1407f2370 | implemented | HavokTypes.cpp | yes | serialization stub |
-| - | - | cleanupLoadedObjecthkcdStaticTreeTreehkcdStaticTreeDynamicStorage6 | 0x1407f23e0 | implemented | HavokTypes.cpp | yes | serialization stub |
-| - | - | cleanupLoadedObjecthkcdStaticTreeTreehkcdStaticTreeDynamicStorage32 | 0x1407f2450 | implemented | HavokTypes.cpp | yes | serialization stub |
-| - | - | cleanupLoadedObjecthkcdStaticTreeDefaultTreeStorage4 | 0x1407f24c0 | implemented | HavokTypes.cpp | yes | serialization stub |
-| - | - | cleanupLoadedObjecthkcdStaticTreeDefaultTreeStorage5 | 0x1407f2530 | implemented | HavokTypes.cpp | yes | serialization stub |
-| - | - | cleanupLoadedObjecthkcdStaticTreeDefaultTreeStorage32 | 0x1407f25a0 | implemented | HavokTypes.cpp | yes | serialization stub |
+| - | - | finishLoadedObjecthkcdStaticTreeDefaultTreeStorage4 | 0x1407f2210 | blocked | HavokTypes.cpp | no | serialization stub |
+| - | - | finishLoadedObjecthkcdStaticTreeDefaultTreeStorage5 | 0x1407f2220 | blocked | HavokTypes.cpp | no | serialization stub |
+| - | - | finishLoadedObjecthkcdStaticTreeDefaultTreeStorage6 | 0x1407f2230 | blocked | HavokTypes.cpp | no | serialization stub |
+| - | - | finishLoadedObjecthkcdStaticTreeDefaultTreeStorage32 | 0x1407f2240 | blocked | HavokTypes.cpp | no | serialization stub |
+| - | - | finishLoadedObjecthkcdStaticTreeTreehkcdStaticTreeDynamicStorage4 | 0x1407f2250 | blocked | HavokTypes.cpp | no | serialization stub |
+| - | - | finishLoadedObjecthkcdStaticTreeTreehkcdStaticTreeDynamicStorage5 | 0x1407f2260 | blocked | HavokTypes.cpp | no | serialization stub |
+| - | - | finishLoadedObjecthkcdStaticTreeTreehkcdStaticTreeDynamicStorage6 | 0x1407f2270 | blocked | HavokTypes.cpp | no | serialization stub |
+| - | - | finishLoadedObjecthkcdStaticTreeTreehkcdStaticTreeDynamicStorage32 | 0x1407f2280 | blocked | HavokTypes.cpp | no | serialization stub |
+| - | - | cleanupLoadedObjecthkcdStaticTreeDefaultTreeStorage6 | 0x1407f2290 | blocked | HavokTypes.cpp | no | serialization stub |
+| - | - | cleanupLoadedObjecthkcdStaticTreeTreehkcdStaticTreeDynamicStorage4 | 0x1407f2300 | blocked | HavokTypes.cpp | no | serialization stub |
+| - | - | cleanupLoadedObjecthkcdStaticTreeTreehkcdStaticTreeDynamicStorage5 | 0x1407f2370 | blocked | HavokTypes.cpp | no | serialization stub |
+| - | - | cleanupLoadedObjecthkcdStaticTreeTreehkcdStaticTreeDynamicStorage6 | 0x1407f23e0 | blocked | HavokTypes.cpp | no | serialization stub |
+| - | - | cleanupLoadedObjecthkcdStaticTreeTreehkcdStaticTreeDynamicStorage32 | 0x1407f2450 | blocked | HavokTypes.cpp | no | serialization stub |
+| - | - | cleanupLoadedObjecthkcdStaticTreeDefaultTreeStorage4 | 0x1407f24c0 | blocked | HavokTypes.cpp | no | serialization stub |
+| - | - | cleanupLoadedObjecthkcdStaticTreeDefaultTreeStorage5 | 0x1407f2530 | blocked | HavokTypes.cpp | no | serialization stub |
+| - | - | cleanupLoadedObjecthkcdStaticTreeDefaultTreeStorage32 | 0x1407f25a0 | blocked | HavokTypes.cpp | no | serialization stub |
 | - | - | ??_GDefaultTreeStorage6@hkcdStaticTree@@QEAAPEAXI@Z | 0x1407f2600 | blocked | IDA ??_GDefaultTreeStorage6@hkcdStaticTree@@QEAAPEAXI@Z | yes | - |
 | - | - | ?staticClass@SharedVertices@Section@hkcdStaticMeshTreeBase@@SAAEBVhkClass@@XZ | 0x1407f2680 | implemented | HavokTypes.cpp | yes | hkcdStaticMeshTreeBase::Section::SharedVertices::staticClass |
-| - | - | cleanupLoadedObjecthkcdStaticMeshTreeBaseSectionSharedVertices | 0x1407f2690 | implemented | HavokTypes.cpp | yes | serialization stub |
+| - | - | cleanupLoadedObjecthkcdStaticMeshTreeBaseSectionSharedVertices | 0x1407f2690 | blocked | HavokTypes.cpp | no | serialization stub |
 | - | - | ?staticClass@Primitives@Section@hkcdStaticMeshTreeBase@@SAAEBVhkClass@@XZ | 0x1407f26a0 | implemented | HavokTypes.cpp | yes | hkcdStaticMeshTreeBase::Section::Primitives::staticClass |
-| - | - | cleanupLoadedObjecthkcdStaticMeshTreeBaseSectionPrimitives | 0x1407f26b0 | implemented | HavokTypes.cpp | yes | serialization stub |
+| - | - | cleanupLoadedObjecthkcdStaticMeshTreeBaseSectionPrimitives | 0x1407f26b0 | blocked | HavokTypes.cpp | no | serialization stub |
 | - | - | ?staticClass@DataRuns@Section@hkcdStaticMeshTreeBase@@SAAEBVhkClass@@XZ | 0x1407f26c0 | implemented | HavokTypes.cpp | yes | hkcdStaticMeshTreeBase::Section::DataRuns::staticClass |
-| - | - | cleanupLoadedObjecthkcdStaticMeshTreeBaseSectionDataRuns | 0x1407f26d0 | implemented | HavokTypes.cpp | yes | serialization stub |
+| - | - | cleanupLoadedObjecthkcdStaticMeshTreeBaseSectionDataRuns | 0x1407f26d0 | blocked | HavokTypes.cpp | no | serialization stub |
 | - | - | ?staticClass@Section@hkcdStaticMeshTreeBase@@SAAEBVhkClass@@XZ | 0x1407f26e0 | implemented | HavokTypes.cpp | yes | hkcdStaticMeshTreeBase::Section::staticClass |
 | - | - | ?staticClass@Primitive@hkcdStaticMeshTreeBase@@SAAEBVhkClass@@XZ | 0x1407f26f0 | implemented | HavokTypes.cpp | yes | hkcdStaticMeshTreeBase::Primitive::staticClass |
-| - | - | cleanupLoadedObjecthkcdStaticMeshTreeBasePrimitive | 0x1407f2700 | implemented | HavokTypes.cpp | yes | serialization stub |
+| - | - | cleanupLoadedObjecthkcdStaticMeshTreeBasePrimitive | 0x1407f2700 | blocked | HavokTypes.cpp | no | serialization stub |
 | - | - | ?staticClass@hkcdStaticMeshTreeBase@@SAAEBVhkClass@@XZ | 0x1407f2710 | implemented | HavokTypes.cpp | yes | hkcdStaticMeshTreeBase::staticClass |
-| - | - | finishLoadedObjecthkcdStaticMeshTreeBase | 0x1407f2720 | implemented | HavokTypes.cpp | yes | serialization stub |
+| - | - | finishLoadedObjecthkcdStaticMeshTreeBase | 0x1407f2720 | blocked | HavokTypes.cpp | no | serialization stub |
 | - | - | ?staticClass@hkcdStaticMeshTreeDefaultDataRun@@SAAEBVhkClass@@XZ | 0x1407f2740 | implemented | HavokTypes.cpp | yes | hkcdStaticMeshTreeDefaultDataRun::staticClass |
-| - | - | cleanupLoadedObjecthkcdStaticMeshTreeDefaultDataRun | 0x1407f2750 | implemented | HavokTypes.cpp | yes | serialization stub |
-| - | - | cleanupLoadedObjecthkcdStaticMeshTreeBasePrimitiveDataRunBaseunsignedshort | 0x1407f2760 | implemented | HavokTypes.cpp | yes | serialization stub |
-| - | - | finishLoadedObjecthkcdStaticMeshTreeBaseSection | 0x1407f2770 | implemented | HavokTypes.cpp | yes | serialization stub |
-| - | - | cleanupLoadedObjecthkcdStaticMeshTreeBaseSection | 0x1407f2780 | implemented | HavokTypes.cpp | yes | serialization stub |
-| - | - | cleanupLoadedObjecthkcdStaticMeshTreeBase | 0x1407f27f0 | implemented | HavokTypes.cpp | yes | serialization stub |
+| - | - | cleanupLoadedObjecthkcdStaticMeshTreeDefaultDataRun | 0x1407f2750 | blocked | HavokTypes.cpp | no | serialization stub |
+| - | - | cleanupLoadedObjecthkcdStaticMeshTreeBasePrimitiveDataRunBaseunsignedshort | 0x1407f2760 | blocked | HavokTypes.cpp | no | serialization stub |
+| - | - | finishLoadedObjecthkcdStaticMeshTreeBaseSection | 0x1407f2770 | blocked | HavokTypes.cpp | no | serialization stub |
+| - | - | cleanupLoadedObjecthkcdStaticMeshTreeBaseSection | 0x1407f2780 | blocked | HavokTypes.cpp | no | serialization stub |
+| - | - | cleanupLoadedObjecthkcdStaticMeshTreeBase | 0x1407f27f0 | blocked | HavokTypes.cpp | no | serialization stub |
 | - | - | ??1hkcdStaticMeshTreeBase@@QEAA@XZ | 0x1407f2800 | implemented | HavokTypes.cpp | yes | hkcdStaticMeshTreeBase::~hkcdStaticMeshTreeBase |
 | - | - | ?staticClass@DynamicStoragePtr@hkcdDynamicTree@@SAAEBVhkClass@@XZ | 0x1407f2960 | implemented | HavokTypes.cpp | yes | hkcdDynamicTree::DynamicStoragePtr::staticClass |
 | - | - | ?staticClass@DynamicStorage32@hkcdDynamicTree@@SAAEBVhkClass@@XZ | 0x1407f2970 | implemented | HavokTypes.cpp | yes | hkcdDynamicTree::DynamicStorage32::staticClass |
 | - | - | ?staticClass@DynamicStorage16@hkcdDynamicTree@@SAAEBVhkClass@@XZ | 0x1407f2980 | implemented | HavokTypes.cpp | yes | hkcdDynamicTree::DynamicStorage16::staticClass |
 | - | - | ?staticClass@DynamicStorageInt16@hkcdDynamicTree@@SAAEBVhkClass@@XZ | 0x1407f2990 | implemented | HavokTypes.cpp | yes | hkcdDynamicTree::DynamicStorageInt16::staticClass |
-| - | - | finishLoadedObjecthkcdDynamicTreeDynamicStorage0hkcdDynamicTreeAnisotropicMetrichkcdDynamicTreeCodecRawUlong | 0x1407f29a0 | implemented | HavokTypes.cpp | yes | serialization stub |
-| - | - | cleanupLoadedObjecthkcdDynamicTreeDynamicStorage0hkcdDynamicTreeAnisotropicMetrichkcdDynamicTreeCodecRawUlong | 0x1407f29b0 | implemented | HavokTypes.cpp | yes | serialization stub |
-| - | - | finishLoadedObjecthkcdDynamicTreeDynamicStorage0hkcdDynamicTreeAnisotropicMetrichkcdDynamicTreeCodecRawUint | 0x1407f2a20 | implemented | HavokTypes.cpp | yes | serialization stub |
-| - | - | cleanupLoadedObjecthkcdDynamicTreeDynamicStorage0hkcdDynamicTreeAnisotropicMetrichkcdDynamicTreeCodecRawUint | 0x1407f2a30 | implemented | HavokTypes.cpp | yes | serialization stub |
-| - | - | finishLoadedObjecthkcdDynamicTreeDynamicStorage0hkcdDynamicTreeAnisotropicMetrichkcdDynamicTreeCodec32 | 0x1407f2aa0 | implemented | HavokTypes.cpp | yes | serialization stub |
-| - | - | cleanupLoadedObjecthkcdDynamicTreeDynamicStorage0hkcdDynamicTreeAnisotropicMetrichkcdDynamicTreeCodec32 | 0x1407f2ab0 | implemented | HavokTypes.cpp | yes | serialization stub |
-| - | - | finishLoadedObjecthkcdDynamicTreeDynamicStorage0hkcdDynamicTreeAnisotropicMetrichkcdDynamicTreeCodecInt16 | 0x1407f2b20 | implemented | HavokTypes.cpp | yes | serialization stub |
-| - | - | cleanupLoadedObjecthkcdDynamicTreeDynamicStorage0hkcdDynamicTreeAnisotropicMetrichkcdDynamicTreeCodecInt16 | 0x1407f2b30 | implemented | HavokTypes.cpp | yes | serialization stub |
-| - | - | finishLoadedObjecthkcdDynamicTreeDynamicStoragePtr | 0x1407f2ba0 | implemented | HavokTypes.cpp | yes | serialization stub |
-| - | - | cleanupLoadedObjecthkcdDynamicTreeDynamicStoragePtr | 0x1407f2bb0 | implemented | HavokTypes.cpp | yes | serialization stub |
-| - | - | finishLoadedObjecthkcdDynamicTreeDynamicStorage32 | 0x1407f2c20 | implemented | HavokTypes.cpp | yes | serialization stub |
-| - | - | cleanupLoadedObjecthkcdDynamicTreeDynamicStorage32 | 0x1407f2c30 | implemented | HavokTypes.cpp | yes | serialization stub |
-| - | - | finishLoadedObjecthkcdDynamicTreeDynamicStorage16 | 0x1407f2ca0 | implemented | HavokTypes.cpp | yes | serialization stub |
-| - | - | cleanupLoadedObjecthkcdDynamicTreeDynamicStorage16 | 0x1407f2cb0 | implemented | HavokTypes.cpp | yes | serialization stub |
-| - | - | finishLoadedObjecthkcdDynamicTreeDynamicStorageInt16 | 0x1407f2d20 | implemented | HavokTypes.cpp | yes | serialization stub |
-| - | - | cleanupLoadedObjecthkcdDynamicTreeDynamicStorageInt16 | 0x1407f2d30 | implemented | HavokTypes.cpp | yes | serialization stub |
-| - | - | finishLoadedObjecthkcdDynamicTreeDefaultDynamicStoragehkcdDynamicTreeCodecRawUlong | 0x1407f2da0 | implemented | HavokTypes.cpp | yes | serialization stub |
-| - | - | cleanupLoadedObjecthkcdDynamicTreeDefaultDynamicStoragehkcdDynamicTreeCodecRawUlong | 0x1407f2db0 | implemented | HavokTypes.cpp | yes | serialization stub |
-| - | - | finishLoadedObjecthkcdDynamicTreeDefaultDynamicStoragehkcdDynamicTreeCodecRawUint | 0x1407f2e20 | implemented | HavokTypes.cpp | yes | serialization stub |
-| - | - | cleanupLoadedObjecthkcdDynamicTreeDefaultDynamicStoragehkcdDynamicTreeCodecRawUint | 0x1407f2e30 | implemented | HavokTypes.cpp | yes | serialization stub |
-| - | - | finishLoadedObjecthkcdDynamicTreeDefaultDynamicStoragehkcdDynamicTreeCodec32 | 0x1407f2ea0 | implemented | HavokTypes.cpp | yes | serialization stub |
-| - | - | cleanupLoadedObjecthkcdDynamicTreeDefaultDynamicStoragehkcdDynamicTreeCodec32 | 0x1407f2eb0 | implemented | HavokTypes.cpp | yes | serialization stub |
-| - | - | finishLoadedObjecthkcdDynamicTreeDefaultDynamicStoragehkcdDynamicTreeCodecInt16 | 0x1407f2f20 | implemented | HavokTypes.cpp | yes | serialization stub |
-| - | - | cleanupLoadedObjecthkcdDynamicTreeDefaultDynamicStoragehkcdDynamicTreeCodecInt16 | 0x1407f2f30 | implemented | HavokTypes.cpp | yes | serialization stub |
+| - | - | finishLoadedObjecthkcdDynamicTreeDynamicStorage0hkcdDynamicTreeAnisotropicMetrichkcdDynamicTreeCodecRawUlong | 0x1407f29a0 | blocked | HavokTypes.cpp | no | serialization stub |
+| - | - | cleanupLoadedObjecthkcdDynamicTreeDynamicStorage0hkcdDynamicTreeAnisotropicMetrichkcdDynamicTreeCodecRawUlong | 0x1407f29b0 | blocked | HavokTypes.cpp | no | serialization stub |
+| - | - | finishLoadedObjecthkcdDynamicTreeDynamicStorage0hkcdDynamicTreeAnisotropicMetrichkcdDynamicTreeCodecRawUint | 0x1407f2a20 | blocked | HavokTypes.cpp | no | serialization stub |
+| - | - | cleanupLoadedObjecthkcdDynamicTreeDynamicStorage0hkcdDynamicTreeAnisotropicMetrichkcdDynamicTreeCodecRawUint | 0x1407f2a30 | blocked | HavokTypes.cpp | no | serialization stub |
+| - | - | finishLoadedObjecthkcdDynamicTreeDynamicStorage0hkcdDynamicTreeAnisotropicMetrichkcdDynamicTreeCodec32 | 0x1407f2aa0 | blocked | HavokTypes.cpp | no | serialization stub |
+| - | - | cleanupLoadedObjecthkcdDynamicTreeDynamicStorage0hkcdDynamicTreeAnisotropicMetrichkcdDynamicTreeCodec32 | 0x1407f2ab0 | blocked | HavokTypes.cpp | no | serialization stub |
+| - | - | finishLoadedObjecthkcdDynamicTreeDynamicStorage0hkcdDynamicTreeAnisotropicMetrichkcdDynamicTreeCodecInt16 | 0x1407f2b20 | blocked | HavokTypes.cpp | no | serialization stub |
+| - | - | cleanupLoadedObjecthkcdDynamicTreeDynamicStorage0hkcdDynamicTreeAnisotropicMetrichkcdDynamicTreeCodecInt16 | 0x1407f2b30 | blocked | HavokTypes.cpp | no | serialization stub |
+| - | - | finishLoadedObjecthkcdDynamicTreeDynamicStoragePtr | 0x1407f2ba0 | blocked | HavokTypes.cpp | no | serialization stub |
+| - | - | cleanupLoadedObjecthkcdDynamicTreeDynamicStoragePtr | 0x1407f2bb0 | blocked | HavokTypes.cpp | no | serialization stub |
+| - | - | finishLoadedObjecthkcdDynamicTreeDynamicStorage32 | 0x1407f2c20 | blocked | HavokTypes.cpp | no | serialization stub |
+| - | - | cleanupLoadedObjecthkcdDynamicTreeDynamicStorage32 | 0x1407f2c30 | blocked | HavokTypes.cpp | no | serialization stub |
+| - | - | finishLoadedObjecthkcdDynamicTreeDynamicStorage16 | 0x1407f2ca0 | blocked | HavokTypes.cpp | no | serialization stub |
+| - | - | cleanupLoadedObjecthkcdDynamicTreeDynamicStorage16 | 0x1407f2cb0 | blocked | HavokTypes.cpp | no | serialization stub |
+| - | - | finishLoadedObjecthkcdDynamicTreeDynamicStorageInt16 | 0x1407f2d20 | blocked | HavokTypes.cpp | no | serialization stub |
+| - | - | cleanupLoadedObjecthkcdDynamicTreeDynamicStorageInt16 | 0x1407f2d30 | blocked | HavokTypes.cpp | no | serialization stub |
+| - | - | finishLoadedObjecthkcdDynamicTreeDefaultDynamicStoragehkcdDynamicTreeCodecRawUlong | 0x1407f2da0 | blocked | HavokTypes.cpp | no | serialization stub |
+| - | - | cleanupLoadedObjecthkcdDynamicTreeDefaultDynamicStoragehkcdDynamicTreeCodecRawUlong | 0x1407f2db0 | blocked | HavokTypes.cpp | no | serialization stub |
+| - | - | finishLoadedObjecthkcdDynamicTreeDefaultDynamicStoragehkcdDynamicTreeCodecRawUint | 0x1407f2e20 | blocked | HavokTypes.cpp | no | serialization stub |
+| - | - | cleanupLoadedObjecthkcdDynamicTreeDefaultDynamicStoragehkcdDynamicTreeCodecRawUint | 0x1407f2e30 | blocked | HavokTypes.cpp | no | serialization stub |
+| - | - | finishLoadedObjecthkcdDynamicTreeDefaultDynamicStoragehkcdDynamicTreeCodec32 | 0x1407f2ea0 | blocked | HavokTypes.cpp | no | serialization stub |
+| - | - | cleanupLoadedObjecthkcdDynamicTreeDefaultDynamicStoragehkcdDynamicTreeCodec32 | 0x1407f2eb0 | blocked | HavokTypes.cpp | no | serialization stub |
+| - | - | finishLoadedObjecthkcdDynamicTreeDefaultDynamicStoragehkcdDynamicTreeCodecInt16 | 0x1407f2f20 | blocked | HavokTypes.cpp | no | serialization stub |
+| - | - | cleanupLoadedObjecthkcdDynamicTreeDefaultDynamicStoragehkcdDynamicTreeCodecInt16 | 0x1407f2f30 | blocked | HavokTypes.cpp | no | serialization stub |
 | - | - | ?staticClass@Codec3Axis@hkcdStaticTree@@SAAEBVhkClass@@XZ | 0x1407f2f90 | implemented | HavokTypes.cpp | yes | hkcdStaticTree::Codec3Axis::staticClass |
-| - | - | cleanupLoadedObjecthkcdStaticTreeCodec3Axis | 0x1407f2fa0 | implemented | HavokTypes.cpp | yes | serialization stub |
+| - | - | cleanupLoadedObjecthkcdStaticTreeCodec3Axis | 0x1407f2fa0 | blocked | HavokTypes.cpp | no | serialization stub |
 | - | - | ?staticClass@Codec3Axis4@hkcdStaticTree@@SAAEBVhkClass@@XZ | 0x1407f2fb0 | implemented | HavokTypes.cpp | yes | hkcdStaticTree::Codec3Axis4::staticClass |
-| - | - | cleanupLoadedObjecthkcdStaticTreeCodec3Axis4 | 0x1407f2fc0 | implemented | HavokTypes.cpp | yes | serialization stub |
+| - | - | cleanupLoadedObjecthkcdStaticTreeCodec3Axis4 | 0x1407f2fc0 | blocked | HavokTypes.cpp | no | serialization stub |
 | - | - | ?staticClass@Codec3Axis5@hkcdStaticTree@@SAAEBVhkClass@@XZ | 0x1407f2fd0 | implemented | HavokTypes.cpp | yes | hkcdStaticTree::Codec3Axis5::staticClass |
-| - | - | cleanupLoadedObjecthkcdStaticTreeCodec3Axis5 | 0x1407f2fe0 | implemented | HavokTypes.cpp | yes | serialization stub |
+| - | - | cleanupLoadedObjecthkcdStaticTreeCodec3Axis5 | 0x1407f2fe0 | blocked | HavokTypes.cpp | no | serialization stub |
 | - | - | ?staticClass@Codec3Axis6@hkcdStaticTree@@SAAEBVhkClass@@XZ | 0x1407f2ff0 | implemented | HavokTypes.cpp | yes | hkcdStaticTree::Codec3Axis6::staticClass |
-| - | - | cleanupLoadedObjecthkcdStaticTreeCodec3Axis6 | 0x1407f3000 | implemented | HavokTypes.cpp | yes | serialization stub |
+| - | - | cleanupLoadedObjecthkcdStaticTreeCodec3Axis6 | 0x1407f3000 | blocked | HavokTypes.cpp | no | serialization stub |
 | - | - | ?staticClass@CodecRaw@hkcdStaticTree@@SAAEBVhkClass@@XZ | 0x1407f3010 | implemented | HavokTypes.cpp | yes | hkcdStaticTree::CodecRaw::staticClass |
-| - | - | cleanupLoadedObjecthkcdStaticTreeCodecRaw | 0x1407f3020 | implemented | HavokTypes.cpp | yes | serialization stub |
+| - | - | cleanupLoadedObjecthkcdStaticTreeCodecRaw | 0x1407f3020 | blocked | HavokTypes.cpp | no | serialization stub |
 | - | - | ?staticClass@CodecRawUlong@hkcdDynamicTree@@SAAEBVhkClass@@XZ | 0x1407f3030 | implemented | HavokTypes.cpp | yes | hkcdDynamicTree::CodecRawUlong::staticClass |
-| - | - | cleanupLoadedObjecthkcdDynamicTreeCodecRawUlong | 0x1407f3040 | implemented | HavokTypes.cpp | yes | serialization stub |
+| - | - | cleanupLoadedObjecthkcdDynamicTreeCodecRawUlong | 0x1407f3040 | blocked | HavokTypes.cpp | no | serialization stub |
 | - | - | ?staticClass@CodecRawUint@hkcdDynamicTree@@SAAEBVhkClass@@XZ | 0x1407f3050 | implemented | HavokTypes.cpp | yes | hkcdDynamicTree::CodecRawUint::staticClass |
-| - | - | cleanupLoadedObjecthkcdDynamicTreeCodecRawUint | 0x1407f3060 | implemented | HavokTypes.cpp | yes | serialization stub |
+| - | - | cleanupLoadedObjecthkcdDynamicTreeCodecRawUint | 0x1407f3060 | blocked | HavokTypes.cpp | no | serialization stub |
 | - | - | ?staticClass@Codec32@hkcdDynamicTree@@SAAEBVhkClass@@XZ | 0x1407f3070 | implemented | HavokTypes.cpp | yes | hkcdDynamicTree::Codec32::staticClass |
-| - | - | finishLoadedObjecthkcdDynamicTreeCodec32 | 0x1407f3080 | implemented | HavokTypes.cpp | yes | serialization stub |
-| - | - | cleanupLoadedObjecthkcdDynamicTreeCodec32 | 0x1407f3090 | implemented | HavokTypes.cpp | yes | serialization stub |
+| - | - | finishLoadedObjecthkcdDynamicTreeCodec32 | 0x1407f3080 | blocked | HavokTypes.cpp | no | serialization stub |
+| - | - | cleanupLoadedObjecthkcdDynamicTreeCodec32 | 0x1407f3090 | blocked | HavokTypes.cpp | no | serialization stub |
 | - | - | ?staticClass@Codec18@hkcdDynamicTree@@SAAEBVhkClass@@XZ | 0x1407f30a0 | implemented | HavokTypes.cpp | yes | hkcdDynamicTree::Codec18::staticClass |
-| - | - | finishLoadedObjecthkcdDynamicTreeCodec18 | 0x1407f30b0 | implemented | HavokTypes.cpp | yes | serialization stub |
-| - | - | cleanupLoadedObjecthkcdDynamicTreeCodec18 | 0x1407f30c0 | implemented | HavokTypes.cpp | yes | serialization stub |
+| - | - | finishLoadedObjecthkcdDynamicTreeCodec18 | 0x1407f30b0 | blocked | HavokTypes.cpp | no | serialization stub |
+| - | - | cleanupLoadedObjecthkcdDynamicTreeCodec18 | 0x1407f30c0 | blocked | HavokTypes.cpp | no | serialization stub |
 | - | - | ?staticClass@IntAabb@CodecInt16@hkcdDynamicTree@@SAAEBVhkClass@@XZ | 0x1407f30d0 | implemented | HavokTypes.cpp | yes | hkcdDynamicTree::CodecInt16::IntAabb::staticClass |
-| - | - | cleanupLoadedObjecthkcdDynamicTreeCodecInt16IntAabb | 0x1407f30e0 | implemented | HavokTypes.cpp | yes | serialization stub |
+| - | - | cleanupLoadedObjecthkcdDynamicTreeCodecInt16IntAabb | 0x1407f30e0 | blocked | HavokTypes.cpp | no | serialization stub |
 | - | - | ?staticClass@CodecInt16@hkcdDynamicTree@@SAAEBVhkClass@@XZ | 0x1407f30f0 | implemented | HavokTypes.cpp | yes | hkcdDynamicTree::CodecInt16::staticClass |
-| - | - | finishLoadedObjecthkcdDynamicTreeCodecInt16 | 0x1407f3100 | implemented | HavokTypes.cpp | yes | serialization stub |
-| - | - | cleanupLoadedObjecthkcdDynamicTreeCodecInt16 | 0x1407f3110 | implemented | HavokTypes.cpp | yes | serialization stub |
-| - | - | cleanupLoadedObjecthkcdDynamicTreeCodecRawunsignedlong | 0x1407f3120 | implemented | HavokTypes.cpp | yes | serialization stub |
-| - | - | cleanupLoadedObjecthkcdDynamicTreeCodecRawunsignedint | 0x1407f3130 | implemented | HavokTypes.cpp | yes | serialization stub |
-| - | - | finishLoadedObjecthkcdDynamicTreeCodecRawUlong | 0x1407f3140 | implemented | HavokTypes.cpp | yes | serialization stub |
-| - | - | finishLoadedObjecthkcdDynamicTreeCodecRawUint | 0x1407f3150 | implemented | HavokTypes.cpp | yes | serialization stub |
-| - | - | finishLoadedObjecthkcdDynamicTreeCodecRawunsignedlong | 0x1407f3160 | implemented | HavokTypes.cpp | yes | serialization stub |
-| - | - | finishLoadedObjecthkcdDynamicTreeCodecRawunsignedint | 0x1407f3170 | implemented | HavokTypes.cpp | yes | serialization stub |
+| - | - | finishLoadedObjecthkcdDynamicTreeCodecInt16 | 0x1407f3100 | blocked | HavokTypes.cpp | no | serialization stub |
+| - | - | cleanupLoadedObjecthkcdDynamicTreeCodecInt16 | 0x1407f3110 | blocked | HavokTypes.cpp | no | serialization stub |
+| - | - | cleanupLoadedObjecthkcdDynamicTreeCodecRawunsignedlong | 0x1407f3120 | blocked | HavokTypes.cpp | no | serialization stub |
+| - | - | cleanupLoadedObjecthkcdDynamicTreeCodecRawunsignedint | 0x1407f3130 | blocked | HavokTypes.cpp | no | serialization stub |
+| - | - | finishLoadedObjecthkcdDynamicTreeCodecRawUlong | 0x1407f3140 | blocked | HavokTypes.cpp | no | serialization stub |
+| - | - | finishLoadedObjecthkcdDynamicTreeCodecRawUint | 0x1407f3150 | blocked | HavokTypes.cpp | no | serialization stub |
+| - | - | finishLoadedObjecthkcdDynamicTreeCodecRawunsignedlong | 0x1407f3160 | blocked | HavokTypes.cpp | no | serialization stub |
+| - | - | finishLoadedObjecthkcdDynamicTreeCodecRawunsignedint | 0x1407f3170 | blocked | HavokTypes.cpp | no | serialization stub |
 | - | - | ?staticClass@CentroidMetric@hkcdDynamicTree@@SAAEBVhkClass@@XZ | 0x1407f3180 | implemented | HavokTypes.cpp | yes | hkcdDynamicTree::CentroidMetric::staticClass |
-| - | - | finishLoadedObjecthkcdDynamicTreeCentroidMetric | 0x1407f3190 | implemented | HavokTypes.cpp | yes | serialization stub |
-| - | - | cleanupLoadedObjecthkcdDynamicTreeCentroidMetric | 0x1407f31a0 | implemented | HavokTypes.cpp | yes | serialization stub |
+| - | - | finishLoadedObjecthkcdDynamicTreeCentroidMetric | 0x1407f3190 | blocked | HavokTypes.cpp | no | serialization stub |
+| - | - | cleanupLoadedObjecthkcdDynamicTreeCentroidMetric | 0x1407f31a0 | blocked | HavokTypes.cpp | no | serialization stub |
 | - | - | ?staticClass@BalanceMetric@hkcdDynamicTree@@SAAEBVhkClass@@XZ | 0x1407f31b0 | implemented | HavokTypes.cpp | yes | hkcdDynamicTree::BalanceMetric::staticClass |
-| - | - | finishLoadedObjecthkcdDynamicTreeBalanceMetric | 0x1407f31c0 | implemented | HavokTypes.cpp | yes | serialization stub |
-| - | - | cleanupLoadedObjecthkcdDynamicTreeBalanceMetric | 0x1407f31d0 | implemented | HavokTypes.cpp | yes | serialization stub |
+| - | - | finishLoadedObjecthkcdDynamicTreeBalanceMetric | 0x1407f31c0 | blocked | HavokTypes.cpp | no | serialization stub |
+| - | - | cleanupLoadedObjecthkcdDynamicTreeBalanceMetric | 0x1407f31d0 | blocked | HavokTypes.cpp | no | serialization stub |
 | - | - | ?staticClass@AnisotropicMetric@hkcdDynamicTree@@SAAEBVhkClass@@XZ | 0x1407f31e0 | implemented | HavokTypes.cpp | yes | hkcdDynamicTree::AnisotropicMetric::staticClass |
-| - | - | finishLoadedObjecthkcdDynamicTreeAnisotropicMetric | 0x1407f31f0 | implemented | HavokTypes.cpp | yes | serialization stub |
-| - | - | cleanupLoadedObjecthkcdDynamicTreeAnisotropicMetric | 0x1407f3200 | implemented | HavokTypes.cpp | yes | serialization stub |
+| - | - | finishLoadedObjecthkcdDynamicTreeAnisotropicMetric | 0x1407f31f0 | blocked | HavokTypes.cpp | no | serialization stub |
+| - | - | cleanupLoadedObjecthkcdDynamicTreeAnisotropicMetric | 0x1407f3200 | blocked | HavokTypes.cpp | no | serialization stub |
 | - | - | ?staticClass@BlockHeader@hkcdStaticPvs@@SAAEBVhkClass@@XZ | 0x1407f3210 | implemented | HavokTypes.cpp | yes | hkcdStaticPvs::BlockHeader::staticClass |
-| - | - | cleanupLoadedObjecthkcdStaticPvsBlockHeader | 0x1407f3220 | implemented | HavokTypes.cpp | yes | serialization stub |
+| - | - | cleanupLoadedObjecthkcdStaticPvsBlockHeader | 0x1407f3220 | blocked | HavokTypes.cpp | no | serialization stub |
 | - | - | ?staticClass@hkcdStaticPvs@@SAAEBVhkClass@@XZ | 0x1407f3230 | implemented | HavokTypes.cpp | yes | hkcdStaticPvs::staticClass |
-| - | - | finishLoadedObjecthkcdStaticPvs | 0x1407f3240 | implemented | HavokTypes.cpp | yes | serialization stub |
-| - | - | cleanupLoadedObjecthkcdStaticPvs | 0x1407f3250 | implemented | HavokTypes.cpp | yes | serialization stub |
+| - | - | finishLoadedObjecthkcdStaticPvs | 0x1407f3240 | blocked | HavokTypes.cpp | no | serialization stub |
+| - | - | cleanupLoadedObjecthkcdStaticPvs | 0x1407f3250 | blocked | HavokTypes.cpp | no | serialization stub |
 | - | - | ??1hkcdStaticPvs@@QEAA@XZ | 0x1407f3260 | implemented | HavokTypes.cpp | yes | hkcdStaticPvs destructor |
 | - | - | ?setKeyFilter@hkcdStaticMeshTreeBase@@QEBAXAEAV?$hkArray@IUhkContainerHeapAllocator@@@@I_N@Z | 0x1407f3350 | blocked | IDA ?setKeyFilter@hkcdStaticMeshTreeBase@@QEBAXAEAV?$hkArray@IUhkContainerHeapAllocator@@@@I_N@Z | yes | - |
 | - | - | ?getKeyFilter@hkcdStaticMeshTreeBase@@QEBA_NAEBV?$hkArray@IUhkContainerHeapAllocator@@@@I@Z | 0x1407f34a0 | blocked | IDA ?getKeyFilter@hkcdStaticMeshTreeBase@@QEBA_NAEBV?$hkArray@IUhkContainerHeapAllocator@@@@I@Z | yes | - |
@@ -40798,8 +40566,8 @@ yes | ?????????? |
 | - | - | hkcdPointSegmentDistanceSquared_1 | 0x140805030 | blocked | IDA hkcdPointSegmentDistanceSquared_1 | yes | - |
 | - | - | ?setPathType@hkaiPathFollowingBehavior@@QEAAXW4PathType@1@@Z | 0x140805130 | blocked | IDA ?setPathType@hkaiPathFollowingBehavior@@QEAAXW4PathType@1@@Z | yes | - |
 | - | - | ?integrateMotionAndProjectToPath@hkaiPathFollowingBehavior@@UEAAXMM@Z | 0x140805170 | blocked | IDA ?integrateMotionAndProjectToPath@hkaiPathFollowingBehavior@@UEAAXMM@Z | yes | - |
-| - | - | ?takeManualControl@hkaiPathFollowingBehavior@@UEAAXH@Z | 0x1408052e0 | blocked | IDA ?takeManualControl@hkaiPathFollowingBehavior@@UEAAXH@Z | yes | - |
-| - | - | ?releaseManualControl@hkaiPathFollowingBehavior@@UEAAXH@Z | 0x140805300 | blocked | IDA ?releaseManualControl@hkaiPathFollowingBehavior@@UEAAXH@Z | yes | - |
+| - | - | ?takeManualControl@hkaiPathFollowingBehavior@@UEAAXH@Z | 0x1408052e0 | blocked | IDA ?takeManualControl@hkaiPathFollowingBehavior@@UEAAXH@Z | no | - |
+| - | - | ?releaseManualControl@hkaiPathFollowingBehavior@@UEAAXH@Z | 0x140805300 | blocked | IDA ?releaseManualControl@hkaiPathFollowingBehavior@@UEAAXH@Z | no | - |
 | - | - | ?refreshFixedPath@hkaiPathFollowingBehavior@@IEAAXM@Z | 0x140805320 | blocked | IDA ?refreshFixedPath@hkaiPathFollowingBehavior@@IEAAXM@Z | yes | - |
 | - | - | ?update@hkaiPathFollowingBehavior@@UEAAXM@Z | 0x140805390 | blocked | IDA ?update@hkaiPathFollowingBehavior@@UEAAXM@Z | yes | - |
 | - | - | ?cancelRequestedPath@hkaiPathFollowingBehavior@@UEAAXXZ | 0x1408058d0 | blocked | IDA ?cancelRequestedPath@hkaiPathFollowingBehavior@@UEAAXXZ | yes | - |
@@ -43115,7 +42883,7 @@ yes | ?????????? |
 | - | - | ?_Insert@?$_Tree@V?$_Tmap_traits@GUTB_MAZEREWARD_TIME@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_MAZEREWARD_TIME@@@std@@@3@$0A@@std@@@std@@IEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@GUTB_MAZEREWARD_TIME@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_MAZEREWARD_TIME@@@std@@@3@$0A@@std@@@std@@@2@_NPEAU_Node@?$_Tree_nod@V?$_Tmap_traits@GUTB_MAZEREWARD_TIME@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_MAZEREWARD_TIME@@@std@@@3@$0A@@std@@@2@1@Z | 0x1408b1270 | blocked | IDA ?_Insert@?$_Tree@V?$_Tmap_traits@GUTB_MAZEREWARD_TIME@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_MAZEREWARD_TIME@@@std@@@3@$0A@@std@@@std@@IEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@GUTB_MAZEREWARD_TIME@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_MAZEREWARD_TIME@@@std@@@3@$0A@@std@@@std@@@2@_NPEAU_Node@?$_Tree_nod@V?$_Tmap_traits@GUTB_MAZEREWARD_TIME@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUTB_MAZEREWARD_TIME@@@std@@@3@$0A@@std@@@2@1@Z | yes | - |
 | - | - | ?_Linsert@?$_Tree@V?$_Tmap_traits@W4e_EQUIP_SLOT_TYPE@@UStEquipSlotRange@@U?$less@W4e_EQUIP_SLOT_TYPE@@@std@@V?$allocator@U?$pair@$$CBW4e_EQUIP_SLOT_TYPE@@UStEquipSlotRange@@@std@@@4@$0A@@std@@@std@@QEAA?AU?$pair@V?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@W4e_EQUIP_SLOT_TYPE@@UStEquipSlotRange@@U?$less@W4e_EQUIP_SLOT_TYPE@@@std@@V?$allocator@U?$pair@$$CBW4e_EQUIP_SLOT_TYPE@@UStEquipSlotRange@@@std@@@4@$0A@@std@@@std@@@std@@_N@2@PEAU_Node@?$_Tree_nod@V?$_Tmap_traits@W4e_EQUIP_SLOT_TYPE@@UStEquipSlotRange@@U?$less@W4e_EQUIP_SLOT_TYPE@@@std@@V?$allocator@U?$pair@$$CBW4e_EQUIP_SLOT_TYPE@@UStEquipSlotRange@@@std@@@4@$0A@@std@@@2@_N@Z | 0x1408b1510 | blocked | IDA ?_Linsert@?$_Tree@V?$_Tmap_traits@W4e_EQUIP_SLOT_TYPE@@UStEquipSlotRange@@U?$less@W4e_EQUIP_SLOT_TYPE@@@std@@V?$allocator@U?$pair@$$CBW4e_EQUIP_SLOT_TYPE@@UStEquipSlotRange@@@std@@@4@$0A@@std@@@std@@QEAA?AU?$pair@V?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@W4e_EQUIP_SLOT_TYPE@@UStEquipSlotRange@@U?$less@W4e_EQUIP_SLOT_TYPE@@@std@@V?$allocator@U?$pair@$$CBW4e_EQUIP_SLOT_TYPE@@UStEquipSlotRange@@@std@@@4@$0A@@std@@@std@@@std@@_N@2@PEAU_Node@?$_Tree_nod@V?$_Tmap_traits@W4e_EQUIP_SLOT_TYPE@@UStEquipSlotRange@@U?$less@W4e_EQUIP_SLOT_TYPE@@@std@@V?$allocator@U?$pair@$$CBW4e_EQUIP_SLOT_TYPE@@UStEquipSlotRange@@@std@@@4@$0A@@std@@@2@_N@Z | yes | - |
 | - | - | ?GetTB_ITEM_TITLE_GROUP@XResourceMgr@@QEAAPEAUTB_ITEM_TITLE_GROUP@@K@Z | 0x1408b1650 | implemented | IDA ?GetTB_ITEM_TITLE_GROUP@XResourceMgr@@QEAAPEAUTB_ITEM_TITLE_GROUP@@K@Z | yes | - |
-| - | - | ?IsCanEquip@XItemFactory@@QEAA_NHH@Z | 0x1408b16c0 | implemented | IDA ?IsCanEquip@XItemFactory@@QEAA_NHH@Z | yes | - |
+| - | - | ?IsCanEquip@XItemFactory@@QEAA_NHH@Z | 0x1408b16c0 | verified | GameServer PDB + IDA decompile + source build | yes | MSVC PDB decorated ABI; map lower-bound and inclusive slot-range predicate restored. |
 | - | - | ?GetItemTitle@XItemFactory@@QEAAXAEAHHPEAVXResourceMgr@@@Z | 0x1408b1730 | implemented | IDA ?GetItemTitle@XItemFactory@@QEAAXAEAHHPEAVXResourceMgr@@@Z | yes | - |
 | - | - | ?GetCostumeBroachState@XItemFactory@@QEAAXAEAUSTItem@@HPEAVXResourceMgr@@@Z | 0x1408b1840 | implemented | IDA ?GetCostumeBroachState@XItemFactory@@QEAAXAEAUSTItem@@HPEAVXResourceMgr@@@Z | yes | - |
 | - | - | ?ReSetOption@XItemFactory@@QEAAXAEAUSTItem@@PEAUTB_ITEM@@PEAVXResourceMgr@@@Z | 0x1408b1960 | implemented | IDA ?ReSetOption@XItemFactory@@QEAAXAEAUSTItem@@PEAUTB_ITEM@@PEAVXResourceMgr@@@Z | yes | - |
@@ -44113,7 +43881,7 @@ yes | ?????????? |
 | - | - | ?SendCashShopTab@XArea@@QEAAXAEAUST_CASH_SHOP_TAB_LIST@@@Z | 0x1408eff30 | implemented | IDA ?SendCashShopTab@XArea@@QEAAXAEAUST_CASH_SHOP_TAB_LIST@@@Z | yes | - |
 | - | - | ?SendDayEvent@XArea@@QEAAXAEAUPS_DAY_EVENT_LIST@@@Z | 0x1408f0040 | implemented | IDA ?SendDayEvent@XArea@@QEAAXAEAUPS_DAY_EVENT_LIST@@@Z | yes | - |
 | - | - | ?SendOperationTime@XArea@@QEAAXXZ | 0x1408f0150 | implemented | IDA ?SendOperationTime@XArea@@QEAAXXZ | yes | - |
-| - | - | ?SendWorldEventBooster@XArea@@QEAAXK_J@Z | 0x1408f0250 | implemented | IDA ?SendWorldEventBooster@XArea@@QEAAXK_J@Z | yes | - |
+| XCore | XArea/XArea.cpp | ?SendWorldEventBooster@XArea@@QEAAXK_J@Z | 0x1408F0250 | verified | IDA decompile + PDB map/actor evidence + active GameServer build | yes | Iterates actors and calls the virtual user-facing booster method for eActorUser entries. |
 | - | - | ??0?$TXMap@KPEAVXActor@@V?$CElementTraits@K@ATL@@@@QEAA@XZ | 0x1408f0370 | blocked | IDA ??0?$TXMap@KPEAVXActor@@V?$CElementTraits@K@ATL@@@@QEAA@XZ | yes | - |
 | - | - | ??1?$TXMap@KPEAVXActor@@V?$CElementTraits@K@ATL@@@@QEAA@XZ | 0x1408f0420 | blocked | IDA ??1?$TXMap@KPEAVXActor@@V?$CElementTraits@K@ATL@@@@QEAA@XZ | yes | - |
 | - | - | ?clear@?$_Tree@V?$_Tmap_traits@HUST_WORLD_MODE_INFO@@U?$less@H@std@@V?$allocator@U?$pair@$$CBHUST_WORLD_MODE_INFO@@@std@@@3@$0A@@std@@@std@@QEAAXXZ | 0x1408f0430 | blocked | IDA ?clear@?$_Tree@V?$_Tmap_traits@HUST_WORLD_MODE_INFO@@U?$less@H@std@@V?$allocator@U?$pair@$$CBHUST_WORLD_MODE_INFO@@@std@@@3@$0A@@std@@@std@@QEAAXXZ | yes | - |
@@ -46645,8 +46413,8 @@ yes | ?????????? |
 | - | - | ??_EhkDummyMemoryTrackerImpl@@UEAAPEAXI@Z | 0x140a43d90 | blocked | IDA ??_EhkDummyMemoryTrackerImpl@@UEAAPEAXI@Z | yes | - |
 | - | - | ?_calcBuiltInType@hkTrackerTypeTreeParser@@KA?AW4Type@hkTrackerTypeTreeNode@@AEBUhkSubString@@@Z | 0x140a43da0 | blocked | IDA ?_calcBuiltInType@hkTrackerTypeTreeParser@@KA?AW4Type@hkTrackerTypeTreeNode@@AEBUhkSubString@@@Z | yes | - |
 | - | - | ?_parseTokens@hkTrackerTypeTreeParser@@KA?AVhkBool@@AEBUhkSubString@@AEAUTokenContainer@1@@Z | 0x140a441f0 | blocked | IDA ?_parseTokens@hkTrackerTypeTreeParser@@KA?AVhkBool@@AEBUhkSubString@@AEAUTokenContainer@1@@Z | yes | - |
-| - | - | _hkTrackerTypeTreeParser::_parseTerminalType_::_40_::UndoPlaceHolders::addPlaceHolder | 0x140a446a0 | blocked | IDA _hkTrackerTypeTreeParser::_parseTerminalType_::_40_::UndoPlaceHolders::addPlaceHolder | yes | - |
-| - | - | _hkTrackerTypeTreeParser::_parseTerminalType_::_40_::UndoPlaceHolders::_UndoPlaceHolders | 0x140a44700 | blocked | IDA _hkTrackerTypeTreeParser::_parseTerminalType_::_40_::UndoPlaceHolders::_UndoPlaceHolders | yes | - |
+| - | - | _hkTrackerTypeTreeParser::_parseTerminalType_::_40_::UndoPlaceHolders::addPlaceHolder | 0x140a446a0 | blocked | IDA _hkTrackerTypeTreeParser::_parseTerminalType_::_40_::UndoPlaceHolders::addPlaceHolder | no | - |
+| - | - | _hkTrackerTypeTreeParser::_parseTerminalType_::_40_::UndoPlaceHolders::_UndoPlaceHolders | 0x140a44700 | blocked | IDA _hkTrackerTypeTreeParser::_parseTerminalType_::_40_::UndoPlaceHolders::_UndoPlaceHolders | no | - |
 | - | - | ?_parseTerminalType@hkTrackerTypeTreeParser@@KAPEBVhkTrackerTypeTreeNode@@AEAUTokenRange@1@AEAVhkTrackerTypeTreeCache@@AEBVhkStringBuf@@@Z | 0x140a44790 | blocked | IDA ?_parseTerminalType@hkTrackerTypeTreeParser@@KAPEBVhkTrackerTypeTreeNode@@AEAUTokenRange@1@AEAVhkTrackerTypeTreeCache@@AEBVhkStringBuf@@@Z | yes | - |
 | - | - | ?_parseType@hkTrackerTypeTreeParser@@KAPEBVhkTrackerTypeTreeNode@@AEAUTokenRange@1@AEAVhkTrackerTypeTreeCache@@@Z | 0x140a44cb0 | blocked | IDA ?_parseType@hkTrackerTypeTreeParser@@KAPEBVhkTrackerTypeTreeNode@@AEAUTokenRange@1@AEAVhkTrackerTypeTreeCache@@@Z | yes | - |
 | - | - | ?parseNewType@hkTrackerTypeTreeParser@@SAPEBVhkTrackerTypeTreeNode@@AEBUhkSubString@@AEAVhkTrackerTypeTreeCache@@@Z | 0x140a44e60 | blocked | IDA ?parseNewType@hkTrackerTypeTreeParser@@SAPEBVhkTrackerTypeTreeNode@@AEBUhkSubString@@AEAVhkTrackerTypeTreeCache@@@Z | yes | - |
@@ -57045,7 +56813,6 @@ yes | ?????????? |
 | - | - | _dynamic_initializer_for__hkaiSplitGenerationUtils_SettingsClass_Members__ | 0x140aa0900 | blocked | IDA _dynamic_initializer_for__hkaiSplitGenerationUtils_SettingsClass_Members__ | yes | - |
 | - | - | _dynamic_initializer_for__hkaiSplitGenerationUtilsSettingsClass__ | 0x140aa0910 | blocked | IDA _dynamic_initializer_for__hkaiSplitGenerationUtilsSettingsClass__ | yes | - |
 | - | - | _dynamic_initializer_for__hkaiSplitGenerationUtilsClass__ | 0x140aa0980 | blocked | IDA _dynamic_initializer_for__hkaiSplitGenerationUtilsClass__ | yes | - |
-| XGameServer | Mover.cpp | ?GetOrientationYaw@CMover@@UEAAMXZ | 0x140375220 | implemented | IDA decompile | yes | IDA精确还原-获取朝向偏航�?|
 | XGameServer | Mover.cpp | ?GetMoveIdleInfo@CMover@@QEAAXAEAUPS_MOVE_IDLE@@M@Z | 0x140373B50 | implemented | IDA decompile | yes | IDA精确还原-获取空闲移动信息 |
 | XGameServer | Mover.cpp | ?send_eSUB_CMD_MOVE_STIFFEN@CMover@@QEAAXPEAV1@MM@Z | 0x14036FFF0 | implemented | IDA decompile | yes | IDA精确还原-发送僵硬状态包 |
 | XGameServer | Mover.cpp | ?send_eSUB_CMD_MONSTER_TARGET_CHANGE@CMover@@QEAAXPEAV1@K@Z | 0x140370A90 | implemented | IDA decompile | yes | IDA精确还原-发送怪物目标变化�?|
@@ -57284,20 +57051,20 @@ yes | ?????????? |
 | XGameServer | GameSockets.cpp | ?PartyProcess@CGameControlSocket@@UEAA_NAEAVXPacket@@@Z | 0x1401CB1E0 | implemented | IDA decompile | yes | subcmd 8??????? |
 | XGameServer | GameSockets.cpp | ?PartyProcess@CCommunitySocket@@UEAA_NAEAVXPacket@@@Z | 0x1401F39C0 | implemented | IDA decompile | yes | switch?????? |
 | XGameServer | GameSockets.cpp | ?LeagueProcess@CCommunitySocket@@UEAA_NAEAVXPacket@@@Z | 0x1401F3DC0 | implemented | IDA decompile | yes | switch?????? |
-| XGameServer | GameSockets.cpp | ?RecvPartyInvite@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x1401FE250 | implemented | IDA decompile | yes | stub(awaiting CLogicThreadManager/lambda dependencies) |
-| XGameServer | GameSockets.cpp | ?RecvPartyAccept@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x1401FF380 | implemented | IDA decompile | yes | stub(awaiting CLogicThreadManager/lambda dependencies) |
-| XGameServer | GameSockets.cpp | ?RecvPartyCreate@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x1401FDCD0 | implemented | IDA decompile | yes | stub(awaiting CLogicThreadManager/lambda dependencies) |
-| XGameServer | GameSockets.cpp | ?RecvPartyJoinMember@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x1401FD480 | implemented | IDA decompile | yes | stub(awaiting CLogicThreadManager/lambda dependencies) |
-| XGameServer | GameSockets.cpp | ?RecvPartyLeaveMember@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x140200820 | implemented | IDA decompile | yes | stub(awaiting CLogicThreadManager/lambda dependencies) |
-| XGameServer | GameSockets.cpp | ?RecvPartyDelete@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x140201370 | implemented | IDA decompile | yes | stub(awaiting CLogicThreadManager/lambda dependencies) |
-| XGameServer | GameSockets.cpp | ?RecvLeagueInvite@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x1401FA5E0 | implemented | IDA decompile | yes | stub(awaiting CLogicThreadManager/lambda dependencies) |
-| XGameServer | GameSockets.cpp | ?RecvLeagueInviteAccept@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x14020BD70 | implemented | IDA decompile | yes | stub(awaiting CLogicThreadManager/lambda dependencies) |
-| XGameServer | GameSockets.cpp | ?RecvCreateLeague@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x1401FC4C0 | implemented | IDA decompile | yes | stub(awaiting CLogicThreadManager/lambda dependencies) |
-| XGameServer | GameSockets.cpp | ?RecvLeagueDelete@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x1401FAFB0 | implemented | IDA decompile | yes | stub(awaiting CLogicThreadManager/lambda dependencies) |
-| XGameServer | GameSockets.cpp | ?RecvExchangePost@CCommunitySocket@@UEAA_NAEAVXPacket@@@Z | 0x14020AFE0 | implemented | IDA decompile | yes | stub(awaiting CLogicThreadManager/lambda dependencies) |
-| XGameServer | GameSockets.cpp | ?RecvExchangePriceHistory@CCommunitySocket@@UEAA_NAEAVXPacket@@@Z | 0x14020AAD0 | implemented | IDA decompile | yes | stub(awaiting CLogicThreadManager/lambda dependencies) |
-| XGameServer | GameSockets.cpp | ?RecvForceInvite@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x1402147D0 | implemented | IDA decompile | yes | stub(awaiting CLogicThreadManager/lambda dependencies) |
-| XGameServer | GameSockets.cpp | ?RecvForceAccept@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x1402157D0 | implemented | IDA decompile | yes | stub(awaiting CLogicThreadManager/lambda dependencies) |
+| XGameServer | GameSockets.cpp | ?RecvPartyInvite@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x1401FE250 | blocked | IDA decompile | no | stub(awaiting CLogicThreadManager/lambda dependencies) |
+| XGameServer | GameSockets.cpp | ?RecvPartyAccept@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x1401FF380 | blocked | IDA decompile | no | stub(awaiting CLogicThreadManager/lambda dependencies) |
+| XGameServer | GameSockets.cpp | ?RecvPartyCreate@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x1401FDCD0 | blocked | IDA decompile | no | stub(awaiting CLogicThreadManager/lambda dependencies) |
+| XGameServer | GameSockets.cpp | ?RecvPartyJoinMember@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x1401FD480 | blocked | IDA decompile | no | stub(awaiting CLogicThreadManager/lambda dependencies) |
+| XGameServer | GameSockets.cpp | ?RecvPartyLeaveMember@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x140200820 | blocked | IDA decompile | no | stub(awaiting CLogicThreadManager/lambda dependencies) |
+| XGameServer | GameSockets.cpp | ?RecvPartyDelete@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x140201370 | blocked | IDA decompile | no | stub(awaiting CLogicThreadManager/lambda dependencies) |
+| XGameServer | GameSockets.cpp | ?RecvLeagueInvite@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x1401FA5E0 | blocked | IDA decompile | no | stub(awaiting CLogicThreadManager/lambda dependencies) |
+| XGameServer | GameSockets.cpp | ?RecvLeagueInviteAccept@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x14020BD70 | blocked | IDA decompile | no | stub(awaiting CLogicThreadManager/lambda dependencies) |
+| XGameServer | GameSockets.cpp | ?RecvCreateLeague@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x1401FC4C0 | blocked | IDA decompile | no | stub(awaiting CLogicThreadManager/lambda dependencies) |
+| XGameServer | GameSockets.cpp | ?RecvLeagueDelete@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x1401FAFB0 | blocked | IDA decompile | no | stub(awaiting CLogicThreadManager/lambda dependencies) |
+| XGameServer | GameSockets.cpp | ?RecvExchangePost@CCommunitySocket@@UEAA_NAEAVXPacket@@@Z | 0x14020AFE0 | blocked | IDA decompile | no | stub(awaiting CLogicThreadManager/lambda dependencies) |
+| XGameServer | GameSockets.cpp | ?RecvExchangePriceHistory@CCommunitySocket@@UEAA_NAEAVXPacket@@@Z | 0x14020AAD0 | blocked | IDA decompile | no | stub(awaiting CLogicThreadManager/lambda dependencies) |
+| XGameServer | GameSockets.cpp | ?RecvForceInvite@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x1402147D0 | blocked | IDA decompile | no | stub(awaiting CLogicThreadManager/lambda dependencies) |
+| XGameServer | GameSockets.cpp | ?RecvForceAccept@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x1402157D0 | blocked | IDA decompile | no | stub(awaiting CLogicThreadManager/lambda dependencies) |
 | XGameServer | MoverEx.cpp | ?GetAkashicTriggerTime@CMoverEx@@UEAAMXZ | 0x140189260 | implemented | IDA decompile | yes | Get akashic trigger time |
 | XGameServer | MoverEx.cpp | ?GetMaxHP@CMoverEx@@UEAAHXZ | 0x140189410 | implemented | IDA decompile | yes | 精确还原-返回(int)m_fAbility[10] | |
 | XGameServer | MoverEx.cpp | ?SetBattlePose@CMoverEx@@QEAAX_N@Z | 0x140199E50 | implemented | IDA decompile | yes | Set battle pose |
@@ -57307,10 +57074,8 @@ yes | ?????????? |
 | XGameServer | Mover.cpp | ?SetExtraMoving@CMover@@UEAAXMMM@Z | 0x14036C380 | implemented | IDA decompile | yes | IDA��ȷ��ԭ-���ö����ƶ�-�����ƶ�Ŀ��
 | XGameServer | Mover.cpp | ?send_eSUB_CMD_MOVE@CMover@@QEAAXPEAV1@MME@Z | 0x14036EAC0 | implemented | IDA decompile | yes | IDA精确还原-发送移动数据包 |
 | XGameServer | Mover.cpp | ?send_eSUB_CMD_MOVE_STOP@CMover@@QEAAXPEAV1@@Z | 0x14036EE90 | implemented | IDA decompile | yes | IDA精确还原-发送停止移动数据包 |
-| XGameServer | Mover.cpp | ?AllBuffClear@CMover@@QEAAXE@Z | 0x14036aa40 | implemented | IDA decompile | yes | 精确还原-遍历50个Buff槽位按条件清�?|
 | XGameServer | MoverEx.cpp | ?ChargeSkillStart@CMoverEx@@UEAAXXZ | 0x14037EA30 | implemented | IDA decompile | yes | Start skill charging state |
 | XGameServer | Mover.cpp | ?ChangeMotion@CMover@@UEAAXF@Z | 0x1402AC570 | implemented | IDA decompile | yes | IDA精确还原-基类空实�?|
-| XGameServer | Mover.cpp | ?CheckMoveCollision@CMover@@QEAAPEAV1@AEAVhkvVec3@@@Z | 0x1403681B0 | implemented | IDA decompile | yes | IDA精确还原-移动碰撞检�?|
 | XGameServer | Mover.cpp | ?GetHeight@CMover@@QEAA_NPEAVhkvVec3@@M@Z | 0x14036D130 | implemented | IDA decompile | yes | IDA精确还原-获取地面高度 |
 | XGameServer | TraceHPState.cpp | ?Update@CTraceHPState@@QEAAXXZ | - | implemented | auxiliary | yes | Update HP trace state |
 | XGameServer | TraceHPState.cpp | ?Check@CTraceHPState@@QEAA_NM@Z | - | implemented | auxiliary | yes | Check HP conditions |
@@ -57383,93 +57148,93 @@ yes | ?????????? |
 | XGameServer | Party.cpp | ?SaveRecode@CGocParty@@QEAAXXZ | 0x14010B340 | implemented | IDA decompile | yes | Save record |
 | XGameServer | Party.cpp | ?UpdatePartyBooster@CGocParty@@QEAAXXZ | 0x14010C8F0 | implemented | IDA decompile | yes | Update party booster |
 | XGameServer | Party.cpp | ?GetFamilyID@CGocParty@@SAHXZ | 0x140039000 | implemented | IDA decompile | yes | Get family ID static |
-| XCore/XArea | XActor.cpp | ?Reset@XActor@@QEAAXXZ | 0x1408F10D0 | implemented | manual | yes | ??????????? |
-| XCore/XArea | XActor.cpp | ?IsStatus@XActor@@QEBA_NI@Z | 0x140048FD0 | implemented | manual | yes | ?????????|
-| XCore/XArea | XActor.cpp | ?SetStatus@XActor@@QEAAXI@Z | 0x140276490 | blocked | manual | yes | ????????? |
-| XCore/XArea | XActor.cpp | ?ClearStatus@XActor@@QEAAXI@Z | 0x1402764B0 | implemented | manual | yes | ?????????|
-| XCore/XArea | XActor.cpp | ?GetType@XActor@@QEBA?AW4E_ACTOR_TYPE@@XZ | 0x140016F10 | implemented | manual | yes | Return actor type - simple getter | ???Actor???? |
-| XCore/XArea | XActor.cpp | ?IsPlayer@XActor@@QEBA_NXZ | 0x140049380 | implemented | manual | yes | ????????? |
-| XCore/XArea | XActor.cpp | ?IsMonster@XActor@@QEBA_NXZ | 0x1401AD040 | implemented | manual | yes | ????????? |
-| XCore/XArea | XActor.cpp | ?IsNPC@XActor@@QEBA_NXZ | 0x1402A4FE0 | implemented | manual | yes | ??????NPC |
-| XCore/XArea | XArea.cpp | ??0XArea@@QEAA@XZ | - | implemented | manual | yes | ?????? |
-| XCore/XArea | XArea.cpp | ??1XArea@@UEAA@XZ | - | implemented | manual | yes | ???????? |
-| XCore/XArea | XArea.cpp | ?OnUpdate@XArea@@UEAAXXZ | - | implemented | manual | yes | ??????? |
-| XCore/XArea | XArea.cpp | ?EnterActor@XArea@@QEAAXPEAVXActor@@@Z | - | implemented | manual | yes | ????Actor |
-| XCore/XArea | XArea.cpp | ?ExitActor@XArea@@QEAAXPEAVXActor@@@Z | - | implemented | manual | yes | ???Actor |
-| XCore/XArea | XArea.cpp | ?FindActor@XArea@@QEAAPEAVXActor@@TUXActorID@@@Z | - | implemented | manual | yes | ????Actor |
-| XCore/XArea | XDistrict.cpp | ??0XDistrict@@QEAA@XZ | - | implemented | manual | yes | ?????? |
-| XCore/XArea | XDistrict.cpp | ??1XDistrict@@UEAA@XZ | - | implemented | manual | yes | ???????? |
-| XCore/XArea | XDistrict.cpp | ?AddWaitForRecvInfo@XDistrict@@QEAAXPEAVCUser@@@Z | - | implemented | manual | yes | ????????????? |
-| XCore/XArea | XDistrict.cpp | ?RemoveWaitForRecvInfo@XDistrict@@QEAAXPEAVCUser@@@Z | - | implemented | manual | yes | ????????????? |
-| actor/component | gocattribute.cpp | ??0CGocAttribute@@QEAA@XZ | - | implemented | manual | yes | ?????? |
-| actor/component | gocattribute.cpp | ??1CGocAttribute@@UEAA@XZ | - | implemented | manual | yes | ???????? |
-| actor/component | gocattribute.cpp | ?Initialize@CGocAttribute@@UEAAXPEAVCMover@@@Z | - | implemented | manual | yes | ????? |
-| actor/component | gocattribute.cpp | ?Shutdown@CGocAttribute@@UEAAXXZ | - | implemented | manual | yes | ??? |
-| actor/component | gocattribute.cpp | ?Update@CGocAttribute@@UEAAXM@Z | - | implemented | manual | yes | ???? |
-| actor/component | gocattribute.cpp | ?GetHP@CGocAttribute@@QEBAHXZ | - | implemented | manual | yes | ???HP |
-| actor/component | gocattribute.cpp | ?GetMaxHP@CGocAttribute@@QEBAHXZ | - | implemented | manual | yes | ??????HP |
-| actor/component | gocattribute.cpp | ?SetHP@CGocAttribute@@QEAAXH@Z | - | implemented | manual | yes | ????HP |
-| actor/component | gocattribute.cpp | ?GetFP@CGocAttribute@@QEBAHXZ | - | implemented | manual | yes | ???FP |
-| actor/component | gocattribute.cpp | ?GetMaxFP@CGocAttribute@@QEBAHXZ | - | implemented | manual | yes | ??????FP |
-| actor/component | gocattribute.cpp | ?SetFP@CGocAttribute@@QEAAXH@Z | - | implemented | manual | yes | ????FP |
-| actor/component | gocattribute.cpp | ?FPRestore@CGocAttribute@@QEAAXXZ | - | implemented | manual | yes | FP??? |
-| actor/component | gocattribute.cpp | ?GetLevel@CGocAttribute@@QEBAHXZ | - | implemented | manual | yes | ?????? |
-| actor/component | gocattribute.cpp | ?SetLevel@CGocAttribute@@QEAAXH@Z | - | implemented | manual | yes | ?????? |
+| XCore/XArea | XActor.cpp | ?Reset@XActor@@QEAAXXZ | 0x1408F10D0 | blocked | manual | no | ??????????? |
+| XCore/XArea | XActor.cpp | ?IsStatus@XActor@@QEBA_NI@Z | 0x140048FD0 | blocked | manual | no | ????????? |
+| XCore/XArea | XActor.cpp | ?SetStatus@XActor@@QEAAXI@Z | 0x140276490 | blocked | manual | no | ????????? |
+| XCore/XArea | XActor.cpp | ?ClearStatus@XActor@@QEAAXI@Z | 0x1402764B0 | blocked | manual | no | ????????? |
+| XCore/XArea | XActor.cpp | ?GetType@XActor@@QEBA?AW4E_ACTOR_TYPE@@XZ | 0x140016F10 | blocked | manual | no | Return actor type - simple getter | ???Actor???? |
+| XCore/XArea | XActor.cpp | ?IsPlayer@XActor@@QEBA_NXZ | 0x140049380 | blocked | manual | no | ????????? |
+| XCore/XArea | XActor.cpp | ?IsMonster@XActor@@QEBA_NXZ | 0x1401AD040 | blocked | manual | no | ????????? |
+| XCore/XArea | XActor.cpp | ?IsNPC@XActor@@QEBA_NXZ | 0x1402A4FE0 | blocked | manual | no | ??????NPC |
+| XCore/XArea | XArea.cpp | ??0XArea@@QEAA@XZ | - | blocked | manual | no | ?????? |
+| XCore/XArea | XArea.cpp | ??1XArea@@UEAA@XZ | - | blocked | manual | no | ???????? |
+| XCore/XArea | XArea.cpp | ?OnUpdate@XArea@@UEAAXXZ | - | blocked | manual | no | ??????? |
+| XCore/XArea | XArea.cpp | ?EnterActor@XArea@@QEAAXPEAVXActor@@@Z | - | blocked | manual | no | ????Actor |
+| XCore/XArea | XArea.cpp | ?ExitActor@XArea@@QEAAXPEAVXActor@@@Z | - | blocked | manual | no | ???Actor |
+| XCore/XArea | XArea.cpp | ?FindActor@XArea@@QEAAPEAVXActor@@TUXActorID@@@Z | - | blocked | manual | no | ????Actor |
+| XCore/XArea | XDistrict.cpp | ??0XDistrict@@QEAA@XZ | - | blocked | manual | no | ?????? |
+| XCore/XArea | XDistrict.cpp | ??1XDistrict@@UEAA@XZ | - | blocked | manual | no | ???????? |
+| XCore/XArea | XDistrict.cpp | ?AddWaitForRecvInfo@XDistrict@@QEAAXPEAVCUser@@@Z | - | blocked | manual | no | ????????????? |
+| XCore/XArea | XDistrict.cpp | ?RemoveWaitForRecvInfo@XDistrict@@QEAAXPEAVCUser@@@Z | - | blocked | manual | no | ????????????? |
+| actor/component | gocattribute.cpp | ??0CGocAttribute@@QEAA@XZ | - | blocked | manual | no | ?????? |
+| actor/component | gocattribute.cpp | ??1CGocAttribute@@UEAA@XZ | - | blocked | manual | no | ???????? |
+| actor/component | gocattribute.cpp | ?Initialize@CGocAttribute@@UEAAXPEAVCMover@@@Z | - | blocked | manual | no | ????? |
+| actor/component | gocattribute.cpp | ?Shutdown@CGocAttribute@@UEAAXXZ | - | blocked | manual | no | ??? |
+| actor/component | gocattribute.cpp | ?Update@CGocAttribute@@UEAAXM@Z | - | blocked | manual | no | ???? |
+| actor/component | gocattribute.cpp | ?GetHP@CGocAttribute@@QEBAHXZ | - | blocked | manual | no | ???HP |
+| actor/component | gocattribute.cpp | ?GetMaxHP@CGocAttribute@@QEBAHXZ | - | blocked | manual | no | ??????HP |
+| actor/component | gocattribute.cpp | ?SetHP@CGocAttribute@@QEAAXH@Z | - | blocked | manual | no | ????HP |
+| actor/component | gocattribute.cpp | ?GetFP@CGocAttribute@@QEBAHXZ | - | blocked | manual | no | ???FP |
+| actor/component | gocattribute.cpp | ?GetMaxFP@CGocAttribute@@QEBAHXZ | - | blocked | manual | no | ??????FP |
+| actor/component | gocattribute.cpp | ?SetFP@CGocAttribute@@QEAAXH@Z | - | blocked | manual | no | ????FP |
+| actor/component | gocattribute.cpp | ?FPRestore@CGocAttribute@@QEAAXXZ | - | blocked | manual | no | FP??? |
+| actor/component | gocattribute.cpp | ?GetLevel@CGocAttribute@@QEBAHXZ | - | blocked | manual | no | ?????? |
+| actor/component | gocattribute.cpp | ?SetLevel@CGocAttribute@@QEAAXH@Z | - | blocked | manual | no | ?????? |
 | XGameServer/actor/component | GocAttribute.cpp | ?GetExp@CGocAttribute@@QEAAHXZ | 0x140085A40 | verified | GameServer PDB public + COMDAT-folded IDA body + source build | yes | Reads the signed 32-bit low portion of m_nExp; IDA aliases the folded body as CSkill::GetID. |
-| actor/component | gocattribute.cpp | ?SetExp@CGocAttribute@@QEAAX_J@Z | - | implemented | manual | yes | ???t??? |
-| actor/component | gocattribute.cpp | ?GetGameModeState@CGocAttribute@@QEBAHXZ | - | implemented | manual | yes | ?????????? |
-| actor/component | gocattribute.cpp | ?SetGameModeState@CGocAttribute@@QEAAXH@Z | - | implemented | manual | yes | ??????????? |
-| actor/component | gocattribute.cpp | ?ApplyModifier@CGocAttribute@@QEAAXHMM@Z | - | implemented | manual | yes | ??????? |
-| actor/component | gocattribute.cpp | ?RemoveModifier@CGocAttribute@@QEAAXH@Z | - | implemented | manual | yes | ??????? |
-| actor/component | gocskill.cpp | ??0CGocSkill@@QEAA@XZ | - | implemented | manual | yes | ?????? |
-| actor/component | gocskill.cpp | ??1CGocSkill@@UEAA@XZ | - | implemented | manual | yes | ???????? |
-| actor/component | gocskill.cpp | ?Initialize@CGocSkill@@UEAAXPEAVCMover@@@Z | - | implemented | manual | yes | ????? |
-| actor/component | gocskill.cpp | ?Shutdown@CGocSkill@@UEAAXXZ | - | implemented | manual | yes | ??? |
-| actor/component | gocskill.cpp | ?Update@CGocSkill@@UEAAXM@Z | - | implemented | manual | yes | ???? |
-| actor/component | gocskill.cpp | ?GetPassiveSkillCount@CGocSkill@@QEBAHXZ | - | implemented | manual | yes | ????????????? |
-| actor/component | gocskill.cpp | ?SetPassiveSkillStat@CGocSkill@@QEAAXHH@Z | - | implemented | manual | yes | ????????????? |
-| actor/component | gocskill.cpp | ?GetPassiveSkillLevel@CGocSkill@@QEBAHH@Z | - | implemented | manual | yes | ????????????? |
-| actor/component | gocskill.cpp | ?GetSkillCount@CGocSkill@@QEBAHXZ | - | implemented | manual | yes | ????????? |
-| actor/component | gocskill.cpp | ?HasSkill@CGocSkill@@QEBA_NH@Z | - | implemented | manual | yes | ?????????????|
-| actor/component | gocskill.cpp | ?LearnSkill@CGocSkill@@QEAA_NH@Z | - | implemented | manual | yes | ?????? |
-| actor/component | gocskill.cpp | ?UpgradeSkill@CGocSkill@@QEAA_NH@Z | - | implemented | manual | yes | ???????? |
-| actor/component | gocskill.cpp | ?GetGestureSlot@CGocSkill@@QEBAHH@Z | - | implemented | manual | yes | ???????? |
-| actor/component | gocskill.cpp | ?SetGestureSlot@CGocSkill@@QEAAXHH@Z | - | implemented | manual | yes | ????????? |
-| actor/component | gocskill.cpp | ?ClearGestureSlot@CGocSkill@@QEAAXH@Z | - | implemented | manual | yes | ?????????|
-| actor/component | gocskill.cpp | ?IsSkillOnCooldown@CGocSkill@@QEBA_NH@Z | - | implemented | manual | yes | ???G??????|
-| actor/component | gocskill.cpp | ?GetSkillCooldownTime@CGocSkill@@QEBAMH@Z | - | implemented | manual | yes | ????????? |
-| actor/component | gocskill.cpp | ?SetSkillCooldown@CGocSkill@@QEAAXHM@Z | - | implemented | manual | yes | ?????????? |
-| actor/component | gocskill.cpp | ?GetSkillPoints@CGocSkill@@QEBAHXZ | - | implemented | manual | yes | ???????? |
-| actor/component | gocskill.cpp | ?SetSkillPoints@CGocSkill@@QEAAXH@Z | - | implemented | manual | yes | ????????? |
-| actor/component | gocskill.cpp | ?AddSkillPoints@CGocSkill@@QEAAXH@Z | - | implemented | manual | yes | ???????? |
-| actor/component | gocskill.cpp | ?GetCurrentComboCount@CGocSkill@@QEBAHXZ | - | implemented | manual | yes | ???????????? |
-| actor/component | gocinventory.cpp | ??0CGocInventory@@QEAA@XZ | - | implemented | manual | yes | ?????? |
-| actor/component | gocinventory.cpp | ??1CGocInventory@@UEAA@XZ | - | implemented | manual | yes | ???????? |
-| actor/component | gocinventory.cpp | ?Initialize@CGocInventory@@UEAAXPEAVCMover@@@Z | - | implemented | manual | yes | ????? |
-| actor/component | gocinventory.cpp | ?Shutdown@CGocInventory@@UEAAXXZ | - | implemented | manual | yes | ??? |
-| actor/component | gocinventory.cpp | ?Update@CGocInventory@@UEAAXM@Z | - | implemented | manual | yes | ???? |
-| actor/component | gocinventory.cpp | ?GetCash@CGocInventory@@QEBAHXZ | - | implemented | manual | yes | ?????? |
-| actor/component | gocinventory.cpp | ?SetCash@CGocInventory@@QEAAXH@Z | - | implemented | manual | yes | ?????? |
-| actor/component | gocinventory.cpp | ?AddCash@CGocInventory@@QEAAXH@Z | - | implemented | manual | yes | ?????? |
-| actor/component | gocinventory.cpp | ?SubtractCash@CGocInventory@@QEAA_NH@Z | - | implemented | manual | yes | ?????? |
-| actor/component | gocinventory.cpp | ?GetMoney@CGocInventory@@QEBA_JXZ | - | implemented | manual | yes | ???????|
-| actor/component | gocinventory.cpp | ?SetMoney@CGocInventory@@QEAAX_J@Z | - | implemented | manual | yes | ???y???|
-| actor/component | gocinventory.cpp | ?AddMoney@CGocInventory@@QEAAX_J@Z | - | implemented | manual | yes | ???????|
-| actor/component | gocinventory.cpp | ?SubtractMoney@CGocInventory@@QEAA_N_J@Z | - | implemented | manual | yes | ???????|
-| actor/component | gocinventory.cpp | ?GetInventorySize@CGocInventory@@QEBAHXZ | - | implemented | manual | yes | ??????????? |
-| actor/component | gocinventory.cpp | ?GetUsedSlots@CGocInventory@@QEBAHXZ | - | implemented | manual | yes | ??????????? |
-| actor/component | gocinventory.cpp | ?GetFreeSlots@CGocInventory@@QEBAHXZ | - | implemented | manual | yes | ??????????? |
-| actor/component | gocinventory.cpp | ?HasItem@CGocInventory@@QEBA_NH@Z | - | implemented | manual | yes | ????????????|
-| actor/component | gocinventory.cpp | ?GetItemCount@CGocInventory@@QEBAHH@Z | - | implemented | manual | yes | ?????????? |
-| actor/component | gocinventory.cpp | ?AddItem@CGocInventory@@QEAA_NHH@Z | - | implemented | manual | yes | ??????? |
-| actor/component | gocinventory.cpp | ?RemoveItem@CGocInventory@@QEAA_NHH@Z | - | implemented | manual | yes | ?????? |
-| actor/component | gocinventory.cpp | ?MoveItem@CGocInventory@@QEAA_NHH@Z | - | implemented | manual | yes | ?????? |
-| actor/component | gocinventory.cpp | ?GetEquippedItem@CGocInventory@@QEBAHH@Z | - | implemented | manual | yes | ????????? |
-| actor/component | gocinventory.cpp | ?EquipItem@CGocInventory@@QEAA_NH@Z | - | implemented | manual | yes | ?????? |
-| actor/component | gocinventory.cpp | ?UnequipItem@CGocInventory@@QEAA_NH@Z | - | implemented | manual | yes | ??????? |
-| actor/component | gocinventory.cpp | ?SortInventory@CGocInventory@@QEAAXXZ | - | implemented | manual | yes | ???????? |
-| actor/component | gocinventory.cpp | ?ClearInventory@CGocInventory@@QEAAXXZ | - | implemented | manual | yes | ???????|
-| actor/component | gocinventory.cpp | ?GetCurrentWeight@CGocInventory@@QEBAMXZ | - | implemented | manual | yes | ?????????? |
+| actor/component | gocattribute.cpp | ?SetExp@CGocAttribute@@QEAAX_J@Z | - | blocked | manual | no | ???t??? |
+| actor/component | gocattribute.cpp | ?GetGameModeState@CGocAttribute@@QEBAHXZ | - | blocked | manual | no | ?????????? |
+| actor/component | gocattribute.cpp | ?SetGameModeState@CGocAttribute@@QEAAXH@Z | - | blocked | manual | no | ??????????? |
+| actor/component | gocattribute.cpp | ?ApplyModifier@CGocAttribute@@QEAAXHMM@Z | - | blocked | manual | no | ??????? |
+| actor/component | gocattribute.cpp | ?RemoveModifier@CGocAttribute@@QEAAXH@Z | - | blocked | manual | no | ??????? |
+| actor/component | gocskill.cpp | ??0CGocSkill@@QEAA@XZ | - | blocked | manual | no | ?????? |
+| actor/component | gocskill.cpp | ??1CGocSkill@@UEAA@XZ | - | blocked | manual | no | ???????? |
+| actor/component | gocskill.cpp | ?Initialize@CGocSkill@@UEAAXPEAVCMover@@@Z | - | blocked | manual | no | ????? |
+| actor/component | gocskill.cpp | ?Shutdown@CGocSkill@@UEAAXXZ | - | blocked | manual | no | ??? |
+| actor/component | gocskill.cpp | ?Update@CGocSkill@@UEAAXM@Z | - | blocked | manual | no | ???? |
+| actor/component | gocskill.cpp | ?GetPassiveSkillCount@CGocSkill@@QEBAHXZ | - | blocked | manual | no | ????????????? |
+| actor/component | gocskill.cpp | ?SetPassiveSkillStat@CGocSkill@@QEAAXHH@Z | - | blocked | manual | no | ????????????? |
+| actor/component | gocskill.cpp | ?GetPassiveSkillLevel@CGocSkill@@QEBAHH@Z | - | blocked | manual | no | ????????????? |
+| actor/component | gocskill.cpp | ?GetSkillCount@CGocSkill@@QEBAHXZ | - | blocked | manual | no | ????????? |
+| actor/component | gocskill.cpp | ?HasSkill@CGocSkill@@QEBA_NH@Z | - | blocked | manual | no | ????????????? |
+| actor/component | gocskill.cpp | ?LearnSkill@CGocSkill@@QEAA_NH@Z | - | blocked | manual | no | ?????? |
+| actor/component | gocskill.cpp | ?UpgradeSkill@CGocSkill@@QEAA_NH@Z | - | blocked | manual | no | ???????? |
+| actor/component | gocskill.cpp | ?GetGestureSlot@CGocSkill@@QEBAHH@Z | - | blocked | manual | no | ???????? |
+| actor/component | gocskill.cpp | ?SetGestureSlot@CGocSkill@@QEAAXHH@Z | - | blocked | manual | no | ????????? |
+| actor/component | gocskill.cpp | ?ClearGestureSlot@CGocSkill@@QEAAXH@Z | - | blocked | manual | no | ????????? |
+| actor/component | gocskill.cpp | ?IsSkillOnCooldown@CGocSkill@@QEBA_NH@Z | - | blocked | manual | no | ???G?????? |
+| actor/component | gocskill.cpp | ?GetSkillCooldownTime@CGocSkill@@QEBAMH@Z | - | blocked | manual | no | ????????? |
+| actor/component | gocskill.cpp | ?SetSkillCooldown@CGocSkill@@QEAAXHM@Z | - | blocked | manual | no | ?????????? |
+| actor/component | gocskill.cpp | ?GetSkillPoints@CGocSkill@@QEBAHXZ | - | blocked | manual | no | ???????? |
+| actor/component | gocskill.cpp | ?SetSkillPoints@CGocSkill@@QEAAXH@Z | - | blocked | manual | no | ????????? |
+| actor/component | gocskill.cpp | ?AddSkillPoints@CGocSkill@@QEAAXH@Z | - | blocked | manual | no | ???????? |
+| actor/component | gocskill.cpp | ?GetCurrentComboCount@CGocSkill@@QEBAHXZ | - | blocked | manual | no | ???????????? |
+| actor/component | gocinventory.cpp | ??0CGocInventory@@QEAA@XZ | - | blocked | manual | no | ?????? |
+| actor/component | gocinventory.cpp | ??1CGocInventory@@UEAA@XZ | - | blocked | manual | no | ???????? |
+| actor/component | gocinventory.cpp | ?Initialize@CGocInventory@@UEAAXPEAVCMover@@@Z | - | blocked | manual | no | ????? |
+| actor/component | gocinventory.cpp | ?Shutdown@CGocInventory@@UEAAXXZ | - | blocked | manual | no | ??? |
+| actor/component | gocinventory.cpp | ?Update@CGocInventory@@UEAAXM@Z | - | blocked | manual | no | ???? |
+| actor/component | gocinventory.cpp | ?GetCash@CGocInventory@@QEBAHXZ | - | blocked | manual | no | ?????? |
+| actor/component | gocinventory.cpp | ?SetCash@CGocInventory@@QEAAXH@Z | - | blocked | manual | no | ?????? |
+| actor/component | gocinventory.cpp | ?AddCash@CGocInventory@@QEAAXH@Z | - | blocked | manual | no | ?????? |
+| actor/component | gocinventory.cpp | ?SubtractCash@CGocInventory@@QEAA_NH@Z | - | blocked | manual | no | ?????? |
+| actor/component | gocinventory.cpp | ?GetMoney@CGocInventory@@QEBA_JXZ | - | blocked | manual | no | ??????? |
+| actor/component | gocinventory.cpp | ?SetMoney@CGocInventory@@QEAAX_J@Z | - | blocked | manual | no | ???y??? |
+| actor/component | gocinventory.cpp | ?AddMoney@CGocInventory@@QEAAX_J@Z | - | blocked | manual | no | ??????? |
+| actor/component | gocinventory.cpp | ?SubtractMoney@CGocInventory@@QEAA_N_J@Z | - | blocked | manual | no | ??????? |
+| actor/component | gocinventory.cpp | ?GetInventorySize@CGocInventory@@QEBAHXZ | - | blocked | manual | no | ??????????? |
+| actor/component | gocinventory.cpp | ?GetUsedSlots@CGocInventory@@QEBAHXZ | - | blocked | manual | no | ??????????? |
+| actor/component | gocinventory.cpp | ?GetFreeSlots@CGocInventory@@QEBAHXZ | - | blocked | manual | no | ??????????? |
+| actor/component | gocinventory.cpp | ?HasItem@CGocInventory@@QEBA_NH@Z | - | blocked | manual | no | ???????????? |
+| actor/component | gocinventory.cpp | ?GetItemCount@CGocInventory@@QEBAHH@Z | - | blocked | manual | no | ?????????? |
+| actor/component | gocinventory.cpp | ?AddItem@CGocInventory@@QEAA_NHH@Z | - | blocked | manual | no | ??????? |
+| actor/component | gocinventory.cpp | ?RemoveItem@CGocInventory@@QEAA_NHH@Z | - | blocked | manual | no | ?????? |
+| actor/component | gocinventory.cpp | ?MoveItem@CGocInventory@@QEAA_NHH@Z | - | blocked | manual | no | ?????? |
+| actor/component | gocinventory.cpp | ?GetEquippedItem@CGocInventory@@QEBAHH@Z | - | blocked | manual | no | ????????? |
+| actor/component | gocinventory.cpp | ?EquipItem@CGocInventory@@QEAA_NH@Z | - | blocked | manual | no | ?????? |
+| actor/component | gocinventory.cpp | ?UnequipItem@CGocInventory@@QEAA_NH@Z | - | blocked | manual | no | ??????? |
+| actor/component | gocinventory.cpp | ?SortInventory@CGocInventory@@QEAAXXZ | - | blocked | manual | no | ???????? |
+| actor/component | gocinventory.cpp | ?ClearInventory@CGocInventory@@QEAAXXZ | - | blocked | manual | no | ??????? |
+| actor/component | gocinventory.cpp | ?GetCurrentWeight@CGocInventory@@QEBAMXZ | - | blocked | manual | no | ?????????? |
 | XGameServer | Maze.cpp | ?CheckGuardTarget@XMaze@@QEAAXPEAVCMonster@@H@Z | 0x140328260 | implemented | IDA decompile | yes | Check monster guard target relationship |
 | XGameServer | Maze.cpp | ?CreateSilhouetteFromBoxinfo@XMaze@@QEAA_NPEBUVMonsterSpawnInfo@@PEAPEAX@Z | 0x140329dc0 | implemented | IDA decompile | yes | - |
 | XGameServer | Maze.cpp | ?ChangeMonster@XMaze@@QEAA_NHHH@Z | 0x14032a540 | implemented | IDA decompile | yes | - |
@@ -57480,7 +57245,6 @@ yes | ?????????? |
 | XGameServer | Maze.cpp | ?AddMonsterKillScoreModePoint@XMaze@@QEAAXH@Z | 0x14033b560 | implemented | IDA decompile | yes | Add points to monster kill score mode |
 | XGameServer | Mover.cpp | ?send_eSUB_CMD_MOVE_ATTACED_BT@CMover@@QEAAXPEAV1@0VhkvVec3@@M@Z | 0x140370800 | implemented | IDA decompile | yes | IDA精确还原-发送附加攻击包 |
 | XGameServer | Mover.cpp | ?send_eSUB_CMD_MOVE_ATTACED_END_BT@CMover@@QEAAXPEAV1@@Z | 0x1403709C0 | implemented | IDA decompile | yes | IDA精确还原-发送结束附加攻击包 |
-| XGameServer | Mover.cpp | ?send_eSUB_CMD_MONSTER_INVISIBLE@CMover@@QEAAXPEAV1@EKHH@Z | 0x140370BA0 | implemented | IDA decompile | yes | IDA精确还原-发送怪物隐身�?|
 | XGameServer | Mover.cpp | ?send_eSUB_CMD_MONSTER_CHANGE_MOTION@CMover@@QEAAXPEAV1@FF@Z | 0x140370CF0 | implemented | IDA decompile | yes | IDA精确还原-发送怪物动作切换�?|
 | XGameServer | Mover.cpp | ?send_eSUB_CMD_CONTROL_MONSTER@CMover@@QEAAXPEAV1@0KMMK_N@Z | 0x140370E20 | implemented | IDA decompile | yes | IDA精确还原-发送控制怪物�?|
 | XGameServer | Mover.cpp | ?send_eSUB_CMD_MONSTER_ESCAPE_DAMAGE@CMover@@QEAAXPEAV1@EM@Z | 0x1403710A0 | implemented | IDA decompile | yes | IDA精确还原-发送怪物闪避伤害�?|
@@ -57496,7 +57260,6 @@ yes | ?????????? |
 | XGameServer | Mover.cpp | ?send_eSUB_CMD_PROJECTILE_UPDATE_TARGET@CMover@@QEAAXPEAV1@HK@Z | 0x1403726D0 | implemented | IDA decompile | yes | IDA精确还原-发送投射物更新目标�?|
 | XGameServer | Mover.cpp | ?send_eSUB_CMD_PROJECTILE_REMOVE@CMover@@QEAAXPEAV1@H@Z | 0x1403727B0 | implemented | IDA decompile | yes | IDA精确还原-发送投射物移除�?|
 | XGameServer | Mover.cpp | ?send_eSUB_CMD_COMBAT_TYPE@CMover@@QEAAXPEAV1@HME@Z | 0x140372870 | implemented | IDA decompile | yes | IDA精确还原-发送战斗类型包 |
-| XGameServer | Mover.cpp | ?send_eSUB_CMD_BUFF_UPDATE@CMover@@QEAAXPEAV1@GMEKE_N@Z | 0x1403729E0 | implemented | IDA decompile | yes | IDA精确还原-发送Buff更新�?|
 | XGameServer | Mover.cpp | ?send_eSUB_CMD_BUFF_CHANGE@CMover@@QEAAXPEAV1@GGMEKE@Z | 0x140372BB0 | implemented | IDA decompile | yes | IDA精确还原-发送Buff变化�?|
 | XGameServer | Mover.cpp | ?send_eSUB_CMD_BUFF_DELETE@CMover@@QEAAXPEAV1@GK_NE@Z | 0x140372D90 | implemented | IDA decompile | yes | IDA精确还原-发送Buff删除�?|
 | XGameServer | User/User.cpp | ?GetAccountID@CUser@@QEAAPEADXZ | 0x140038710 | implemented | IDA decompile | yes | Simple getter - returns m_stCharInfo.szAccountID |
@@ -57569,7 +57332,7 @@ yes | ?????????? |
 | XGameServer | Mover.cpp | ?GetAddEtherFromOptionEffect@CMoverEx@@QEAAHXZ | 0x1400F9F90 | implemented | IDA decompile | yes | Simple getter - returns m_nAddEtherFromOptionEffect |
 | XGameServer | Mover.cpp | ?ResetAddEtherFromOptionEffect@CMoverEx@@QEAAXXZ | 0x1400F9F70 | implemented | IDA decompile | yes | Simple setter - zeros m_nAddEtherFromOptionEffect |
 | XGameServer | Mover.cpp | ?GetOwnerPlayer@CMoverEx@@QEAAPEAV1@XZ | 0x140398BF0 | implemented | IDA decompile | yes | Returns mover by owner ID or nullptr |
-| XGameServer | Mover.cpp | ?GetAkashicTriggerTime@CMoverEx@@UEAAMXZ | 0x140189260 | implemented | IDA decompile | yes | Stub function - always returns 0.0 |
+| XGameServer | Mover.cpp | ?GetAkashicTriggerTime@CMoverEx@@UEAAMXZ | 0x140189260 | blocked | IDA decompile | no | Stub function - always returns 0.0 |
 | XGameServer | Mover.cpp | ?GetTargetID@CMover@@QEAAKXZ | 0x140198DE0 | implemented | IDA decompile | yes | Simple getter - returns m_dwTargetID |
 | XGameServer | Mover.cpp | ?SetTargetID@CMover@@QEAAXK@Z | 0x1403644E0 | implemented | IDA decompile | yes | Simple setter - sets m_dwTargetID |
 | XGameServer | Mover.cpp | ?GetHitID@CMover@@QEAAKXZ | 0x140364AB0 | implemented | IDA decompile | yes | Simple getter - returns m_dwHitID |
@@ -57579,7 +57342,6 @@ yes | ?????????? |
 | XGameServer | Mover.cpp | ?GetMoveSpeed@CMover@@QEAAMXZ | 0x1406C5C30 | implemented | IDA decompile | yes | Simple getter - returns m_fMoveSpeed |
 | XGameServer | Mover.cpp | ?GetMotionClass@CMover@@QEAAFXZ | 0x140276270 | implemented | IDA decompile | yes | Simple getter - returns m_nMotionClass |
 | XGameServer | Mover.cpp | ?SetHitStatus@CMover@@QEAAXF@Z | 0x1403E1BF0 | implemented | IDA decompile | yes | Simple setter - sets m_nHitStatus |
-| XGameServer | Mover.cpp | ?GetSkillCoolDownRate@CMover@@QEAAMXZ | 0x1402C7240 | implemented | IDA decompile | yes | Simple getter - returns m_fSkillCoolDownRate |
 | XGameServer | Mover.cpp | ?GetSkillBloodRate@CMover@@QEAAMXZ | 0x1403A2410 | implemented | IDA decompile | yes | Simple getter - returns m_fSkillBloodRate |
 | XGameServer | Mover.cpp | ?IsInvincibleActor@CMover@@QEAAHXZ | 0x1401B4840 | implemented | IDA decompile | yes | Simple getter - returns m_bInvincibleActor |
 | XGameServer | Mover.cpp | ?GetMaxSuperArmorGage@CMover@@QEAAMXZ | 0x1402A5050 | implemented | IDA decompile | yes | Simple getter - returns m_fMaxSuperArmorGage |
@@ -57587,7 +57349,6 @@ yes | ?????????? |
 | XGameServer | Mover.cpp | ?SetCurSuperArmorGage@CMover@@QEAAXM@Z | 0x140353C60 | implemented | IDA decompile | yes | Simple setter - sets m_fCurSuperArmorGage |
 | XGameServer | Mover.cpp | ?GetCellID@CMover@@QEAAKXZ | 0x140280CC0 | implemented | IDA decompile | yes | Simple getter - returns m_dwCellID |
 | XGameServer | Mover.cpp | ?SetCellID@CMover@@QEAAXK@Z | 0x140280CE0 | implemented | IDA decompile | yes | Simple setter - sets m_dwCellID |
-| XGameServer | Mover.cpp | ?GetLevelForStat@CMover@@UEAAEXZ | 0x140366D30 | implemented | IDA decompile | yes | Returns level from CGocAttribute component |
 | XGameServer | MoverEx.cpp | ?GetSkillLoopTime@CMoverEx@@QEAAMXZ | 0x140016ED0 | implemented | IDA decompile | yes | Simple getter - returns m_fSkillLoopTime |
 | XGameServer | MoverEx.cpp | ?GetOwnerID@CMoverEx@@QEAAKXZ | 0x1401AD020 | implemented | IDA decompile | yes | Simple getter - returns m_dwOwnerID |
 | XGameServer | MoverEx.cpp | ?SetOwnerID@CMoverEx@@QEAAXK@Z | 0x14009F1C0 | implemented | IDA decompile | yes | Simple setter - sets m_dwOwnerID |
@@ -57613,9 +57374,8 @@ yes | ?????????? |
 | XGameServer | Mover.cpp | ?GetAnimIndex@CMover@@QEAAKVVString@@@Z | 0x140368960 | implemented | IDA decompile | yes | Get animation index by animation name |
 | CGocInventory | GocInventory.cpp | ?EquipItem@CGocInventory@@QEAA_NHH@Z | 0x1400a5960 | implemented | IDA decompile | yes | Equipment item wrapper - calls Equip function |
 | CGocInventory | GocInventory.cpp | ?UnequipItem@CGocInventory@@QEAA_NH@Z | 0x1400a5b10 | implemented | IDA decompile | yes | Unequip item wrapper - calls Unequip function |
-| CGocInventory | GocInventory.cpp | ?CanEquip@CGocInventory@@QEAA_NEFH@Z | - | implemented | manual | yes | Equipment validation wrapper - checks item can be equipped |
-| CGocInventory | GocInventory.cpp | ?GetEmptySlot@CGocInventory@@QEAAFE@Z | - | implemented | manual | yes | Get empty slot - finds empty inventory slot |
-| CGocInventory | GocInventory.cpp | ?GetEmptySlotCount@CGocInventory@@QEBAFE@Z | - | implemented | manual | yes | Get empty slot count - counts empty slots in inventory |
+| CGocInventory | GocInventory.cpp | ?GetEmptySlot@CGocInventory@@QEAAFE@Z | - | blocked | manual | no | Get empty slot - finds empty inventory slot |
+| CGocInventory | GocInventory.cpp | ?GetEmptySlotCount@CGocInventory@@QEBAFE@Z | - | blocked | manual | no | Get empty slot count - counts empty slots in inventory |
 | XGameServer | MoverEx.cpp | ?GetDamageMotion@CMoverEx@@EAAHE@Z | 0x140385290 | implemented | IDA decompile | yes | Get damage motion - return animation index based on attack type |
 | XGameServer | MoverEx.cpp | ?SetupPhaseMotion@CMoverEx@@QEAAXXZ | 0x140385E20 | implemented | IDA decompile | yes | Setup phase motion - for boss phase transition |
 | XGameServer | MoverEx.cpp | ?CancelSkill@CMoverEx@@QEAAXXZ | 0x14037E9E0 | implemented | IDA decompile | yes | Cancel current skill - clear skill state |
@@ -57626,25 +57386,18 @@ yes | ?????????? |
 | XGameServer | actor/component/GocAttribute.cpp | ?GetSpecialEffect@CGocAttribute@@QEAAMW4EFFECT_STAT_TYPE@@@Z | 0x14003eee0 | implemented | IDA decompile | yes | - |
 | XGameServer | Mover.cpp | ?send_eSUB_CMD_MOVE_IDLE@CMover@@QEAAXPEAV1@M@Z | 0x14036FD50 | implemented | IDA decompile | yes | Precisely restored - send idle movement packet with position, yaw, animation, and delay time |
 | XGameServer | Mover.cpp | ?SendUpdateStat@CMover@@QEAAXH@Z | 0x14036E4A0 | implemented | IDA decompile | yes | Get CGocAttribute component and call its SendUpdateStat - 2026-06-08 01:43:09 |
-| XGameServer | Mover.cpp | ?IsDashing@CMover@@QEAAHXZ | 0x1403674F0 | implemented | IDA decompile | yes | IDA精确还原 - 检查强制状�?或XActor状�?x800 |
-| XGameServer | Mover.cpp | ?GetBoneYaw@CMover@@QEAAMH@Z | 0x140368880 | implemented | IDA decompile | yes | IDA精确还原 - 从VAnimationInfo获取骨骼旋转角度 |
 | XGameServer | XActor.cpp | ?IsDieStatus@XActor@@QEAAHXZ | 0x140364500 | implemented | IDA decompile | yes | Check if actor has status 2 or 4 (dead/dying) - 2026-06-08 01:43:09 |
 | XGameServer | Mover.cpp | ?AllBuffClear@CMover@@QEAAXE@Z | 0x14036AA40 | implemented | IDA decompile | yes | IDA精确还原 - 清除所有Buff遍历50个槽�?|
 | XGameServer | Mover.cpp | ?FindBuffByEffectType@CMover@@QEAAHEG@Z | 0x14036A560 | implemented | IDA decompile | yes | IDA精确还原 - 按效果类型查找Buff返回槽位索引 |
-| XGameServer | Mover.cpp | ?ClearBuffStatusBySlot@CMover@@UEAAXG_N@Z | 0x140377550 | implemented | IDA decompile | yes | Clear buff at specific slot (base stub) |
-| XGameServer | Mover.cpp | ?SetBuffStatus@CMover@@UEAAHGK_N@Z | 0x140374FE0 | implemented | IDA decompile | yes | Set buff status (base stub) |
-| XGameServer | Mover.cpp | ?IsClearBuff@CMover@@UEAAHGE@Z | 0x1403774F0 | implemented | IDA decompile | yes | Check if buff can be cleared (base stub) |
 | XGameServer | Mover.cpp | ?FindBuffByGroupID@CMover@@QEAAHGK@Z | 0x14036A4C0 | implemented | IDA decompile | yes | Find buff by group ID and owner ID |
 | XGameServer | Mover.cpp | ?GetEmptyBuffSlot@CMover@@QEAAHXZ | 0x14036A810 | implemented | IDA decompile | yes | IDA精确还原 - 获取空Buff槽位遍历50个槽�?|
 | XGameServer | Mover.cpp | ?UpdateBuffCount@CMover@@QEAAXEH@Z | unknown | implemented | IDA decompile | yes | Update buff count by type |
-| XGameServer | Mover.cpp | ?ClearBuffStatusBySlot@CMoverEx@@UEAAXG_N@Z | 0x14038DA80 | implemented | IDA decompile | yes | Clear buff at specific slot (CMoverEx implementation) |
-| XGameServer | Mover.cpp | ?SetBuffStatus@CMoverEx@@UEAAHGK_N@Z | 0x14038BCE0 | implemented | IDA decompile | yes | Set buff status (CMoverEx core buff addition) |
-| XGameServer | MoverLinkStubs.cpp | ?send_eSUB_CMD_BUFF_DELETE@CMover@@QEAAXPEAV1@GK_NE@Z | 0x140372D90 | implemented | IDA decompile | yes | Send buff delete packet to client - 2026-06-13 |
-| XGameServer | MoverLinkStubs.cpp | ?IsHaveImunityInvincibleBuff@CMover@@QEAAHG@Z | 0x14036A640 | implemented | IDA decompile | yes | Check for immunity invincible buff - 2026-06-13 |
-| XGameServer | MoverLinkStubs.cpp | ?UpdateDefenseDisableBuff@CMover@@QEAAXXZ | 0x14036B4D0 | implemented | IDA decompile | yes | Update defense disable buff flag - 2026-06-13 |
-| XGameServer | MoverLinkStubs.cpp | ?ClearImmunityStatus@CMover@@QEAAXK@Z | 0x140353040 | implemented | IDA decompile | yes | Clear immunity status bitmask - 2026-06-13 |
-| XGameServer | MoverLinkStubs.cpp | ?AddDefenseChangeInfo@CMoverEx@@QEAAHEEKM@Z | 0x14037CF80 | implemented | IDA decompile | yes | Add defense change info to list - 2026-06-13 |
-| XGameServer | MoverLinkStubs.cpp | ?RemoveDefenseChangeInfo@CMoverEx@@QEAAHEK@Z | 0x14037D100 | implemented | IDA decompile | yes | Remove defense change info from list - 2026-06-13 |
+| XGameServer | MoverLinkStubs.cpp | ?send_eSUB_CMD_BUFF_DELETE@CMover@@QEAAXPEAV1@GK_NE@Z | 0x140372D90 | blocked | IDA decompile | no | Send buff delete packet to client - 2026-06-13 |
+| XGameServer | MoverLinkStubs.cpp | ?IsHaveImunityInvincibleBuff@CMover@@QEAAHG@Z | 0x14036A640 | blocked | IDA decompile | no | Check for immunity invincible buff - 2026-06-13 |
+| XGameServer | MoverLinkStubs.cpp | ?UpdateDefenseDisableBuff@CMover@@QEAAXXZ | 0x14036B4D0 | blocked | IDA decompile | no | Update defense disable buff flag - 2026-06-13 |
+| XGameServer | MoverLinkStubs.cpp | ?ClearImmunityStatus@CMover@@QEAAXK@Z | 0x140353040 | blocked | IDA decompile | no | Clear immunity status bitmask - 2026-06-13 |
+| XGameServer | MoverLinkStubs.cpp | ?AddDefenseChangeInfo@CMoverEx@@QEAAHEEKM@Z | 0x14037CF80 | blocked | IDA decompile | no | Add defense change info to list - 2026-06-13 |
+| XGameServer | MoverLinkStubs.cpp | ?RemoveDefenseChangeInfo@CMoverEx@@QEAAHEK@Z | 0x14037D100 | blocked | IDA decompile | no | Remove defense change info from list - 2026-06-13 |
 | XGameServer | Mover.cpp | ?SetImmunityStatus@CMover@@QEAAXK@Z | 0x1402A4F90 | implemented | IDA decompile | yes | Set immunity status bitmask - 2026-06-13 |
 | XGameServer | Mover.cpp | ?ClearBuffAbility@CMoverEx@@UEAAXHM@Z | 0x1403901A0 | implemented | IDA decompile | yes | Clear buff ability with negative value - 2026-06-13 |
 | XGameServer | Mover.cpp | ?ReduceBuffAbility@CMoverEx@@UEAAXHM@Z | 0x140390330 | implemented | IDA decompile | yes | Reduce buff ability value - 2026-06-13 |
@@ -57653,11 +57406,8 @@ yes | ?????????? |
 | XGameServer | Mover.cpp | ?UpdateBuffAbility@CMoverEx@@UEAA_NAEAUtagBUFF_STATE@@H@Z | 0x14038E5F0 | implemented | IDA decompile | yes | Update buff ability values with set/clear logic - 2026-06-13 |
 | XGameServer | Mover.cpp | ?SetBuffAbility@CMoverEx@@UEAAXHM@Z | 0x1403900C0 | implemented | IDA decompile | yes | Set buff ability value via CGocAttribute - 2026-06-13 |
 | XGameServer | Mover.cpp | ?AddBuffAbility@CMoverEx@@UEAAXHM@Z | 0x1403902A0 | implemented | IDA decompile | yes | Add buff ability value via CGocAttribute - 2026-06-13 |
-| XGameServer | Mover.cpp | ?IsClearBuff@CMoverEx@@UEAAHGE@Z | 0x1403903D0 | implemented | IDA decompile | yes | Check if buff can be cleared - 2026-06-13 |
-| XGameServer | Mover.cpp | ?ClearBuffStatusBySlot@CMoverEx@@UEAAXG_N@Z | 0x14038DA80 | implemented | IDA decompile | yes | Clear buff at specific slot with cleanup - 2026-06-13 |
 | XGameServer | Process/ItemSetupProcess.cpp | ?ItemUpgrade@CItemSetupProcess@@QEAAHV?$shared_ptr@VCItem@@@tr1@std@@PEAUTB_REINFORCE@@UPS_ITEM_SLOT_INFO@@_NAEAUPS_RES_STORAGE_INFO@@AEAEAEA_JHE@Z | 0x1404B1B00 | implemented | IDA decompile | yes | Item upgrade with success/fail logic and material cost - 2026-06-08 |
 | XGameServer | actor/component/GocInventory.cpp | ?UpgradeSocket@CGocInventory@@QEAAHUPS_ITEM_SLOT_INFO@@@Z | 0x1400D34E0 | implemented | IDA decompile | yes | Socket upgrade (soul stone evolution) with random success rates - 2026-06-08 |
-| XGameServer | Process/ItemProcess.cpp | ?ReqItemCombine@CItemProcess@@QEAA_NAEAVXPacket@@@Z | 0x140454050 | implemented | IDA decompile | yes | Item combine request handler with async job scheduling - 2026-06-08 |
 | XGameServer | actor/component/GocInventory.cpp | ?ExtractSocket@CGocInventory@@QEAAHUPS_ITEM_SLOT_INFO@@_N@Z | 0x1400D4FF0 | implemented | IDA decompile | yes | Socket extraction from item with cost and material validation - 2026-06-08 |
 | XGameServer | actor/component/GocInventory.cpp | ?ExchangeSocket@CGocInventory@@QEAAHEKE@Z | 0x1400D2140 | implemented | IDA decompile | yes | Socket exchange (fragment conversion) with material cost - 2026-06-08 |
 | XGameServer | actor/Mover/Mover.cpp | ?send_eSUB_CMD_SKILL_SYNC_POSITION@CMover@@QEAAXPEAV1@AEAVhkvVec3@@@Z | 0x1403733E0 | implemented | IDA decompile | yes | Send skill position sync packet to nearby players - 2026-06-08 |
@@ -57734,22 +57484,14 @@ yes | ?????????? |
 | XGameServer | TradeProcess.cpp | ?SendPrivateShopState@CTradeProcess@@QEAAXPEAVCUser@@E@Z | 0x14061A5B0 | implemented | IDA decompile | yes | Send private shop state to player |
 | XGameServer | actor/component/GocTrade.cpp | ?Init@CGocTrade@@QEAA_NXZ | unknown | implemented | IDA decompile | yes | Initialize trade component |
 | XGameServer | actor/component/GocTrade.cpp | ?Clear@CGocTrade@@QEAAXXZ | unknown | implemented | IDA decompile | yes | Clear all trade state |
-| XGameServer | actor/component/GocTrade.cpp | ?SetTradeState@CGocTrade@@QEAAXW4eTRADE_STATE@@@Z | 0x1400AF760 | implemented | IDA decompile | yes | Set trade state enum |
 | XGameServer | actor/component/GocTrade.cpp | ?SetTradeActorID@CGocTrade@@QEAAXTUXActorID@@@Z | 0x1400FA520 | implemented | IDA decompile | yes | Set trade partner actor ID |
 | XGameServer | actor/component/GocTrade.cpp | ?SetTradePasswordState@CGocTrade@@QEAAXE@Z | 0x1401E7F20 | implemented | IDA decompile | yes | Set trade password state |
-| XGameServer | actor/component/GocTrade.cpp | ?CheckTradePasswordState@CGocTrade@@QEAA_NAEAH@Z | 0x1400B9F00 | implemented | IDA decompile | yes | Check if trade password verification needed |
-| XGameServer | actor/component/GocTrade.cpp | ?CheckTradePassword@CGocTrade@@QEAA_NAEAUPS_TRADE_PW_REQ@@@Z | 0x1400B9F60 | implemented | IDA decompile | yes | Validate and check trade password |
-| XGameServer | actor/component/GocTrade.cpp | ?IsValidTradePassword@CGocTrade@@QEAA_NPEADAEAH@Z | 0x1400BA530 | implemented | IDA decompile | yes | Validate password format (4-16 alphanumeric) |
-| XGameServer | actor/component/GocTrade.cpp | ?RemoveTradeItem@CGocTrade@@QEAA_N... | 0x1400AE6A0 | implemented | IDA decompile | yes | Remove item from trade list and unlock |
 | XGameServer | actor/component/GocTrade.cpp | ?AddTradeItem@CGocTrade@@QEAA_N... | unknown | implemented | IDA decompile | yes | Add item to trade list with validation |
 | XGameServer | actor/component/GocTrade.cpp | ?SetTradeConfirm@CGocTrade@@QEAA_N... | 0x1400AE760 | implemented | IDA decompile | yes | Set trade confirm with item list validation |
 | XGameServer | actor/component/GocTrade.cpp | ?CanTradeConfirm@CGocTrade@@QEAA_N... | 0x1400AEBE0 | implemented | IDA decompile | yes | Check if trade can be confirmed |
-| XGameServer | actor/component/GocTrade.cpp | ?UpdateTradeUnLock@CGocTrade@@QEAAXXZ | 0x1400AED60 | implemented | IDA decompile | yes | Unlock all trade items |
 | XGameServer | actor/component/GocTrade.cpp | ?UpdateTradeUnLock@CGocTrade@@QEAAXUST_TRADE_ITEM_LIST@@@Z | 0x1400AEE00 | implemented | IDA decompile | yes | Unlock specific trade item list |
 | XGameServer | actor/component/GocTrade.cpp | ?IsTradeCheck@CGocTrade@@QEAAXXZ | 0x1400AEEE0 | implemented | IDA decompile | yes | Perform trade state validation |
 | XGameServer | actor/component/GocTrade.cpp | ?SendTradeCancel@CGocTrade@@QEAAXH@Z | 0x1400AF370 | implemented | IDA decompile | yes | Send trade cancel notification |
-| XGameServer | actor/component/GocTrade.cpp | ?SendControlServerTradePassword@CGocTrade@@QEAAXXZ | 0x1400BA760 | implemented | IDA decompile | yes | Send trade password to control server |
-| XGameServer | actor/component/GocTrade.cpp | ?GM_ChangeTradePW@CGocTrade@@QEAAXPEA_W@Z | 0x1400BA8E0 | implemented | IDA decompile | yes | GM command to change trade password |
 | XGameServer | actor/component/GocExchange.cpp | ?ReqExchangeSellRegister@CGocExchange@@QEAAXAEAUPS_EXCHANGE_SELL_REGISTER_REQ@@@Z | 0x140076830 | implemented | IDA decompile | yes | Register item for sale on exchange |
 | XGameServer | actor/component/GocExchange.cpp | ?ReqExchangeItemBuy@CGocExchange@@QEAAXAEAUPS_EXCHANGE_ITEM_BUY_REQ@@@Z | 0x140078D80 | implemented | IDA decompile | yes | Buy item from exchange marketplace |
 | XGameServer | actor/component/GocExchange.cpp | ?ReqExchangeItemRecall@CGocExchange@@QEAAXAEAUPS_EXCHANGE_ITEM_RECALL_REQ@@@Z | 0x140079250 | implemented | IDA decompile | yes | Recall/remove item from exchange listing |
@@ -57800,17 +57542,7 @@ yes | ?????????? |
 | XGameServer | ChatProcess.cpp | ??0CChatProcess@@QEAA@XZ | 0x1403E1F80 | implemented | IDA decompile | yes | Chat process constructor |
 | XGameServer | ChatProcess.cpp | ??1CChatProcess@@UEAA@XZ | 0x1403E2070 | implemented | IDA decompile | yes | Chat process destructor |
 | XGameServer | ChatProcess.cpp | ?Parse@CChatProcess@@UEAA_NAEAVXPacket@@@Z | 0x1403E20D0 | implemented | IDA decompile | yes | Main packet parser router |
-| XGameServer | ChatProcess.cpp | ?ReqNormalChatting@CChatProcess@@IEAA_NAEAVXPacket@@@Z | 0x1403E21C0 | implemented | IDA decompile | yes | SendChat - normal chat broadcast |
-| XGameServer | ChatProcess.cpp | ?ReqChatWhisper@CChatProcess@@IEAA_NAEAVXPacket@@@Z | 0x1403E2C30 | implemented | IDA decompile | yes | SendWhisper - private message |
-| XGameServer | ChatProcess.cpp | ?ReqChatTrade@CChatProcess@@IEAA_NAEAVXPacket@@@Z | 0x1403E3F50 | implemented | IDA decompile | yes | Trade chat message |
-| XGameServer | ChatProcess.cpp | ?ReqChatNotice@CChatProcess@@IEAA_NAEAVXPacket@@@Z | 0x1403E4A90 | implemented | IDA decompile | yes | BroadcastMessage - system notice |
-| XGameServer | ChatProcess.cpp | ?ReqChatMegaPhone@CChatProcess@@IEAA_NAEAVXPacket@@@Z | 0x1403E4CD0 | implemented | IDA decompile | yes | Megaphone server-wide broadcast |
-| XGameServer | ChatProcess.cpp | ?GetChatLinkItem@CChatProcess@@IEAA_NPEAVCUser@@AEAUPS_CHAT_ITEM_LINK_FOR_SERVER@@@Z | 0x1403E5C50 | implemented | IDA decompile | yes | Get item link from inventory |
-| XGameServer | ChatProcess.cpp | ?ProcessNormal@CChatProcess@@KA_NPEAVCUser@@PEA_WUPS_CHAT_ITEM_LINK_FOR_SERVER@@@Z | 0x1403E5F40 | implemented | IDA decompile | yes | Process normal chat broadcast |
-| XGameServer | ChatProcess.cpp | ?ProcessParty@CChatProcess@@KA_NPEAVCUser@@PEA_WUPS_CHAT_ITEM_LINK_FOR_SERVER@@@Z | 0x1403E6410 | implemented | IDA decompile | yes | SendPartyChat - party/force chat |
-| XGameServer | ChatProcess.cpp | ?ProcessLeague@CChatProcess@@KA_NPEAVCUser@@PEA_WUPS_CHAT_ITEM_LINK_FOR_SERVER@@@Z | 0x1403E6B90 | implemented | IDA decompile | yes | SendGuildChat - league chat |
 | XGameServer | ChatProcess.cpp | ?ReqGMCommand@CChatProcess@@IEAA_NAEAVXPacket@@@Z | 0x1403E6E70 | implemented | IDA decompile | yes | GM command processing |
-| XGameServer | ChatProcess.cpp | ?SendChatWhisper@CChatProcess@@QEAAXPEAVCUser@@AEAUPS_CHAT_WHISPER@@UPS_CHAT_ITEM_LINK_FOR_SERVER@@@Z | 0x1403E7A70 | implemented | IDA decompile | yes | Send whisper to target |
 | XGameServer | ChatProcess.cpp | ?GMCommandProcess@CChatProcess@@IEAAEV?@_WV?@_WV?@_W@ATL@@@ATL@@@ATL@@PEAVCUser@@PEAHAEA_J@Z | 0x1403E7BE0 | implemented | IDA decompile | yes | Process GM command string |
 | XGameServer | ChatProcess.cpp | ?InitGMCommand@CChatProcess@@QEAAXXZ | 0x1403E7F20 | implemented | IDA decompile | yes | Initialize GM command map |
 | XGameServer | ChatProcess.cpp | ?InitCommand_Debug@CChatProcess@@QEAAXXZ | 0x1403F0F60 | implemented | IDA decompile | yes | Initialize debug commands |
@@ -57827,15 +57559,15 @@ yes | ?????????? |
 | XGameServer | RespawnManager.cpp | ?DieRespawnMonster@CRespawnManager@@QEAAXK@Z | 0x14063E810 | implemented | IDA decompile | yes | Handle monster death and schedule respawn |
 | XGameServer | RespawnManager.cpp | ?ResetRespawnTime@CRespawnManager@@QEAAXXZ | 0x14063E910 | implemented | IDA decompile | yes | Reset all respawn times with random offset |
 | XGameServer | RespawnManager.cpp | ?Update@CRespawnManager@@QEAAXPEAVXArea@@@Z | 0x14063EA50 | implemented | IDA decompile | yes | Update respawn logic per frame |
-| XGameServer | RespawnManager.cpp | ?Add@CRespawnManager@@QEAA_NKHHPEBUVMonsterSpawnInfo@@@Z | manual | implemented | IDA decompile | yes | Add respawn entry (wrapper) |
-| XGameServer | RespawnManager.cpp | ?Remove@CRespawnManager@@QEAA_NK@Z | manual | implemented | IDA decompile | yes | Remove respawn entry |
-| XGameServer | RespawnManager.cpp | ?Process@CRespawnManager@@QEAAXPEAVXArea@@@Z | manual | implemented | IDA decompile | yes | Process respawns (wrapper) |
-| XGameServer | RespawnManager.cpp | ?GetCount@CRespawnManager@@QEAAHXZ | manual | implemented | IDA decompile | yes | Get total respawn entry count |
-| XGameServer | RespawnManager.cpp | ?GetNextRespawn@CRespawnManager@@QEAA_KK@Z | manual | implemented | IDA decompile | yes | Get next respawn time for actor |
-| XGameServer | RespawnManager.cpp | ?CancelRespawn@CRespawnManager@@QEAA_NK@Z | manual | implemented | IDA decompile | yes | Cancel respawn for actor |
-| XGameServer | RespawnManager.cpp | ?Pause@CRespawnManager@@QEAAXXZ | manual | implemented | IDA decompile | yes | Pause respawn system |
-| XGameServer | RespawnManager.cpp | ?Resume@CRespawnManager@@QEAAXXZ | manual | implemented | IDA decompile | yes | Resume respawn system |
-| XGameServer | RespawnManager.cpp | ?GetList@CRespawnManager@@QEBAXAEAV?\@KV?\@K@std@@@std@@@Z | manual | implemented | IDA decompile | yes | Get all respawn actor IDs |
+| XGameServer | RespawnManager.cpp | ?Add@CRespawnManager@@QEAA_NKHHPEBUVMonsterSpawnInfo@@@Z | manual | blocked | IDA decompile | no | Add respawn entry (wrapper) |
+| XGameServer | RespawnManager.cpp | ?Remove@CRespawnManager@@QEAA_NK@Z | manual | blocked | IDA decompile | no | Remove respawn entry |
+| XGameServer | RespawnManager.cpp | ?Process@CRespawnManager@@QEAAXPEAVXArea@@@Z | manual | blocked | IDA decompile | no | Process respawns (wrapper) |
+| XGameServer | RespawnManager.cpp | ?GetCount@CRespawnManager@@QEAAHXZ | manual | blocked | IDA decompile | no | Get total respawn entry count |
+| XGameServer | RespawnManager.cpp | ?GetNextRespawn@CRespawnManager@@QEAA_KK@Z | manual | blocked | IDA decompile | no | Get next respawn time for actor |
+| XGameServer | RespawnManager.cpp | ?CancelRespawn@CRespawnManager@@QEAA_NK@Z | manual | blocked | IDA decompile | no | Cancel respawn for actor |
+| XGameServer | RespawnManager.cpp | ?Pause@CRespawnManager@@QEAAXXZ | manual | blocked | IDA decompile | no | Pause respawn system |
+| XGameServer | RespawnManager.cpp | ?Resume@CRespawnManager@@QEAAXXZ | manual | blocked | IDA decompile | no | Resume respawn system |
+| XGameServer | RespawnManager.cpp | ?GetList@CRespawnManager@@QEBAXAEAV?\@KV?\@K@std@@@std@@@Z | manual | blocked | IDA decompile | no | Get all respawn actor IDs |
 | XGameServer | BattleZone.cpp | ?CreateMonster@CBattleZone@@QEAAPEAVCMonster@@TUXMapID@@HHUXVec3@@MW4E_SEND_INFO_TYPE@IXArea@@HHTUXActorID@@@Z | 0x1401A08B0 | implemented | IDA decompile | yes | Spawn monster at location with full params |
 | XGameServer | GocEvent.cpp | ??0CGocEvent@@QEAA@XZ | 0x140068840 | implemented | IDA decompile | yes | CGocEvent constructor |
 | XGameServer | GocEvent.cpp | ??1CGocEvent@@UEAA@XZ | 0x140068960 | implemented | IDA decompile | yes | CGocEvent destructor |
@@ -57889,7 +57621,7 @@ yes | ?????????? |
 | XGameServer | BattleZone.cpp | ?AddMonsterSpawnInfo@CBattleZone@@QEAAXHK@Z | 0x1401A5CE0 | implemented | IDA decompile | yes | Add monster spawn info mapping |
 | XGameServer | BattleZone.cpp | ?ExcuteSpawnBoxCheck@CBattleZone@@QEAAXHW4E_SEND_INFO_TYPE@IXArea@@_N@Z | 0x1401A5B40 | implemented | IDA decompile | yes | Check and activate spawn box |
 | XGameServer | BattleZone.cpp | ?GetSpawnPos@CBattleZone@@QEAAXPEBUVMonsterSpawnInfo@@PEAUXVec3@@@Z | 0x1402AD220 | implemented | IDA decompile | yes | 精确还原-根据m_iCreationPositionType计算生成位置(中心�?随机) |
-| XGameServer | BattleZone.cpp | ?SpawnMonster@CBattleZone@@QEAAPEAVCMonster@@IUXVec3@@MH@Z | manual | implemented | IDA decompile | yes | Spawn monster at position (simplified) |
+| XGameServer | BattleZone.cpp | ?SpawnMonster@CBattleZone@@QEAAPEAVCMonster@@IUXVec3@@MH@Z | manual | blocked | IDA decompile | no | Spawn monster at position (simplified) |
 | XGameServer | MySkillList.cpp | ?GetCooltime@CMySkillList@@QEAAMW4E_COOLTIME_TYPE@@HG_N@Z | 0x1402C4940 | implemented | IDA decompile | yes | Get remaining cooldown time for skill group |
 | XGameServer | MySkillList.cpp | ?SetSkillCooltime@CMySkillList@@QEAAXPEAUTB_SKILL@@@Z | 0x1402C4AD0 | implemented | IDA decompile | yes | Set skill cooldown with various modifiers applied |
 | XGameServer | MySkillList.cpp | ?ResetCoolTime@CMySkillList@@QEAAXW4E_COOLTIME_TYPE@@@Z | 0x1402C4870 | implemented | IDA decompile | yes | Reset cooldown for specified type |
@@ -57900,8 +57632,6 @@ yes | ?????????? |
 | XGameServer | Ai.cpp | ?_ConditionGlobalCooltime@CAi@@IEAAHH@Z | 0x140279FE0 | implemented | IDA decompile | yes | AI check global cooldown condition |
 | XGameServer | Ai.cpp | ?_ConditionGroupCooltime@CAi@@IEAAHH@Z | 0x14027A040 | implemented | IDA decompile | yes | AI check group cooldown condition |
 | XGameServer | Ai.cpp | ?_ConditionSkillCooltime@CAi@@IEAAHH@Z | 0x14027A160 | implemented | IDA decompile | yes | AI check skill cooldown condition |
-| XGameServer | actor/component/GocInventory.cpp | ?AddCoolTime@CGocInventory@@QEAAXG_K_N@Z | 0x1400B9AB0 | implemented | IDA decompile | yes | Add item cooldown with DB sync |
-| XGameServer | actor/component/GocInventory.cpp | ?GetCoolTime@CGocInventory@@QEAA_KG_N@Z | 0x1400B9E20 | implemented | IDA decompile | yes | Get item cooldown remaining time |
 | XGameServer | actor/component/GocSkill.cpp | ?GetRoguelikeSkillCoolTime@CGocSkill@@QEAAMMK@Z | 0x140174980 | implemented | IDA decompile | yes | Get Roguelike mode skill cooldown |
 | XGameServer | Mover.cpp | ?GetSkillCoolDownRate@CMover@@QEAAMXZ | 0x1402C7240 | implemented | IDA decompile | yes | Get skill cooldown rate modifier |
 | XGameServer | StatusEffect.cpp | ?SetStatus@XActor@@QEAAXK@Z | 0x140276490 | implemented | IDA decompile | yes | Set actor status flag |
@@ -57943,8 +57673,8 @@ yes | ?????????? |
 | XGameServer | Actor/Component/GocInventory.cpp | CGocInventory::DetachSocketItem | 0x1400CED70 | implemented | IDA decompile | yes | Socket detach - IDA code preserved in comments, depends on CUser/TB_SOCKET types |
 | XGameServer | Actor/Component/GocInventory.cpp | CGocInventory::ExtractSocket | 0x1400D4BE0 | implemented | IDA decompile | yes | Socket extraction (4-param) - IDA code preserved in comments, depends on CUser types |
 | XGameServer | Actor/Component/GocInventory.cpp | CGocInventory::ExchangeSocket | 0x1400D2140 | implemented | IDA decompile | yes | Socket exchange logic - IDA code preserved in comments, depends on CUser/TB_ITEM types |
-| XGameServer | ItemEnhance.h | ItemEnhance namespace | N/A | implemented | Manual | yes | Item enhancement system structures and function declarations |
-| XGameServer | Socket.h | SocketSystem namespace | N/A | implemented | Manual | yes | Socket system structures and function declarations |
+| XGameServer | ItemEnhance.h | ItemEnhance namespace | N/A | blocked | Manual | no | Item enhancement system structures and function declarations |
+| XGameServer | Socket.h | SocketSystem namespace | N/A | blocked | Manual | no | Socket system structures and function declarations |
 
 | XGameServer | PvPSystem.h | ?IsPvpCondition@CMoverEx@@UEAAHH@Z | 0x140188E90 | implemented | IDA decompile | yes | Check if PvP condition flag is set |
 | XGameServer | PvPSystem.h | ?SetPvpCondition@CMoverEx@@UEAAXH@Z | 0x140189190 | implemented | IDA decompile | yes | Set PvP condition flag |
@@ -57970,7 +57700,7 @@ yes | ?????????? |
 | XGameServer | BattleRanking.h | ?ReqRankingList@CGocRecode@@QEAA_NAEAUPS_RANKING_LIST_REQ@@@Z | 0x140155BC0 | implemented | IDA decompile | yes | Request ranking list from DB |
 | XGameServer | BattleRanking.h | ?SetRankingMyInfo@CGocRecode@@QEAAXG_NAEAUST_USER_RANKING_INFO@@_K@Z | 0x1401554B0 | implemented | IDA decompile | yes | Set user personal ranking info |
 | XGameServer | BattleRanking.h | ?ResRankingMyInfo@CGocRecode@@QEAAXAEAUPS_DB_MY_RANKING_INFO_RES@@@Z | 0x140156540 | implemented | IDA decompile | yes | Handle personal ranking DB response |
-| XGameServer | BattleRanking.h | ?Ranking_Cheat@CGocRecode@@QEAA_NHHH@Z | 0x14015BB20 | implemented | IDA decompile | yes | GM command to set ranking manually |
+| XGameServer | BattleRanking.h | ?Ranking_Cheat@CGocRecode@@QEAA_NHHH@Z | 0x14015BB20 | blocked | IDA decompile | no | GM command to set ranking manually |
 | XGameServer | actor/component/GocForce.cpp | ??0CGocForce@@QEAA@XZ | 0x140083060 | implemented | IDA decompile | yes | IDA精确还原 |
 | XGameServer | actor/component/GocForce.cpp | ??1CGocForce@@UEAA@XZ | 0x1400830F0 | implemented | IDA decompile | yes | IDA精确还原 |
 | XGameServer | actor/component/GocForce.cpp | ?Init@CGocForce@@QEAAXXZ | 0x140083140 | implemented | IDA decompile | yes | IDA精确还原 |
@@ -58156,9 +57886,7 @@ yes | ?????????? |
 | XGameServer | actor/component/GocInventory.cpp | CGocInventory::UpdateCashBuyCount | 0x1400C3500 | implemented | IDA decompile | yes | Update purchase limits |
 | XGameServer | actor/component/GocInventory.cpp | CGocInventory::SendUpdateCashBuyCount | 0x1400C3750 | implemented | IDA decompile | yes | Send purchase counts to client |
 | XGameServer | actor/component/GocInventory.cpp | CGocInventory::SendDBCashBuyCount | 0x1400C39B0 | implemented | IDA decompile | yes | Send purchase counts to DB |
-| XGameServer | actor/component/GocInventory.cpp | CGocInventory::GetCashMileage | 0x1400E5140 | implemented | IDA decompile | yes | Get mileage by type |
 | XGameServer | actor/component/GocInventory.cpp | CGocInventory::SendCashMileageLog | 0x1400E51A0 | implemented | IDA decompile | yes | Log mileage changes |
-| XGameServer | actor/component/GocInventory.cpp | CGocInventory::SetCashMileage | 0x1400E5020 | implemented | IDA decompile | yes | Set mileage and send update |
 | XGameServer | actor/component/GocInventory.cpp | CGocInventory::SendDBCashMileageUpdate | 0x1400E5500 | implemented | IDA decompile | yes | Send mileage to DB |
 | XGameServer | actor/component/GocInventory.cpp | CGocInventory::DelPrivateShopItem | 0x1400B1000 | implemented | IDA decompile | yes | Remove item from private shop |
 | XGameServer | actor/component/GocInventory.cpp | CGocInventory::PrivateShopItemList | 0x1400B11D0 | implemented | IDA decompile | yes | Get private shop items |
@@ -58186,7 +57914,6 @@ yes | ?????????? |
 | XGameServer | GocInventory_RandomBox.cpp | CVaccumCube::SetRandomKey | 0x1401945F0 | implemented | IDA decompile | yes | Set random key |
 | XGameServer | GocInventory_RandomBox.cpp | CGocInventory::TestRandomScore | 0x1401480B0 | implemented | IDA decompile | yes | Test random score generation |
 | XGameServer | GocInventory_RandomBox.cpp | CGocInventory::GetRandomNextID | 0x140199650 | implemented | IDA decompile | yes | Get next random ID from waypoint |
-| XGameServer | GocInventory_RandomBox.cpp | CGocInventory::ClearToolGachaInfo | 0x14060D9B0 | implemented | IDA decompile | yes | Clear tool gacha information |
 | XGameServer | Actor/Component/GocMyroom.cpp | CGocMyroom::CGocMyroom | 0x1400FAC40 | implemented | IDA decompile | yes | Constructor - initialize member structures |
 | XGameServer | Actor/Component/GocMyroom.cpp | CGocMyroom::~CGocMyroom | 0x1400FADE0 | implemented | IDA decompile | yes | Destructor - cleanup via Clear() |
 | XGameServer | Actor/Component/GocMyroom.cpp | CGocMyroom::Init | 0x1400FAE90 | implemented | IDA decompile | yes | Initialize component - call Clear() |
@@ -58336,17 +58063,6 @@ yes | ?????????? |
 | XGameServer | GocMyroom.cpp | ?CheckRank@CGocMyroom@@QEAAHK@Z | 0x1400FE380 | implemented | IDA decompile | yes | IDA精确还原 |
 | XGameServer | GocMyroom.cpp | ?RankReward@CGocMyroom@@QEAAXUPS_DB_MYROOM_RANK_REWARD@@@Z | 0x1400FE7F0 | implemented | IDA decompile | yes | IDA精确还原 |
 | XGameServer | GocMyroom.cpp | ?SendRankRewardPost@CGocMyroom@@QEAAXKUST_CREATE_ITEMS@@@Z | 0x1400FE980 | implemented | IDA decompile | yes | IDA精确还原 |
-| XGameServer | GocAppearance.cpp | ?SendDBAppearanceLoad@CGocAppearance@@QEAAXXZ | 0x1400BB160 | implemented | IDA decompile | yes | Send appearance load request to database |
-| XGameServer | GocAppearance.cpp | ?LoadAppearanceList@CGocAppearance@@QEAAXAEAUST_APPEARANCE_LIST@@@Z | 0x1400BB270 | implemented | IDA decompile | yes | Load appearance list from database response |
-| XGameServer | GocAppearance.cpp | ?AddAppearance@CGocAppearance@@QEAAXAEAUST_APPEARANCE_LIST@@@Z | 0x1400BB640 | implemented | IDA decompile | yes | Add appearance items from list |
-| XGameServer | GocAppearance.cpp | ?AddAppearance@CGocAppearance@@QEAAXG_J@Z | 0x1400BB800 | implemented | IDA decompile | yes | Add single appearance item |
-| XGameServer | GocAppearance.cpp | ?UpdateAppearance@CGocAppearance@@QEAAXG_JAEA_J@Z | 0x1400BB8C0 | implemented | IDA decompile | yes | Update appearance expiration time |
-| XGameServer | GocAppearance.cpp | ?IsHaveAppearance@CGocAppearance@@QEAA_NG@Z | 0x1400BB6E0 | implemented | IDA decompile | yes | Check if player has specific appearance |
-| XGameServer | GocAppearance.cpp | ?EquipAppearance@CGocAppearance@@QEAAXAEAUUAppearanceEx@@@Z | 0x1400BB9D0 | implemented | IDA decompile | yes | Equip appearance to player |
-| XGameServer | GocAppearance.cpp | ?SendEquipAppearance@CGocAppearance@@QEAAXXZ | 0x1400BBC70 | implemented | IDA decompile | yes | Send equipped appearance to nearby players |
-| XGameServer | GocAppearance.cpp | ?OnAppearanceUpdate@CGocAppearance@@QEAAXXZ | 0x1400BBDD0 | implemented | IDA decompile | yes | Update appearance on periodic check (expire old appearances) |
-| XGameServer | GocAppearance.cpp | ?CanUseItemAppearance@CGocAppearance@@QEAA_NAEBV?$shared_ptr@VCItem@@@@@Z | 0x1400DC260 | implemented | IDA decompile | yes | Check if appearance item can be used |
-| XGameServer | GocAppearance.cpp | ?UseItemAppearance@CGocAppearance@@QEAA_NAEBV?$shared_ptr@VCItem@@@@@Z | 0x1400DC450 | implemented | IDA decompile | yes | Use appearance item |
 | XGameServer | ItemCostume.cpp | ?CanBroachActive@CItemCostume@@QEAA_NE@Z | 0x140288080 | implemented | IDA decompile | yes | Check if broach can be activated in slot |
 | XGameServer | ItemCostume.cpp | ?GetCostumeGestureInfo@CItemCostume@@SA_NKAEAK@Z | 0x1400E1AE0 | implemented | IDA decompile | yes | Get costume gesture info |
 | XGameServer | ItemCostume.cpp | ?GetCostumeEqualizerInfo@CItemCostume@@SA_NKAEAK@Z | 0x1400E2600 | implemented | IDA decompile | yes | Get costume equalizer info |
@@ -58511,11 +58227,6 @@ yes | ?????????? |
 | XGameServer | GocAttribute.cpp | CGocAttribute::Revive | 0x14003CE30 | implemented | IDA decompile | yes | Revive actor - restore full stats and trigger revive effects |
 | XGameServer | GocAttribute.cpp | CGocAttribute::SetContinousCost | 0x14003CF80 | implemented | IDA decompile | yes | Set continuous cost for HP/SG/ST/SV with time-based drain |
 | XGameServer | GocPost.cpp | ?RecvPostInfo@CGocPost@@QEAAXUST_POST_DATA@@G@Z | 0x1401100C0 | implemented | IDA decompile | yes | Mail receive and send to client |
-| XGameServer | GocPost.cpp | ?SendDBPostList@CGocPost@@QEAAXXZ | 0x140114AB0 | implemented | IDA decompile | yes | Send 6 DB requests for post lists |
-| XGameServer | GocPost.cpp | ?SendPostSendList@CGocPost@@QEAAXXZ | 0x140115000 | implemented | IDA decompile | yes | Send send post list in batches of 10 |
-| XGameServer | GocPost.cpp | ?SendPostRecvList@CGocPost@@QEAAXXZ | 0x140115290 | implemented | IDA decompile | yes | Send recv post list in batches of 10 |
-| XGameServer | GocPost.cpp | ?SendPostAccountList@CGocPost@@QEAAXXZ | 0x140115500 | implemented | IDA decompile | yes | Send account post list in batches of 10 |
-| XGameServer | GocPost.cpp | ?SendPostSaveList@CGocPost@@QEAAXXZ | 0x140115930 | implemented | IDA decompile | yes | Send save post list in batches of 10 |
 | XGameServer | GocPost.cpp | ?PostReceipt@CGocPost@@QEAAX_J@Z | 0x140112D60 | implemented | IDA decompile | yes | Clear money and items from post |
 | XGameServer | GocPost.cpp | ?SetPostAccountReceipt@CGocPost@@QEAAX_J@Z | 0x140112E50 | implemented | IDA decompile | yes | Clear money and items from account post |
 | XGameServer | GocPost.cpp | ?CanRead@CGocPost@@QEAA_N_JAEAEAEA_N@Z | 0x14010E080 | implemented | IDA decompile | yes | Check if post can be read |
@@ -58532,7 +58243,6 @@ yes | ?????????? |
 | XGameServer | GocPost.cpp | ?CanReceiptAll@CGocPost@@QEAA_N_JAEAEEAEA_N@Z | 0x14011C210 | implemented | IDA decompile | yes | Check if post can be receipted all |
 | XGameServer | GocPost.cpp | ?SendCoupounReward@CGocPost@@QEAAXHHE@Z | 0x14010DCA0 | implemented | IDA decompile | yes | Send coupon reward via mail |
 | XGameServer | GocPost.cpp | ?CheckGMTSystemPostSendCondition@CGocPost@@QEAA_NAEAUST_GMT_POST_CONDITION@@@Z | 0x14010F530 | implemented | IDA decompile | yes | Check GMT post send condition |
-| XGameServer | GocPost.cpp | ?DBReqGMTSendPostList@CGocPost@@QEAA_NH@Z | 0x14010F3F0 | implemented | IDA decompile | yes | Request GMT send post list |
 | XGameServer | GocEntity.cpp | ??0CGocEntity@@QEAA@XZ | 0x14005B440 | implemented | IDA decompile | yes | Entity constructor - initialize all member variables |
 | XGameServer | GocEntity.cpp | ??1CGocEntity@@UEAA@XZ | 0x14005B610 | implemented | IDA decompile | yes | Entity destructor - clean up in reverse order |
 | XGameServer | GocEntity.cpp | ?Init@CGocEntity@@QEAAXXZ | 0x14005B6E0 | implemented | IDA decompile | yes | Initialize entity state - clear all data |
@@ -58601,24 +58311,14 @@ yes | ?????????? |
 | XGameServer | GocEntity.cpp | ?SendRoguelikeCurrentInfo@CGocEntity@@QEAAXXZ | 0x140066430 | implemented | IDA decompile | yes | Send current roguelike info |
 | XGameServer | GocEntity.cpp | ?AddTitleAll@CGocEntity@@QEAAXH@Z | 0x140066530 | implemented | IDA decompile | yes | Add all titles to player |
 | XGameServer | GocEntity.cpp | ?InitRoguelikeMap@CGocEntity@@QEAAXXZ | 0x140065830 | implemented | IDA decompile | yes | Initialize roguelike map list |
-| XGameServer | GocInventory.cpp | CGocInventory::Equip | 0x1400A5960 | implemented | IDA decompile | yes | Equip item to slot with set bonus handling and character sync |
-| XGameServer | GocInventory.cpp | CGocInventory::Unequip | 0x1400A5B10 | implemented | IDA decompile | yes | Unequip item from slot with set bonus handling and character info clear |
-| XGameServer | GocInventory.cpp | CGocInventory::ExchangeEquipSlot | 0x1400A5F30 | implemented | IDA decompile | yes | Exchange equipment slots within same equipment type |
 | XGameServer | GocInventory.cpp | CGocInventory::SetEquipItem | 0x1400A1380 | implemented | IDA decompile | yes | Set equipment items from DB response with validation and item creation |
-| XGameServer | GocInventory.cpp | CGocInventory::IsValidMoveMoney | 0x1400A6060 | implemented | IDA decompile | yes | Validate and process money move between inventory and bank |
 | XGameServer | GocInventory.cpp | CGocInventory::AddItem | 0x1400A6B60 | implemented | IDA decompile | yes | Add item to inventory or equipment by type with slot routing |
-| XGameServer | GocInventory.cpp | CGocInventory::SetBankStep | 0x1400A1290 | implemented | IDA decompile | yes | Set bank extend steps based on nation type (JPN vs non-JPN) |
-| XGameServer | GocInventory.cpp | CGocInventory::PushRepurchaserItem | 0x1400A4F60 | implemented | IDA decompile | yes | Precise restoration - repurchaser list management with 12-item limit, overflow to DB |
-| XGameServer | GocInventory.cpp | CGocInventory::EraseRepurchaserItem | 0x1400A5490 | implemented | IDA decompile | yes | Erase item from repurchaser/socket/broach lists by serial |
 | XGameServer | GocInventory.cpp | CGocInventory::IsRepurchaserItem | 0x1400A56D0 | implemented | IDA decompile | yes | Check if item is in repurchaser list by serial/ID/count |
-| XGameServer | GocInventory.cpp | CGocInventory::ClearInven | 0x1400A0000 | implemented | IDA decompile | yes | Precise restoration - clears all currency values |
 | XGameServer | GocInventory.cpp | CGocInventory::ClearTradeInfo | 0x1400A0080 | implemented | IDA decompile | yes | Clear trade money and info list |
 | XGameServer | GocInventory.cpp | CGocInventory::Init | 0x1400A00C0 | implemented | IDA decompile | yes | Initialize all inventory components with nation-type bank setup |
 | XGameServer | GocInventory.cpp | CGocInventory::SetMileage | 0x1400A0A40 | implemented | IDA decompile | yes | Set dye, renovate, and refine points |
-| XGameServer | GocInventory.cpp | CGocInventory::GetInvenPtr | 0x1400A2170 | implemented | IDA decompile | yes | Get inventory pointer by type with switch routing |
 | XGameServer | GocInventory.cpp | CGocInventory::GetEquipPtr | 0x1400A22D0 | implemented | IDA decompile | yes | Get equipment pointer from map by type |
 | XGameServer | GocInventory.cpp | CGocInventory::SetInvenMoney | 0x1400A2340 | implemented | IDA decompile | yes | Set inventory money and update CUser char info |
-| XGameServer | GocInventory.cpp | CGocInventory::AddMoney | 0x1400A24C0 | implemented | IDA decompile | yes | Add money with overflow check, DB update, and game log |
 | XGameServer | GocFriend.cpp | ??0CGocFriend@@QEAA@XZ | 0x1400864C0 | implemented | IDA decompile | yes | Constructor - Initialize boost::multi_index containers for friends and block list |
 | XGameServer | GocFriend.cpp | ??1CGocFriend@@UEAA@XZ | 0x140086610 | implemented | IDA decompile | yes | Destructor - Clean up friend and block list containers |
 | XGameServer | GocFriend.cpp | ?Init@CGocFriend@@QEAAXXZ | 0x140086670 | implemented | IDA decompile | yes | Initialize friend system - calls Reset() |
@@ -58662,14 +58362,10 @@ yes | ?????????? |
 | XGameServer | GocEvent.cpp | CGocEvent::SetStartNetCafeMission | 0x14006EC60 | implemented | IDA decompile | yes | Start/stop netcafe mission with DB load request |
 | XGameServer | GocEvent.cpp | CGocEvent::GetNetCafeMissionTime | 0x14006F480 | implemented | IDA decompile | yes | Get netcafe mission time range by ID (daily/weekly/monthly) |
 
-| XGameServer | GocInventory.cpp | CGocInventory::SendMoney | 0x1400A2D70 | implemented | IDA decompile | yes | Send inventory money to client via packet (main=8, sub=0x20) |
 | XGameServer | GocInventory.cpp | CGocInventory::SendBankMoney | 0x1400A23E0 | implemented | IDA decompile | yes | Send bank money to client via packet (main=8, sub=0x21) |
 | XGameServer | GocInventory.cpp | CGocInventory::SendEther | 0x1400A4450 | implemented | IDA decompile | yes | Send Ether value to client via packet (main=8, sub=0x32) |
-| XGameServer | GocInventory.cpp | CGocInventory::SendTotalFriendPoint | 0x1400A4E30 | implemented | IDA decompile | yes | Send friend points to client via packet (main=8, sub=0x34) |
-| XGameServer | GocInventory.cpp | CGocInventory::SendCash | 0x1400A4B10 | implemented | IDA decompile | yes | Send cash amount to client via packet (main=8, sub=0x33) |
 | XGameServer | GocInventory.cpp | CGocInventory::LoadCash | 0x1400A4530 | implemented | IDA decompile | yes | Load cash from database via CGocNetwork |
 | XGameServer | GocInventory.cpp | CGocInventory::ReloadCash | - | implemented | IDA decompile | yes | Reload cash data from database |
-| XGameServer | GocInventory.cpp | CGocInventory::SetCashMileage | - | implemented | IDA decompile | yes | Set cash mileage information |
 | XGameServer | GocInventory.cpp | CGocInventory::SendDBCashMileageUpdate | - | implemented | IDA decompile | yes | Send cash mileage update to database |
 | XGameServer | GocInventory.cpp | CGocInventory::LoadCashBuyCount | - | implemented | IDA decompile | yes | Load cash purchase counts from database |
 | XGameServer | GocInventory.cpp | CGocInventory::UpdateCashBuyCount | - | implemented | IDA decompile | yes | Update cash purchase count with date validation |
@@ -58681,87 +58377,20 @@ yes | ?????????? |
 | XGameServer | GocInventory.cpp | CGocInventory::AddItem (by item ID) | - | implemented | IDA decompile | yes | Add item to inventory by item ID |
 | XGameServer | GocInventory.cpp | CGocInventory::RemoveItem | - | implemented | IDA decompile | yes | Remove item from inventory by item ID |
 | XGameServer | GocInventory.cpp | CGocInventory::MoveItem | - | implemented | IDA decompile | yes | Move item between inventory slots |
-| XGameServer | GocInventory.cpp | CGocInventory::SetTradeState | - | implemented | IDA decompile | yes | Set player trade state flag |
 | XGameServer | GocInventory.cpp | CGocInventory::GetSimpleEmptySlotCount | 0x140068290 | implemented | IDA decompile | yes | Get simple count of empty inventory slots |
 | XGameServer | GocInventory.cpp | CGocInventory::PushRepurchaserItem | 0x1400A4F60 | implemented | IDA decompile | yes | Push item to repurchase list with overflow check |
 | XGameServer | GocInventory.cpp | CGocInventory::EraseRepurchaserItem | 0x1400A5490 | implemented | IDA decompile | yes | Erase item from repurchase list by serial |
 | XGameServer | GocInventory.cpp | CGocInventory::GetRepurchaserItem | - | implemented | IDA decompile | yes | Get item from repurchase list by index |
 | XGameServer | GocInventory.cpp | CGocInventory::ClearRepurchaserItem | - | implemented | IDA decompile | yes | Clear all items from repurchase list |
-| XGameServer | GocInventory.cpp | CGocInventory::IsCanEquip | - | implemented | IDA decompile | yes | Check if item can be equipped |
 | XGameServer | GocInventory.cpp | CGocInventory::GetEmptyEquipSlot | - | implemented | IDA decompile | yes | Find empty equipment slot |
 | XGameServer | GocInventory.cpp | CGocInventory::GetEquipItemBySerial | 0x1400B1680 | implemented | IDA decompile | yes | Get equipment item by serial ID |
 | XGameServer | GocInventory.cpp | CGocInventory::IsUseItem | - | implemented | IDA decompile | yes | Check if item is usable |
 | XGameServer | GocInventory.cpp | CGocInventory::GetItemBySerial | - | implemented | IDA decompile | yes | Get inventory item by serial ID |
 | XGameServer | GocInventory.cpp | CGocInventory::SetItemLock | - | implemented | IDA decompile | yes | Set item lock status |
-| XGameServer | GocForce.cpp | ?IsFull@CGocForce@@QEAA_NXZ | 0x1400854B0 | implemented | IDA decompile | yes | IDA精确还原 |
-| XGameServer | GocForce.cpp | ?IsMaster@CGocForce@@QEAA_NK@Z | 0x140083160 | implemented | IDA decompile | yes | IDA精确还原 |
 | XGameServer | GocForce.cpp | ?SetForce@CGocForce@@QEAAXV?$shared_ptr@VCForce@@@tr1@std@@@Z | 0x140083F30 | implemented | IDA decompile | yes | IDA精确还原 |
-| XGameServer | GocForce.cpp | ?SendForceInfo@CGocForce@@QEAAXE@Z | 0x140084310 | implemented | IDA decompile | yes | IDA精确还原 |
-| XGameServer | GocForce.cpp | ?IsMatchingDate@CGocForce@@QEAA_NXZ | 0x140085160 | implemented | IDA decompile | yes | IDA精确还原 |
-| XGameServer | GocForce.cpp | ?KickOut@CGocForce@@QEAA_NKPEAVCUser@@@Z | 0x1400846F0 | implemented | IDA decompile | yes | IDA精确还原 |
-| XGameServer | GocForce.cpp | ?ChangeMaster@CGocForce@@QEAAXK@Z | 0x140084C80 | implemented | IDA decompile | yes | IDA精确还原 |
-| XGameServer | GocForce.cpp | ?Leave@CGocForce@@QEAAXXZ | 0x140084480 | implemented | IDA decompile | yes | IDA精确还原 |
-| XGameServer | GocForce.cpp | ?Logout@CGocForce@@QEAAXXZ | 0x140084010 | implemented | IDA decompile | yes | IDA精确还原 |
-| XGameServer | GocForce.cpp | ?SetHP@CGocForce@@QEAAXH@Z | 0x140083970 | implemented | IDA decompile | yes | IDA精确还原 |
-| XGameServer | GocForce.cpp | ?SetMaxHP@CGocForce@@QEAAXH@Z | 0x1400838B0 | implemented | IDA decompile | yes | IDA精确还原 |
-| XGameServer | GocForce.cpp | ?SetLevel@CGocForce@@QEAAXH@Z | 0x140083730 | implemented | IDA decompile | yes | IDA精确还原 |
-| XGameServer | GocForce.cpp | ?SetAwaken@CGocForce@@QEAAXE@Z | 0x1400837B0 | implemented | IDA decompile | yes | IDA精确还原 |
-| XGameServer | GocForce.cpp | ?SetProfilePhoto@CGocForce@@QEAAXK@Z | 0x140083830 | implemented | IDA decompile | yes | IDA精确还原 |
-| XGameServer | GocForce.cpp | ?SetMapID@CGocForce@@QEAAXHHTUXMapID@@@Z | 0x140083690 | implemented | IDA decompile | yes | IDA精确还原 |
-| XGameServer | GocForce.cpp | ?UpdatePartyBooster@CGocForce@@QEAAXXZ | 0x140084EE0 | implemented | IDA decompile | yes | IDA精确还原 |
-| XGameServer | GocForce.cpp | ?UpdatePartyBoosterByCount@CGocForce@@QEAAXHH@Z | 0x140084F30 | implemented | IDA decompile | yes | IDA精确还原 |
-| XGameServer | GocForce.cpp | ?ReserveReviveAll@CGocForce@@QEAAXKK@Z | 0x140083350 | implemented | IDA decompile | yes | IDA精确还原 |
-| XGameServer | GocForce.cpp | ?LoadRecode@CGocForce@@QEAAXXZ | 0x14010B430 | implemented | IDA decompile | yes | IDA精确还原 |
-| XGameServer | GocForce.cpp | ?NeedReviveBuffUser@CGocForce@@QEAA_NXZ | 0x14010C7A0 | implemented | IDA decompile | yes | IDA精确还原 |
-| XGameServer | GocForce.cpp | ?DeletePartyBoost@CGocForce@@QEAAXXZ | 0x14010C940 | implemented | IDA decompile | yes | IDA精确还原 |
 | XGameServer | GocForce.cpp | ?GetForceMember@CGocForce@@QEAAXPEAVCUser@@AEAV?$vector@PEAVCForceMember@@V?$allocator@PEAVCForceMember@@@std@@@std@@_N@Z | 0x14010C9B0 | implemented | IDA decompile | yes | IDA精确还原 |
-| XGameServer | GocForce.cpp | ?GetForceUserCount@CGocForce@@QEAAEXZ | 0x14010D330 | implemented | IDA decompile | yes | IDA精确还原 |
-| XGameServer | GocForce.cpp | ?GetMasterID@CGocForce@@QEAAKXZ | 0x14010D410 | implemented | IDA decompile | yes | IDA精确还原 |
-| XGameServer | GocForce.cpp | ?SetExp@CGocForce@@QEAAXPEAVCUser@@MH@Z | 0x140083A30 | implemented | IDA decompile | yes | IDA精确还原 |
-| XGameServer | GocForce.cpp | ?IsMember@CGocForce@@QEAA_NPEAVXActor@@@Z | 0x14010BBB0 | implemented | IDA decompile | yes | 检查成�?需要XActor::GetActorID |
-| XGameServer | GocForce.cpp | ?CheckPassiveSkill@CGocForce@@QEAAXPEAVCUser@@EE@Z | 0x1400851B0 | implemented | IDA decompile | yes | 检查被动技�?需要CParty::CheckPassiveSkill |
-| XGameServer | GocForce.cpp | ?CheckForceMatchingEnter@CGocForce@@QEAA_NXZ | 0x140085210 | implemented | IDA decompile | yes | 检查匹配进�?需要成员迭代器 |
-| XGameServer | GocMyRoom.cpp | ?OnUpdate@CGocMyroom@@QEAAXM@Z | 0x1400FAF50 | implemented | IDA decompile | yes | IDA精确还原 |
-| XGameServer | GocMyRoom.cpp | ?UpdateData@CGocMyroom@@QEAAXXZ | 0x1400FB0F0 | implemented | IDA decompile | yes | IDA精确还原 |
-| XGameServer | GocMyRoom.cpp | ?SetMyRoomInfo@CGocMyroom@@QEAAXUST_MYROOM_OWNER_INFO@@@Z | 0x1400FC370 | implemented | IDA decompile | yes | IDA精确还原 |
-| XGameServer | GocMyRoom.cpp | ?SendMyRoomLoad@CGocMyroom@@QEAAXXZ | 0x1400FB780 | implemented | IDA decompile | yes | IDA精确还原 |
-| XGameServer | GocMyRoom.cpp | ?PollenCultivation@CGocMyroom@@QEAAXAEAUPS_DB_MYROOM_POLLEN_CULTIVATION@@@Z | 0x1400FBA60 | implemented | IDA decompile | yes | IDA精确还原 |
-| XGameServer | GocMyRoom.cpp | ?PollenItemUse@CGocMyroom@@QEAAXUPS_MYROOM_POLLEN_INFO@@@Z | 0x1400FBD50 | implemented | IDA decompile | yes | IDA精确还原 |
-| XGameServer | GocMyRoom.cpp | ?PollenAddHelpUser@CGocMyroom@@QEAAXHUPS_MYROOM_POLLEN_HELP_USER@@_J@Z | 0x1400FBED0 | implemented | IDA decompile | yes | IDA精确还原 |
-| XGameServer | GocMyRoom.cpp | ?SendDBMyRoomIndex@CGocMyroom@@QEAAXXZ | 0x1400FC0C0 | implemented | IDA decompile | yes | IDA精确还原 |
-| XGameServer | GocMyRoom.cpp | ?SendPollenUpdate@CGocMyroom@@QEAAXUPS_MYROOM_POLLEN_INFO@@@Z | 0x1400FC1D0 | implemented | IDA decompile | yes | IDA精确还原 |
-| XGameServer | GocMyRoom.cpp | ?SetPollenLockCount@CGocMyroom@@QEAA_NHE@Z | 0x1400FC2B0 | implemented | IDA decompile | yes | IDA精确还原 |
-| XGameServer | GocMyRoom.cpp | ?LoadMyroomRecommend@CGocMyroom@@QEAAXUPS_MYROOM_RECOMMEND_LIST@@@Z | 0x1400FC520 | implemented | IDA decompile | yes | IDA精确还原 |
-| XGameServer | GocMyRoom.cpp | ?Recommend@CGocMyroom@@QEAAXKK@Z | 0x1400FC8F0 | implemented | IDA decompile | yes | IDA精确还原 |
-| XGameServer | GocMyRoom.cpp | ?SendRecommend@CGocMyroom@@QEAAXUPS_RES_MYROOM_RECOMMEND@@@Z | 0x1400FCF70 | implemented | IDA decompile | yes | IDA精确还原 |
-| XGameServer | GocMyRoom.cpp | ?SendFavoriteList@CGocMyroom@@QEAAXUPS_MYROOM_FAVORITE_LIST@@@Z | 0x1400FC810 | implemented | IDA decompile | yes | IDA精确还原 |
-| XGameServer | GocMyRoom.cpp | ?SendFavoriteInfo@CGocMyroom@@QEAAXXZ | 0x1400FD040 | implemented | IDA decompile | yes | IDA精确还原 |
-| XGameServer | GocMyRoom.cpp | ?CheckFavorite@CGocMyroom@@QEAAHUPS_REQ_MYROOM_FAVORITE@@K@Z | 0x1400FDF30 | implemented | IDA decompile | yes | IDA精确还原 |
-| XGameServer | GocMyRoom.cpp | ?LoadBoardList@CGocMyroom@@QEAAXUPS_REQ_MYROOM_BOARD_INFO@@@Z | 0x1400FD160 | implemented | IDA decompile | yes | IDA精确还原 |
-| XGameServer | GocMyRoom.cpp | ?SendBoardList@CGocMyroom@@QEAAXUPS_MYROOM_BOARD_LIST@@@Z | 0x1400FD240 | implemented | IDA decompile | yes | IDA精确还原 |
-| XGameServer | GocMyRoom.cpp | ?GetCrop@CGocMyroom@@QEAAXPEAUPS_MYROOM_BOARD_POT@@@Z | 0x1400FD360 | implemented | IDA decompile | yes | IDA精确还原 |
-| XGameServer | GocMyRoom.cpp | ?WriteBoard@CGocMyroom@@QEAAXUPS_REQ_MYROOM_BOARD_WRITE@@@Z | 0x1400FD480 | implemented | IDA decompile | yes | IDA精确还原 |
-| XGameServer | GocMyRoom.cpp | ?SendBoardWrite@CGocMyroom@@QEAAXUPS_RES_MYROOM_BOARD_WRITE@@@Z | 0x1400FDAB0 | implemented | IDA decompile | yes | IDA精确还原 |
-| XGameServer | GocMyRoom.cpp | ?SendWriteBoardInfo@CGocMyroom@@QEAAXXZ | 0x1400FE040 | implemented | IDA decompile | yes | IDA精确还原 |
-| XGameServer | GocMyRoom.cpp | ?SendMyroomRankInfo@CGocMyroom@@QEAAXXZ | 0x1400FDE00 | implemented | IDA decompile | yes | IDA精确还原 |
-| XGameServer | GocMyRoom.cpp | ?GetRankRewardID@CGocMyroom@@QEAAHXZ | 0x1400FE290 | implemented | IDA decompile | yes | IDA精确还原 |
-| XGameServer | GocMyRoom.cpp | ?CheckRank@CGocMyroom@@QEAAHK@Z | 0x1400FE380 | implemented | IDA decompile | yes | IDA精确还原 |
-| XGameServer | GocMyRoom.cpp | ?RankReward@CGocMyroom@@QEAAXUPS_DB_MYROOM_RANK_REWARD@@@Z | 0x1400FE7F0 | implemented | IDA decompile | yes | IDA精确还原 |
-| XGameServer | GocMyRoom.cpp | ?SendRankRewardPost@CGocMyroom@@QEAAXKUST_CREATE_ITEMS@@@Z | 0x1400FE980 | implemented | IDA decompile | yes | IDA精确还原 |
-| XGameServer | GocMyRoom.cpp | ?SendDBLog@CGocMyroom@@QEAAXFKH@Z | 0x1400FEBD0 | implemented | IDA decompile | yes | IDA精确还原 |
-| XGameServer | GocPost.cpp | ?SendDBPostList@CGocPost@@QEAAXXZ | 0x140114AB0 | implemented | IDA decompile | yes | 发送DB邮件列表-发�?个DB请求 |
-| XGameServer | GocPost.cpp | ?SendPostSendList@CGocPost@@QEAAXXZ | 0x140115000 | implemented | IDA decompile | yes | 发送已发送列�?每批10�?|
-| XGameServer | GocPost.cpp | ?SendPostRecvList@CGocPost@@QEAAXXZ | 0x140115290 | implemented | IDA decompile | yes | 发送接收列�?每批10�?|
-| XGameServer | GocPost.cpp | ?SendPostAccountList@CGocPost@@QEAAXXZ | 0x140115500 | implemented | IDA decompile | yes | 发送账号邮件列�?每批10�?|
-| XGameServer | GocPost.cpp | ?SendPostSaveList@CGocPost@@QEAAXXZ | 0x140115930 | implemented | IDA decompile | yes | 发送保存列�?每批10�?|
 | XGameServer | GocPost.cpp | ?RecvPostInfo@CGocPost@@QEAAXAEAVST_POST_DATA@@G@Z | 0x1401100C0 | implemented | IDA decompile | yes | 接收邮件信息-更新每日任务 |
-| XGameServer | GocPost.cpp | ?SetDBSync@CGocPost@@QEAAXI_N@Z | 0x140115BB0 | implemented | IDA decompile | yes | 设置DB同步标志-发送日�?|
-| XGameServer | GocPost.cpp | ?SendLevelUpEvent@CGocPost@@QEAAXHH@Z | 0x14011CF40 | implemented | IDA decompile | yes | 发送升级事�?需要TB_LEVEL_MAIL |
-| XGameServer | GocPost.cpp | ?SendLevelUpEventPost@CGocPost@@QEAA_NPEAUTB_LEVEL_MAIL@@@Z | 0x14011D9D0 | implemented | IDA decompile | yes | 发送升级邮�?系统/账号邮件路径 |
-| XGameServer | GocPost.cpp | ?ResetLevelUpEvent@CGocPost@@QEAAXXZ | 0x14011E100 | implemented | IDA decompile | yes | 重置升级事件-清空map |
-| XGameServer | GocPost.cpp | ?SendAutoMail@CGocPost@@QEAA_NG@Z | 0x14011C450 | implemented | IDA decompile | yes | 发送自动邮�?需要TB_SYSTEMMAIL_ADD |
 | XGameServer | GocPost.cpp | ?LoadRestoreItem@CGocPost@@QEAAXAEAVPS_ITEM_RESTORE_LIST@@@Z | 0x14011E240 | implemented | IDA decompile | yes | 加载恢复物品-需要XItemFactory |
-| XGameServer | GocPost.cpp | ?SendRestorePost@CGocPost@@QEAAXXZ | 0x14011E680 | implemented | IDA decompile | yes | 发送恢复邮�?每批20�?|
 | XGameServer | GocPost.cpp | ?SendRestoreAttendancePost@CGocPost@@QEAAXAEAVPS_ITEM_RESTORE_LIST@@@Z | 0x14011EC50 | implemented | IDA decompile | yes | 发送考勤恢复邮件-系统邮件路径 |
 | XGameServer | GocPost.cpp | ?AccountPostSend@CGocPost@@QEAA_NAEAVST_CREATE_ITEMS@@EG@Z | 0x14011EF60 | implemented | IDA decompile | yes | 发送账号邮�?需要XGameServer |
 | XGameServer | GocPost.cpp | ?SystemPostSend@CGocPost@@QEAA_NEG_JK@Z | 0x14010E790 | implemented | IDA decompile | yes | 系统邮件发�?带事件ID |
@@ -58772,21 +58401,8 @@ yes | ?????????? |
 | XGameServer | GocPost.cpp | ?CheckGMTSystemPostSendCondition@CGocPost@@QEAA_NAEAVST_GMT_POST_CONDITION@@@Z | 0x14010F530 | implemented | IDA decompile | yes | 检查GMT条件-等级/FP/日期检�?|
 | XGameServer | GocPost.cpp | ?DBReqGMTSendPostList@CGocPost@@QEAA_NH@Z | 0x14010F3F0 | implemented | IDA decompile | yes | 请求GMT发送列�?发送DB�?|
 | XGameServer | GocPost.cpp | ?GMTSystemPostSend@CGocPost@@QEAA_NAEAVPS_GMT_POST_LIST@@@Z | 0x14010F6B0 | implemented | IDA decompile | yes | GMT系统邮件发�?条件检�?|
-| XGameServer | GocPost.cpp | ?SendCoupounReward@CGocPost@@QEAAXHFGE@Z | 0x14010DCA0 | implemented | IDA decompile | yes | 发送优惠券奖励-账号/系统邮件路径 |
 | XGameServer | GocPost.cpp | ?GetDeletePostList@CGocPost@@QEAAXEAEAVPS_POST_DELETE_ALL_SERVER@@@Z | 0x140115E60 | implemented | IDA decompile | yes | 获取删除列表-按类型过�?|
-| XGameServer | GocInventory.cpp | CGocInventory::GetBankMoney | 0x14048CE70 | implemented | IDA decompile | yes | Simple getter for m_nBankMoney |
-| XGameServer | GocInventory.cpp | CGocInventory::GetRefinePoint | 0x1400F7810 | implemented | IDA decompile | yes | Simple getter for m_nRefinePoint |
-| XGameServer | GocInventory.cpp | CGocInventory::SetRemoveSocket | 0x1400F7920 | implemented | IDA decompile | yes | Sets m_bReqSocketRemove flag |
-| XGameServer | GocInventory.cpp | CGocInventory::GetHanBillNo | 0x1400F7B90 | implemented | IDA decompile | yes | Returns pointer to m_szHanBillNo |
-| XGameServer | GocInventory.cpp | CGocInventory::GetTradePasswordState | 0x1400F93B0 | implemented | IDA decompile | yes | Returns m_byTradePassword |
-| XGameServer | GocInventory.cpp | CGocInventory::GetTradeActorID | 0x1400F9C20 | implemented | IDA decompile | yes | Returns m_uxTradeActorID |
-| XGameServer | GocInventory.cpp | CGocInventory::GetTradeState | 0x1400F9C50 | implemented | IDA decompile | yes | Returns m_eTradeState |
-| XGameServer | GocInventory.cpp | CGocInventory::GetTradeMoney | 0x1400F9CB0 | implemented | IDA decompile | yes | Returns m_stTradeInfo.biMoney |
 | XGameServer | GocInventory.cpp | CGocInventory::SetTradePasswordState | 0x1401E7F20 | implemented | IDA decompile | yes | Sets m_byTradePassword |
-| XGameServer | GocInventory.cpp | CGocInventory::SetSocketExtract | 0x1404EAAD0 | implemented | IDA decompile | yes | Sets m_bReqSocketExtract flag |
-| XGameServer | GocInventory.cpp | CGocInventory::GetSocketExtract | 0x1404EAAF0 | implemented | IDA decompile | yes | Returns m_bReqSocketExtract |
-| XGameServer | GocInventory.cpp | CGocInventory::SetSocketUpgrade | 0x1404EAB10 | implemented | IDA decompile | yes | Sets m_bReqSocketUpgrade flag |
-| XGameServer | GocInventory.cpp | CGocInventory::GetSocketUpgrade | 0x1404EAB30 | implemented | IDA decompile | yes | Returns m_bReqSocketUpgrade |
 | XGameServer | GocInventory.cpp | CGocInventory::SetSocketExchange | 0x1404EAB80 | implemented | IDA decompile | yes | Sets m_bReqSocketExchange flag |
 | XGameServer | GocInventory.cpp | CGocInventory::GetSocketExchange | 0x1404EABA0 | implemented | IDA decompile | yes | Returns m_bReqSocketExchange |
 | XGameServer | GocInventory.cpp | CGocInventory::SetItemRefineReq | 0x1404EAC00 | implemented | IDA decompile | yes | Sets m_bReqItemRefine flag |
@@ -58797,11 +58413,6 @@ yes | ?????????? |
 | XGameServer | GocInventory.cpp | CGocInventory::AddRenovatePoint | 0x1400E56B0 | implemented | IDA decompile | yes | Adds renovate points with overflow check and logging |
 | XGameServer | GocInventory.cpp | CGocInventory::SetRefinePoint | 0x1400E5890 | implemented | IDA decompile | yes | Sets m_nRefinePoint value |
 | XGameServer | GocInventory.cpp | CGocInventory::AddRefinePoint | 0x1400E5910 | implemented | IDA decompile | yes | Adds refine points with overflow check and logging |
-| XGameServer | GocInventory.cpp | CGocInventory::ClearToolDisassemlbe | 0x14060D770 | implemented | IDA decompile | yes | Clears m_stToolDisassemble vector |
-| XGameServer | GocInventory.cpp | CGocInventory::ClearToolSoulstoneInfo | 0x14060D790 | implemented | IDA decompile | yes | Clears m_stToolSoulstone.vecInfo vector |
-| XGameServer | GocInventory.cpp | CGocInventory::ClearToolGachaInfo | 0x14060D9B0 | implemented | IDA decompile | yes | Clears m_stToolItemInfo.vecInfo vector |
-| XGameServer | GocInventory.cpp | CGocInventory::ClearToolRandomBoxInfo | 0x14060DA00 | implemented | IDA decompile | yes | Clears m_stToolRandomBoxRes vector |
-| XGameServer | GocInventory.cpp | CGocInventory::GetPrivateShopItemCount | 0x140622430 | implemented | IDA decompile | yes | Returns size of m_liPrivateShopItem list |
 | XGameServer | GocInventory.cpp | CGocInventory::IsHelperItem | 0x1400AF6C0 | implemented | IDA decompile | yes | Checks if item is helper item by slot type |
 | XGameServer | GocInventory.cpp | CGocInventory::ConvertHelperInvenSlot | 0x1400AF660 | implemented | IDA decompile | yes | Converts helper slot type to inventory slot |
 
@@ -58827,68 +58438,11 @@ yes | ?????????? |
 # Total: ~80 functions marked as implemented with IDA logic, verified=no
 
 # GocForce.cpp functions (29 stub implementations)
-| XGameServer | GocForce.cpp | ?IsFull@CGocForce@@QEAA_NXZ | 0x1400854B0 | implemented | IDA decompile | yes | Force full check - needs CParty::GetUserCount |
-| XGameServer | GocForce.cpp | ?IsMaster@CGocForce@@QEAA_NK@Z | 0x140083160 | implemented | IDA decompile | yes | Force master check - needs CForce::GetMasterID |
-| XGameServer | GocForce.cpp | ?SendForceInfo@CGocForce@@QEAAXE@Z | 0x140084310 | implemented | IDA decompile | yes | Send force info packet - needs PS_FORCE_INFO |
-| XGameServer | GocForce.cpp | ?IsMatchingDate@CGocForce@@QEAA_NXZ | 0x140085160 | implemented | IDA decompile | yes | Matching date check - needs XGameServer::GetCurDate |
-| XGameServer | GocForce.cpp | ?KickOut@CGocForce@@QEAA_NKPEAVCUser@@@Z | 0x1400846F0 | implemented | IDA decompile | yes | Kick member from force - complex validation |
-| XGameServer | GocForce.cpp | ?ChangeMaster@CGocForce@@QEAAXK@Z | 0x140084C80 | implemented | IDA decompile | yes | Change force master - needs master validation |
-| XGameServer | GocForce.cpp | ?Leave@CGocForce@@QEAAXXZ | 0x140084480 | implemented | IDA decompile | yes | Leave force - send PS_FORCE_LEAVE |
-| XGameServer | GocForce.cpp | ?Logout@CGocForce@@QEAAXXZ | 0x140084010 | implemented | IDA decompile | yes | Force logout handling |
-| XGameServer | GocForce.cpp | ?SetHP@CGocForce@@QEAAXH@Z | 0x140083970 | implemented | IDA decompile | yes | Set member HP - needs CForce::SetMemberHP |
-| XGameServer | GocForce.cpp | ?SetMaxHP@CGocForce@@QEAAXH@Z | 0x1400838B0 | implemented | IDA decompile | yes | Set member max HP |
-| XGameServer | GocForce.cpp | ?SetLevel@CGocForce@@QEAAXH@Z | 0x140083730 | implemented | IDA decompile | yes | Set member level |
-| XGameServer | GocForce.cpp | ?SetAwaken@CGocForce@@QEAAXE@Z | 0x1400837B0 | implemented | IDA decompile | yes | Set member awaken grade |
-| XGameServer | GocForce.cpp | ?SetProfilePhoto@CGocForce@@QEAAXK@Z | 0x140083830 | implemented | IDA decompile | yes | Set member profile photo |
-| XGameServer | GocForce.cpp | ?SetMapID@CGocForce@@QEAAXHHTUXMapID@@@Z | 0x140083690 | implemented | IDA decompile | yes | Set member map ID |
-| XGameServer | GocForce.cpp | ?UpdatePartyBooster@CGocForce@@QEAAXXZ | 0x140084EE0 | implemented | IDA decompile | yes | Update force booster - needs CForce::UpdateForceBooster |
-| XGameServer | GocForce.cpp | ?UpdatePartyBoosterByCount@CGocForce@@QEAAXHH@Z | 0x140084F30 | implemented | IDA decompile | yes | Update booster by count - needs TB_PARTYEXP_MEMBER |
-| XGameServer | GocForce.cpp | ?ReserveReviveAll@CGocForce@@QEAAXKK@Z | 0x140083350 | implemented | IDA decompile | yes | Reserve revive all members |
-| XGameServer | GocForce.cpp | ?LoadRecode@CGocForce@@QEAAXXZ | 0x14010B430 | implemented | IDA decompile | yes | Load maze record - needs CGocRecode |
-| XGameServer | GocForce.cpp | ?NeedReviveBuffUser@CGocForce@@QEAA_NXZ | 0x14010C7A0 | implemented | IDA decompile | yes | Check revive buff need |
-| XGameServer | GocForce.cpp | ?DeletePartyBoost@CGocForce@@QEAAXXZ | 0x14010C940 | implemented | IDA decompile | yes | Delete party booster - needs CGocBooster |
 | XGameServer | GocForce.cpp | ?GetForceMember@CGocForce@@QEAAXPEAVCUser@@AEAV?@PEAVCForceMember@@V?@PEAVCForceMember@@@std@@@std@@_N@Z | 0x14010C9B0 | implemented | IDA decompile | yes | Get force member list |
-| XGameServer | GocForce.cpp | ?GetForceUserCount@CGocForce@@QEAAEXZ | 0x14010D330 | implemented | IDA decompile | yes | Get force user count - needs CParty::GetUserCount |
-| XGameServer | GocForce.cpp | ?GetMasterID@CGocForce@@QEAAKXZ | 0x14010D410 | implemented | IDA decompile | yes | Get master ID - needs CForce::GetMasterID |
-| XGameServer | GocForce.cpp | ?SetExp@CGocForce@@QEAAXPEAVCUser@@MH@Z | 0x140083A30 | implemented | IDA decompile | yes | Set experience - needs TB_PARTYEXP_LEVEL/MOB |
-| XGameServer | GocForce.cpp | ?IsMember@CGocForce@@QEAA_NPEAVXActor@@@Z | 0x14010BBB0 | implemented | IDA decompile | yes | Check if actor is member |
-| XGameServer | GocForce.cpp | ?CheckPassiveSkill@CGocForce@@QEAAXPEAVCUser@@EE@Z | 0x1400851B0 | implemented | IDA decompile | yes | Check passive skill - needs CParty::CheckPassiveSkill |
-| XGameServer | GocForce.cpp | ?CheckForceMatchingEnter@CGocForce@@QEAA_NXZ | 0x140085210 | implemented | IDA decompile | yes | Check force matching enter - needs member iteration |
-| XGameServer | GocForce.cpp | ?GetFamilyID@CGocForce@@SAHXZ | 0x140039030 | implemented | IDA decompile | yes | Get family ID - returns 22 |
 # GocMyRoom.cpp functions (29 stub implementations)
-| XGameServer | GocMyRoom.cpp | ?OnUpdate@CGocMyroom@@QEAAXM@Z | 0x1400FAF50 | implemented | IDA decompile | yes | IDA精确还原 |
-| XGameServer | GocMyRoom.cpp | ?UpdateData@CGocMyroom@@QEAAXXZ | 0x1400FB0F0 | implemented | IDA decompile | yes | IDA精确还原 |
-| XGameServer | GocMyRoom.cpp | ?SendMyRoomLoad@CGocMyroom@@QEAAXXZ | 0x1400FB780 | implemented | IDA decompile | yes | IDA精确还原 |
-| XGameServer | GocMyRoom.cpp | ?PollenCultivation@CGocMyroom@@QEAAXAEAUPS_DB_MYROOM_POLLEN_CULTIVATION@@@Z | 0x1400FBA60 | implemented | IDA decompile | yes | IDA精确还原 |
-| XGameServer | GocMyRoom.cpp | ?PollenItemUse@CGocMyroom@@QEAAXUPS_MYROOM_POLLEN_INFO@@@Z | 0x1400FBD50 | implemented | IDA decompile | yes | IDA精确还原 |
-| XGameServer | GocMyRoom.cpp | ?PollenAddHelpUser@CGocMyroom@@QEAAXHUPS_MYROOM_POLLEN_HELP_USER@@_J@Z | 0x1400FBED0 | implemented | IDA decompile | yes | IDA精确还原 |
-| XGameServer | GocMyRoom.cpp | ?SendDBMyRoomIndex@CGocMyroom@@QEAAXXZ | 0x1400FC0C0 | implemented | IDA decompile | yes | IDA精确还原 |
-| XGameServer | GocMyRoom.cpp | ?SendPollenUpdate@CGocMyroom@@QEAAXUPS_MYROOM_POLLEN_INFO@@@Z | 0x1400FC1D0 | implemented | IDA decompile | yes | IDA精确还原 |
-| XGameServer | GocMyRoom.cpp | ?SetPollenLockCount@CGocMyroom@@QEAA_NHE@Z | 0x1400FC2B0 | implemented | IDA decompile | yes | IDA精确还原 |
-| XGameServer | GocMyRoom.cpp | ?Recommend@CGocMyroom@@QEAAXKK@Z | 0x1400FC8F0 | implemented | IDA decompile | yes | IDA精确还原 |
-| XGameServer | GocMyRoom.cpp | ?SendRecommend@CGocMyroom@@QEAAXUPS_RES_MYROOM_RECOMMEND@@@Z | 0x1400FCF70 | implemented | IDA decompile | yes | IDA精确还原 |
-| XGameServer | GocMyRoom.cpp | ?SendFavoriteList@CGocMyroom@@QEAAXUPS_MYROOM_FAVORITE_LIST@@@Z | 0x1400FC810 | implemented | IDA decompile | yes | IDA精确还原 |
-| XGameServer | GocMyRoom.cpp | ?SendFavoriteInfo@CGocMyroom@@QEAAXXZ | 0x1400FD040 | implemented | IDA decompile | yes | IDA精确还原 |
-| XGameServer | GocMyRoom.cpp | ?CheckFavorite@CGocMyroom@@QEAAHUPS_REQ_MYROOM_FAVORITE@@K@Z | 0x1400FDF30 | implemented | IDA decompile | yes | IDA精确还原 |
-| XGameServer | GocMyRoom.cpp | ?LoadBoardList@CGocMyroom@@QEAAXUPS_REQ_MYROOM_BOARD_INFO@@@Z | 0x1400FD160 | implemented | IDA decompile | yes | IDA精确还原 |
-| XGameServer | GocMyRoom.cpp | ?SendBoardList@CGocMyroom@@QEAAXUPS_MYROOM_BOARD_LIST@@@Z | 0x1400FD240 | implemented | IDA decompile | yes | IDA精确还原 |
-| XGameServer | GocMyRoom.cpp | ?GetCrop@CGocMyroom@@QEAAXPEAUPS_MYROOM_BOARD_POT@@@Z | 0x1400FD360 | implemented | IDA decompile | yes | IDA精确还原 |
-| XGameServer | GocMyRoom.cpp | ?WriteBoard@CGocMyroom@@QEAAXUPS_REQ_MYROOM_BOARD_WRITE@@@Z | 0x1400FD480 | implemented | IDA decompile | yes | IDA精确还原 |
-| XGameServer | GocMyRoom.cpp | ?SendBoardWrite@CGocMyroom@@QEAAXUPS_RES_MYROOM_BOARD_WRITE@@@Z | 0x1400FDAB0 | implemented | IDA decompile | yes | IDA精确还原 |
-| XGameServer | GocMyRoom.cpp | ?SendWriteBoardInfo@CGocMyroom@@QEAAXXZ | 0x1400FE040 | implemented | IDA decompile | yes | IDA精确还原 |
-| XGameServer | GocMyRoom.cpp | ?SendMyroomRankInfo@CGocMyroom@@QEAAXXZ | 0x1400FDE00 | implemented | IDA decompile | yes | IDA精确还原 |
-| XGameServer | GocMyRoom.cpp | ?GetRankRewardID@CGocMyroom@@QEAAHXZ | 0x1400FE290 | implemented | IDA decompile | yes | IDA精确还原 |
-| XGameServer | GocMyRoom.cpp | ?CheckRank@CGocMyroom@@QEAAHK@Z | 0x1400FE380 | implemented | IDA decompile | yes | IDA精确还原 |
-| XGameServer | GocMyRoom.cpp | ?RankReward@CGocMyroom@@QEAAXUPS_DB_MYROOM_RANK_REWARD@@@Z | 0x1400FE7F0 | implemented | IDA decompile | yes | IDA精确还原 |
-| XGameServer | GocMyRoom.cpp | ?SendRankRewardPost@CGocMyroom@@QEAAXKUST_CREATE_ITEMS@@@Z | 0x1400FE980 | implemented | IDA decompile | yes | IDA精确还原 |
-| XGameServer | GocMyRoom.cpp | ?SendDBLog@CGocMyroom@@QEAAXFKH@Z | 0x1400FEBD0 | implemented | IDA decompile | yes | IDA精确还原 |
 # GocPost.cpp functions (22 stub implementations)
 | XGameServer | GocPost.cpp | ?SetDBSync@CGocPost@@QEAAXI_N@Z | 0x140115BB0 | implemented | IDA decompile | yes | Set DB sync flag - send log MainType=51 SubType=9 |
 | XGameServer | GocPost.cpp | ?SendDBPostList@CGocPost@@QEAAXXZ | 0x140114AB0 | implemented | IDA decompile | yes | Send 6 DB requests for post lists |
-| XGameServer | GocPost.cpp | ?SendPostSendList@CGocPost@@QEAAXXZ | 0x140115000 | implemented | IDA decompile | yes | Send sent post list - batch 10 |
-| XGameServer | GocPost.cpp | ?SendPostRecvList@CGocPost@@QEAAXXZ | 0x140115290 | implemented | IDA decompile | yes | Send recv post list - batch 10 |
-| XGameServer | GocPost.cpp | ?SendPostAccountList@CGocPost@@QEAAXXZ | 0x140115500 | implemented | IDA decompile | yes | Send account post list - batch 10 |
-| XGameServer | GocPost.cpp | ?SendPostSaveList@CGocPost@@QEAAXXZ | 0x140115930 | implemented | IDA decompile | yes | Send save post list - batch 10 |
 | XGameServer | GocPost.cpp | ?SetLevelUpEvent@CGocPost@@QEAAXHHH@Z | 0x14011CE60 | implemented | IDA decompile | yes | Set level up event data |
 | XGameServer | GocPost.cpp | ?SendLevelUpEvent@CGocPost@@QEAAXHH@Z | 0x14011CF40 | implemented | IDA decompile | yes | Send level up event - 3 condition types |
 | XGameServer | GocPost.cpp | ?SendLevelUpEventPost@CGocPost@@QEAA_NPEAUTB_LEVEL_MAIL@@@Z | 0x14011D9D0 | implemented | IDA decompile | yes | Send level up post - system/account path |
@@ -58916,12 +58470,11 @@ yes | ?????????? |
 | XGameServer | GocInventory.cpp | CGocInventory::UseItem | 0x1400A9A30 | implemented | IDA decompile | yes | Handle various item use types via switch on Item_Use_Type |
 | XGameServer | GocInventory.cpp | CGocInventory::CanUseItem | 0x1400AB0E0 | implemented | IDA decompile | yes | Check if item can be used based on various conditions |
 | XGameServer | GocInventory.cpp | CGocInventory::MoveItem | 0x1400A8AF0 | implemented | IDA decompile | yes | Move item between slots with validation |
-| XGameServer | GocInventory.cpp | CGocInventory::SetQuickSlotItem | 0x1400ACA50 | implemented | IDA decompile | yes | Set item to quick slot |
-| XGameServer | GocInventory.cpp | CGocInventory::LoadQuickSlotItem | 0x1400ACD50 | implemented | IDA decompile | yes | Load quick slot data from database |
+| XGameServer | GocInventory.cpp | CGocInventory::SetQuickSlotItem | 0x1400ACA50 | verified | GameServer PDB + IDA decompile/assembly + source build | yes | Set item to quick slot; decorated ABI is PS_QUICKSLOT_UPDATE_ITEM&. |
+| XGameServer | GocInventory.cpp | CGocInventory::LoadQuickSlotItem | 0x1400ACD50 | verified | GameServer PDB + IDA decompile/assembly + source build | yes | Load quick slot data from database; decorated ABI is by-value PS_QUICKSLOT_ITEM. |
 | XGameServer | GocInventory.cpp | CGocInventory::SendQuickSlotInfo | 0x1400ACE80 | implemented | IDA decompile | yes | Send quick slot info to client |
 | XGameServer | GocInventory.cpp | CGocInventory::BreakItemReq | 0x1400ADB20 | implemented | IDA decompile | yes | Handle item break/enhance request |
 | XGameServer | GocInventory.cpp | CGocInventory::OnUpdate | 0x1400AE280 | implemented | IDA decompile | yes | Periodic update for inventory state |
-| XGameServer | GocInventory.cpp | CGocInventory::UpdateTradeUnLock | 0x1400AED60 | implemented | IDA decompile | yes | Update trade unlock status for inventory items |
 | XGameServer | GocInventory.cpp | CGocInventory::IsTradeCheck | 0x1400AEEE0 | implemented | IDA decompile | yes | Check if item can be traded |
 # GocForce.cpp functions - IDA verified implementations (29 functions)
 # Round 198 - All functions verified against IDA GameServer.exe port 10004
@@ -59028,7 +58581,7 @@ yes | ?????????? |
 | XGameServer | GocInventory.cpp | CGocInventory::GetBankItem | 0x1400B1850 | implemented | IDA decompile | yes | Exact IDA with nation type check |
 | XGameServer | GocInventory.cpp | CGocInventory::AddItem | 0x1400A6920 | implemented | IDA decompile | yes | Exact IDA routing to equip/inven |
 | XGameServer | GocInventory.cpp | CGocInventory::RemoveItem | 0x1400A6DA0 | implemented | IDA decompile | yes | Exact IDA routing to Unequip/RemoveItem |
-| XGameServer | GocInventory.cpp | CGocInventory::IsValidEquipItem | 0x1400E0CB0 | implemented | IDA decompile | yes | Exact IDA with table lookup and validation |
+| XGameServer | GocInventory.cpp | ?IsValidEquipItem@CGocInventory@@QEAA_NUPS_STORAGE_INFO@@@Z | 0x1400E0CB0 | verified | GameServer PDB + IDA decompile + source build | yes | Table/classify lookup followed by XItemFactory::IsCanEquip and exact error branches. |
 | XGameServer | GocInventory.cpp | CGocInventory::AddPrivateShopItem | 0x1400B0D80 | implemented | IDA decompile | yes | Exact IDA with item comparison and locking |
 | XGameServer | GocInventory.cpp | CGocInventory::DelPrivateShopItem | 0x1400B1000 | implemented | IDA decompile | yes | Exact IDA with unlock and erase |
 | XGameServer | GocInventory.cpp | CGocInventory::PrivateShopItemList | 0x1400B11D0 | implemented | IDA decompile | yes | Exact IDA populating shop list |
@@ -59038,18 +58591,17 @@ yes | ?????????? |
 | XGameServer | GocInventory.cpp | CGocInventory::ClearInven | 0x1400A0000 | implemented | IDA decompile | yes | Precise restoration - clears all currency values |
 | XGameServer | GocInventory.cpp | CGocInventory::SetLock | 0x1400A7020 | implemented | IDA decompile | yes | Exact IDA routing to equip/inven SetLock |
 | XGameServer | GocInventory.cpp | CGocInventory::Equip | 0x1400A5960 | implemented | IDA decompile | yes | Exact IDA with set items and network |
-| XGameServer | GocInventory.cpp | CGocInventory::Unequip | 0x1400A5B10 | implemented | IDA decompile | yes | Exact IDA with CUser updates |
-| XGameServer | Maze.cpp | ?MoveActor@XMaze@@UEAAGPEAVXActor@@AEAUXVec3@@M_N@Z | 0x140315750 | implemented | IDA decompile | yes | Fixed TODO - RTDynamicCast + SetPosInfo (EXACT IDA) |
-| XGameServer | Maze.cpp | ?CreateNavMesh@XMaze@@QEAA_NPEBD@Z | 0x14031F120 | implemented | IDA decompile | yes | Fixed TODO - Full NavMesh loading with locks (EXACT IDA) |
-| XGameServer | Maze.cpp | ?CreateScriptInst@XMaze@@QEAA_NPEBD@Z | 0x14031F2C0 | implemented | IDA decompile | yes | Fixed TODO - Script system initialization (EXACT IDA) |
-| XGameServer | Maze.cpp | ?CreateNpc@XMaze@@QEAAPEAVCNpc@@TUXMapID@@HHUXVec3@@MW4E_SEND_INFO_TYPE@IXArea@@@Z | 0x14031A250 | implemented | IDA decompile | yes | Fixed TODO - Sector lookup + CreateNpc (EXACT IDA) |
-| XGameServer | Maze.cpp | ?NotifyMonsterDelete@XMaze@@QEAAXPEAVCMonster@@@Z | 0x14031A0D0 | implemented | IDA decompile | yes | Fixed TODO - Broadcast + GetActorID (EXACT IDA) |
-| XGameServer | Maze.cpp | ?DeleteNpc@XMaze@@QEAAXPEAVCNpc@@@Z | 0x14031A430 | implemented | IDA decompile | yes | Fixed TODO - ExitGameObject + DeleteNpc (EXACT IDA) |
-| XGameServer | Maze.cpp | ?CreateAkashicObject@XMaze@@QEAAPEAVCAkashicObject@@TUXMapID@@HUXVec3@@MKW4E_SEND_INFO_TYPE@IXArea@@@Z | 0x14031A4A0 | implemented | IDA decompile | yes | Fixed TODO - TB_AKASHIC_RECORDS check (EXACT IDA) |
-| XGameServer | Maze.cpp | ?DeleteAkashicObject@XMaze@@QEAAXPEAVCAkashicObject@@@Z | 0x14031A5E0 | implemented | IDA decompile | yes | Fixed TODO - ExitGameObject + Delete (EXACT IDA) |
-| XGameServer | Maze.cpp | ?SetParty@XMaze@@QEAAXV?@VCParty@@@tr1@std@@@Z | 0x140315C40 | implemented | IDA decompile | yes | Fixed TODO - shared_ptr operators (EXACT IDA) |
-| XGameServer | Maze.cpp | ?SetForce@XMaze@@QEAAXV?@VCForce@@@tr1@std@@@Z | 0x140315D50 | implemented | IDA decompile | yes | Fixed TODO - shared_ptr operators (EXACT IDA) |
-| XGameServer | Maze.cpp | ?GetCurUserCount@XMaze@@QEAAHXZ | 0x140324AF0 | implemented | IDA decompile | yes | Fixed TODO - m_objectScanner.size() (EXACT IDA) |
+| XGameServer | Maze.cpp | ?MoveActor@XMaze@@UEAAGPEAVXActor@@AEAUXVec3@@M_N@Z | 0x140315750 | blocked | IDA decompile | no | Fixed TODO - RTDynamicCast + SetPosInfo (EXACT IDA) |
+| XGameServer | Maze.cpp | ?CreateNavMesh@XMaze@@QEAA_NPEBD@Z | 0x14031F120 | blocked | IDA decompile | no | Fixed TODO - Full NavMesh loading with locks (EXACT IDA) |
+| XGameServer | Maze.cpp | ?CreateScriptInst@XMaze@@QEAA_NPEBD@Z | 0x14031F2C0 | blocked | IDA decompile | no | Fixed TODO - Script system initialization (EXACT IDA) |
+| XGameServer | Maze.cpp | ?CreateNpc@XMaze@@QEAAPEAVCNpc@@TUXMapID@@HHUXVec3@@MW4E_SEND_INFO_TYPE@IXArea@@@Z | 0x14031A250 | blocked | IDA decompile | no | Fixed TODO - Sector lookup + CreateNpc (EXACT IDA) |
+| XGameServer | Maze.cpp | ?NotifyMonsterDelete@XMaze@@QEAAXPEAVCMonster@@@Z | 0x14031A0D0 | blocked | IDA decompile | no | Fixed TODO - Broadcast + GetActorID (EXACT IDA) |
+| XGameServer | Maze.cpp | ?DeleteNpc@XMaze@@QEAAXPEAVCNpc@@@Z | 0x14031A430 | blocked | IDA decompile | no | Fixed TODO - ExitGameObject + DeleteNpc (EXACT IDA) |
+| XGameServer | Maze.cpp | ?CreateAkashicObject@XMaze@@QEAAPEAVCAkashicObject@@TUXMapID@@HUXVec3@@MKW4E_SEND_INFO_TYPE@IXArea@@@Z | 0x14031A4A0 | blocked | IDA decompile | no | Fixed TODO - TB_AKASHIC_RECORDS check (EXACT IDA) |
+| XGameServer | Maze.cpp | ?DeleteAkashicObject@XMaze@@QEAAXPEAVCAkashicObject@@@Z | 0x14031A5E0 | blocked | IDA decompile | no | Fixed TODO - ExitGameObject + Delete (EXACT IDA) |
+| XGameServer | Maze.cpp | ?SetParty@XMaze@@QEAAXV?@VCParty@@@tr1@std@@@Z | 0x140315C40 | blocked | IDA decompile | no | Fixed TODO - shared_ptr operators (EXACT IDA) |
+| XGameServer | Maze.cpp | ?SetForce@XMaze@@QEAAXV?@VCForce@@@tr1@std@@@Z | 0x140315D50 | blocked | IDA decompile | no | Fixed TODO - shared_ptr operators (EXACT IDA) |
+| XGameServer | Maze.cpp | ?GetCurUserCount@XMaze@@QEAAHXZ | 0x140324AF0 | blocked | IDA decompile | no | Fixed TODO - m_objectScanner.size() (EXACT IDA) |
 | XGameServer | Mover.cpp | CMover::GetArea | - | implemented | IDA CGocNetwork::SendBroadCast* + XActor::GetArea | yes | Restored local bridge to return embedded XActor(+872).m_pArea; no original public CMover::GetArea symbol found. |
 | XGameServer | GocQuest.cpp | ?SetQuestAddObject@CGocQuest@@QEAA_NKPEAEPEAK@Z | 0x140138F20 | implemented | IDA decompile | yes | Precise IDA restoration |
 | XGameServer | GocQuest.cpp | ?SetQuestAddObject@CGocQuest@@QEAA_NKAEAUPS_RES_STORAGE_INFO@@0@Z | 0x1401392C0 | implemented | IDA decompile | yes | Precise IDA restoration |
@@ -59072,7 +58624,6 @@ yes | ?????????? |
 | XGameServer | Mover.cpp | ?IsCounterAttackHit@CMover@@UEAAHXZ | 0x140367360 | implemented | IDA decompile | yes | IDA精确还原-判断是否处于反击命中状�?|
 | XGameServer | Mover.cpp | ?IsGeneralHit@CMover@@QEAAHXZ | 0x140367410 | implemented | IDA decompile | yes | IDA精确还原-判断是否处于普通受击状�?Motion15-17) |
 | XGameServer | Mover.cpp | ?IsKnockDown@CMover@@QEAAHXZ | 0x1403671C0 | implemented | IDA decompile | yes | IDA精确还原-判断是否被击�?Motion18-21) |
-| XGameServer | Mover.cpp | ?IsFlyHit@CMover@@QEAAHXZ | 0x140367480 | implemented | IDA decompile | yes | IDA精确还原-判断是否空中受击(Motion18-21) |
 | XGameServer | Mover.cpp | ?MessageFunction@CMover@@UEAAXH_J0@Z | 0x140366F10 | implemented | IDA decompile | yes | IDA精确还原-消息处理�?x10000/1时清除动�?|
 | XGameServer | Mover.cpp | ?GetItemRateResultWeapon@CMover@@QEAAHEV?$shared_ptr@VCGocAttribute@@@tr1@std@@_N@Z | 0x140367760 | implemented | IDA decompile | yes | IDA精确还原-计算武器物品掉落率结�?|
 | XGameServer | Mover.cpp | ?Destroy@CMover@@UEAAXXZ | 0x140366A80 | implemented | IDA decompile | yes | IDA精确还原-清理CMover资源 |
@@ -59095,7 +58646,6 @@ yes | ?????????? |
 | XGameServer | Mover.cpp | ?GetTableIDString@CMover@@QEAAPEBDXZ | 0x14036DE70 | implemented | IDA decompile | yes | IDA精确还原-获取TableID字符串表�?|
 | XGameServer | Mover.cpp | ?GetHeight@CMover@@QEAA_NAEAVhkvVec3@@M@Z | 0x14036D130 | implemented | IDA decompile | yes | IDA精确还原-获取高度(通过导航网格) |
 | XGameServer | Mover.cpp | ?SetHP@CMover@@UEAAXH@Z | 0x140189230 | implemented | IDA decompile | yes | IDA精确还原-设置HP(基类空实�? |
-| XGameServer | Mover.cpp | ?CheckMoveCollision@CMover@@QEAAPEAV1@AEAVhkvVec3@@@Z | 0x1403681B0 | implemented | IDA decompile | yes | IDA精确还原-检查移动碰�?复杂碰撞检�? |
 | XGameServer | Mover.cpp | ?GetMoverObject@CMover@@QEAAPEAV1@K@Z | 0x14036D1E0 | implemented | IDA decompile | yes | IDA精确还原-通过ID获取Mover对象 |
 | XGameServer | Mover.cpp | ?ActionProcess@CMover@@UEAAHF@Z | 0x1401892D0 | implemented | IDA decompile | yes | IDA精确还原-动作处理(基类返回1) |
 | XGameServer | Mover.cpp | ?Damage@CMover@@UEAAXKEEEHMAEAVhkvVec3@@@Z | 0x140189300 | implemented | IDA decompile | yes | IDA精确还原-伤害处理(基类空实�? |
@@ -59104,7 +58654,6 @@ yes | ?????????? |
 | XGameServer | Mover.cpp | ?GetAllAttackAddRate@CMover@@QEAAMXZ | 0x1403A26F0 | implemented | IDA decompile | yes | IDA精确还原-获取所有攻击加成率 |
 | XGameServer | Mover.cpp | ?ClearBuffStatus@CMover@@UEAAXG_NK@Z | 0x140374FC0 | implemented | IDA decompile | yes | IDA精确还原-清除Buff状�?基类空实�? |
 | XGameServer | Mover.cpp | ?SetBuffStatus@CMover@@UEAAHGK_N@Z | 0x140374FE0 | implemented | IDA decompile | yes | IDA精确还原-设置Buff状�?基类返回false) |
-| XGameServer | Mover.cpp | ?SetBuffStatus@CMoverEx@@UEAAHGK_N@Z | 0x14038BCE0 | implemented | IDA decompile | yes | IDA exact restoration - complex buff application logic |
 | XGameServer | Mover.cpp | ?GetHavokCapsuleRadius@CMover@@QEAAMXZ | 0x140276870 | implemented | IDA decompile | yes | IDA精确还原-获取Havok胶囊半径 |
 | XGameServer | Mover.cpp | ?IsImmunityStatus@CMover@@QEAAHXZ | 0x140364700 | implemented | IDA decompile | yes | IDA精确还原-检查免疫状�?m_dwImmunityStatus!=0) |
 | XGameServer | Mover.cpp | ?IsClearBuff@CMover@@UEAAHGE@Z | 0x1403774F0 | implemented | IDA decompile | yes | IDA精确还原-检查是否可清除Buff(基类返回true) |

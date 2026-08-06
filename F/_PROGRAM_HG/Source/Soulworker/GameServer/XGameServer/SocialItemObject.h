@@ -17,47 +17,18 @@
 #include <vector>
 #include <map>
 
+#include "Soulworker/Common/XNet/XCommon/PSCommon.h"
+
 // Forward declarations
 class VType;
 class CGocAttribute;
 class CTextDBLog;
 class XArea;
 
-// ============================================================================
-// XSendPacket - Simple packet buffer for serialization
-// ============================================================================
-class XSendPacket {
-public:
-    XSendPacket() = default;
-    XSendPacket(std::uint8_t main, std::uint8_t sub) : m_main(main), m_sub(sub) {}
-    
-    void Write(const void* data, size_t size) {
-        const std::uint8_t* bytes = static_cast<const std::uint8_t*>(data);
-        m_buffer.insert(m_buffer.end(), bytes, bytes + size);
-    }
-    
-    std::uint8_t GetMain() const { return m_main; }
-    std::uint8_t GetSub() const { return m_sub; }
-    const std::vector<std::uint8_t>& GetBuffer() const { return m_buffer; }
-    
-private:
-    std::uint8_t m_main = 0;
-    std::uint8_t m_sub = 0;
-    std::vector<std::uint8_t> m_buffer;
-};
 struct PS_SOCIALITEM_PLAY;
 struct PS_SOCIAL_ITEM_PLAY_START;
 struct PS_SOCIALITEM_USER;
 struct ST_SOCIALITEM_CARD;
-
-// ============================================================================
-// XVec3 - Simple 3D vector structure
-// ============================================================================
-struct XVec3 {
-    float x = 0.0f;
-    float y = 0.0f;
-    float z = 0.0f;
-};
 
 // ============================================================================
 // PS_SOCIALITEM_PLAY - Social item play packet
@@ -319,7 +290,6 @@ public:
     void SetItemInfo(const ST_SOCIAL_ITEM_INFO& info) { m_itemInfo = info; }
 
     std::uint8_t GetSocialType() const { return m_bySocialType; }
-    void SetSocialType(std::uint8_t byType) { m_bySocialType = byType; }
 
     std::uint8_t GetMaxUserCount() const { return m_byMaxUserCount; }
     void SetMaxUserCount(std::uint8_t byCount) { m_byMaxUserCount = byCount; }
@@ -358,5 +328,5 @@ protected:
 
 private:
     // Static type info for RTTI
-    static VType classCSocialItemObject;
+    static VType* classCSocialItemObject;
 };

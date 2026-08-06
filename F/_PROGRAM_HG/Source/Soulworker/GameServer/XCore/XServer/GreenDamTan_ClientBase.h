@@ -12,6 +12,7 @@
 #include "Soulworker/Common/XNet/XIOCPBase/Packet.h"
 #include "Soulworker/GameServer/XCore/XIOCPServer/TXProcess.h"
 #include "Soulworker/GameServer/XCore/XServer/IXObject.h"
+#include "GreenDamTan_TxMap.h"
 #include "Soulworker/GameServer/XCore/XServer/XServer.h"
 
 class XClient;
@@ -19,9 +20,6 @@ class cIoContextPool;
 struct IoContextBuffer;
 
 namespace ATL {
-template <typename T>
-struct CElementTraits {};
-
 // 对齐 IDA: CTimeSpan 定义在 CTime 之前，因为 CTime::operator+ 引用 CTimeSpan
 class CTimeSpan {
 public:
@@ -201,260 +199,6 @@ public:
 
     std::int64_t m_time = 0;
 };
-
-struct CAtlPlex {
-    CAtlPlex* m_pNext = nullptr;
-
-    static CAtlPlex* Create(CAtlPlex** head, unsigned int blockSize, std::size_t elementSize) {
-        const std::size_t allocationSize =
-            sizeof(CAtlPlex) + static_cast<std::size_t>(blockSize) * elementSize;
-        auto* block = static_cast<CAtlPlex*>(::operator new(allocationSize));
-        block->m_pNext = *head;
-        *head = block;
-        return block;
-    }
-
-    static void FreeDataChain(CAtlPlex* block) {
-        while (block) {
-            CAtlPlex* next = block->m_pNext;
-            ::operator delete(block);
-            block = next;
-        }
-    }
-
-    void* GetData() {
-        return reinterpret_cast<char*>(this) + sizeof(CAtlPlex);
-    }
-};
-
-template <typename KeyType,
-          typename ValueType,
-          typename KeyTraits = CElementTraits<KeyType>,
-          typename ValueTraits = CElementTraits<ValueType>>
-class CAtlMap {
-public:
-    struct CPair {
-        KeyType m_key{};
-        ValueType m_value{};
-    };
-
-    struct CNode : CPair {
-        CNode* m_pNext = nullptr;
-        unsigned int m_nHash = 0;
-    };
-
-    CAtlMap() {
-        RefreshThresholds(m_nBins);
-    }
-
-    ~CAtlMap() {
-        RemoveAll();
-    }
-
-    bool InitHashTable(unsigned int nBins, bool bAllocNow) {
-        if (m_ppBins) {
-            delete[] m_ppBins;
-            m_ppBins = nullptr;
-        }
-
-        if (bAllocNow) {
-            m_ppBins = new (std::nothrow) CNode*[nBins]();
-            if (!m_ppBins) {
-                return false;
-            }
-        }
-
-        m_nBins = nBins;
-        RefreshThresholds(m_nBins);
-        return true;
-    }
-
-    CNode* LookupNode(KeyType key) const {
-        if (!m_ppBins || m_nBins == 0) {
-            return nullptr;
-        }
-
-        const unsigned int hash = static_cast<unsigned int>(key);
-        CNode* node = m_ppBins[hash % m_nBins];
-        while (node) {
-            if (node->m_nHash == hash && node->m_key == key) {
-                return node;
-            }
-            node = node->m_pNext;
-        }
-        return nullptr;
-    }
-
-    ValueType* Lookup(KeyType key) const {
-        CNode* node = LookupNode(key);
-        return node ? const_cast<ValueType*>(&node->m_value) : nullptr;
-    }
-
-    ValueType& operator[](KeyType key) {
-        if (!m_ppBins && !InitHashTable(m_nBins, true)) {
-            throw std::bad_alloc();
-        }
-
-        if (CNode* node = LookupNode(key)) {
-            return node->m_value;
-        }
-
-        const unsigned int hash = static_cast<unsigned int>(key);
-        const unsigned int binIndex = hash % m_nBins;
-        return NewNode(key, binIndex, hash)->m_value;
-    }
-
-    CNode* GetHeadPosition() const {
-        if (!m_ppBins) {
-            return nullptr;
-        }
-
-        for (unsigned int i = 0; i < m_nBins; ++i) {
-            if (m_ppBins[i]) {
-                return m_ppBins[i];
-            }
-        }
-        return nullptr;
-    }
-
-    CNode* GetNext(CNode* node) const {
-        if (!node) {
-            return nullptr;
-        }
-
-        if (node->m_pNext) {
-            return node->m_pNext;
-        }
-
-        if (!m_ppBins || m_nBins == 0) {
-            return nullptr;
-        }
-
-        for (unsigned int binIndex = (node->m_nHash % m_nBins) + 1; binIndex < m_nBins; ++binIndex) {
-            if (m_ppBins[binIndex]) {
-                return m_ppBins[binIndex];
-            }
-        }
-        return nullptr;
-    }
-
-    void RemoveAll() {
-        if (m_ppBins) {
-            delete[] m_ppBins;
-            m_ppBins = nullptr;
-        }
-
-        m_nElements = 0;
-        if (m_pBlocks) {
-            CAtlPlex::FreeDataChain(m_pBlocks);
-            m_pBlocks = nullptr;
-        }
-        m_pFree = nullptr;
-        RefreshThresholds(m_nBins);
-    }
-
-    CNode** m_ppBins = nullptr;
-    std::uint64_t m_nElements = 0;
-    unsigned int m_nBins = 17;
-    float m_fOptimalLoad = 0.75f;
-    float m_fLoThreshold = 0.25f;
-    float m_fHiThreshold = 2.25f;
-    std::uint64_t m_nHiRehashThreshold = 38;
-    std::uint64_t m_nLoRehashThreshold = 0;
-    unsigned int m_nLockCount = 0;
-    unsigned int m_nBlockSize = 10;
-    CAtlPlex* m_pBlocks = nullptr;
-    CNode* m_pFree = nullptr;
-
-private:
-    static unsigned int PickSize(std::uint64_t elementCount) {
-        static constexpr unsigned int kPrimes[] = {
-            17u,         29u,         47u,         97u,         191u,        257u,        521u,
-            769u,        1543u,       3079u,       6151u,       12289u,      24593u,      49157u,
-            98317u,      196613u,     393241u,     786433u,     1572869u,    3145739u,    6291469u,
-            12582917u,   25165843u,   50331653u,   100663319u,  201326611u,  402653189u,  805306457u,
-            1610612741u, 0xFFFFFFFFu};
-
-        for (unsigned int prime : kPrimes) {
-            if (prime == 0xFFFFFFFFu || elementCount <= prime) {
-                return prime == 0xFFFFFFFFu ? static_cast<unsigned int>(elementCount) : prime;
-            }
-        }
-        return static_cast<unsigned int>(elementCount);
-    }
-
-    void RefreshThresholds(unsigned int nBins) {
-        m_nHiRehashThreshold = static_cast<std::uint64_t>(static_cast<float>(nBins) * m_fHiThreshold);
-
-        const std::uint64_t loThreshold =
-            static_cast<std::uint64_t>(static_cast<float>(nBins) * m_fLoThreshold);
-        m_nLoRehashThreshold = loThreshold < 0x11 ? 0 : loThreshold;
-    }
-
-    void Rehash(unsigned int nBins) {
-        if (nBins == 0) {
-            nBins = 17;
-        }
-
-        CNode** oldBins = m_ppBins;
-        const unsigned int oldBinCount = m_nBins;
-
-        m_ppBins = new (std::nothrow) CNode*[nBins]();
-        if (!m_ppBins) {
-            m_ppBins = oldBins;
-            return;
-        }
-
-        m_nBins = nBins;
-        RefreshThresholds(m_nBins);
-
-        if (oldBins) {
-            for (unsigned int binIndex = 0; binIndex < oldBinCount; ++binIndex) {
-                CNode* node = oldBins[binIndex];
-                while (node) {
-                    CNode* next = node->m_pNext;
-                    const unsigned int newBinIndex = node->m_nHash % m_nBins;
-                    node->m_pNext = m_ppBins[newBinIndex];
-                    m_ppBins[newBinIndex] = node;
-                    node = next;
-                }
-            }
-
-            delete[] oldBins;
-        }
-    }
-
-    void AllocateBlock() {
-        CAtlPlex* block = CAtlPlex::Create(&m_pBlocks, m_nBlockSize, sizeof(CNode));
-        auto* data = static_cast<char*>(block->GetData());
-        for (int i = static_cast<int>(m_nBlockSize) - 1; i >= 0; --i) {
-            auto* node = reinterpret_cast<CNode*>(data + static_cast<std::size_t>(i) * sizeof(CNode));
-            node->m_pNext = m_pFree;
-            m_pFree = node;
-        }
-    }
-
-    CNode* NewNode(KeyType key, unsigned int binIndex, unsigned int hash) {
-        if (!m_pFree) {
-            AllocateBlock();
-        }
-
-        CNode* node = m_pFree;
-        m_pFree = node->m_pNext;
-
-        ::new (node) CNode();
-        node->m_key = key;
-        node->m_nHash = hash;
-        node->m_pNext = m_ppBins[binIndex];
-        m_ppBins[binIndex] = node;
-
-        ++m_nElements;
-        if (m_nElements > m_nHiRehashThreshold && !m_nLockCount) {
-            Rehash(PickSize(m_nElements));
-        }
-        return node;
-    }
-};
 } // namespace ATL
 
 // 使用CFSRWLock.h中的定义
@@ -532,47 +276,18 @@ struct CFAutoSlimWriteLock {
 #endif // 0
 #endif // CFSRWLOCK_H_ALREADY_DEFINED
 
-template <typename KeyType, typename ValueType, typename KeyTraits = ATL::CElementTraits<KeyType>>
-struct TXMap {
-    ATL::CAtlMap<KeyType,
-                 ValueType,
-                 ATL::CElementTraits<KeyType>,
-                 ATL::CElementTraits<ValueType>>
-        m_AtlMap;
 
-    // 对齐 IDA: TXMap::GetAt - 查找键对应的值
-    // IDA 0x1400014F0 显示 TXObjectMgr<CUser>::Find 调用 TXMap::GetAt
-    ValueType* GetAt(KeyType key) {
-        return m_AtlMap.Lookup(key);
-    }
-
-    const ValueType* GetAt(KeyType key) const {
-        return m_AtlMap.Lookup(key);
-    }
-};
-
-namespace TXMapUtil {
-template <typename MapType, typename PointerType>
-void DeletePtr(MapType& map) {
-    using AtlMapType = std::remove_reference_t<decltype(map.m_AtlMap)>;
-    using NodeType = typename AtlMapType::CNode;
-
-    NodeType* node = map.m_AtlMap.GetHeadPosition();
-    while (node) {
-        NodeType* next = map.m_AtlMap.GetNext(node);
-        delete node->m_value;
-        node->m_value = nullptr;
-        node = next;
-    }
-
-    map.m_AtlMap.RemoveAll();
-}
-} // namespace TXMapUtil
 
 template <typename KeyType, typename ValueType>
 class TXComposite {
 public:
     virtual ~TXComposite() = default;
+
+    template <typename T>
+    T* GetComponentPtr(KeyType key) {
+        ValueType* component = m_xMapComponet.GetAt(key);
+        return dynamic_cast<T*>(component);
+    }
 
     TXMap<KeyType, ValueType*> m_xMapComponet;
 };
@@ -599,7 +314,7 @@ struct PerSocketContext {
     }
 
     void Destroy() {
-        m_lock.Destroy();
+        m_lock.Clear();
         m_overLab.Destroy();
     }
 
@@ -634,7 +349,7 @@ public:
     };
 
     virtual ~XSocket() {
-        xLock.Destroy();
+        xLock.Clear();
     }
     virtual bool Init();
 
@@ -698,6 +413,11 @@ public:
     // IDA: ?GetLogSendBuffer@XClient@@QEAAHXZ (0x1402A5130)
     // Returns the log send buffer size
     int GetLogSendBuffer() const { return m_nLogBuffSize; }
+
+    template <typename T>
+    T* GetProcessPtr(std::uint8_t ucCmd) {
+        return m_xProcessComposite.GetComponentPtr<T>(ucCmd);
+    }
 
 protected:
     bool Register(std::uint8_t ucCmd, IXProcess* pProcess);

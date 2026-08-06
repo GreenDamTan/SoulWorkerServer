@@ -27,8 +27,7 @@
 class CWorldMode;
 struct ST_WORLD_MODE_INFO_VEC;
 
-// 使用 std::tr1 命名空间 (VS2010 兼容)
-namespace std { namespace tr1 = std; }
+#include "Soulworker/GameServer/XCore/XServer/GreenDamTan_StdCompat.h"
 
 // 对齐 IDA CWorldModeMgr
 // 成员变量布局从 IDA 反编译推断

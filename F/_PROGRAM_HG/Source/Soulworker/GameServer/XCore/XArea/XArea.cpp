@@ -247,6 +247,16 @@ void XArea::SendOutInfo(XSendPacket& xSendPacket, XActor* pActor) {
 
 // IDA 0x1408F06F0 - SendOtherInfos
 // IDA 反编译精确还原: 发送其他Actor信息
+void XArea::SendWorldEventBooster(unsigned long dwBuffID, std::int64_t biEndDate) {
+    for (auto& pair : m_mapActor) {
+        XActor* pActor = pair.second;
+        if (pActor && pActor->GetActorType() == eActorUser) {
+            pActor->SendWorldEventBooster(dwBuffID, biEndDate);
+        }
+    }
+}
+
+// IDA: XArea::SendOtherInfos
 void XArea::SendOtherInfos(XSendPacket& xSendPacket, XActor* pActor, int eActorType) {
     // IDA: Collect actors of specified type and send their info
     std::vector<XActor*> listActor;

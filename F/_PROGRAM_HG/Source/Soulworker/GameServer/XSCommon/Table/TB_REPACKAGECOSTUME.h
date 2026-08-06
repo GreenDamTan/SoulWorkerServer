@@ -7,7 +7,24 @@
 #pragma pack(push, 1)
 struct TB_REPACKAGECOSTUME {
     unsigned int RePackageItem_ID = 0;
-    unsigned int uniItem[13] = {};
+    union {
+        struct {
+            unsigned int Item_01;
+            unsigned int Item_02;
+            unsigned int Item_03;
+            unsigned int Item_04;
+            unsigned int Item_05;
+            unsigned int Item_06;
+            unsigned int Item_07;
+            unsigned int Item_08;
+            unsigned int Item_09;
+            unsigned int Item_10;
+            unsigned int Item_11;
+            unsigned int Item_12;
+            unsigned int Item_13;
+        };
+        unsigned int uniItem[13];
+    };
 };
 #pragma pack(pop)
 static_assert(sizeof(TB_REPACKAGECOSTUME) == 0x38, "TB_REPACKAGECOSTUME size must match PDB");

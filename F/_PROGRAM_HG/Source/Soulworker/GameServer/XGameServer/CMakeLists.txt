@@ -3,6 +3,7 @@ set(GAMESERVER_RECON_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/../../..)
 add_executable(GameServer
     BattleZone.cpp
     GameServer.cpp
+    XItemFactory.cpp
     GameSockets.cpp
     GameDBSocket.cpp
     GameDBSocketMgr.cpp
@@ -52,6 +53,7 @@ add_executable(GameServer
     Process/SystemProcess.cpp
     Process/LoginProcess.cpp
     Process/MonsterProcess.cpp
+    Process/ItemProcess.cpp
     actor/component/gocattribute.cpp
     actor/component/gocskill.cpp
     actor/component/gocinventory.cpp
@@ -77,6 +79,7 @@ add_executable(GameServer
     actor/component/GocAkashicRecord.cpp
     UtilFunc.cpp
     Item/CItem.cpp
+    SocialItemObject.cpp
     HiddenEvent.cpp
     LogicThreadManager_Stub.cpp
     # ManagerStubs.cpp - removed, causes header conflicts with XRelayServer

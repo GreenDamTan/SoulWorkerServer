@@ -25,8 +25,7 @@ class CServer;
 struct ST_ENTER_WORLD_MODE_INFO;
 struct ST_WORLD_MODE;
 
-// 使用 std::tr1 命名空间 (VS2010 兼容)
-namespace std { namespace tr1 = std; }
+#include "Soulworker/GameServer/XCore/XServer/GreenDamTan_StdCompat.h"
 
 // ============================================================================
 // CUserObject - 用户对象类

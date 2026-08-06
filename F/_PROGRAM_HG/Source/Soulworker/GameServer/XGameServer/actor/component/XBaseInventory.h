@@ -5,6 +5,8 @@
 #include <memory>
 #include <vector>
 
+#include "Soulworker/Common/XNet/XCommon/PSServer/PSServerCore.h"
+
 // Forward declarations
 class CItem;
 class CMover;
@@ -94,6 +96,10 @@ class XShapeEquip : public XBaseEquip {
 public:
     XShapeEquip();
     ~XShapeEquip() override = default;
+
+    void GetCancelSlot(int nSlotType,
+                       unsigned int nCancelBit,
+                       std::vector<stEMPTYSLOT>& vecCancelSlot);
 };
 
 /**
@@ -118,6 +124,10 @@ class XLookEquip : public XBaseEquip {
 public:
     XLookEquip();
     ~XLookEquip() override = default;
+
+    void GetCancelSlot(int nSlotType,
+                       unsigned int nCancelBit,
+                       std::vector<stEMPTYSLOT>& vecCancelSlot);
 };
 
 /**
@@ -158,9 +168,17 @@ public:
     // GetEmptySlot - IDA 0x1402FEEB0
     virtual std::int16_t GetEmptySlot();
 
+    // GetEmptySlot - IDA 0x1402FEF30
+    virtual void GetEmptySlot(
+        int nNeedCount,
+        std::vector<stEMPTYSLOT>& vecEmptySlot);
+
+    // CheckEmptySlotCount - IDA 0x1402FEE00
+    virtual bool CheckEmptySlotCount(std::uint16_t wNeedCount);
+
     // GetEmptySlot_2 - alias for GetEmptySlot (IDA shows same function)
     std::int16_t GetEmptySlot_2() { return GetEmptySlot(); }
-    
+
     // GetEmptySlotCount - IDA 0x1402FECD0
     virtual std::int16_t GetEmptySlotCount();
     

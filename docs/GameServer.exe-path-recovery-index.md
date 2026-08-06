@@ -56,6 +56,7 @@
 | Soulworker/GameServer/XGameServer/XForceManager.cpp | XGameServer/XForceManager.cpp | XForceManager.cpp | PDB symbol inference | yes |
 | - | XGameServer/ChatProcess.h | ChatProcess.h | IDA modules.txt only; no PDB-derived source path recovered | no |
 | - | XGameServer/ChatProcess.cpp | ChatProcess.cpp | IDA modules.txt only; no PDB-derived source path recovered | no |
+| Soulworker/GameServer/XGameServer/process/itemprocess.cpp | Soulworker/GameServer/XGameServer/Process/ItemProcess.cpp | ItemProcess.cpp | GameServer PDB source path and module ownership + IDA symbols | yes |
 | Soulworker/GameServer/XGameServer/Actor/Component/GocMyroom.h | XGameServer/Actor/Component/GocMyroom.h | GocMyroom.h | IDA推断 | yes |
 | Soulworker/GameServer/XGameServer/Actor/Component/GocMyroom.cpp | XGameServer/Actor/Component/GocMyroom.cpp | GocMyroom.cpp | IDA推断 | yes |
 | Soulworker/GameServer/XGameServer/Actor/Component/GocBooster.cpp | XGameServer/Actor/Component/GocBooster.cpp | GocBooster.cpp | IDA symbols ?CheckTimeEventBooster@CGocBooster@@QEAAXXZ and ?CheckDayEventBooster@CGocBooster@@QEAAXG@Z | yes |
@@ -64,10 +65,13 @@
 | Soulworker/GameServer/XGameServer/VaccumCubeProcess.cpp | XGameServer/VaccumCubeProcess.cpp | VaccumCubeProcess.cpp | PDB module `XGameServer\\VaccumCubeProcess.obj`, cvdump lines module, and publics for CVaccumCubeProcess request handlers | yes |
 | Soulworker/GameServer/XGameServer/VaccumCubeProcess.h | XGameServer/VaccumCubeProcess.h | VaccumCubeProcess.h | Current header landing file for CVaccumCubeProcess declarations; paired with PDB module `XGameServer\\VaccumCubeProcess.obj` | yes |
 | Soulworker/GameServer/XGameServer/ThreadLocalData_Stub.cpp | XGameServer/ThreadLocalData_Stub.cpp | ThreadLocalData_Stub.cpp | Current GameServer build landing file for `ThreadLocalData::CreateVaccumCubeObject` while full `ThreadLocalData.cpp` remains excluded from the target | no |
+| - | XGameServer/LogicThreadManager_Stub.cpp | LogicThreadManager_Stub.cpp | Manual GameServer CMake support implementation for the active synchronous logic-thread boundary; no original PDB source ownership claimed | no |
 | Soulworker/GameServer/XGameServer/VaccumCube.cpp | XGameServer/VaccumCube.cpp | VaccumCube.cpp | PDB publics and symbols for `CVaccumCube::SetInfoPacket`, `SetInfoLeavePacket`, `GetID`, and `GetInteractionID`; IDA MCP port 10004 decompile/disasm cross-check | yes |
 | Soulworker/GameServer/XGameServer/VaccumCube.h | XGameServer/VaccumCube.h | VaccumCube.h | Current header landing file for `PS_VACCUM_CUBE_IN`, `PS_VACCUM_CUBE_OUT`, and CVaccumCube declarations paired with `VaccumCube.cpp` symbols | yes |
 | Soulworker/GameServer/XCore/XArea/XDistrict.cpp | XCore/XArea/XDistrict.cpp | XDistrict.cpp | PDB/IDA symbols for `XDistrict::FinishWorldMode`; IDA MCP port 10004 decompile/disasm cross-check | yes |
 | Soulworker/Common/XNet/XCommon/PSServer/PSServerWorldMode.h | Common/XNet/XCommon/PSServer/PSServerWorldMode.h | PSServerWorldMode.h | Existing public serializer for `PS_WORLD_MODE_FINISH` used by `XDistrict::FinishWorldMode` packet emission | yes |
+| Soulworker/Common/XNet/XCommon/PSCharacter.h | - | PSCharacter.h | GameServer PDB cvdump lines and XCommon.lib PSCharacter.obj establish original cash-mileage type ownership; the current source landing is recorded separately and is not asserted as the original PDB path. | no |
+| - | Soulworker/Common/XNet/XCommon/PSServer/PSServerCashShop.h | PSServerCashShop.h | Current shared protocol landing for the PDB-owned cash-mileage types; semantic landing only, not an original PDB source path. | no |
 | Soulworker/GameServer/XGameServer/inventory.cpp | Soulworker/GameServer/XGameServer/Inventory.cpp | Inventory.cpp | GameServer PDB module `XGameServer\\Inventory.obj` + decorated reduction symbols + cvdump line records; semantic implementation remains separate. | yes |
 | - | XGameServer/actor/component/XBaseInventory.cpp | XBaseInventory.cpp | Current semantic landing for PDB-owned `Inventory.cpp` reduction methods; not asserted as the original PDB source path. | no |
 | - | Soulworker/GameServer/XGameServer/Item/CItem.cpp | CItem.cpp | GameServer PDB module `XGameServer\\Item.obj` plus CItem symbols; original source path unresolved. | no |

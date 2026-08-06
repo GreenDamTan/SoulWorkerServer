@@ -1146,8 +1146,8 @@ void CGocWeeklyMission::ResWeeklyMissionReward(PS_DB_WEEKLY_MISSION_REWARD_RES& 
         pMover->GetGOC<CGocInventory>(pInvenPtr, false);
         if (pInvenPtr)
         {
-            pInvenPtr->SendUpdateItem(&psRes.psReq.stUpdateItem);
-            pInvenPtr->SendCreateItem(&psRes.psReq.stCreateItem);
+            pInvenPtr->SendUpdateItem(psRes.psReq.stUpdateItem);
+            pInvenPtr->SendCreateItem(psRes.psReq.stCreateItem);
         }
         psReward.vecItemList = psRes.psReq.vecItemList;
     }
@@ -1206,8 +1206,8 @@ void CGocWeeklyMission::ResWeeklyMissionRewardWeek(PS_DB_WEEKLY_MISSION_REWARD_W
         pMover->GetGOC<CGocInventory>(pInvenPtr, false);
         if (pInvenPtr)
         {
-            pInvenPtr->SendUpdateItem(&psRes.psReq.stUpdateItem);
-            pInvenPtr->SendCreateItem(&psRes.psReq.stCreateItem);
+            pInvenPtr->SendUpdateItem(psRes.psReq.stUpdateItem);
+            pInvenPtr->SendCreateItem(psRes.psReq.stCreateItem);
         }
         psReward.vecItemList = psRes.psReq.vecItemList;
     }

@@ -1,5 +1,10 @@
 #include "GocEvent.h"
+#include "GocNetwork.h"
 #include "Soulworker/GameServer/XGameServer/User.h"
+#include "Soulworker/GameServer/XGameServer/GameServer.h"
+#include "Soulworker/GameServer/XCore/XArea/XActor.h"
+#include "Soulworker/Common/XNet/XCommon/PSServer/PSServerLogin.h"
+#include <cstring>
 #include <ctime>
 
 // ============================================================================
@@ -292,19 +297,23 @@ bool CGocEvent::CheckAccountEvent(unsigned int dwEventID) {
 // IDA: 0x140068AA0 - RequestLoadAccountEvent
 // IDA精确还原: 发送账号事件加载请求到DB
 void CGocEvent::RequestLoadAccountEvent() {
-    // IDA: Get CUser
+    // IDA 0x140068AA0: Get CUser
     CUser* pUser = dynamic_cast<CUser*>(GetOwnerGO());
     if (!pUser) return;
-    
+
     // IDA: Build account event request
     PS_ACCOUNT_EVENT_LIST stEventLoad;
-    stEventLoad.dwUCID = pUser->GetID();
-    // stEventLoad.szAccountID = pUser->GetAccountID();
-    
-    // IDA: Send DB packet (Main=0x02, Sub=0x55)
-    // XSendDBPacket xSendDBPacket(pUser, 0x02, 0x55);
-    // xSendDBPacket << stEventLoad;
-    // XGameServer::SendDBGame(&xSendDBPacket);
+    stEventLoad.dwUCID = pUser->GetUCID();
+    char* pAccountID = pUser->GetAccountID();
+    if (pAccountID) {
+        std::strcpy(stEventLoad.szAccountID, pAccountID);
+    }
+
+    // IDA: Send DB packet (Main=2, Sub=0x55)
+    XSendDBPacket xSendDBPacket(static_cast<XActor*>(pUser), 2, 0x55);
+    xSendDBPacket << stEventLoad;
+    XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+    if (pServer) pServer->SendDBGame(xSendDBPacket);
 }
 
 // IDA: 0x140068D00 - LoadAccountEvent

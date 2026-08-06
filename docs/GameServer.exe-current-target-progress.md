@@ -16017,3 +16017,12 @@ Validate the current GameServer.exe reconstruction worktree before the user-auth
 - Ledger state: func-index corrected 46 over-claimed rows. type-index and path-recovery-index have no change. This round is documentation-only.
 - Verification: cmake --build build --target GameServer -- -j8 succeeded (no rebuild needed). GREENDAMTAN_AUTOSTOP_MS=5000 timeout 45s ./build/bin/GameServer.exe reached Complete Server Init and Auto shutdown tick, exit 0.
 - Review status: independent verification pending.
+---
+[2026-08-07 06:04:08 +08:00] [deepseek-v4-flash]
+### CGocEvent RequestLoadAccountEvent restore
+- Target: GameServer.exe; IDA MCP port 10004; model deepseek-v4-flash; local offset +08:00.
+- Evidence discovery: decompiled RequestLoadAccountEvent (0x140068AA0) via IDA MCP port 10004. The flow: dynamic_cast the owner to CUser; build PS_ACCOUNT_EVENT_LIST with dwUCID (owner UCID) and szAccountID (strcpy from CUser::GetAccountID); send DB packet (main=2, sub=0x55) with the struct.
+- Implementation: GocEvent.cpp completed RequestLoadAccountEvent from the comment-only stub: filled szAccountID via strcpy from GetAccountID(), used GetUCID() (the previous stub used GetID() which is a different semantic), constructed XSendDBPacket(2,0x55) with PS_ACCOUNT_EVENT_LIST via its operator<<, and sent via XGameServer::SendDBGame. Added required includes (GocNetwork.h, GameServer.h, XActor.h, PSServerLogin.h, cstring).
+- Ledger state: func-index upgraded the RequestLoadAccountEvent row from blocked to implemented verified=no. type-index and path-recovery-index have no change this round.
+- Verification: cmake --build build --target GameServer -- -j8 succeeded ([2/2] Linking GameServer.exe). GREENDAMTAN_AUTOSTOP_MS=5000 timeout 45s ./build/bin/GameServer.exe reached Complete Server Init and Auto shutdown tick, exit 0.
+- Review status: independent verification pending.

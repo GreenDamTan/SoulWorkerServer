@@ -1904,7 +1904,7 @@
 | CGocEvent | GocEvent.cpp | ??1CGocEvent@@UEAA@XZ | 0x140068960 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
 | CGocEvent | GocEvent.cpp | ?Init@CGocEvent@@QEAAXXZ | 0x1400689d0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
 | CGocEvent | GocEvent.cpp | ?LogOut@CGocEvent@@QEAAXXZ | 0x140068a80 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
-| CGocEvent | GocEvent.cpp | ?RequestLoadAccountEvent@CGocEvent@@QEAAXXZ | 0x140068aa0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| CGocEvent | GocEvent.cpp | ?RequestLoadAccountEvent@CGocEvent@@QEAAXXZ | 0x140068aa0 | implemented | IDA decompile | no | PS_ACCOUNT_EVENT_LIST(UCID+AccountID) + DB 包 (2,0x55) |
 | - | - | ??0PS_ACCOUNT_EVENT_LIST@@QEAA@XZ | 0x140068cb0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(Ĭ�ϳ�Ա��ʼ��) |
 | - | - | ??1PS_ACCOUNT_EVENT_LIST@@QEAA@XZ | 0x140068ce0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(Ĭ�ϳ�Ա��ʼ��) |
 | CGocEvent | GocEvent.cpp | ?LoadAccountEvent@CGocEvent@@QEAAXAEAUPS_ACCOUNT_EVENT_LIST@@@Z | 0x140068d00 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |

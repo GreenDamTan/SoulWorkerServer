@@ -15936,3 +15936,12 @@ Validate the current GameServer.exe reconstruction worktree before the user-auth
 - Ledger state: func-index upgraded CheckEchelonTitle from blocked to implemented verified=no, and corrected the UpdateOpenTitle row to verified=no with the restore note (it had been over-claimed as verified while the body was a stub). type-index and path-recovery-index have no change this round.
 - Verification: cmake --build build --target GameServer -- -j8 succeeded ([2/2] Linking GameServer.exe). GREENDAMTAN_AUTOSTOP_MS=5000 timeout 45s ./build/bin/GameServer.exe reached Complete Server Init and Auto shutdown tick, exit 0.
 - Review status: independent verification pending; UpdateTitle (0x14005CC50) full four-section restore and CGameWorldMode::GetState access path remain pending.
+---
+[2026-08-07 05:15:49 +08:00] [deepseek-v4-flash]
+### CGocEntity CheckAutoBlockCount correction
+- Target: GameServer.exe; IDA MCP port 10004; model deepseek-v4-flash; local offset +08:00.
+- Evidence discovery: decompiled CheckAutoBlockCount (0x14005D970) via IDA MCP port 10004. The function body only performs a dynamic_cast from CMover to CUser (RTTI _RTDynamicCast_0) whose result is discarded; there is no count/vector mutation logic.
+- Implementation: GocEntity.cpp corrected CheckAutoBlockCount from the prior incorrect stub (which incremented m_stCheckAutoBlock counts and pushed data) to the faithful empty body: dynamic_cast CUser on the owner mover with the result discarded, matching IDA exactly. The stale per-IDA comment claiming count updates was removed.
+- Ledger state: func-index upgraded the CheckAutoBlockCount row from blocked to implemented verified=no with the empty-body note. type-index and path-recovery-index have no change this round.
+- Verification: cmake --build build --target GameServer -- -j8 succeeded ([2/2] Linking GameServer.exe). GREENDAMTAN_AUTOSTOP_MS=5000 timeout 45s ./build/bin/GameServer.exe reached Complete Server Init and Auto shutdown tick, exit 0.
+- Review status: independent verification pending; UpdateTitle (0x14005CC50) full four-section restore (requires adding the PS_SYNC_TITLE_UPDATE protocol type, BroadcastNearby and stMyCharInfoEx->stTitleInfo sync) and CGameWorldMode::GetState access path remain pending.

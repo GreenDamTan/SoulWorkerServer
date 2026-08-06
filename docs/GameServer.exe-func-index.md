@@ -1780,7 +1780,7 @@
 | CGocEntity | GocEntity.cpp | ?DeleteTitle@CGocEntity@@QEAAXH@Z | 0x14005c9a0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
 | CGocEntity | GocEntity.cpp | ?UpdateTitle@CGocEntity@@QEAAXAEAUPS_REQ_TITLE_UPDATE@@@Z | 0x14005cc50 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | - | - | ??0PS_SYNC_TITLE_UPDATE@@QEAA@XZ | 0x14005d940 | blocked | IDA ??0PS_SYNC_TITLE_UPDATE@@QEAA@XZ | yes | - |
-| CGocEntity | GocEntity.cpp | ?CheckAutoBlockCount@CGocEntity@@QEAAXW4AUTO_BLOCK_CHECK_TYPE@@HK@Z | 0x14005d970 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| CGocEntity | GocEntity.cpp | ?CheckAutoBlockCount@CGocEntity@@QEAAXW4AUTO_BLOCK_CHECK_TYPE@@HK@Z | 0x14005d970 | implemented | IDA decompile | no | 空函数, 仅 dynamic_cast CUser, 结果丢弃 |
 | CGocEntity | GocEntity.cpp | ?ClearTitle@CGocEntity@@QEAAXXZ | 0x14005da10 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | - | - | ?UpdateOpenTitle@CGocEntity@@QEAAXHH@Z | 0x14005e090 | implemented | IDA decompile | no | GetPrefix/SuffixTitleToOpen + open set 插入 + DB (3,0x19) + 客户端 (3,0x29) |
 | CGocEntity | GocEntity.cpp | ?SendTitleList@CGocEntity@@QEAAXXZ | 0x14005e420 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |

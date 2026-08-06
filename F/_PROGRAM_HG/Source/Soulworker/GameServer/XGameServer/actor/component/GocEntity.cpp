@@ -787,13 +787,15 @@ void CGocEntity::SendDBLoadTitle()
 // Verified: Per IDA decompile - checks auto block count
 void CGocEntity::CheckAutoBlockCount(int eType, int nAdd, uint32_t dwData)
 {
-    // Per IDA: Update auto block check
-    if (eType >= 0 && eType < 1) {
-        m_stCheckAutoBlock[eType].nCount += nAdd;
-        
-        // Per IDA: Add data to vector for tracking
-        m_stCheckAutoBlock[eType].vecData.push_back(static_cast<float>(dwData));
+    // IDA 0x14005D970: 函数体仅 _RTDynamicCast_0(this->GetOwnerGO(), ..., &CMover RTTI, &CUser RTTI, 0)
+    // 结果被丢弃，无实际逻辑
+    CMover* pMover = GetOwnerGO();
+    if (pMover) {
+        dynamic_cast<CUser*>(pMover);
     }
+    (void)eType;
+    (void)nAdd;
+    (void)dwData;
 }
 
 // ============================================================================

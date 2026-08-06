@@ -726,48 +726,50 @@ std::uint32_t CGocEntity::AddTitleByClass(std::uint32_t dwTitleGroupID, int nLog
 // Verified: Per IDA decompile - updates open title based on condition
 void CGocEntity::UpdateOpenTitle(int nCondition, int nValue)
 {
-    // Per IDA 0x14005E090: Get titles to open based on condition
-    // CGocAttribute* pAttr = GetGOC_Attribute();
-    // if (!pAttr) return;
-    // 
-    // int nClass = pAttr->GetClass();
-    // XGameServer* pServer = TXSingleton<XGameServer>::Instance();
-    // 
-    // // Get prefix and suffix titles to open
-    // int nPrefixTitle = pServer->m_xResourceMgr.GetPrefixTitleToOpen(nCondition, nClass, nValue);
-    // int nSuffixTitle = pServer->m_xResourceMgr.GetSuffixTitleToOpen(nCondition, nClass, nValue);
-    // 
-    // int arrTitles[2] = {nPrefixTitle, nSuffixTitle};
-    // for (int i = 0; i < 2; ++i) {
-    //     int nTitleID = arrTitles[i];
-    //     if (nTitleID <= 0) continue;
-    //     
-    //     // Check if already in open set
-    //     if (m_setTitleOpen.find(nTitleID) != m_setTitleOpen.end()) {
-    //         continue;
-    //     }
-    //     
-    //     // Check if already owned
-    //     if (m_mapHaveTitle.find(nTitleID) != m_mapHaveTitle.end()) {
-    //         continue;
-    //     }
-    //     
-    //     // Add to open set
-    //     m_setTitleOpen.insert(nTitleID);
-    //     
-    //     // Send DB update
-    //     XSendDBPacket packet(GetUser(), 3, 0x19);
-    //     packet << GetUCID() << nTitleID;
-    //     pServer->SendDBGame(packet);
-    //     
-    //     // Send client update
-    //     XSendPacket clientPacket(3, 0x29);
-    //     clientPacket << nTitleID;
-    //     SendPacket(clientPacket);
-    // }
+    // IDA 0x14005E090
+    CMover* pMover = GetOwnerGO();
+    std::shared_ptr<CGocAttribute> pAttr = pMover ? pMover->GetGOC_Attribute(false) : nullptr;
+    if (!pAttr) return;
+    int nClass = pAttr->GetClass();
+    XGameServer* pServer = TXSingleton<XGameServer>::Instance();
 
-    (void)nCondition;
-    (void)nValue;
+    // Get prefix and suffix titles to open
+    int nGetTitleID[2];
+    nGetTitleID[0] = pServer->GetResourceMgr().GetPrefixTitleToOpen(nCondition, nClass, nValue);
+    nGetTitleID[1] = pServer->GetResourceMgr().GetSuffixTitleToOpen(nCondition, nClass, nValue);
+
+    CUser* pUser = GetUser();
+    for (int i = 0; i < 2; ++i) {
+        int nTitleID = nGetTitleID[i];
+        if (nTitleID <= 0) continue;
+
+        // Skip if already in open set
+        if (m_setTitleOpen.find(static_cast<unsigned int>(nTitleID)) != m_setTitleOpen.end()) {
+            continue;
+        }
+        // Skip if already owned
+        if (m_mapHaveTitle.find(static_cast<unsigned int>(nTitleID)) != m_mapHaveTitle.end()) {
+            continue;
+        }
+
+        // Add to open set
+        m_setTitleOpen.insert(static_cast<unsigned int>(nTitleID));
+
+        // Send DB update (main=3, sub=0x19)
+        XSendDBPacket xSendDBPacket(static_cast<XActor*>(pUser), 3, 0x19);
+        if (pUser) {
+            xSendDBPacket.XParse << pUser->GetUCID();
+        }
+        xSendDBPacket.XParse << nTitleID;
+        pServer->SendDBGame(xSendDBPacket);
+
+        // Send client update (main=3, sub=0x29)
+        XSendPacket clientPacket(3, 0x29);
+        clientPacket.XParse << nTitleID;
+        if (pMover) {
+            CGocNetwork::Send(static_cast<XActor*>(pMover), clientPacket);
+        }
+    }
 }
 
 // ============================================================================
@@ -799,25 +801,26 @@ void CGocEntity::CheckAutoBlockCount(int eType, int nAdd, uint32_t dwData)
 // Verified: Per IDA decompile - checks and awards echelon titles
 void CGocEntity::CheckEchelonTitle(int nLevel, uint8_t byEchelonLevel, int nClass)
 {
-    // Per IDA: Check level threshold
+    // IDA 0x14005E9E0: Check level threshold
     if (nLevel < 55) {
         return;
     }
 
-    // Per IDA: Award echelon titles
-    for (int i = 1; i <= byEchelonLevel; ++i) {
-        // TB_ECHELON* pEchelon = GetResourceMgr()->GetTB_ECHELON(i, nClass);
-        // if (pEchelon) {
-        //     if (pEchelon->Prefix_Title_ID != 0) {
-        //         AddTitle(pEchelon->Prefix_Title_ID, 0);
-        //     }
-        //     if (pEchelon->Suffix_Title_ID != 0) {
-        //         AddTitle(pEchelon->Suffix_Title_ID, 0);
-        //     }
-        // }
+    // Award echelon titles
+    XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+    for (std::uint8_t byLevel = 1; byLevel <= byEchelonLevel; ++byLevel) {
+        TB_ECHELON* pEchelon = pServer->GetResourceMgr().GetTB_ECHELON(byLevel);
+        if (pEchelon && pEchelon->Echelon_Title) {
+            int nPrefixTitle = pServer->GetResourceMgr().GetPrefixTitleToOpen(10, nClass, pEchelon->Echelon_Title);
+            int nSuffixTitle = pServer->GetResourceMgr().GetSuffixTitleToOpen(10, nClass, pEchelon->Echelon_Title);
+            if (nPrefixTitle > 0 && !IsValidTitle(static_cast<uint32_t>(nPrefixTitle), true)) {
+                AddTitle(static_cast<uint32_t>(nPrefixTitle), 4);
+            }
+            if (nSuffixTitle > 0 && !IsValidTitle(static_cast<uint32_t>(nSuffixTitle), true)) {
+                AddTitle(static_cast<uint32_t>(nSuffixTitle), 4);
+            }
+        }
     }
-
-    (void)nClass;
 }
 
 // ============================================================================

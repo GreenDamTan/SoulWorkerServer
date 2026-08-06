@@ -1782,14 +1782,14 @@
 | - | - | ??0PS_SYNC_TITLE_UPDATE@@QEAA@XZ | 0x14005d940 | blocked | IDA ??0PS_SYNC_TITLE_UPDATE@@QEAA@XZ | yes | - |
 | CGocEntity | GocEntity.cpp | ?CheckAutoBlockCount@CGocEntity@@QEAAXW4AUTO_BLOCK_CHECK_TYPE@@HK@Z | 0x14005d970 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | CGocEntity | GocEntity.cpp | ?ClearTitle@CGocEntity@@QEAAXXZ | 0x14005da10 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
-| - | - | ?UpdateOpenTitle@CGocEntity@@QEAAXHH@Z | 0x14005e090 | implemented | IDA decompile | yes | IDA��ȷ��ԭ-���¿��ųƺ� |
+| - | - | ?UpdateOpenTitle@CGocEntity@@QEAAXHH@Z | 0x14005e090 | implemented | IDA decompile | no | GetPrefix/SuffixTitleToOpen + open set 插入 + DB (3,0x19) + 客户端 (3,0x29) |
 | CGocEntity | GocEntity.cpp | ?SendTitleList@CGocEntity@@QEAAXXZ | 0x14005e420 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | - | - | ??0PS_TITLE_LOAD@@QEAA@XZ | 0x14005e710 | blocked | IDA ??0PS_TITLE_LOAD@@QEAA@XZ | yes | - |
 | - | - | ??1PS_TITLE_LOAD@@QEAA@XZ | 0x14005e750 | blocked | IDA ??1PS_TITLE_LOAD@@QEAA@XZ | yes | - |
 | - | - | ??0PS_REQ_TITLE_UPDATE@@QEAA@XZ | 0x14005e790 | blocked | IDA ??0PS_REQ_TITLE_UPDATE@@QEAA@XZ | yes | - |
 | CGocEntity | GocEntity.cpp | ?SendUpdateTitle@CGocEntity@@QEAAXUST_TitleInfo@@0_N@Z | 0x14005e7c0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | - | - | ?SendDBLoadTitle@CGocEntity@@QEAAXXZ | 0x14005e8d0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ-����DB���سƺ����� |
-| CGocEntity | GocEntity.cpp | ?CheckEchelonTitle@CGocEntity@@QEAAXHEH@Z | 0x14005e9e0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| CGocEntity | GocEntity.cpp | ?CheckEchelonTitle@CGocEntity@@QEAAXHEH@Z | 0x14005e9e0 | implemented | IDA decompile | no | nLevel>=55, GetTB_ECHELON + GetPrefix/SuffixTitleToOpen(10,class) + AddTitle(4) |
 | CGocEntity | GocEntity.cpp | ?Levelup@CGocEntity@@QEAAXHH@Z | 0x14005eb40 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
 | CGocEntity | GocEntity.cpp | ?UpdateTitleStat@CGocEntity@@QEAAXHHHM@Z | 0x14005ef20 | implemented | IDA decompile | no | GetGOC_Attribute->UpdateEffectStat(nClassType, nType, fValue, 0) |
 | CGocEntity | GocEntity.cpp | ?IsValidTitle@CGocEntity@@QEAA_NHE@Z | 0x14005f170 | implemented | IDA decompile | no | nTitle<=0 合法; map 查找 + BYTE3(Title_Type)==byType |

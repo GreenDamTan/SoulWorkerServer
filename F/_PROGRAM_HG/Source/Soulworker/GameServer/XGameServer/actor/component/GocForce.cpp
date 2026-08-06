@@ -5,6 +5,7 @@
 
 #include "GocForce.h"
 #include "Soulworker/GameServer/XGameServer/CParty.h"  // CParty::SetMemberLevel
+#include "Soulworker/GameServer/XGameServer/GameSockets.h"  // CCommunitySocket::SendCmd
 #include "GOComponent.h"
 #include "GocNetwork.h"
 #include "GocRecode.h"
@@ -21,7 +22,6 @@
 class CForce;
 class CForceMember;
 class CParty;
-class CCommunitySocket;
 
 // ============================================================================
 // CGocForce Implementation
@@ -148,7 +148,35 @@ bool CGocForce::KickOut(std::uint32_t dwActorID, CUser* pUser)
 // Change master with validation
 void CGocForce::ChangeMaster(std::uint32_t dwMaster)
 {
-    (void)dwMaster;
+    // IDA 0x140084C80
+    if (!IsParty()) {
+        return;
+    }
+    CMover* pOwner = GetOwnerGO();
+    std::uint32_t dwActorID = pOwner ? pOwner->GetActorID().dwActorID : 0;
+
+    // 仅现任队长可转移队长
+    if (m_pParty->GetMasterID() == dwActorID) {
+        if (m_pParty->IsMember(dwMaster)) {
+            PS_FORCE_CHANGE_MASTER stChangeMaster;
+            stChangeMaster.dwReqActorID = dwActorID;
+            stChangeMaster.dwNewMasterID = dwMaster;
+            stChangeMaster.dwForceID = m_pParty->GetPartyID();
+            stChangeMaster.nErrorCode = 0;
+
+            // 经控制 socket 发送 (main=0xFA, sub=4 -> relay main=0x2E, sub=3)
+            // 注: IDA 反编译显示 CCommunitySocket::SendCmd，实际 CGameControlSocket 持有 SendCmd
+            XSendPacket xSendPacket(0xFA, 4);
+            xSendPacket << stChangeMaster;
+            CUser* pUser = dynamic_cast<CUser*>(pOwner);
+            XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+            pServer->GetControlSocket().SendCmd(&xSendPacket, pUser, 0x2E, 3);
+        } else {
+            CGocNetwork::SendErrorMessage(pOwner, 0x2E, 3, 0xCF72);
+        }
+    } else {
+        CGocNetwork::SendErrorMessage(pOwner, 0x2E, 3, 0xCF6F);
+    }
 }
 
 

@@ -15963,3 +15963,12 @@ Validate the current GameServer.exe reconstruction worktree before the user-auth
 - Ledger state: func-index upgraded SetMaxHP, SetHP, AddMatchingDate rows from blocked to implemented verified=no. type-index and path-recovery-index have no change this round.
 - Verification: cmake --build build --target GameServer -- -j8 succeeded ([2/2] Linking GameServer.exe). GREENDAMTAN_AUTOSTOP_MS=5000 timeout 45s ./build/bin/GameServer.exe reached Complete Server Init and Auto shutdown tick, exit 0.
 - Review status: independent verification pending; ReserveReviveAll (0x140083350) and ChangeMaster remain blocked on unlanded interfaces.
+---
+[2026-08-07 05:41:24 +08:00] [deepseek-v4-flash]
+### CGocForce ChangeMaster restore
+- Target: GameServer.exe; IDA MCP port 10004; model deepseek-v4-flash; local offset +08:00.
+- Evidence discovery: decompiled ChangeMaster (0x140084C80) via IDA MCP port 10004. The flow: guard on IsParty; check the current owner is the party master (IDA CWayPoint::GetCurID == owner ActorID, mapped to CParty::GetMasterID); verify the target is a member via CParty::IsMember; build PS_FORCE_CHANGE_MASTER with dwReqActorID/dwNewMasterID/dwForceID/nErrorCode=0; send via the relay socket (IDA CCommunitySocket::SendCmd, relay main=0x2E sub=3) with packet main=0xFA sub=4; on failure send CGocNetwork::SendErrorMessage with codes 0xCF6F (not master) / 0xCF72 (target not member).
+- Implementation: GocForce.cpp restored ChangeMaster from the empty stub. The send path resolved to CGameControlSocket::SendCmd (the current codebase holds SendCmd on CGameControlSocket, not CCommunitySocket, so the IDA class name was mapped accordingly) via the new XGameServer::GetCommunitySocket()... corrected to GetControlSocket() accessor (GetCommunitySocket was added then replaced since CCommunitySocket lacks SendCmd). Added XGameServer::GetCommunitySocket accessor, later replaced by the existing GetControlSocket() for the SendCmd call.
+- Ledger state: func-index upgraded the ChangeMaster row from blocked to implemented verified=no. type-index and path-recovery-index have no change this round.
+- Verification: cmake --build build --target GameServer -- -j8 succeeded ([2/2] Linking GameServer.exe). GREENDAMTAN_AUTOSTOP_MS=5000 timeout 45s ./build/bin/GameServer.exe reached Complete Server Init and Auto shutdown tick, exit 0.
+- Review status: independent verification pending; ReserveReviveAll remains blocked on unlanded interfaces (CUser::SetReserveRevive/DoReserverRevive, CMover::IsDie, XArea::GetTBMapID, ThreadLocalData::IsThreadArea).

@@ -133,6 +133,9 @@ public:
     XResourceMgr& GetResourceMgr() { return m_xResourceMgr; }
     const XResourceMgr& GetResourceMgr() const { return m_xResourceMgr; }
 
+    // 社区 Socket 访问 (RelayServer 连接)
+    CCommunitySocket& GetCommunitySocket() { return m_communitySocket; }
+
     // 动作资源管理器访问
     XActionResMgr& GetActionManager() { return m_xActionManager; }
     const XActionResMgr& GetActionManager() const { return m_xActionManager; }

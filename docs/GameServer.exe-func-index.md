@@ -2256,7 +2256,7 @@
 | - | - | ??1PS_PARTY_INFO@@QEAA@XZ | 0x140084460 | blocked | IDA ??1PS_PARTY_INFO@@QEAA@XZ | yes | - |
 | CGocForce | GocForce.cpp | ?Leave@CGocForce@@QEAAXXZ | 0x140084480 | blocked | IDA decompile | no | IDA精确还原(stub) |
 | CGocForce | GocForce.cpp | ?KickOut@CGocForce@@QEAA_NKPEAVCUser@@@Z | 0x1400846f0 | blocked | IDA decompile | no | IDA精确还原(stub) |
-| CGocForce | GocForce.cpp | ?ChangeMaster@CGocForce@@QEAAXK@Z | 0x140084c80 | blocked | IDA decompile | no | IDA精确还原(stub) |
+| CGocForce | GocForce.cpp | ?ChangeMaster@CGocForce@@QEAAXK@Z | 0x140084c80 | implemented | IDA decompile | no | IsParty + GetMasterID==owner + IsMember 校验 + CGameControlSocket::SendCmd (0x2E,3) |
 | CGocForce | GocForce.cpp | ?UpdatePartyBooster@CGocForce@@QEAAXXZ | 0x140084ee0 | blocked | IDA decompile | no | IDA精确还原(stub) |
 | CGocForce | GocForce.cpp | ?UpdatePartyBoosterByCount@CGocForce@@QEAAXHH@Z | 0x140084f30 | blocked | IDA decompile | no | IDA精确还原(stub) |
 | CGocParty | GocParty.cpp | ?SetMatchingDate@CGocParty@@QEAAX_J@Z | 0x140085030 | implemented | IDA ?SetMatchingDate@CGocParty@@QEAAX_J@Z | yes | - |

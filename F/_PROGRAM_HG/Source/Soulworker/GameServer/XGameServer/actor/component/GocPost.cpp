@@ -285,15 +285,26 @@ bool CGocPost::CheckListRefreshTime(std::uint8_t byType)
 // IDA精确还原: 设置DB同步标志位并发送日志
 void CGocPost::SetDBSync(std::uint32_t nType, bool bSync)
 {
+    // IDA: 设置 m_bSyncDB[nType] 并记日志 (main=51, sub=9, "POST_RECV")
     if (nType < 4)
     {
         m_bSyncDB[nType] = bSync;
-        
-        // TODO: Send log to DB (ST_LOG_GAME MainType=51, SubType=9)
-        // Need: CUser* pUser, ST_LOG_GAME, XGameServer::SendDBLog
+
+        CUser* pUser = dynamic_cast<CUser*>(GetOwnerGO());
+        if (pUser) {
+            ST_LOG_GAME stLog;
+            stLog._nUAID = pUser->GetUAID();
+            stLog._nUCID = pUser->GetUCID();
+            stLog._sMainType = 51;
+            stLog._sSubType = 9;
+            stLog.nParam0 = static_cast<int>(nType);
+            stLog.nParam1 = bSync ? 1 : 0;
+            XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+            if (pServer) pServer->SendDBLog(stLog);
+        }
     }
 
-    // Check if all syncs are complete
+    // IDA: 全部 4 个 sync 完成则置 UserDB.bLoadPostInfo (bit 28), 否则清除
     bool bAllSync = true;
     for (int i = 0; i < 4; ++i)
     {
@@ -304,11 +315,13 @@ void CGocPost::SetDBSync(std::uint32_t nType, bool bSync)
         }
     }
 
-    // TODO: Update CUser's UserDB flag (bit 4 = 0x10)
-    // if (bAllSync) *UserDB |= 0x10;
-    // else *UserDB &= ~0x10;
-    // Need: CUser::stMyCharInfoEx access
-    (void)bAllSync;
+    CUser* pUser = dynamic_cast<CUser*>(GetOwnerGO());
+    if (pUser) {
+        STMyCharInfoEx* pInfo = pUser->stMyCharInfoEx();
+        if (pInfo) {
+            pInfo->userDBBits.UserDB.bLoadPostInfo = bAllSync;
+        }
+    }
 }
 
 // GetDelDate (IDA: 0x14010E010)

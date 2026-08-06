@@ -15999,3 +15999,12 @@ Validate the current GameServer.exe reconstruction worktree before the user-auth
 - Ledger state: func-index corrected 27 over-claimed rows. type-index and path-recovery-index have no change. This round is documentation-only.
 - Verification: cmake --build build --target GameServer -- -j8 succeeded (no rebuild needed, source unchanged). GREENDAMTAN_AUTOSTOP_MS=5000 timeout 45s ./build/bin/GameServer.exe reached Complete Server Init and Auto shutdown tick, exit 0.
 - Review status: independent verification pending; CanUseItem (0x1400AB0E0) full restore with its 20+ CanUseItem_* sub-function dependencies remains a separate pending batch.
+---
+[2026-08-07 05:58:44 +08:00] [deepseek-v4-flash]
+### CGocPost SetDBSync restore
+- Target: GameServer.exe; IDA MCP port 10004; model deepseek-v4-flash; local offset +08:00.
+- Evidence discovery: decompiled SetDBSync (0x140115BB0) via IDA MCP port 10004. The flow: for nType<4 set m_bSyncDB[nType] and log ST_LOG_GAME (main=51, sub=9, "POST_RECV") with UAID/UCID and nParam0=nType/nParam1=bSync; then scan all four m_bSyncDB entries and set/clear the CUser UserDB bit 28 (UserDB[3] & 0x10) accordingly. The bit maps to STMyCharInfoEx_UserDBBits.bLoadPostInfo.
+- Implementation: GocPost.cpp completed SetDBSync from the partial stub: added the ST_LOG_GAME DB log send (pUser->GetUAID()/GetUCID()) and the UserDB bLoadPostInfo flag set/clear via pUser->stMyCharInfoEx()->userDBBits.UserDB.bLoadPostInfo. The IDA wcscpy_s szComment "POST_RECV" is noted but not emitted this round (comment buffer emission not wired).
+- Ledger state: func-index upgraded the SetDBSync row from blocked to implemented verified=no. type-index and path-recovery-index have no change this round.
+- Verification: cmake --build build --target GameServer -- -j8 succeeded ([2/2] Linking GameServer.exe). GREENDAMTAN_AUTOSTOP_MS=5000 timeout 45s ./build/bin/GameServer.exe reached Complete Server Init and Auto shutdown tick, exit 0.
+- Review status: independent verification pending.

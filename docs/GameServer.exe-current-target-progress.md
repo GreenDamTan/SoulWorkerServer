@@ -16098,3 +16098,12 @@ Validate the current GameServer.exe reconstruction worktree before the user-auth
 - Ledger state: func-index upgraded SendAutoMail to implemented verified=no with the symbol fix. type-index and path-recovery-index have no change this round.
 - Verification: cmake --build build --target GameServer -- -j8 succeeded ([2/2] Linking GameServer.exe). GREENDAMTAN_AUTOSTOP_MS=5000 timeout 45s ./build/bin/GameServer.exe reached Complete Server Init and Auto shutdown tick, exit 0.
 - Review status: independent verification pending; LoadAccountEvent now has a working SendAutoMail dependency, though CheckAccountEvent (0x140069080) remains a stub gate.
+---
+[2026-08-07 06:50:46 +08:00] [deepseek-v4-flash]
+### XGameServer history-segment stub conflict cleanup
+- Target: GameServer.exe; IDA MCP port 10004; model deepseek-v4-flash; local offset +08:00.
+- Evidence discovery: the re-verification PASS (commit d8a83d5's 17 rows all accurate) additionally noted a pre-existing structural issue: a separate "XGameServer" history segment (approx L58171-58615) still marked several stub functions as implemented, conflicting with the main-table blocked rows. Five of those (CGocFriend::AddBlockList, CGocPost::ResetLevelUpEvent/SendPostRecvList/SendPostAccountList/SendPostSaveList) were confirmed by the verifier to be empty stubs.
+- Implementation: func-index corrected the 5 conflicting XGameServer-history rows from implemented to blocked to match their stub bodies. The remaining XGameServer-history conflicts (CheckPassiveSkill/SetExp/Logout/IsMember etc.) require per-function body verification and are deferred to a dedicated later cleanup batch, not touched blindly.
+- Ledger state: func-index corrected 5 history rows. type-index and path-recovery-index have no change. This round is documentation-only.
+- Verification: git diff --stat confirms exactly 5 rows changed. Build/smoke unaffected (no source change). git diff --check clean.
+- Review status: verification cycle closed with PASS on the 17-row correction; the broader history-segment cleanup remains a separate pending batch.

@@ -58168,7 +58168,7 @@ yes | ?????????? |
 | XGameServer | FriendProcess.cpp | ?DeleteBlock@CGocFriend@@QEAAXKPEA_W_N@Z | 0x140087A50 | implemented | IDA decompile | yes | - |
 | XGameServer | FriendProcess.cpp | ?PrepareAddBlock@CGocFriend@@QEAA_NAEAUPS_FRIEND_BLOCK_ADD@@@Z | 0x140088460 | implemented | IDA decompile | yes | - |
 | XGameServer | FriendProcess.cpp | ?PrepareDelBlock@CGocFriend@@QEAA_NAEAUPS_FRIEND_BLOCK_DELETE@@@Z | 0x1400886B0 | implemented | IDA decompile | yes | - |
-| XGameServer | FriendProcess.cpp | ?AddBlockList@CGocFriend@@QEAAXAEAUPS_RES_BLOCKLIST_ADD@@@Z | 0x1400898C0 | implemented | IDA decompile | yes | - |
+| XGameServer | FriendProcess.cpp | ?AddBlockList@CGocFriend@@QEAAXAEAUPS_RES_BLOCKLIST_ADD@@@Z | 0x1400898C0 | blocked | IDA decompile | yes | - |
 | XGameServer | FriendProcess.cpp | ?DeleteBlockList@CGocFriend@@QEAAXAEAUPS_RES_BLOCKLIST_DELETE@@@Z | 0x140089920 | implemented | IDA decompile | yes | - |
 | XGameServer | FriendProcess.cpp | ?GetBlockList@CGocFriend@@QEAAXAEAUPS_BLOCKLIST_INFO@@@Z | 0x140089A90 | implemented | IDA decompile | yes | - |
 | XGameServer | FriendProcess.cpp | ?CheckAutoBlockCount@CGocEntity@@QEAAXW4AUTO_BLOCK_CHECK_TYPE@@HK@Z | 0x14005D970 | implemented | IDA decompile | yes | - |
@@ -58444,7 +58444,7 @@ yes | ?????????? |
 | XGameServer | GocPost.cpp | ?SetLevelUpEvent@CGocPost@@QEAAXHHH@Z | 0x14011CE60 | implemented | IDA decompile | yes | Set level up event data |
 | XGameServer | GocPost.cpp | ?SendLevelUpEvent@CGocPost@@QEAAXHH@Z | 0x14011CF40 | implemented | IDA decompile | yes | Send level up event - 3 condition types |
 | XGameServer | GocPost.cpp | ?SendLevelUpEventPost@CGocPost@@QEAA_NPEAUTB_LEVEL_MAIL@@@Z | 0x14011D9D0 | implemented | IDA decompile | yes | Send level up post - system/account path |
-| XGameServer | GocPost.cpp | ?ResetLevelUpEvent@CGocPost@@QEAAXXZ | 0x14011E100 | implemented | IDA decompile | yes | Reset level up event - DB Main=6 Sub=0x23 |
+| XGameServer | GocPost.cpp | ?ResetLevelUpEvent@CGocPost@@QEAAXXZ | 0x14011E100 | blocked | IDA decompile | yes | Reset level up event - DB Main=6 Sub=0x23 |
 | XGameServer | GocPost.cpp | ?SendAutoMail@CGocPost@@QEAA_NG@Z | 0x14011C450 | implemented | IDA decompile | yes | Send auto mail - TB_SYSTEMMAIL_ADD |
 | XGameServer | GocPost.cpp | ?LoadRestoreItem@CGocPost@@QEAAXAEAUPS_ITEM_RESTORE_LIST@@@Z | 0x14011E240 | implemented | IDA decompile | yes | Load restore items - DB Main=0x21 Sub=0x39 |
 | XGameServer | GocPost.cpp | ?SendRestorePost@CGocPost@@QEAAXXZ | 0x14011E680 | implemented | IDA decompile | yes | Send restore posts - batch 20 |
@@ -58610,9 +58610,9 @@ yes | ?????????? |
 | XGameServer | GocQuest.cpp | ?SetCompleteQuestQeq@CGocQuest@@QEAAX_N@Z | 0x140597200 | implemented | IDA decompile | yes | Set m_bComplete flag |
 | XGameServer | GocQuest.cpp | ?CompleteQuestForNewChar@CGocQuest@@QEAAX_N@Z | 0x14013B1A0 | implemented | IDA decompile | yes | Precise IDA restoration - complete quests for new character |
 | XGameServer | GocPost.cpp | ?SendPostSendList@CGocPost@@QEAAXXZ | 0x140115000 | implemented | IDA decompile | yes | Send send post list to client in batches of 10 |
-| XGameServer | GocPost.cpp | ?SendPostRecvList@CGocPost@@QEAAXXZ | 0x140115290 | implemented | IDA decompile | yes | Send receive post list to client in batches of 10 |
-| XGameServer | GocPost.cpp | ?SendPostAccountList@CGocPost@@QEAAXXZ | 0x140115500 | implemented | IDA decompile | yes | Send account post list to client in batches of 10 |
-| XGameServer | GocPost.cpp | ?SendPostSaveList@CGocPost@@QEAAXXZ | 0x140115930 | implemented | IDA decompile | yes | Send save post list to client in batches of 10 |
+| XGameServer | GocPost.cpp | ?SendPostRecvList@CGocPost@@QEAAXXZ | 0x140115290 | blocked | IDA decompile | yes | Send receive post list to client in batches of 10 |
+| XGameServer | GocPost.cpp | ?SendPostAccountList@CGocPost@@QEAAXXZ | 0x140115500 | blocked | IDA decompile | yes | Send account post list to client in batches of 10 |
+| XGameServer | GocPost.cpp | ?SendPostSaveList@CGocPost@@QEAAXXZ | 0x140115930 | blocked | IDA decompile | yes | Send save post list to client in batches of 10 |
 | XGameServer | Mover.cpp | ?GetLevel@CMover@@UEAAEXZ | 0x140366CB0 | implemented | IDA decompile | yes | IDA精确还原-通过CGocAttribute获取Level |
 | XGameServer | Mover.cpp | ?GetClass@CMover@@UEAAEXZ | 0x140366C30 | implemented | IDA decompile | yes | IDA精确还原-通过CGocAttribute获取Class |
 | XGameServer | Mover.cpp | ?GetMaxHP@CMover@@UEAAHXZ | 0x140366EE0 | implemented | IDA decompile | yes | IDA精确还原-通过CGocAttribute获取MaxHP(Stat=10) |

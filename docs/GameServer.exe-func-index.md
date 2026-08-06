@@ -1793,8 +1793,8 @@
 | CGocEntity | GocEntity.cpp | ?Levelup@CGocEntity@@QEAAXHH@Z | 0x14005eb40 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
 | CGocEntity | GocEntity.cpp | ?UpdateTitleStat@CGocEntity@@QEAAXHHHM@Z | 0x14005ef20 | implemented | IDA decompile | no | GetGOC_Attribute->UpdateEffectStat(nClassType, nType, fValue, 0) |
 | CGocEntity | GocEntity.cpp | ?IsValidTitle@CGocEntity@@QEAA_NHE@Z | 0x14005f170 | implemented | IDA decompile | no | nTitle<=0 合法; map 查找 + BYTE3(Title_Type)==byType |
-| CGocEntity | GocEntity.cpp | ?ReqFavoriteTitle@CGocEntity@@QEAAXAEAUPS_TITLE_FAVORITE@@@Z | 0x14005f210 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
-| CGocEntity | GocEntity.cpp | ?ResFavoriteTitle@CGocEntity@@QEAAXAEAUPS_DB_TITLE_FAVORITE@@@Z | 0x14005f840 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| CGocEntity | GocEntity.cpp | ?ReqFavoriteTitle@CGocEntity@@QEAAXAEAUPS_TITLE_FAVORITE@@@Z | 0x14005f210 | implemented | IDA decompile | no | TB_TITLE_INFO/TB_COMMON 校验 + 收藏上限 + 计数 + DB 同步 (3,0x24) |
+| CGocEntity | GocEntity.cpp | ?ResFavoriteTitle@CGocEntity@@QEAAXAEAUPS_DB_TITLE_FAVORITE@@@Z | 0x14005f840 | implemented | IDA decompile | no | DB 错误回滚计数; 成功应用收藏 + 客户端回包 (3,0x2A) + 日志 (sub=22) |
 | CGocEntity | GocEntity.cpp | ?UpdateCutscene@CGocEntity@@QEAAXAEAUPS_CUTSCENE_UPDATE@@@Z | 0x14005fdd0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | CGocEntity | GocEntity.cpp | ?LoginNetCafe@CGocEntity@@QEAAX_N@Z | 0x14005ffa0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | CGocEntity | GocEntity.cpp | ?SetNetCafe@CGocEntity@@QEAAX_N00@Z | 0x140060030 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |

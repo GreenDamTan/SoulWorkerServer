@@ -825,40 +825,89 @@ void CGocEntity::CheckEchelonTitle(int nLevel, uint8_t byEchelonLevel, int nClas
 // Verified: Per IDA decompile - requests title favorite toggle
 void CGocEntity::ReqFavoriteTitle(PS_TITLE_FAVORITE& stTitleFavorite)
 {
-    // Per IDA: Find title
-    auto it = m_mapHaveTitle.find(stTitleFavorite.dwTitleID);
-    if (it == m_mapHaveTitle.end()) {
+    // IDA 0x14005F210: fill UCID
+    CUser* pUser = GetUser();
+    if (pUser) {
+        stTitleFavorite.dwUCID = pUser->GetUCID();
+    }
+    uint32_t dwActorID = pUser ? pUser->GetActorID().dwActorID : 0;
+    XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+
+    // Validate TB_TITLE_INFO
+    TB_TITLE_INFO* pTBTitle = pServer->GetResourceMgr().GetTB_TITLE_INFO(stTitleFavorite.dwTitleID);
+    if (!pTBTitle) {
+        LogHelper::LogError("game.contents", "ReqFavoriteTitle error - TB_TITLE_INFO is NULL [ ActorID:%d, Title:%d ] ( %d ) ",
+                            dwActorID, stTitleFavorite.dwTitleID, 1074);
+        CMover* pMover = GetOwnerGO();
+        CGocNetwork::SendErrorMessage(pMover, 3, 0x2A, 0xC739);
         return;
     }
 
-    // Per IDA: Toggle favorite
+    // Validate TB_COMMON favorite limit
+    TB_COMMON* pTBCommon = pServer->GetResourceMgr().GetTB_COMMON(0x9C41);
+    if (!pTBCommon) {
+        LogHelper::LogError("game.contents", "ReqFavoriteTitle error - TB_COMMON is NULL [ ActorID:%d, Title:%d ] ( %d ) ",
+                            dwActorID, stTitleFavorite.dwTitleID, 1083);
+        CMover* pMover = GetOwnerGO();
+        CGocNetwork::SendErrorMessage(pMover, 3, 0x2A, 0xC739);
+        return;
+    }
+
+    // Find title in owned map
+    auto it = m_mapHaveTitle.find(stTitleFavorite.dwTitleID);
+    if (it == m_mapHaveTitle.end()) {
+        LogHelper::LogError("game.contents", "ReqFavoriteTitle error - Not Have [ ActorID:%d, Title:%d ] ( %d ) ",
+                            dwActorID, stTitleFavorite.dwTitleID, 1093);
+        CMover* pMover = GetOwnerGO();
+        CGocNetwork::SendErrorMessage(pMover, 3, 0x2A, 0xC739);
+        return;
+    }
+
+    // Same state -> just echo back
+    if (it->second.bFavorite == stTitleFavorite.bFavorite) {
+        XSendPacket xSendPacket(3, 0x2A);
+        xSendPacket.XParse << stTitleFavorite.dwUCID << stTitleFavorite.dwTitleID << stTitleFavorite.bFavorite;
+        CMover* pMover = GetOwnerGO();
+        if (pMover) {
+            CGocNetwork::Send(static_cast<XActor*>(pMover), xSendPacket);
+        }
+        return;
+    }
+
+    // Update favorite count with limit check (Title_Type != 0 => suffix)
+    CMover* pMover = GetOwnerGO();
+    if (pTBTitle->Title_Type != 0) {
+        if (stTitleFavorite.bFavorite) {
+            if (static_cast<float>(m_shFavoriteSuffixCount) >= pTBCommon->Value) {
+                LogHelper::LogError("game.contents", "ReqFavoriteTitle error - Suffix Count Over [ ActorID:%d, Title:%d ] ( %d ) ",
+                                    dwActorID, stTitleFavorite.dwTitleID, 1134);
+                CGocNetwork::SendErrorMessage(pMover, 3, 0x2A, 0xC739);
+                return;
+            }
+            ++m_shFavoriteSuffixCount;
+        } else {
+            --m_shFavoriteSuffixCount;
+        }
+    } else {
+        if (stTitleFavorite.bFavorite) {
+            if (static_cast<float>(m_shFavoritePrefixCount) >= pTBCommon->Value) {
+                LogHelper::LogError("game.contents", "ReqFavoriteTitle error - Prefix Count Over [ ActorID:%d, Title:%d ] ( %d ) ",
+                                    dwActorID, stTitleFavorite.dwTitleID, 1115);
+                CGocNetwork::SendErrorMessage(pMover, 3, 0x2A, 0xC739);
+                return;
+            }
+            ++m_shFavoritePrefixCount;
+        } else {
+            --m_shFavoritePrefixCount;
+        }
+    }
+
     it->second.bFavorite = stTitleFavorite.bFavorite;
 
-    // Per IDA: Update counts
-    // TB_TITLE_INFO* pTitle = it->second.pTBTitle;
-    // if (pTitle) {
-    //     if (pTitle->Title_Type == 0) { // Prefix
-    //         if (stTitleFavorite.bFavorite) {
-    //             ++m_shFavoritePrefixCount;
-    //         } else {
-    //             --m_shFavoritePrefixCount;
-    //         }
-    //     } else { // Suffix
-    //         if (stTitleFavorite.bFavorite) {
-    //             ++m_shFavoriteSuffixCount;
-    //         } else {
-    //             --m_shFavoriteSuffixCount;
-    //         }
-    //     }
-    // }
-
-    // Per IDA: Send DB update
-    // PS_DB_TITLE_FAVORITE stDB;
-    // stDB.dwTitleID = stTitleFavorite.dwTitleID;
-    // stDB.bFavorite = stTitleFavorite.bFavorite;
-    // XSendDBPacket packet(3, 0x24);
-    // packet << stDB;
-    // SendDBPacket(packet);
+    // Send DB update (main=3, sub=0x24)
+    XSendDBPacket xSendDBPacket(static_cast<XActor*>(pUser), 3, 0x24);
+    xSendDBPacket.XParse << stTitleFavorite.dwUCID << stTitleFavorite.dwTitleID << stTitleFavorite.bFavorite;
+    pServer->SendDBGame(xSendDBPacket);
 }
 
 // ============================================================================
@@ -866,10 +915,72 @@ void CGocEntity::ReqFavoriteTitle(PS_TITLE_FAVORITE& stTitleFavorite)
 // Verified: Per IDA decompile - handles DB response for title favorite
 void CGocEntity::ResFavoriteTitle(PS_DB_TITLE_FAVORITE& stTitleFavorite)
 {
-    // Per IDA: Update from DB response
+    // IDA 0x14005F840
+    uint32_t dwActorID = GetUser() ? GetUser()->GetActorID().dwActorID : 0;
+    XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+
+    if (stTitleFavorite.nError != 0) {
+        // DB error -> roll back the count already incremented by ReqFavoriteTitle
+        TB_TITLE_INFO* pTBTitle = pServer->GetResourceMgr().GetTB_TITLE_INFO(stTitleFavorite.psInfo.dwTitleID);
+        if (pTBTitle) {
+            if (pTBTitle->Title_Type != 0) {
+                if (stTitleFavorite.psInfo.bFavorite)
+                    --m_shFavoriteSuffixCount;
+                else
+                    ++m_shFavoriteSuffixCount;
+            } else {
+                if (stTitleFavorite.psInfo.bFavorite)
+                    --m_shFavoritePrefixCount;
+                else
+                    ++m_shFavoritePrefixCount;
+            }
+            LogHelper::LogError("game.contents", "ResFavoriteTitle error - DB Error [ ActorID:%d, Title:%d, Error:%d ] ( %d ) ",
+                                dwActorID, stTitleFavorite.psInfo.dwTitleID, stTitleFavorite.nError, 1182);
+        } else {
+            LogHelper::LogError("game.contents", "ResFavoriteTitle error - TB_TITLE_INFO DB Error [ ActorID:%d, Title:%d, Error:%d ] ( %d ) ",
+                                dwActorID, stTitleFavorite.psInfo.dwTitleID, stTitleFavorite.nError, 1160);
+        }
+        CGocNetwork::SendErrorMessage(GetOwnerGO(), 3, 0x2A, 0xC739);
+        return;
+    }
+
+    // Success: find title and apply favorite
     auto it = m_mapHaveTitle.find(stTitleFavorite.psInfo.dwTitleID);
-    if (it != m_mapHaveTitle.end()) {
-        it->second.bFavorite = stTitleFavorite.psInfo.bFavorite;
+    if (it == m_mapHaveTitle.end()) {
+        LogHelper::LogError("game.contents", "ResFavoriteTitle error - Not Have [ ActorID:%d, Title:%d, Error:%d ] ( %d ) ",
+                            dwActorID, stTitleFavorite.psInfo.dwTitleID, stTitleFavorite.nError, 1192);
+        CGocNetwork::SendErrorMessage(GetOwnerGO(), 3, 0x2A, 0xC739);
+        return;
+    }
+
+    it->second.bFavorite = stTitleFavorite.psInfo.bFavorite;
+
+    // Send client update (main=3, sub=0x2A)
+    PS_TITLE_FAVORITE psFavorite;
+    psFavorite.dwUCID = stTitleFavorite.psInfo.dwUCID;
+    psFavorite.dwTitleID = stTitleFavorite.psInfo.dwTitleID;
+    psFavorite.bFavorite = stTitleFavorite.psInfo.bFavorite;
+    XSendPacket xSendPacket(3, 0x2A);
+    xSendPacket.XParse << psFavorite.dwUCID << psFavorite.dwTitleID << psFavorite.bFavorite;
+    CMover* pMover = GetOwnerGO();
+    if (pMover) {
+        CGocNetwork::Send(static_cast<XActor*>(pMover), xSendPacket);
+    }
+
+    // Log game action (main=3, sub=22)
+    CUser* pUser = GetUser();
+    if (pUser) {
+        ST_LOG_GAME stLog;
+        stLog._nUAID = pUser->GetUAID();
+        stLog._nUCID = pUser->GetUCID();
+        stLog._sMainType = 3;
+        stLog._sSubType = 22;
+        stLog.nParam0 = psFavorite.dwTitleID;
+        stLog.nParam1 = it->second.bFavorite ? 1 : 0;
+        stLog.nParam2 = m_shFavoritePrefixCount;
+        stLog.nParam3 = m_shFavoriteSuffixCount;
+        stLog.nParam4 = 0;
+        pServer->SendDBLog(stLog);
     }
 }
 

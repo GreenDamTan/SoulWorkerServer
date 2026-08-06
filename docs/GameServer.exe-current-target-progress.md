@@ -15918,3 +15918,12 @@ Validate the current GameServer.exe reconstruction worktree before the user-auth
 - Ledger state: func-index upgraded AddTitle, UpdateTitleStat, IsValidTitle from blocked to implemented verified=no; DeleteTitle row was already implemented. type-index has no change this round. path-recovery-index has no change.
 - Verification: cmake --build build --target GameServer -- -j8 succeeded ([2/2] Linking GameServer.exe). GREENDAMTAN_AUTOSTOP_MS=5000 timeout 45s ./build/bin/GameServer.exe reached Complete Server Init and Auto shutdown tick, exit 0.
 - Review status: independent verification pending; UpdateTitle (0x14005CC50) full four-section effect add/remove plus DB sync/broadcast/log remains a deeper pending batch; CGameWorldMode::GetState access path still unlanded.
+---
+[2026-08-07 05:10:18 +08:00] [deepseek-v4-flash]
+### CGocEntity favorite-title request/response restores
+- Target: GameServer.exe; IDA MCP port 10004; model deepseek-v4-flash; local offset +08:00.
+- Evidence discovery: decompiled ReqFavoriteTitle (0x14005F210) and ResFavoriteTitle (0x14005F840) via IDA MCP port 10004. IDA's polluted field names were mapped to the real PS_TITLE_FAVORITE fields: dwExitUAID->dwTitleID, byReason->bFavorite, and the map-value favorite flag via m_eObjectFlags->bFavorite. TB_COMMON index 0x9C41 (40001) provides the favorite-count limit via Value. Title_Type != 0 selects the suffix counter, else prefix counter.
+- Implementation: GocEntity.cpp restored ReqFavoriteTitle to the full IDA flow: fill UCID, validate TB_TITLE_INFO (log 1074) and TB_COMMON (1083), check owned (1093), echo back on same state (client 3,0x2A), apply favorite with prefix/suffix count limit checks (logs 1115/1134) via SendErrorMessage (3,0x2A,0xC739), then DB sync (3,0x24) with XParse field serialization. ResFavoriteTitle restores DB-error count rollback (logs 1160/1182), owned check (1192), favorite application, client echo (3,0x2A), and ST_LOG_GAME (main=3 sub=22) with prefix/suffix counts.
+- Ledger state: func-index upgraded ReqFavoriteTitle and ResFavoriteTitle rows from blocked to implemented verified=no. type-index and path-recovery-index have no change this round.
+- Verification: cmake --build build --target GameServer -- -j8 succeeded ([2/2] Linking GameServer.exe). GREENDAMTAN_AUTOSTOP_MS=5000 timeout 45s ./build/bin/GameServer.exe reached Complete Server Init and Auto shutdown tick, exit 0.
+- Review status: independent verification pending; UpdateTitle (0x14005CC50) full four-section restore and CGameWorldMode::GetState access path remain pending.

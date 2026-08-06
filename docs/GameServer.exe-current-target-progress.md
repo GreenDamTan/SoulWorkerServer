@@ -16116,3 +16116,12 @@ Validate the current GameServer.exe reconstruction worktree before the user-auth
 - Ledger state: func-index upgraded the UpdateCutscene row from blocked to implemented verified=no. type-index and path-recovery-index have no change this round.
 - Verification: cmake --build build --target GameServer -- -j8 succeeded ([2/2] Linking GameServer.exe). GREENDAMTAN_AUTOSTOP_MS=5000 timeout 45s ./build/bin/GameServer.exe reached Complete Server Init and Auto shutdown tick, exit 0.
 - Review status: independent verification pending.
+---
+[2026-08-07 06:57:05 +08:00] [deepseek-v4-flash]
+### CGocEntity title-system reverse over-claim correction
+- Target: GameServer.exe; IDA MCP port 10004; model deepseek-v4-flash; local offset +08:00.
+- Evidence discovery: an improved ledger-accuracy scan (counting only line-leading code, excluding commented lines) found six CGocEntity title functions marked blocked in the main table that actually have real non-stub implementations in GocEntity.cpp: LoadTitle (fills m_stInsideTitle/m_stOutsideTitle/favorite counts + vecTitleID/vecOpenTitleID loops), InitTitle (assigns titles + CalculateTitleStat), UpdateTitle (IsValidTitle validation + assignment + CalculateTitleStat + SendUpdateTitle), ClearTitle (clears title state + favorites), SendTitleList (builds PS_TITLE_LOAD + sends packet 3,0x23/3,0x25), SendUpdateTitle (builds PS_RES_TITLE_UPDATE + sends packet 3,0x25). These were the reverse of the earlier over-claims - previously blocked but actually implemented.
+- Implementation: func-index upgraded the six rows from blocked to implemented verified=no. The improved counting method (line-leading code only) also re-confirmed that UseItem and ResetLevelUpEvent remain genuine stubs (their ~6 code lines are the void-casts and return false), so they correctly stay blocked.
+- Ledger state: func-index upgraded 6 CGocEntity title rows. type-index and path-recovery-index have no change. This round is documentation-only.
+- Verification: cmake --build build --target GameServer -- -j8 succeeded (no rebuild needed). git diff --check clean. git diff --stat confirms exactly 6 rows changed.
+- Review status: independent verification pending for this reverse-correction.

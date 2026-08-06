@@ -1773,21 +1773,21 @@
 | CGocEntity | GocEntity.cpp | ?Init@CGocEntity@@QEAAXXZ | 0x14005b6e0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
 | CGocEntity | GocEntity.cpp | ?OnUpdate@CGocEntity@@QEAAXXZ | 0x14005b880 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
 | CGocEntity | GocEntity.cpp | ?ClearInteraction@CGocEntity@@QEAAXXZ | 0x14005b920 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
-| CGocEntity | GocEntity.cpp | ?LoadTitle@CGocEntity@@QEAAXAEAUPS_TITLE_LOAD@@@Z | 0x14005b940 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| CGocEntity | GocEntity.cpp | ?LoadTitle@CGocEntity@@QEAAXAEAUPS_TITLE_LOAD@@@Z | 0x14005b940 | implemented | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | CGocEntity | GocEntity.cpp | ?AddTitle@CGocEntity@@QEAA_NKH@Z | 0x14005bdc0 | implemented | IDA decompile | no | TB_TITLE_INFO 校验+职业限制+map 插入+DB/客户端/日志同步 |
 | - | - | ?AddTitleByClass@CGocEntity@@QEAAKKH@Z | 0x14005c3c0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ-��ְҵ���ӳƺ� |
-| CGocEntity | GocEntity.cpp | ?InitTitle@CGocEntity@@QEAAXAEAUST_TitleInfo@@0@Z | 0x14005c480 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| CGocEntity | GocEntity.cpp | ?InitTitle@CGocEntity@@QEAAXAEAUST_TitleInfo@@0@Z | 0x14005c480 | implemented | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | CGocEntity | GocEntity.cpp | ?DeleteTitle@CGocEntity@@QEAAXH@Z | 0x14005c9a0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
-| CGocEntity | GocEntity.cpp | ?UpdateTitle@CGocEntity@@QEAAXAEAUPS_REQ_TITLE_UPDATE@@@Z | 0x14005cc50 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| CGocEntity | GocEntity.cpp | ?UpdateTitle@CGocEntity@@QEAAXAEAUPS_REQ_TITLE_UPDATE@@@Z | 0x14005cc50 | implemented | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | - | - | ??0PS_SYNC_TITLE_UPDATE@@QEAA@XZ | 0x14005d940 | blocked | IDA ??0PS_SYNC_TITLE_UPDATE@@QEAA@XZ | yes | - |
 | CGocEntity | GocEntity.cpp | ?CheckAutoBlockCount@CGocEntity@@QEAAXW4AUTO_BLOCK_CHECK_TYPE@@HK@Z | 0x14005d970 | implemented | IDA decompile | no | 空函数, 仅 dynamic_cast CUser, 结果丢弃 |
-| CGocEntity | GocEntity.cpp | ?ClearTitle@CGocEntity@@QEAAXXZ | 0x14005da10 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| CGocEntity | GocEntity.cpp | ?ClearTitle@CGocEntity@@QEAAXXZ | 0x14005da10 | implemented | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | - | - | ?UpdateOpenTitle@CGocEntity@@QEAAXHH@Z | 0x14005e090 | implemented | IDA decompile | no | GetPrefix/SuffixTitleToOpen + open set 插入 + DB (3,0x19) + 客户端 (3,0x29) |
-| CGocEntity | GocEntity.cpp | ?SendTitleList@CGocEntity@@QEAAXXZ | 0x14005e420 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| CGocEntity | GocEntity.cpp | ?SendTitleList@CGocEntity@@QEAAXXZ | 0x14005e420 | implemented | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | - | - | ??0PS_TITLE_LOAD@@QEAA@XZ | 0x14005e710 | blocked | IDA ??0PS_TITLE_LOAD@@QEAA@XZ | yes | - |
 | - | - | ??1PS_TITLE_LOAD@@QEAA@XZ | 0x14005e750 | blocked | IDA ??1PS_TITLE_LOAD@@QEAA@XZ | yes | - |
 | - | - | ??0PS_REQ_TITLE_UPDATE@@QEAA@XZ | 0x14005e790 | blocked | IDA ??0PS_REQ_TITLE_UPDATE@@QEAA@XZ | yes | - |
-| CGocEntity | GocEntity.cpp | ?SendUpdateTitle@CGocEntity@@QEAAXUST_TitleInfo@@0_N@Z | 0x14005e7c0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| CGocEntity | GocEntity.cpp | ?SendUpdateTitle@CGocEntity@@QEAAXUST_TitleInfo@@0_N@Z | 0x14005e7c0 | implemented | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | - | - | ?SendDBLoadTitle@CGocEntity@@QEAAXXZ | 0x14005e8d0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ-����DB���سƺ����� |
 | CGocEntity | GocEntity.cpp | ?CheckEchelonTitle@CGocEntity@@QEAAXHEH@Z | 0x14005e9e0 | implemented | IDA decompile | no | nLevel>=55, GetTB_ECHELON + GetPrefix/SuffixTitleToOpen(10,class) + AddTitle(4) |
 | CGocEntity | GocEntity.cpp | ?Levelup@CGocEntity@@QEAAXHH@Z | 0x14005eb40 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |

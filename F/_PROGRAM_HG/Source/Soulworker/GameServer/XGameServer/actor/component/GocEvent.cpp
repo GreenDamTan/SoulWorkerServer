@@ -1,5 +1,6 @@
 #include "GocEvent.h"
 #include "GocNetwork.h"
+#include "GocInventory.h"
 #include "Soulworker/GameServer/XGameServer/User.h"
 #include "Soulworker/GameServer/XGameServer/GameServer.h"
 #include "Soulworker/GameServer/XCore/XArea/XActor.h"
@@ -566,54 +567,134 @@ int CGocEvent::ReqWorldEventRegister(PS_WORLD_EVENT_REGISTER_REQ& psReq) {
 // 世界事件奖励请求 - 领取世界事件奖励
 // IDA精确还原：验证奖励条件、创建物品、发送DB请求
 int CGocEvent::ReqWorldEventReward(PS_WORLD_EVENT_REWARD_REQ& psReq) {
-    // IDA: 错误码定义
-    // 59002 = 事件不存在
-    // 59003 = 事件未激活或不在时间范围
-    // 59004 = 奖励条件不满足或奖励不存在
-    // 59005 = 已领取或背包不足
-    // 59007 = 正在处理中
-    // 59008 = 创建物品失败
-    
+    // IDA 0x14006A7E0: 错误码 59002/59003/59004/59005/59007/59008
+
     if (m_bWorldEventDBCall) {
         return 59007;
     }
 
-    // IDA核心流程：
-    // 1. CUser* pUser = dynamic_cast<CUser*>(GetOwner());
-    //    if (!pUser) return 59007;
-    // 2. TB_WORLD_EVENT* pTB_WORLD_EVENT = XResourceMgr::GetTB_WORLD_EVENT(psReq->nEventID);
-    //    if (!pTB_WORLD_EVENT || !pTB_WORLD_EVENT->event_activation) return 59002/59003;
-    // 3. 检查事件时间范围
-    // 4. TB_WORLD_EVENT_REWARD* pTB_WORLD_EVENT_REWARD = XResourceMgr::GetTB_WORLD_EVENT_REWARD(psReq->nRewardIndex);
-    //    if (!pTB_WORLD_EVENT_REWARD) return 59004;
-    //    if (pTB_WORLD_EVENT_REWARD->event_reward_type != 1) return 59004;
-    //    if (pTB_WORLD_EVENT_REWARD->world_reward_type != psReq->byRewardType) return 59004;
-    // 5. 检查奖励条件：
-    //    if (pTB_WORLD_EVENT_REWARD->world_reward_type == 0) {
-    //        // 总贡献度奖励
-    //        fPercent = GetWorldEventTotalCount(nEventID) / pTB_WORLD_EVENT->event_item_amount_max;
-    //        if (fPercent * 100 < pTB_WORLD_EVENT_REWARD->event_item_percentile_min) return 59004;
-    //    } else if (pTB_WORLD_EVENT_REWARD->world_reward_type == 1) {
-    //        // 个人贡献度奖励
-    //        if (GetWorldEventMyCount(nEventID) < pTB_WORLD_EVENT_REWARD->event_item_percentile_min) return 59004;
-    //    }
-    // 6. if (FindWorldEventReward(psReq->nRewardIndex)) return 59005; // 已领取
-    // 7. PS_DB_WORLD_EVENT_REWARD psDBReq;
-    //    psDBReq.dwUAID = pUser->GetUAID();
-    //    psDBReq.dwUCID = pUser->GetUCID();
-    //    psDBReq.psReq = *psReq;
-    //    psDBReq.byItemFlag = 45;
-    //    psDBReq.dwRewardItemID = pTB_WORLD_EVENT_REWARD->event_reward_value;
-    //    psDBReq.shRewardCount = pTB_WORLD_EVENT_REWARD->event_reward_item_amount;
-    // 8. if (pTB_WORLD_EVENT_REWARD->world_reward_type == 1) {
-    //        // 直接给物品
-    //        CGocInventory::CreateItem2(...);
-    //    }
-    // 9. m_bWorldEventDBCall = true;
-    // 10. XSendDBPacket(pUser, 0x49, 0x29);
+    CUser* pUser = dynamic_cast<CUser*>(GetOwnerGO());
+    if (!pUser) {
+        return 59007;
+    }
+
+    XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+    TB_WORLD_EVENT* pTBWorldEvent = pServer->GetResourceMgr().GetTB_WORLD_EVENT(psReq.nEventID);
+    if (!pTBWorldEvent) {
+        return 59002;
+    }
+    if (!pTBWorldEvent->event_activation) {
+        return 59003;
+    }
+
+    // IDA: 时间范围检查
+    std::time_t tCurr = std::time(nullptr);
+    auto parseDate = [](const char* szDate) -> std::time_t {
+        int y = 2000, mon = 1, d = 1, h = 0, mi = 0, s = 0;
+        if (szDate && std::sscanf(szDate, "%d-%d-%d %d:%d:%d", &y, &mon, &d, &h, &mi, &s) >= 3
+            && y >= 2000 && y <= 2040 && mon >= 1 && mon <= 12
+            && d >= 1 && d <= 31 && h <= 24 && mi <= 60 && s <= 60) {
+            std::tm tm = {};
+            tm.tm_year = y - 1900;
+            tm.tm_mon = mon - 1;
+            tm.tm_mday = d;
+            tm.tm_hour = h;
+            tm.tm_min = mi;
+            tm.tm_sec = s;
+            tm.tm_isdst = -1;
+            return std::mktime(&tm);
+        }
+        std::tm tmDef = {};
+        tmDef.tm_year = 100;
+        tmDef.tm_mon = 0;
+        tmDef.tm_mday = 1;
+        tmDef.tm_isdst = -1;
+        return std::mktime(&tmDef);
+    };
+    std::time_t tStart = parseDate(pTBWorldEvent->event_start_date);
+    std::time_t tEnd = parseDate(pTBWorldEvent->event_end_date);
+    if (tCurr < tStart || tEnd < tCurr) {
+        return 59003;
+    }
+
+    // IDA: 奖励表校验
+    std::int16_t shItemLogType = 115;
+    TB_WORLD_EVENT_REWARD* pTBWorldEventReward = pServer->GetResourceMgr().GetTB_WORLD_EVENT_REWARD(psReq.nRewardIndex);
+    if (!pTBWorldEventReward) {
+        return 59004;
+    }
+    if (pTBWorldEventReward->event_reward_type != 1) {
+        return 59004;
+    }
+    if (pTBWorldEventReward->world_reward_type != psReq.byRewardType) {
+        return 59004;
+    }
+
+    // IDA: 奖励条件
+    if (pTBWorldEventReward->world_reward_type != 0) {
+        if (pTBWorldEventReward->world_reward_type != 1) {
+            LogHelper::LogError("game.contents", "ReqWorldEventReward error - Reward Type (%d/%d)",
+                                psReq.nRewardIndex, pTBWorldEventReward->world_reward_type);
+            return 59004;
+        }
+        if (GetWorldEventMyCount(psReq.nEventID) < pTBWorldEventReward->event_item_percentile_min) {
+            return 59004;
+        }
+        shItemLogType = 116;
+    } else {
+        float fPercent = static_cast<float>(GetWorldEventTotalCount(psReq.nEventID))
+                       / static_cast<float>(pTBWorldEvent->event_item_amount_max);
+        std::uint8_t byPercent = static_cast<std::uint8_t>(fPercent * 100.0f);
+        if (byPercent < pTBWorldEventReward->event_item_percentile_min) {
+            return 59004;
+        }
+    }
+
+    // IDA: 已领取检查
+    if (FindWorldEventReward(psReq.nRewardIndex)) {
+        return 59005;
+    }
+
+    PS_DB_WORLD_EVENT_REWARD psDBReq;
+    psDBReq.dwUAID = pUser->GetUAID();
+    psDBReq.dwUCID = pUser->GetUCID();
+    psDBReq.psReq = psReq;
+    psDBReq.byItemFlag = 45;
+    psDBReq.dwRewardItemID = pTBWorldEventReward->event_reward_value;
+    psDBReq.shRewardCount = static_cast<std::int16_t>(pTBWorldEventReward->event_reward_item_amount);
+
+    if (!pServer->GetResourceMgr().GetTB_ITEM(psDBReq.dwRewardItemID) || psDBReq.shRewardCount <= 0) {
+        return 59004;
+    }
+
+    // IDA: world_reward_type == 1 直接发物品
+    if (pTBWorldEventReward->world_reward_type == 1) {
+        std::shared_ptr<CGocInventory> pInven = pUser->GetGOC_Inventory(false);
+        if (!pInven) {
+            return 59005;
+        }
+        ST_CREATE_ITEMS stCreateItems;
+        ST_CREATE_ITEM stAddItem;
+        stAddItem.nItemID = psDBReq.dwRewardItemID;
+        stAddItem.shCount = static_cast<std::int16_t>(psDBReq.shRewardCount);
+        stCreateItems.vecInfo.push_back(stAddItem);
+
+        ST_LOG_GAME stLog;
+        stLog._sSubType = static_cast<std::int16_t>(shItemLogType);
+        stLog.nParam3 = psReq.nEventID;
+        stLog.nParam4 = psReq.nRewardIndex;
+
+        if (!pInven->CreateItem2(stCreateItems, 0x54, 0, psDBReq.stCreateItem, psDBReq.stUpdateItem, stLog)) {
+            LogHelper::LogError("game.contents", "AttendanceReward error - CreateItem2");
+            return 59008;
+        }
+    }
 
     m_bWorldEventDBCall = true;
-    (void)psReq;
+
+    XSendDBPacket xSendDBPacket(static_cast<XActor*>(pUser), 0x49, 0x29);
+    xSendDBPacket << psDBReq;
+    pServer->SendDBGame(xSendDBPacket);
     return 0;
 }
 

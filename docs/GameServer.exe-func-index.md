@@ -1919,7 +1919,7 @@
 | CGocEvent | GocEvent.cpp | ?GetWorldEventDailyRewardDate@CGocEvent@@QEAA_JH@Z | 0x140069730 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
 | CGocEvent | GocEvent.cpp | ?ReqWorldEventInfo@CGocEvent@@QEAAHAEAUPS_WORLD_EVENT_INFO_REQ@@@Z | 0x1400697a0 | implemented | IDA decompile | no | 错误码 59002/59003/59007 + TB_WORLD_EVENT 校验 + 时间范围 + DB 包 (0x49,0x27) |
 | CGocEvent | GocEvent.cpp | ?ReqWorldEventRegister@CGocEvent@@QEAAHAEAUPS_WORLD_EVENT_REGISTER_REQ@@@Z | 0x140069d90 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
-| CGocEvent | GocEvent.cpp | ?ReqWorldEventReward@CGocEvent@@QEAAHAEAUPS_WORLD_EVENT_REWARD_REQ@@@Z | 0x14006a7e0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| CGocEvent | GocEvent.cpp | ?ReqWorldEventReward@CGocEvent@@QEAAHAEAUPS_WORLD_EVENT_REWARD_REQ@@@Z | 0x14006a7e0 | implemented | IDA decompile | no | 错误码 59002-59008 + TB_WORLD_EVENT_REWARD 校验 + 条件 + CreateItem2 + DB 包 (0x49,0x29) |
 | CGocEvent | GocEvent.cpp | ?ReqWorldEventDailyReward@CGocEvent@@QEAAHAEAUPS_WORLD_EVENT_DAILY_REWARD_REQ@@@Z | 0x14006b300 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | - | - | ?ResWorldEventInfo@CGocEvent@@QEAAXAEAUPS_DB_WORLD_EVENT_INFO_RES@@@Z | 0x14006bd30 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | - | - | ??0PS_WORLD_EVENT_INFO_RES@@QEAA@AEBU0@@Z | 0x14006bf00 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |

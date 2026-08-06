@@ -2346,9 +2346,9 @@
 | CGocFriend | GocFriend.cpp | ?PrepareRecruitInfo@CGocFriend@@QEAA_NXZ | 0x140088e60 | implemented | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | CGocFriend | GocFriend.cpp | ?PrepareRecommandList@CGocFriend@@QEAA_NXZ | 0x1400890c0 | implemented | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | - | - | ??1PS_RES_FRIEND_RECOMMAND@@QEAA@XZ | 0x140089370 | blocked | IDA ??1PS_RES_FRIEND_RECOMMAND@@QEAA@XZ | yes | - |
-| CGocFriend | GocFriend.cpp | ?FriendInvite@CGocFriend@@QEAAXAEAUPS_FRIEND_RESULT@@@Z | 0x140089390 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
-| CGocFriend | GocFriend.cpp | ?FriendAccept@CGocFriend@@QEAAXAEAUPS_RES_FRIEND_ACCEPT@@@Z | 0x140089720 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
-| CGocFriend | GocFriend.cpp | ?AddBlockList@CGocFriend@@QEAAXAEAUPS_RES_BLOCKLIST_ADD@@@Z | 0x1400898c0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| CGocFriend | GocFriend.cpp | ?FriendInvite@CGocFriend@@QEAAXAEAUPS_FRIEND_RESULT@@@Z | 0x140089390 | implemented | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| CGocFriend | GocFriend.cpp | ?FriendAccept@CGocFriend@@QEAAXAEAUPS_RES_FRIEND_ACCEPT@@@Z | 0x140089720 | implemented | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| CGocFriend | GocFriend.cpp | ?AddBlockList@CGocFriend@@QEAAXAEAUPS_RES_BLOCKLIST_ADD@@@Z | 0x1400898c0 | implemented | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | CGocFriend | GocFriend.cpp | ?DeleteBlockList@CGocFriend@@QEAAXAEAUPS_RES_BLOCKLIST_DELETE@@@Z | 0x140089920 | implemented | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | CGocFriend | GocFriend.cpp | ?GetFriendList@CGocFriend@@QEAAXAEAUPS_FRIEND_LIST@@E@Z | 0x140089980 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
 | CGocFriend | GocFriend.cpp | ?GetBlockList@CGocFriend@@QEAAXAEAUPS_BLOCKLIST_INFO@@@Z | 0x140089a90 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |

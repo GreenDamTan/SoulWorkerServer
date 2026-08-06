@@ -16125,3 +16125,12 @@ Validate the current GameServer.exe reconstruction worktree before the user-auth
 - Ledger state: func-index upgraded 6 CGocEntity title rows. type-index and path-recovery-index have no change. This round is documentation-only.
 - Verification: cmake --build build --target GameServer -- -j8 succeeded (no rebuild needed). git diff --check clean. git diff --stat confirms exactly 6 rows changed.
 - Review status: independent verification pending for this reverse-correction.
+---
+[2026-08-07 07:02:37 +08:00] [deepseek-v4-flash]
+### CGocFriend FriendInvite/FriendAccept/AddBlockList restores
+- Target: GameServer.exe; IDA MCP port 10004; model deepseek-v4-flash; local offset +08:00.
+- Evidence discovery: decompiled three CGocFriend response handlers via IDA MCP port 10004. FriendInvite (0x140089390) is a switch on PS_FRIEND_RESULT::nResult: case 0 sends packet (0x19,0x11) with the result; cases 1/2/3 send SendErrorMessage (0x19,0x11) with codes 0xD745/0xD73D/0xD747; cases 5/6/9 remap nResult to 55107/55103/59202 and send packet (0x19,0x13)/(0x19,0x11); default returns. FriendAccept (0x140089720) forwards PS_RES_FRIEND_ACCEPT to PS_FRIEND_RESULT (copying stFriend.strName) and sends packet (0x19,0x13) unless nResult==55105. AddBlockList (0x1400898C0) sends SendErrorMessage (0x19,0x21) with nResult on failure, else calls AddBlock(stBlock, true).
+- Implementation: GocFriend.cpp replaced the three void-stubs with the precise flows. AddBlockList converts the DB_BLOCK_INFO (dwUCID/strName[21]/byLevel) into ST_BLOCK_INFO (dwUCID/byLevel/strName[51], different field order so explicit copy required) before calling the existing AddBlock.
+- Ledger state: func-index upgraded FriendInvite, FriendAccept, AddBlockList rows from blocked to implemented verified=no. type-index and path-recovery-index have no change this round.
+- Verification: cmake --build build --target GameServer -- -j8 succeeded ([2/2] Linking GameServer.exe). GREENDAMTAN_AUTOSTOP_MS=5000 timeout 45s ./build/bin/GameServer.exe reached Complete Server Init and Auto shutdown tick, exit 0.
+- Review status: independent verification pending.

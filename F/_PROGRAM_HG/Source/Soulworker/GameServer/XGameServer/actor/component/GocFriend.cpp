@@ -726,19 +726,89 @@ bool CGocFriend::PrepareRecommandList() {
 // FriendInvite - IDA: 0x140089390
 // Handles friend invite result from community server
 void CGocFriend::FriendInvite(PS_FRIEND_RESULT& stResult) {
-    (void)stResult;
+    // IDA 0x140089390: switch on nResult
+    switch (stResult.nResult)
+    {
+    case 0:
+    {
+        XSendPacket xSendPacket(0x19, 0x11);
+        xSendPacket << stResult;
+        CMover* pMover = GetOwnerGO();
+        if (pMover) CGocNetwork::Send(static_cast<XActor*>(pMover), xSendPacket);
+        break;
+    }
+    case 1:
+        CGocNetwork::SendErrorMessage(GetOwnerGO(), 0x19, 0x11, 0xD745);
+        break;
+    case 2:
+        CGocNetwork::SendErrorMessage(GetOwnerGO(), 0x19, 0x11, 0xD73D);
+        break;
+    case 3:
+        CGocNetwork::SendErrorMessage(GetOwnerGO(), 0x19, 0x11, 0xD747);
+        break;
+    case 5:
+    {
+        stResult.nResult = 55107;
+        XSendPacket packet(0x19, 0x13);
+        packet << stResult;
+        CMover* pMover = GetOwnerGO();
+        if (pMover) CGocNetwork::Send(static_cast<XActor*>(pMover), packet);
+        break;
+    }
+    case 6:
+    {
+        stResult.nResult = 55103;
+        XSendPacket xSendPacket(0x19, 0x11);
+        xSendPacket << stResult;
+        CMover* pMover = GetOwnerGO();
+        if (pMover) CGocNetwork::Send(static_cast<XActor*>(pMover), xSendPacket);
+        break;
+    }
+    case 9:
+    {
+        stResult.nResult = 59202;
+        XSendPacket xSendPacket(0x19, 0x11);
+        xSendPacket << stResult;
+        CMover* pMover = GetOwnerGO();
+        if (pMover) CGocNetwork::Send(static_cast<XActor*>(pMover), xSendPacket);
+        break;
+    }
+    default:
+        break;
+    }
 }
 
 // FriendAccept - IDA: 0x140089720
 // Handles friend accept response from community server
 void CGocFriend::FriendAccept(PS_RES_FRIEND_ACCEPT& stAccept) {
-    (void)stAccept;
+    // IDA 0x140089720: nResult != 55105 时转发 PS_FRIEND_RESULT
+    if (stAccept.nResult == 55105) {
+        return;
+    }
+
+    PS_FRIEND_RESULT stResult;
+    stResult.nResult = stAccept.nResult;
+    std::wcscpy(stResult.strName, stAccept.stFriend.strName);
+
+    XSendPacket xSendPacket(0x19, 0x13);
+    xSendPacket << stResult;
+    CMover* pMover = GetOwnerGO();
+    if (pMover) CGocNetwork::Send(static_cast<XActor*>(pMover), xSendPacket);
 }
 
 // AddBlockList - IDA: 0x1400898C0
 // Handles block list add response from community server
 void CGocFriend::AddBlockList(PS_RES_BLOCKLIST_ADD& stBlock) {
-    (void)stBlock;
+    // IDA 0x1400898C0: 失败发错误码，成功 AddBlock
+    if (stBlock.stResult.nResult) {
+        CGocNetwork::SendErrorMessage(GetOwnerGO(), 0x19, 0x21, static_cast<std::uint16_t>(stBlock.stResult.nResult));
+    } else {
+        ST_BLOCK_INFO stBlockInfo;
+        stBlockInfo.dwUCID = stBlock.stBlock.dwUCID;
+        stBlockInfo.byLevel = stBlock.stBlock.byLevel;
+        std::wcsncpy(stBlockInfo.strName, stBlock.stBlock.strName, 21);
+        AddBlock(&stBlockInfo, true);
+    }
 }
 
 // DeleteBlockList - IDA: 0x140089920

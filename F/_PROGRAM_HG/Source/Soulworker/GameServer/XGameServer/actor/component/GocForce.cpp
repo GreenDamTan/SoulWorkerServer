@@ -4,6 +4,7 @@
 // Verified: no (pending build verification)
 
 #include "GocForce.h"
+#include "Soulworker/GameServer/XGameServer/CParty.h"  // CParty::SetMemberLevel
 #include "GOComponent.h"
 #include "GocNetwork.h"
 #include "GocRecode.h"
@@ -189,7 +190,16 @@ void CGocForce::SetMaxHP(int nMaxHP)
 // Set member level
 void CGocForce::SetLevel(int nLevel)
 {
-    (void)nLevel;
+    // IDA: if (m_pForce) { dwActorID = GetOwnerGO()->GetActorID(); CForce::SetMemberLevel(pForce, dwActorID, nLevel); }
+    if (!m_pParty) {
+        return;
+    }
+    CMover* pOwner = GetOwnerGO();
+    if (!pOwner) {
+        return;
+    }
+    std::uint32_t dwActorID = pOwner->GetActorID().dwActorID;
+    m_pParty->SetMemberLevel(dwActorID, nLevel);
 }
 
 
@@ -197,7 +207,16 @@ void CGocForce::SetLevel(int nLevel)
 // Set member awaken grade
 void CGocForce::SetAwaken(std::uint8_t byAwaken)
 {
-    (void)byAwaken;
+    // IDA: if (m_pForce) { dwActorID = GetOwnerGO()->GetActorID(); CForce::SetMemberAwaken(pForce, dwActorID, byAwaken); }
+    if (!m_pParty) {
+        return;
+    }
+    CMover* pOwner = GetOwnerGO();
+    if (!pOwner) {
+        return;
+    }
+    std::uint32_t dwActorID = pOwner->GetActorID().dwActorID;
+    m_pParty->SetMemberAwaken(dwActorID, byAwaken);
 }
 
 
@@ -205,7 +224,16 @@ void CGocForce::SetAwaken(std::uint8_t byAwaken)
 // Set member profile photo
 void CGocForce::SetProfilePhoto(std::uint32_t dwPhotoID)
 {
-    (void)dwPhotoID;
+    // IDA: if (m_pForce) { dwActorID = GetOwnerGO()->GetActorID(); CForce::SetMemberProfilePhoto(pForce, dwActorID, dwPhotoID); }
+    if (!m_pParty) {
+        return;
+    }
+    CMover* pOwner = GetOwnerGO();
+    if (!pOwner) {
+        return;
+    }
+    std::uint32_t dwActorID = pOwner->GetActorID().dwActorID;
+    m_pParty->SetMemberProfilePhoto(dwActorID, dwPhotoID);
 }
 
 
@@ -213,9 +241,16 @@ void CGocForce::SetProfilePhoto(std::uint32_t dwPhotoID)
 // Set member map information
 void CGocForce::SetMapID(int nMapID, int nChannel, const UXMapID& uxMapID)
 {
-    (void)nMapID;
-    (void)nChannel;
-    (void)uxMapID;
+    // IDA: if (m_pForce) { dwActorID = GetOwnerGO()->GetActorID(); CForce::SetMemberMapID(pForce, dwActorID, nMapID, nChannel, uxMapID); }
+    if (!m_pParty) {
+        return;
+    }
+    CMover* pOwner = GetOwnerGO();
+    if (!pOwner) {
+        return;
+    }
+    std::uint32_t dwActorID = pOwner->GetActorID().dwActorID;
+    m_pParty->SetMemberMapID(dwActorID, nMapID, nChannel, uxMapID);
 }
 
 

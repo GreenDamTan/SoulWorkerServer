@@ -2243,10 +2243,10 @@
 | CGocForce | GocForce.cpp | ?IsMaster@CGocForce@@QEAA_NK@Z | 0x140083160 | implemented | IDA decompile | yes | IDA精确还原 |
 | CGocParty | GocParty.cpp | ?IsMember@CGocParty@@QEAA_NK@Z | 0x1400831b0 | implemented | IDA decompile | yes | IDA exact match - checks if actor ID is party member |
 | CGocForce | GocForce.cpp | ?ReserveReviveAll@CGocForce@@QEAAXKK@Z | 0x140083350 | blocked | IDA decompile | no | IDA精确还原(stub) |
-| CGocForce | GocForce.cpp | ?SetMapID@CGocForce@@QEAAXHHTUXMapID@@@Z | 0x140083690 | blocked | IDA decompile | no | IDA精确还原(stub) |
-| CGocForce | GocForce.cpp | ?SetLevel@CGocForce@@QEAAXH@Z | 0x140083730 | blocked | IDA decompile | no | IDA精确还原(stub) |
-| CGocForce | GocForce.cpp | ?SetAwaken@CGocForce@@QEAAXE@Z | 0x1400837b0 | blocked | IDA decompile | no | IDA精确还原(stub) |
-| CGocForce | GocForce.cpp | ?SetProfilePhoto@CGocForce@@QEAAXK@Z | 0x140083830 | blocked | IDA decompile | no | IDA精确还原(stub) |
+| CGocForce | GocForce.cpp | ?SetMapID@CGocForce@@QEAAXHHTUXMapID@@@Z | 0x140083690 | implemented | IDA decompile | no | m_pParty 非空时取 owner ActorID 调 CParty::SetMemberMapID |
+| CGocForce | GocForce.cpp | ?SetLevel@CGocForce@@QEAAXH@Z | 0x140083730 | implemented | IDA decompile | no | m_pParty 非空时取 owner ActorID 调 CParty::SetMemberLevel |
+| CGocForce | GocForce.cpp | ?SetAwaken@CGocForce@@QEAAXE@Z | 0x1400837b0 | implemented | IDA decompile | no | m_pParty 非空时取 owner ActorID 调 CParty::SetMemberAwaken |
+| CGocForce | GocForce.cpp | ?SetProfilePhoto@CGocForce@@QEAAXK@Z | 0x140083830 | implemented | IDA decompile | no | m_pParty 非空时取 owner ActorID 调 CParty::SetMemberProfilePhoto |
 | CGocForce | GocForce.cpp | ?SetMaxHP@CGocForce@@QEAAXH@Z | 0x1400838b0 | blocked | IDA decompile | no | IDA精确还原(stub) |
 | CGocForce | GocForce.cpp | ?SetHP@CGocForce@@QEAAXH@Z | 0x140083970 | blocked | IDA decompile | no | IDA精确还原(stub) |
 | CGocForce | GocForce.cpp | ?SetExp@CGocForce@@QEAAXPEAVCUser@@MH@Z | 0x140083a30 | blocked | IDA decompile | no | IDA精确还原(stub) |

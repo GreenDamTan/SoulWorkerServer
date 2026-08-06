@@ -15972,3 +15972,12 @@ Validate the current GameServer.exe reconstruction worktree before the user-auth
 - Ledger state: func-index upgraded the ChangeMaster row from blocked to implemented verified=no. type-index and path-recovery-index have no change this round.
 - Verification: cmake --build build --target GameServer -- -j8 succeeded ([2/2] Linking GameServer.exe). GREENDAMTAN_AUTOSTOP_MS=5000 timeout 45s ./build/bin/GameServer.exe reached Complete Server Init and Auto shutdown tick, exit 0.
 - Review status: independent verification pending; ReserveReviveAll remains blocked on unlanded interfaces (CUser::SetReserveRevive/DoReserverRevive, CMover::IsDie, XArea::GetTBMapID, ThreadLocalData::IsThreadArea).
+---
+[2026-08-07 05:47:51 +08:00] [deepseek-v4-flash]
+### CGocFriend AddFriendPoint restore
+- Target: GameServer.exe; IDA MCP port 10004; model deepseek-v4-flash; local offset +08:00.
+- Evidence discovery: decompiled AddFriendPoint (0x140089EE0) via IDA MCP port 10004. The flow: find the CFriend in the friend container by UCID; ST_FRIEND_INFO stInfo; GetInfo; stInfo.nFriendPoint += nPoint; UpdateInfo; then via the owner's CGocInventory AddTotalFriendPoint(nPoint, false); finally send the updated ST_FRIEND_INFO to the client (main=0x19, sub=0x31).
+- Implementation: GocFriend.cpp completed AddFriendPoint from the partial stub: added the CGocInventory::AddTotalFriendPoint call (owner GetGOC_Inventory(false)) and the client XSendPacket (0x19,0x31) with ST_FRIEND_INFO via CGocNetwork::Send. Added the required includes (GocNetwork.h, GocInventory.h, Mover.h, XActor.h, GameServer.h) since the file had minimal includes.
+- Ledger state: func-index upgraded the AddFriendPoint row from blocked to implemented verified=no. type-index and path-recovery-index have no change this round.
+- Verification: cmake --build build --target GameServer -- -j8 succeeded ([2/2] Linking GameServer.exe). GREENDAMTAN_AUTOSTOP_MS=5000 timeout 45s ./build/bin/GameServer.exe reached Complete Server Init and Auto shutdown tick, exit 0.
+- Review status: independent verification pending.

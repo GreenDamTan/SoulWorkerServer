@@ -3,6 +3,11 @@
 // IDA addresses verified from port 10004
 
 #include "GocFriend.h"
+#include "GocNetwork.h"
+#include "GocInventory.h"
+#include "Soulworker/GameServer/XGameServer/actor/Mover/Mover.h"
+#include "Soulworker/GameServer/XCore/XArea/XActor.h"
+#include "Soulworker/GameServer/XGameServer/GameServer.h"
 #include <cstring>
 #include <algorithm>
 
@@ -764,6 +769,22 @@ void CGocFriend::AddFriendPoint(std::uint32_t dwUCID, std::int64_t nPoint) {
             pFriend->GetInfo(&stInfo);
             stInfo.nFriendPoint += nPoint;
             pFriend->UpdateInfo(&stInfo);
+
+            // IDA: Update total friend point via inventory
+            CMover* pMover = GetOwnerGO();
+            if (pMover) {
+                std::shared_ptr<CGocInventory> pInven = pMover->GetGOC_Inventory(false);
+                if (pInven) {
+                    pInven->AddTotalFriendPoint(nPoint, false);
+                }
+            }
+
+            // IDA: Send client update (main=0x19, sub=0x31)
+            XSendPacket xSendPacket(0x19, 0x31);
+            xSendPacket << stInfo;
+            if (pMover) {
+                CGocNetwork::Send(static_cast<XActor*>(pMover), xSendPacket);
+            }
             return;
         }
     }

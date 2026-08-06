@@ -16107,3 +16107,12 @@ Validate the current GameServer.exe reconstruction worktree before the user-auth
 - Ledger state: func-index corrected 5 history rows. type-index and path-recovery-index have no change. This round is documentation-only.
 - Verification: git diff --stat confirms exactly 5 rows changed. Build/smoke unaffected (no source change). git diff --check clean.
 - Review status: verification cycle closed with PASS on the 17-row correction; the broader history-segment cleanup remains a separate pending batch.
+---
+[2026-08-07 06:55:25 +08:00] [deepseek-v4-flash]
+### CGocEntity UpdateCutscene restore
+- Target: GameServer.exe; IDA MCP port 10004; model deepseek-v4-flash; local offset +08:00.
+- Evidence discovery: decompiled UpdateCutscene (0x14005FDD0) via IDA MCP port 10004. The flow: dynamic_cast the owner's XArea to XMaze; if present, on bOnPlay call CCutsceneManager::SetCutscene(actorID, szName) else SkipCutscene(actorID, szName) via XMaze::GetCutSceneMgr; then get CGocRecode and call SetShowCutscene(true).
+- Implementation: GocEntity.cpp replaced the comment-only stub with the full flow using XMaze::GetCutSceneMgr, CCutsceneManager::SetCutscene/SkipCutscene, and CMover::GetGOC_Recode(false)->SetShowCutscene. Added includes (GocRecode.h, Maze.h, CutsceneManager.h).
+- Ledger state: func-index upgraded the UpdateCutscene row from blocked to implemented verified=no. type-index and path-recovery-index have no change this round.
+- Verification: cmake --build build --target GameServer -- -j8 succeeded ([2/2] Linking GameServer.exe). GREENDAMTAN_AUTOSTOP_MS=5000 timeout 45s ./build/bin/GameServer.exe reached Complete Server Init and Auto shutdown tick, exit 0.
+- Review status: independent verification pending.

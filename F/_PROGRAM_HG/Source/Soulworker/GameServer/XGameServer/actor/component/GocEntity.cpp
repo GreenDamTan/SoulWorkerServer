@@ -18,10 +18,13 @@
 #include "GocEntity.h"
 #include "GocNetwork.h"
 #include "GocAttribute.h"
+#include "GocRecode.h"
 #include "Soulworker/Common/XNet/XIOCPBase/Packet.h"
 #include "Soulworker/GameServer/XCore/XArea/XActor.h"
 #include "Soulworker/GameServer/XGameServer/actor/Mover/Mover.h"
 #include "Soulworker/GameServer/XGameServer/GameServer.h"
+#include "Soulworker/GameServer/XGameServer/Maze.h"
+#include "Soulworker/GameServer/XGameServer/CutsceneManager.h"
 #include "Soulworker/GameServer/XSCommon/Table/DBLoadTable.h"
 #include "Soulworker/GameServer/XCore/XServer/GreenDamTan_LogHelper.h"
 #include <cstring>
@@ -994,14 +997,30 @@ void CGocEntity::ResFavoriteTitle(PS_DB_TITLE_FAVORITE& stTitleFavorite)
 // Verified: Per IDA decompile - updates cutscene state
 void CGocEntity::UpdateCutscene(PS_CUTSCENE_UPDATE& stCutscene)
 {
-    // Per IDA: Handle cutscene update
-    // if (stCutscene.bOnPlay) {
-    //     CCutsceneManager::SetCutscene(stCutscene.dwCutsceneID);
-    // } else {
-    //     CCutsceneManager::SkipCutscene();
-    // }
+    // IDA 0x14005FDD0: 需要 XMaze 上下文
+    XArea* pArea = GetOwnerGO() ? GetOwnerGO()->GetArea() : nullptr;
+    XMaze* pMaze = dynamic_cast<XMaze*>(pArea);
+    if (!pMaze) {
+        return;
+    }
 
-    (void)stCutscene;
+    std::uint32_t dwActorID = GetOwnerGO() ? GetOwnerGO()->GetActorID().dwActorID : 0;
+    CCutsceneManager* pCutSceneMgr = pMaze->GetCutSceneMgr();
+
+    if (stCutscene.bOnPlay) {
+        pCutSceneMgr->SetCutscene(dwActorID, stCutscene.szName);
+    } else {
+        pCutSceneMgr->SkipCutscene(dwActorID, stCutscene.szName);
+    }
+
+    // IDA: 标记过场已播放
+    CMover* pMover = GetOwnerGO();
+    if (pMover) {
+        std::shared_ptr<CGocRecode> pRecode = pMover->GetGOC_Recode(false);
+        if (pRecode) {
+            pRecode->SetShowCutscene(true);
+        }
+    }
 }
 
 // ============================================================================

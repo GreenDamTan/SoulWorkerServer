@@ -2335,7 +2335,7 @@
 | CGocFriend | GocFriend.cpp | ?DeleteFriend@CGocFriend@@QEAAXK_N@Z | 0x1400877f0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
 | CGocFriend | GocFriend.cpp | ?UpdatePartyBooster@CGocFriend@@QEAAXXZ | 0x140087980 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
 | CGocFriend | GocFriend.cpp | ?DeleteBlock@CGocFriend@@QEAAXKPEA_W_N@Z | 0x140087a50 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
-| CGocFriend | GocFriend.cpp | ?PrepareFriendInvite@CGocFriend@@QEAAXAEAUPS_DB_FRIEND_INVITE@@@Z | 0x140087c80 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| CGocFriend | GocFriend.cpp | ?PrepareFriendInvite@CGocFriend@@QEAAXAEAUPS_REQ_FRIEND_INVITE@@@Z | 0x140087c80 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | CGocFriend | GocFriend.cpp | ?PrepareFriendAccept@CGocFriend@@QEAAXAEAUPS_REQ_FRIEND_ACCEPT@@@Z | 0x1400880b0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | CGocFriend | GocFriend.cpp | ?PrepareDelFriend@CGocFriend@@QEAA_NAEAUPS_REQ_FRIEND_DELETE@@@Z | 0x1400882f0 | implemented | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | CGocFriend | GocFriend.cpp | ?PrepareAddBlock@CGocFriend@@QEAA_NAEAUPS_REQ_FRIEND_BLOCK_ADD@@@Z | 0x140088460 | implemented | IDA decompile | no | IDA��ȷ��ԭ(stub) |

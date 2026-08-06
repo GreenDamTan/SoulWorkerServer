@@ -16134,3 +16134,12 @@ Validate the current GameServer.exe reconstruction worktree before the user-auth
 - Ledger state: func-index upgraded FriendInvite, FriendAccept, AddBlockList rows from blocked to implemented verified=no. type-index and path-recovery-index have no change this round.
 - Verification: cmake --build build --target GameServer -- -j8 succeeded ([2/2] Linking GameServer.exe). GREENDAMTAN_AUTOSTOP_MS=5000 timeout 45s ./build/bin/GameServer.exe reached Complete Server Init and Auto shutdown tick, exit 0.
 - Review status: independent verification pending.
+---
+[2026-08-07 07:07:10 +08:00] [deepseek-v4-flash]
+### CGocFriend PrepareFriendInvite symbol correction
+- Target: GameServer.exe; IDA MCP port 10004; model deepseek-v4-flash; local offset +08:00.
+- Evidence discovery: while assessing CGocFriend::PrepareFriendInvite (0x140087C80) for a restore, the func-index main-table mangled symbol was found to be wrong: it read ?PrepareFriendInvite@CGocFriend@@QEAAXAEAUPS_DB_FRIEND_INVITE@@@Z but the GocFriend.h declaration, the source definition, and IDA's decompile all use PS_REQ_FRIEND_INVITE (wchar_t strName[21]). The PS_DB_* form was a pre-existing index typo.
+- Implementation: func-index corrected the PrepareFriendInvite symbol to ?PrepareFriendInvite@CGocFriend@@QEAAXAEAUPS_REQ_FRIEND_INVITE@@@Z. The function itself remains blocked: its restore depends on XGameServer::FindNameToUser (present), an inline Register_Friend option check (CUser::GetGameOption + ST_GAME_OPTION::nOption_Register_Friend, available), PS_RES_FRIEND_INVITE (present), and CCommunitySocket::SendCmd -- but SendCmd lives on CGameControlSocket, not CCommunitySocket, so the community-socket send path is not yet available; that dependency is deferred to a dedicated batch.
+- Ledger state: func-index corrected 1 mangled symbol. type-index and path-recovery-index have no change. This round is documentation-only.
+- Verification: git diff --stat confirms exactly 1 line changed. git diff --check clean.
+- Review status: independent verification pending; PrepareFriendInvite/PrepareFriendAccept full restore deferred on the CCommunitySocket::SendCmd gap.

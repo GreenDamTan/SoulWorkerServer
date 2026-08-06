@@ -76,7 +76,6 @@ ThreadLocalData::ThreadLocalData()
 }
 
 ThreadLocalData::~ThreadLocalData() {
-    Clear();
     delete m_xMonsterMgr;
     m_xMonsterMgr = nullptr;
 }
@@ -107,7 +106,6 @@ void ThreadLocalData::Clear() {
     if (m_xMonsterMgr) {
         m_xMonsterMgr->ClearAll();
     }
-    m_bInitPool = false;
 }
 
 void ThreadLocalData::Update(float fDeltaTime) {

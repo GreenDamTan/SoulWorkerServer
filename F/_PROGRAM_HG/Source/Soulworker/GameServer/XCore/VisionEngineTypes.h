@@ -352,6 +352,9 @@ struct tagACTION_BUFFER {
         std::memset(szBuffer, 0, sizeof(szBuffer));
     }
 
+    // IDA: ?ResetPosition@tagACTION_BUFFER@@QEAAXXZ @ 0x1403A1F10
+    void ResetPosition() { nCurrent = 0; }
+
     // IDA: SetFLOAT @ 0x140016C60, SetINT @ 0x140016D10, SetSHORT @ 0x140016D80
     void SetFLOAT(float value) { *(float*)(&szBuffer[nCurrent]) = value; nCurrent += 4; }
     void SetINT(int value) { *(int*)(&szBuffer[nCurrent]) = value; nCurrent += 4; }
@@ -1418,10 +1421,39 @@ public:
     UserDataTrigger() : ActionTrigger() { TypeOfTrigger = 5; }
 };
 
+// SRangeInfo - 攻击范围信息 (36 bytes)
+// PDB LF_FIELDLIST 0x26B5A: vCenterPos(0) fBoxSizeX(12) fBoxSizeY(16) fRadius(20) fAngle(24) fHeight(28) fStartPos(32)
+// MovingInputTrigger::sAttackRange 使用 (type 0x26B4B)
+struct SRangeInfo {
+    hkvVec3 vCenterPos;  // offset 0
+    float fBoxSizeX;     // offset 12
+    float fBoxSizeY;     // offset 16
+    float fRadius;       // offset 20
+    float fAngle;        // offset 24
+    float fHeight;       // offset 28
+    float fStartPos;     // offset 32
+
+    SRangeInfo() : vCenterPos(), fBoxSizeX(0.0f), fBoxSizeY(0.0f), fRadius(0.0f),
+        fAngle(0.0f), fHeight(0.0f), fStartPos(0.0f) {}
+};
+
 // MovingInputTrigger - 移动输入触发器 (TypeOfTrigger = 8)
+// PDB LF_FIELDLIST 0x69F88: Size 240, Duration(168) MaxSpeed(172) OffsetDistance(176) MovingType(180)
+//   MonsterRank(184) MonsterWeightRank(188) sAttackRange SRangeInfo(192) vPullPoint hkvVec3(228)
+// IDA ctor: ??0MovingInputTrigger@@QEAA@XZ @ 0x14072B640 (Size 240 = 0xF0)
 class MovingInputTrigger : public ActionTrigger {
 public:
-    MovingInputTrigger() : ActionTrigger() { TypeOfTrigger = 8; }
+    float Duration;            // offset 168
+    float MaxSpeed;            // offset 172
+    float OffsetDistance;      // offset 176
+    std::int32_t MovingType;   // offset 180
+    std::int32_t MonsterRank;  // offset 184
+    std::int32_t MonsterWeightRank; // offset 188
+    SRangeInfo sAttackRange;   // offset 192
+    hkvVec3 vPullPoint;        // offset 228
+
+    MovingInputTrigger() : ActionTrigger(), Duration(0.0f), MaxSpeed(0.0f), OffsetDistance(0.0f),
+        MovingType(0), MonsterRank(0), MonsterWeightRank(0), sAttackRange(), vPullPoint() {}
 };
 
 // ExtraInputTrigger - 额外输入触发器 (TypeOfTrigger = 9)
@@ -1438,46 +1470,148 @@ public:
 };
 
 // JumpAttackTrigger - 跳跃攻击触发器 (TypeOfTrigger = 10)
+// PDB LF_FIELDLIST 0x6D640: base ActionTrigger offset 0, AddVelocityZ(168) GravityScale(172) JumpDelayTime(176) JumpEndDelayTime(180)
+// IDA ctor: ??0JumpAttackTrigger@@QEAA@XZ @ 0x14072BB20 (Size 184 = 0xB8)
 class JumpAttackTrigger : public ActionTrigger {
 public:
-    JumpAttackTrigger() : ActionTrigger() { TypeOfTrigger = 10; }
+    float AddVelocityZ;      // offset 168
+    float GravityScale;      // offset 172
+    float JumpDelayTime;     // offset 176
+    float JumpEndDelayTime;  // offset 180
+
+    JumpAttackTrigger() : ActionTrigger(), AddVelocityZ(0.0f), GravityScale(0.0f),
+        JumpDelayTime(0.0f), JumpEndDelayTime(0.0f) {}
 };
 
 // DeathTrigger - 死亡触发器 (TypeOfTrigger = 13)
+// PDB LF_FIELDLIST 0x7682F: Size 304, szDeathAnim(168) IsLocalClient(296) bMustExcute(297)
+// IDA ctor: ??0DeathTrigger@@QEAA@XZ @ 0x14072C3D0 (Size 304 = 0x130)
 class DeathTrigger : public ActionTrigger {
 public:
-    DeathTrigger() : ActionTrigger() { TypeOfTrigger = 13; }
+    char szDeathAnim[128];  // offset 168
+    bool IsLocalClient;     // offset 296
+    bool bMustExcute;       // offset 297
+
+    DeathTrigger() : ActionTrigger(), IsLocalClient(false), bMustExcute(false) {
+        std::memset(szDeathAnim, 0, sizeof(szDeathAnim));
+    }
 };
 
 // InvisibleTrigger - 隐身触发器 (TypeOfTrigger = 14)
+// PDB LF_FIELDLIST 0x79A64: Size 192, CollisionOn(168) EffectOn(169) MoveOn(170) AIOn(171)
+//   ConditionType(172) ConditionValue(176) ConditionExtValue1(180) ConditionExtValue2(184) ConditionExtValue3(188)
+// IDB ctor: InvisibleTrigger::InvisibleTrigger(0x14072C4F0) (Size 192 = 0xC0)
 class InvisibleTrigger : public ActionTrigger {
 public:
-    InvisibleTrigger() : ActionTrigger() { TypeOfTrigger = 14; }
+    bool CollisionOn;       // offset 168
+    bool EffectOn;          // offset 169
+    bool MoveOn;            // offset 170
+    bool AIOn;              // offset 171
+    std::int32_t ConditionType;      // offset 172
+    std::int32_t ConditionValue;     // offset 176
+    std::int32_t ConditionExtValue1;// offset 180
+    std::int32_t ConditionExtValue2;// offset 184
+    std::int32_t ConditionExtValue3;// offset 188
+
+    InvisibleTrigger() : ActionTrigger(), CollisionOn(false), EffectOn(false), MoveOn(false), AIOn(false),
+        ConditionType(0), ConditionValue(0), ConditionExtValue1(0), ConditionExtValue2(0), ConditionExtValue3(0) {}
 };
 
 // WarpToPointTrigger - 传送到点触发器 (TypeOfTrigger = 15)
+// PDB LF_FIELDLIST 0x70C00: Size 184, WarpPattern(168) WarpPoint(172) WarpYaw(176)
+// IDB ctor: IDA 0x14072C6E0 WarpYaw = -1.0f, others 0 (Size 184 = 0xB8)
 class WarpToPointTrigger : public ActionTrigger {
 public:
-    WarpToPointTrigger() : ActionTrigger() { TypeOfTrigger = 15; }
+    std::int32_t WarpPattern;  // offset 168
+    std::int32_t WarpPoint;    // offset 172
+    float WarpYaw;             // offset 176
+
+    WarpToPointTrigger() : ActionTrigger(), WarpPattern(0), WarpPoint(0), WarpYaw(-1.0f) {}
 };
 
 // SummonMonsterTrigger - 召唤怪物触发器 (TypeOfTrigger = 16)
-// IDA: offset 168+ = SummonType, SummonID, SummonChance
+// IDA: serializer SummonMonsterTrigger::Serialize, vftable type 0x1117
+// PDB LF_CLASS 0x76669: total size 528 (= ActionTrigger 168 + SummonMonsterTrigger 360)
+// PDB LF_FIELDLIST 0x76668, method list 0x76662 with 2 ctors
+// IDA ctor: ??0SummonMonsterTrigger@@QEAA@XZ @ 0x14072C8B0
 class SummonMonsterTrigger : public ActionTrigger {
 public:
-    std::int32_t SummonType;      // offset 168
-    std::int32_t SummonID;        // offset 172
-    std::int32_t SummonChance;    // offset 176 (0-10000)
+    float AlphaValue;                // offset 168
+    float BlendingTime;              // offset 172
+    std::int32_t MonsterID;          // offset 176
+    char szSummonAnim[128];          // offset 180
+    hkvVec3 SummonPos;               // offset 308
+    bool ApplyRotation;              // offset 320
+    std::int32_t SummonType;         // offset 324
+    std::int32_t SummonChance;       // offset 328 (0-10000)
+    std::int32_t SummonID;           // offset 332
+    bool AlwaysOnGround;             // offset 336
+    bool FallowMonster;              // offset 337
+    bool CopyMotion;                 // offset 338
+    std::int32_t iEventBoxID;        // offset 340
+    std::int32_t iChargeLevel;       // offset 344
+    std::int32_t iSkillLevel;        // offset 348
+    std::int16_t sSkillCondition;    // offset 352
+    std::int32_t iCombatType;        // offset 356
+    char szDivergenceValue[128];     // offset 360
+    float fDelayTime;                // offset 488
+    std::int32_t iSummonCount;       // offset 492
+    float RandomRadius;              // offset 496
+    float Rotation;                  // offset 500
+    bool IsLocalClient;              // offset 504
+    bool bDeleteWhenMotionChange;    // offset 505
+    float fSummonLifeTime;           // offset 508
+    float fSummonDisappearTime;      // offset 512
+    std::int32_t nSkillID;           // offset 516
+    bool bSuicidePossible;           // offset 520
 
-    SummonMonsterTrigger() : ActionTrigger(), SummonType(0), SummonID(0), SummonChance(0) {
+    SummonMonsterTrigger()
+        : ActionTrigger()
+        , AlphaValue(1.0f)
+        , BlendingTime(1.0f)
+        , MonsterID(0)
+        , SummonPos()
+        , ApplyRotation(true)
+        , SummonType(0)
+        , SummonChance(10000)
+        , SummonID(0)
+        , AlwaysOnGround(false)
+        , FallowMonster(false)
+        , CopyMotion(false)
+        , iEventBoxID(0)
+        , iChargeLevel(-1)
+        , iSkillLevel(-1)
+        , sSkillCondition(0)
+        , iCombatType(-1)
+        , fDelayTime(0.0f)
+        , iSummonCount(1)
+        , RandomRadius(0.0f)
+        , Rotation(0.0f)
+        , IsLocalClient(false)
+        , bDeleteWhenMotionChange(false)
+        , fSummonLifeTime(-1.0f)
+        , fSummonDisappearTime(0.0f)
+        , nSkillID(0)
+        , bSuicidePossible(false)
+    {
         TypeOfTrigger = 16;
+        std::memset(szSummonAnim, 0, sizeof(szSummonAnim));
+        std::memset(szDivergenceValue, 0, sizeof(szDivergenceValue));
     }
 };
 
 // LuaFunctionCallTrigger - Lua函数调用触发器 (TypeOfTrigger = 17)
+// PDB LF_FIELDLIST 0x6D4D4: Size 560, LuaFilename char[260](168) LuaFunction char[128](428)
+// IDA: ??0LuaFunctionCallTrigger@@QEAA@XZ @ 0x14072C7D0, memset both arrays to 0 (Size 560 = 0x230)
 class LuaFunctionCallTrigger : public ActionTrigger {
 public:
-    LuaFunctionCallTrigger() : ActionTrigger() { TypeOfTrigger = 17; }
+    char LuaFilename[260];  // offset 168
+    char LuaFunction[128];  // offset 428
+
+    LuaFunctionCallTrigger() : ActionTrigger() {
+        std::memset(LuaFilename, 0, sizeof(LuaFilename));
+        std::memset(LuaFunction, 0, sizeof(LuaFunction));
+    }
 };
 
 // AkashicTrigger - Akashic触发器 (TypeOfTrigger = 18)
@@ -1535,9 +1669,18 @@ public:
 };
 
 // DetachTrigger - 分离触发器 (TypeOfTrigger = 30)
+// PDB LF_FIELDLIST 0x760D2: Size 312, DropTime float(168) szAniName char[128](172) SkillID int(300) RefEventID int(304)
+// IDA ctor: ??0DetachTrigger@@QEAA@XZ @ 0x14072B4C0 (Size 312 = 0x138), SkillID = RefEventID = -1
 class DetachTrigger : public ActionTrigger {
 public:
-    DetachTrigger() : ActionTrigger() { TypeOfTrigger = 30; }
+    float DropTime;          // offset 168
+    char szAniName[128];     // offset 172
+    std::int32_t SkillID;    // offset 300
+    std::int32_t RefEventID; // offset 304
+
+    DetachTrigger() : ActionTrigger(), DropTime(0.0f), SkillID(-1), RefEventID(-1) {
+        std::memset(szAniName, 0, sizeof(szAniName));
+    }
 };
 
 // CollisionChangeTrigger - 碰撞变更触发器 (TypeOfTrigger = 33)
@@ -1553,9 +1696,30 @@ public:
 };
 
 // RandomSummonTrigger - 随机召唤触发器 (TypeOfTrigger = 36)
+// PDB LF_FIELDLIST 0x6D45D: Size 352, szSummonAnim char[128](168) SummonPos hkvVec3(296)
+//   RandomMinRadius float(308) RandomMaxRadius float(312) iSummonCount int(316) iMonsterID1(320) iMonsterID2(324) iMonsterID3(328)
+//   iMonsterRate1(332) iMonsterRate2(336) iMonsterRate3(340) bSuicidePossible bool(344)
+// IDA ctor: ??0RandomSummonTrigger@@QEAA@XZ @ 0x14072CF20 (Size 352 = 0x160)
 class RandomSummonTrigger : public ActionTrigger {
 public:
-    RandomSummonTrigger() : ActionTrigger() { TypeOfTrigger = 36; }
+    char szSummonAnim[128];   // offset 168
+    hkvVec3 SummonPos;        // offset 296
+    float RandomMinRadius;    // offset 308
+    float RandomMaxRadius;    // offset 312
+    std::int32_t iSummonCount;   // offset 316
+    std::int32_t iMonsterID1;    // offset 320
+    std::int32_t iMonsterID2;    // offset 324
+    std::int32_t iMonsterID3;    // offset 328
+    std::int32_t iMonsterRate1;  // offset 332
+    std::int32_t iMonsterRate2;  // offset 336
+    std::int32_t iMonsterRate3;  // offset 340
+    bool bSuicidePossible;       // offset 344
+
+    RandomSummonTrigger() : ActionTrigger(), SummonPos(), RandomMinRadius(0.0f), RandomMaxRadius(0.0f),
+        iSummonCount(0), iMonsterID1(0), iMonsterID2(0), iMonsterID3(0),
+        iMonsterRate1(0), iMonsterRate2(0), iMonsterRate3(0), bSuicidePossible(false) {
+        std::memset(szSummonAnim, 0, sizeof(szSummonAnim));
+    }
 };
 
 // LinkSkillTrigger - 链接技能触发器 (TypeOfTrigger = 37)
@@ -1565,24 +1729,32 @@ public:
 };
 
 // CheckAttackSkillTrigger - 检查攻击技能触发器 (TypeOfTrigger = 38)
+// PDB LF_FIELDLIST 0x729C5: Size 192, nAngle(168) nMinRange(172) nMaxRange(176) nSkillID(180) nProbability(184) fDuration float(188)
+// IDA ctor: ??0CheckAttackSkillTrigger@@QEAA@XZ @ 0x14072E860 (Size 192 = 0xC0)
 class CheckAttackSkillTrigger : public ActionTrigger {
 public:
-    // IDA: Inferred from CheckAttackSkillEnable (0x14039E370)
-    std::int32_t nMinRange;     // Minimum attack range
-    std::int32_t nMaxRange;     // Maximum attack range
-    std::int32_t nAngle;        // Attack angle in degrees
-    float fReplayTime;          // Replay time for animation
+    std::int32_t nAngle;       // offset 168
+    std::int32_t nMinRange;    // offset 172
+    std::int32_t nMaxRange;    // offset 176
+    std::int32_t nSkillID;     // offset 180
+    std::int32_t nProbability; // offset 184
+    float fDuration;           // offset 188
 
-    CheckAttackSkillTrigger() : ActionTrigger(), nMinRange(0), nMaxRange(0), nAngle(0), fReplayTime(0.0f) { TypeOfTrigger = 38; }
+    CheckAttackSkillTrigger() : ActionTrigger(), nAngle(0), nMinRange(0), nMaxRange(0),
+        nSkillID(0), nProbability(0), fDuration(0.0f) {}
 };
 
 // DelSummonMonsterTrigger - 删除召唤怪物触发器 (TypeOfTrigger = 39)
-// IDA: MonsterID field
+// PDB LF_FIELDLIST 0x6BB09: Size 304, MonsterID int(168) szSummonAnim char[128](172)
+// IDA ctor: ??0DelSummonMonsterTrigger@@QEAA@XZ @ 0x14072E9F0 (Size 304 = 0x130)
 class DelSummonMonsterTrigger : public ActionTrigger {
 public:
-    std::int32_t MonsterID;  // offset 168
+    std::int32_t MonsterID;    // offset 168
+    char szSummonAnim[128];    // offset 172
 
-    DelSummonMonsterTrigger() : ActionTrigger(), MonsterID(0) { TypeOfTrigger = 39; }
+    DelSummonMonsterTrigger() : ActionTrigger(), MonsterID(0) {
+        std::memset(szSummonAnim, 0, sizeof(szSummonAnim));
+    }
 };
 
 // ApplyPassiveSkillTrigger - 应用被动技能触发器 (TypeOfTrigger = 40)

@@ -78,6 +78,18 @@
 | XCore | VisionEngineTypes.h | VArray<T> | - | implemented | IDA struct | yes | Vision Engine 动态数组模板 |
 | XCore | VisionEngineTypes.h | VRefCounter | 16 | implemented | IDA struct | yes | Vision Engine 引用计数基类 |
 | XCore | VisionEngineTypes.h | ActionTrigger | 168 | implemented | IDA struct | yes | 动作触发器结构 (完整布局已还原) |
+| XCore | VisionEngineTypes.h | SummonMonsterTrigger | 528 | implemented | PDB LF_CLASS 0x76669 | yes | 召唤怪物触发器 (完整 29-field 布局已还原至 VisionEngineTypes.h) |
+| XCore | VisionEngineTypes.h | SRangeInfo | 36 | implemented | PDB LF_FIELDLIST 0x26B5A | yes | 攻击范围信息 (vCenterPos +0x00, fBoxSizeX +0x0C, fBoxSizeY +0x10, fRadius +0x14, fAngle +0x18, fHeight +0x1C, fStartPos +0x20) |
+| XCore | VisionEngineTypes.h | DeathTrigger | 304 | implemented | PDB LF_FIELDLIST 0x7682F | yes | 死亡触发器 (szDeathAnim[128] +0xA8, IsLocalClient +0x128, bMustExcute +0x129) |
+| XCore | VisionEngineTypes.h | InvisibleTrigger | 192 | implemented | PDB LF_FIELDLIST 0x79A64 | yes | 隐身触发器 (4 bools +0xA8..0xAB, 5 ints +0xAC..0xBC) |
+| XCore | VisionEngineTypes.h | WarpToPointTrigger | 184 | implemented | PDB LF_FIELDLIST 0x70C00 | yes | 传送触发器 (WarpPattern +0xA8, WarpPoint +0xAC, WarpYaw +0xB0) |
+| XCore | VisionEngineTypes.h | LuaFunctionCallTrigger | 560 | implemented | PDB LF_FIELDLIST 0x6D4D4 | yes | Lua调用触发器 (LuaFilename[260] +0xA8, LuaFunction[128] +0x1AC) |
+| XCore | VisionEngineTypes.h | MovingInputTrigger | 240 | implemented | PDB LF_FIELDLIST 0x69F88 | yes | 移动输入触发器 (8 fields incl SRangeInfo +0xC0, vPullPoint +0xE4) |
+| XCore | VisionEngineTypes.h | JumpAttackTrigger | 184 | implemented | PDB LF_FIELDLIST 0x6D640 | yes | 跳跃攻击触发器 (4 floats +0xA8..0xB4) |
+| XCore | VisionEngineTypes.h | DetachTrigger | 312 | implemented | PDB LF_FIELDLIST 0x760D2 | yes | 分离触发器 (DropTime +0xA8, szAniName[128] +0xAC, SkillID +0x12C, RefEventID +0x130) |
+| XCore | VisionEngineTypes.h | RandomSummonTrigger | 352 | implemented | PDB LF_FIELDLIST 0x6D45D | yes | 随机召唤触发器 (szSummonAnim[128] +0xA8, SummonPos +0x128, 3 ID + 3 rate + count + 2 radii + bSuicidePossible) |
+| XCore | VisionEngineTypes.h | CheckAttackSkillTrigger | 192 | implemented | PDB LF_FIELDLIST 0x729C5 | yes | 检查攻击技能触发器 (nAngle +0xA8, nMinRange +0xAC, nMaxRange +0xB0, nSkillID +0xB4, nProbability +0xB8, fDuration +0xBC) |
+| XCore | VisionEngineTypes.h | DelSummonMonsterTrigger | 304 | implemented | PDB LF_FIELDLIST 0x6BB09 | yes | 删除召唤怪物触发器 (MonsterID +0xA8, szSummonAnim[128] +0xAC) |
 | XCore | VisionEngineTypes.h | VAnimationInfo | 312 | implemented | IDA struct | yes | Vision Engine 动画信息 (完整布局已还原) |
 | XCore | VisionEngineTypes.h | VBaseResourceLump | 104 | implemented | IDA struct | yes | Vision Engine 基础资源块 |
 | XCore | VisionEngineTypes.h | VActionResourceLump | 232 | implemented | IDA struct | yes | Vision Engine 动画资源块 (完整布局已还原) |
@@ -129,7 +141,7 @@
 | XGameServer | VaccumCube.h | PS_VACCUM_CUBE_OUT | 8 | implemented | IDA disasm/source build | no | Corrected field layout to nID at offset 0 and byOutType at offset 4; build verified only. |
 | XCore | VisionEngineTypes.h | IVTimer | 8 | implemented | IDA decompile | no | Vision Engine Timer Interface (m_fTime, m_fTimeDifference) |
 | XCore | VisionEngineTypes.h | VDefaultTimer | 8 | implemented | IDA decompile | no | Default Timer Implementation (inherits IVTimer) |
-| XCore | VisionEngineTypes.h | ThreadLocalData | - | implemented | IDA decompile | no | Thread-local storage for game data |
+| XGameServer | ThreadLocalData.h | ThreadLocalData | 5200 | blocked | GameServer PDB UDT + IDA constructor | no | Original embedded aggregate size is 0x1450; the active ThreadLocalData_Stub.cpp adapter is intentionally not layout-compatible and does not claim embedded manager, pool, script, or navmesh recovery. |
 | XCore | VisionEngineTypes.h | TypeOfDefense | - | implemented | IDA enum | yes | 防御类型枚举 |
 | XCore | VisionEngineTypes.h | TypeOfHUD | - | implemented | IDA enum | yes | HUD类型枚举 |
 | XCore | VisionEngineTypes.h | TypeOfAnimationBehavior | - | implemented | IDA enum | yes | 动画行为类型枚举 |

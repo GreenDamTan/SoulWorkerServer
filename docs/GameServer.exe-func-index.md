@@ -5682,7 +5682,6 @@
 | CMoverEx | MoverEx.cpp | ?GetActionCondition@CMoverEx@@UEAAHXZ | 0x140189210 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
 | - | - | ?SetHP@CMover@@UEAAXH@Z | 0x140189230 | implemented | IDA ?SetHP@CMover@@UEAAXH@Z | yes | - |
 | CMover | Mover.cpp | ?GetVariableType@CMover@@UEAA?AW4E_ACTOR_TYPE@@XZ | 0x140189240 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
-| - | - | ?GetAkashicTriggerTime@CMoverEx@@UEAAMXZ | 0x140189260 | implemented | IDA ?GetAkashicTriggerTime@CMoverEx@@UEAAMXZ | yes | - |
 | - | - | ?GetLookPitch@CMoverEx@@UEAAMXZ | 0x140189270 | implemented | IDA ?GetLookPitch@CMoverEx@@UEAAMXZ | yes | - |
 | - | - | ?GetMovingYaw@CMoverEx@@UEAAMXZ | 0x140189290 | implemented | IDA ?GetMovingYaw@CMoverEx@@UEAAMXZ | yes | - |
 | - | - | ?ClearBuffProcess@CMover@@UEAAHHPEAVAttackJudgmentTrigger@@VhkvVec3@@@Z | 0x1401892b0 | implemented | IDA ?ClearBuffProcess@CMover@@UEAAHHPEAVAttackJudgmentTrigger@@VhkvVec3@@@Z | yes | - |
@@ -15825,7 +15824,7 @@ yes | ?????????? |
 | - | - | ??1VAnimationInfo@@QEAA@XZ | 0x14036c710 | blocked | IDA ??1VAnimationInfo@@QEAA@XZ | yes | - |
 | XGameServer | MoverLinkStubs.cpp | ?CreateAkashicActionInfo@CMover@@QEAAXPEBD@Z | 0x14036c770 | blocked | IDA decompile | no | IDA exact restoration - creates Akashic action info |
 | XGameServer | Mover.cpp | ?GetActionDesc@CMover@@QEAAPEBVVAnimationInfo@@PEBD@Z | 0x14036c910 | implemented | IDA decompile | yes | IDA exact restoration - get animation description info |
-| XGameServer | MoverLinkStubs.cpp | ?ChangeActionTrigger@CMover@@QEAAXPEBD@Z | 0x14036CA80 | blocked | IDA decompile | no | IDA exact restoration - changes current action trigger |
+| XGameServer | MoverLinkStubs.cpp | ?ChangeActionTrigger@CMover@@QEAAXPEBD@Z | 0x14036C9B0 | implemented | IDA decompile | no | IDA exact restoration - changes current action trigger (IDA start at 0x14036C9B0, symbol anchor 0x14036CA80) |
 | - | - | ?SceneChanged@CMover@@UEAAXXZ | 0x14036cab0 | implemented | IDA ?SceneChanged@CMover@@UEAAXXZ | yes | - |
 | - | - | ?SetDirectionTo@CMover@@UEAAXAEBVhkvVec3@@@Z | 0x14036cad0 | implemented | IDA ?SetDirectionTo@CMover@@UEAAXAEBVhkvVec3@@@Z | yes | - |
 | - | - | ?SetMovePosition@CMover@@QEAAXMM@Z | 0x14036cb40 | implemented | IDA ?SetMovePosition@CMover@@QEAAXMM@Z | yes | - |
@@ -16216,7 +16215,7 @@ yes | ?????????? |
 | - | - | ?ProcessMoveingInFly@CMoverEx@@QEAAXXZ | 0x140390b20 | implemented | IDA ?ProcessMoveingInFly@CMoverEx@@QEAAXXZ | yes | - |
 | XGameServer | MoverEx.cpp | ?ChangeInitMotion@CMoverEx@@QEAAXXZ | 0x140390f60 | implemented | IDA decompile | yes | ????????? |
 | - | - | ?RealDie@CMoverEx@@UEAAXF@Z | 0x140391010 | implemented | IDA ?RealDie@CMoverEx@@UEAAXF@Z | yes | - |
-| - | - | ?ActionBufferProcess@CMoverEx@@UEAAHPEAUtagACTION_BUFFER@@@Z | 0x140391300 | implemented | IDA ?ActionBufferProcess@CMoverEx@@UEAAHPEAUtagACTION_BUFFER@@@Z | yes | - |
+| XGameServer | MoverLinkStubs.cpp | ?ActionBufferProcess@CMoverEx@@UEAAHPEAUtagACTION_BUFFER@@@Z | 0x140391300 | blocked | IDA decompile | no | IDA exact 30+ branch action dispatcher; not yet landed - depends on SummonMonsterTrigger/AkashicTrigger/script/vtable deps |
 | - | - | ?MovingToTarget@CMoverEx@@QEAAXMMM_N@Z | 0x140393900 | implemented | IDA ?MovingToTarget@CMoverEx@@QEAAXMMM_N@Z | yes | - |
 | - | - | ?MovingTarget@CMoverEx@@QEAAXPEAVMovingInputTrigger@@H@Z | 0x140393ff0 | implemented | IDA ?MovingTarget@CMoverEx@@QEAAXPEAVMovingInputTrigger@@H@Z | yes | - |
 | - | - | ??0PS_MOVING_TARGET@@QEAA@XZ | 0x140394d90 | blocked | IDA ??0PS_MOVING_TARGET@@QEAA@XZ | yes | - |
@@ -16263,8 +16262,8 @@ yes | ?????????? |
 | - | - | ?EndCharging@CMoverEx@@QEAAXXZ | 0x140398680 | implemented | IDA ?EndCharging@CMoverEx@@QEAAXXZ | yes | - |
 | - | - | ?CalcBothClickChargingValue@CMoverEx@@QEAAX_N@Z | 0x1403986e0 | implemented | IDA ?CalcBothClickChargingValue@CMoverEx@@QEAAX_N@Z | yes | - |
 | - | - | ?CalcRotationBlending@CMoverEx@@QEAAMMMM@Z | 0x1403987e0 | implemented | IDA ?CalcRotationBlending@CMoverEx@@QEAAMMMM@Z | yes | - |
-| XGameServer | MoverLinkStubs.cpp | ?DeleteActionBuffer@CMoverEx@@UEAAXXZ | 0x1403989a0 | blocked | IDA decompile | no | IDA exact restoration - deletes all action buffers except special cases |
-| XGameServer | MoverLinkStubs.cpp | ?ExcuteActionTrigger@CMoverEx@@UEAAXE@Z | 0x140398b60 | blocked | IDA decompile | no | IDA exact restoration - executes all action triggers with given code |
+| XGameServer | MoverLinkStubs.cpp | ?DeleteActionBuffer@CMoverEx@@UEAAXXZ | 0x1403989a0 | implemented | IDA decompile | no | IDA exact 0x35-code loop; code 4 ExcuteActionTrigger; code 26 SummonMonsterTrigger keep (IsLocalClient/SummonType/AlphaValue); code 23 raw byte[296]==0&&byte[297]!=0 keep; code 18 KeepLookTarget reset; DeleteCodeData |
+| XGameServer | MoverLinkStubs.cpp | ?ExcuteActionTrigger@CMoverEx@@UEAAXE@Z | 0x140398b60 | implemented | IDA decompile | no | IDA loop: FindCodeData -> ResetPosition -> [ActionBufferProcess blocked dep] -> Delete byIndex |
 | - | - | ?GetOwnerPlayer@CMoverEx@@QEAAPEAV1@XZ | 0x140398bf0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ-��ȡ��������Ҷ���?|
 | - | - | ?GetControlType@CMoverEx@@QEAAEPEAUTB_SKILL@@@Z | 0x140398c30 | implemented | IDA decompile | yes | 检查Divergence表或技能表的Control_Type |
 | - | - | ?GetCameraLock@CMoverEx@@QEAAEPEAUTB_SKILL@@@Z | 0x140398c90 | implemented | IDA ?GetCameraLock@CMoverEx@@QEAAEPEAUTB_SKILL@@@Z | yes | - |
@@ -16395,7 +16394,7 @@ yes | ?????????? |
 | CMoverEx | MoverEx.h | ?SetGrapTarget@CMoverEx@@QEAAXPEAV1@@Z | 0x1403a1eb0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(����) |
 | hkvVec3 | VisionEngineTypes.h | ?Clear@hkvVec3@@QEAAXXZ | 0x1403a1ed0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(����) |
 | CMoverEx | MoverEx.h | ?SetGrapStep@CMoverEx@@QEAAXE@Z | 0x1403a1ef0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(����) |
-| - | - | ?ResetPosition@tagACTION_BUFFER@@QEAAXXZ | 0x1403a1f10 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| XCore | VisionEngineTypes.h | ?ResetPosition@tagACTION_BUFFER@@QEAAXXZ | 0x1403a1f10 | implemented | IDA decompile | no | IDA exact restoration - resets buffer write position to zero |
 | VPList | VisionEngineTypes.h | ?AddUnique@VPList@@QEAA_NPEAX@Z | 0x1403a1f30 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
 | CMoverEx | MoverEx.h | ?GetAttachedOffset@CMoverEx@@QEAA?AVhkvVec3@@XZ | 0x1403a1f70 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(����) |
 | CMoverEx | MoverEx.h | ?GetAttachedDir@CMoverEx@@QEAA?AVhkvVec3@@XZ | 0x1403a1fc0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(����) |
@@ -34203,11 +34202,11 @@ yes | ?????????? |
 | - | - | ?append@?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@QEAAAEAV12@_KD@Z | 0x1406d07f0 | blocked | IDA ?append@?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@QEAAAEAV12@_KD@Z | yes | - |
 | - | - | ??Y?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@QEAAAEAV01@D@Z | 0x1406d08a0 | blocked | IDA ??Y?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@QEAAAEAV01@D@Z | yes | - |
 | - | - | ?SetTimeDifference@IVTimer@@QEAAXM@Z | 0x1406d08d0 | implemented | IDA ?SetTimeDifference@IVTimer@@QEAAXM@Z | yes | - |
-| XGameServer | ThreadLocalData.cpp | ?CreateInstance@ThreadLocalData@@SAPEAV1@HH@Z | 0x1406d08f0 | implemented | IDA decompile | yes | ThreadLocalData����ʵ��-ʹ��TLS�洢 |
-| XGameServer | ThreadLocalData.cpp | ??0ThreadLocalData@@QEAA@XZ | 0x1406d0a50 | implemented | IDA decompile | yes | ThreadLocalData���캯��-��ʼ�����й����� |
+| XGameServer | ThreadLocalData.cpp | ?CreateInstance@ThreadLocalData@@SAPEAV1@HH@Z | 0x1406d08f0 | implemented | IDA/PDB + active adapter | no | Active ThreadLocalData_Stub.cpp adapter preserves timer-before-object creation, TLS publication, and thread metadata; original embedded aggregate remains unverified. |
+| XGameServer | ThreadLocalData.cpp | ??0ThreadLocalData@@QEAA@XZ | 0x1406d0a50 | blocked | IDA/PDB + active adapter boundary | no | Original constructor initializes embedded managers, pools, script, and navigation state; the active adapter owns only the proven XMonsterMgr pointer. |
 | - | - | ??1?$map@GUPS_CHANNEL_INFO@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUPS_CHANNEL_INFO@@@std@@@3@@std@@QEAA@XZ | 0x1406d0c50 | blocked | IDA ??1?$map@GUPS_CHANNEL_INFO@@U?$less@G@std@@V?$allocator@U?$pair@$$CBGUPS_CHANNEL_INFO@@@std@@@3@@std@@QEAA@XZ | yes | - |
-| XGameServer | ThreadLocalData.cpp | ?Initialize@ThreadLocalData@@QEAAXXZ | 0x1406d0c70 | implemented | IDA decompile | yes | ThreadLocalData��ʼ��-���ü������ͱ�־ |
-| XGameServer | ThreadLocalData.cpp | ?InitPool@ThreadLocalData@@QEAAXXZ | 0x1406d0d00 | implemented | IDA decompile | yes | ThreadLocalData�س�ʼ��-��ʼ�����ж���غ͹�����?|
+| XGameServer | ThreadLocalData.cpp | ?Initialize@ThreadLocalData@@QEAAXXZ | 0x1406d0c70 | implemented | IDA/PDB + active adapter | no | Active adapter preserves the original counter/flag zeroing and tick-offset initialization; full object layout remains unverified. |
+| XGameServer | ThreadLocalData.cpp | ?InitPool@ThreadLocalData@@QEAAXXZ | 0x1406d0d00 | blocked | IDA/PDB + active adapter boundary | no | Original InitPool initializes script, managers, pools, and navmesh; active adapter retains only the explicit initialization boundary marker. |
 | - | - | ??0XCreator@?$TXPool@VXDistrict@@@@QEAA@XZ | 0x1406d1330 | blocked | IDA ??0XCreator@?$TXPool@VXDistrict@@@@QEAA@XZ | yes | - |
 | - | - | ??0XCreator@?$TXPool@VCBattleZone@@@@QEAA@XZ | 0x1406d1360 | blocked | IDA ??0XCreator@?$TXPool@VCBattleZone@@@@QEAA@XZ | yes | - |
 | - | - | ??0XCreator@?$TXPool@VXMaze@@@@QEAA@XZ | 0x1406d1390 | blocked | IDA ??0XCreator@?$TXPool@VXMaze@@@@QEAA@XZ | yes | - |
@@ -34218,13 +34217,13 @@ yes | ?????????? |
 | - | - | ??0IXCreator@?$TXPool@VXMaze@@@@QEAA@XZ | 0x1406d1460 | blocked | IDA ??0IXCreator@?$TXPool@VXMaze@@@@QEAA@XZ | yes | - |
 | - | - | ??0IXCreator@?$TXPool@VXMyRoom@@@@QEAA@XZ | 0x1406d1480 | blocked | IDA ??0IXCreator@?$TXPool@VXMyRoom@@@@QEAA@XZ | yes | - |
 | - | - | ??0IXCreator@?$TXPool@VXModeMaze@@@@QEAA@XZ | 0x1406d14a0 | blocked | IDA ??0IXCreator@?$TXPool@VXModeMaze@@@@QEAA@XZ | yes | - |
-| XGameServer | ThreadLocalData.cpp | ?Clear@ThreadLocalData@@QEAAXXZ | 0x1406d14c0 | implemented | IDA decompile | yes | ThreadLocalData����-������������AI |
-| XGameServer | ThreadLocalData.cpp | ?DestroyInstance@ThreadLocalData@@SAXXZ | 0x1406d1780 | implemented | IDA decompile | yes | ThreadLocalData����ʵ��-������ɾ��TLS |
+| XGameServer | ThreadLocalData.cpp | ?Clear@ThreadLocalData@@QEAAXXZ | 0x1406d14c0 | blocked | IDA/PDB + active adapter boundary | no | Original Clear releases embedded area, manager, pool, script, and navmesh state; active adapter clears only owned area/AI maps and XMonsterMgr state without resetting m_bInitPool. |
+| XGameServer | ThreadLocalData.cpp | ?DestroyInstance@ThreadLocalData@@SAXXZ | 0x1406d1780 | implemented | IDA/PDB + active adapter | no | Active adapter preserves timer-before-object destruction and clears both portable TLS slots after deletion for dangling-pointer safety; original TEB slot clearing is unverified. |
 | - | - | ??_GThreadLocalData@@QEAAPEAXI@Z | 0x1406d1830 | blocked | IDA ??_GThreadLocalData@@QEAAPEAXI@Z | yes | - |
-| XGameServer | ThreadLocalData.cpp | ??1ThreadLocalData@@QEAA@XZ | 0x1406d1870 | implemented | IDA decompile | yes | ��ȷ��ԭ-���������������й������ͳ� |
-| XGameServer | ThreadLocalData.cpp | ?GetInstance@ThreadLocalData@@SAPEAV1@XZ | 0x1406d1a60 | implemented | IDA decompile | yes | 精确还原-返回TLS�?实例(当前使用静态存�? |
-| XCore | VisionEngineTypes.h | ?GetTimer@ThreadLocalData@@SAPEAVVDefaultTimer@@XZ | 0x1406d1a80 | implemented | IDA decompile | yes | 精确还原-返回TLS�?的VDefaultTimer(当前使用静态存�? |
-| - | - | ?LoadAllNavmesh@ThreadLocalData@@QEAAXXZ | 0x1406d1aa0 | implemented | IDA decompile | yes | �������е�������-��ʵ�� |
+| XGameServer | ThreadLocalData.cpp | ??1ThreadLocalData@@QEAA@XZ | 0x1406d1870 | blocked | IDA/PDB + active adapter boundary | no | Original destructor tears down all embedded managers, pools, script, and navmesh resources; active adapter owns only XMonsterMgr and does not claim full destruction equivalence. |
+| XGameServer | ThreadLocalData.cpp | ?GetInstance@ThreadLocalData@@SAPEAV1@XZ | 0x1406d1a60 | implemented | IDA/PDB + active adapter | no | Active adapter returns the current thread's portable TLS localData slot; original TEB-backed access is not claimed as binary-equivalent. |
+| XGameServer | ThreadLocalData.cpp | ?GetTimer@ThreadLocalData@@SAPEAVVDefaultTimer@@XZ | 0x1406d1a80 | implemented | IDA/PDB + active adapter | no | Active adapter returns the current thread's portable TLS timer slot; original TEB-backed access is not claimed as binary-equivalent. |
+| XGameServer | ThreadLocalData.cpp | ?LoadAllNavmesh@ThreadLocalData@@QEAAXXZ | 0x1406d1aa0 | blocked | IDA/PDB + unavailable active dependencies | no | Original function loads district and maze Havok navmeshes; no active stub definition is claimed while resource-manager and table dependencies remain unrecovered. |
 | XGameServer | ThreadLocalData.cpp | ?CreateDistrict@ThreadLocalData@@QEAA_NTUXMapID@@AEAUTB_DISTRICT@@@Z | 0x1406d1da0 | implemented | IDA decompile | yes | ��ȷ��ԭ-�ӳش������� |
 | XGameServer | ThreadLocalData.cpp | ?CreateBattleZone@ThreadLocalData@@QEAA_NTUXMapID@@AEAUTB_MAZE_INFO@@@Z | 0x1406d1f20 | implemented | IDA decompile | yes | ��ȷ��ԭ-�ӳش���ս������ |
 | XGameServer | ThreadLocalData.cpp | ?CreateMaze@ThreadLocalData@@QEAAXAEAUST_CREATE_MAZE@@@Z | 0x1406d2080 | implemented | IDA decompile | yes | ��ȷ��ԭ-�ӳش����Թ� |
@@ -34250,7 +34249,7 @@ yes | ?????????? |
 | - | - | ??1?$pair@$$CBV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@H@std@@QEAA@XZ | 0x1406d5d80 | blocked | IDA ??1?$pair@$$CBV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@H@std@@QEAA@XZ | yes | - |
 | XGameServer | ThreadLocalData.cpp | ?FindArea@ThreadLocalData@@QEAAPEAVXArea@@TUXMapID@@@Z | 0x1406d5da0 | implemented | IDA decompile | yes | ��ȷ��ԭ-����MapID�������� |
 | XGameServer | ThreadLocalData.cpp | ?IsThreadArea@ThreadLocalData@@QEAA_NTUXMapID@@@Z | 0x1406d5e10 | implemented | IDA decompile | yes | ��ȷ��ԭ-��������Ƿ����ڵ�ǰ�߳�?|
-| XGameServer | ThreadLocalData.cpp | ?LoadAllScript@ThreadLocalData@@QEAAXXZ | 0x1406d5e80 | implemented | IDA decompile | yes | ��ȷ��ԭ-��������AI�ű� |
+| XGameServer | ThreadLocalData.cpp | ?LoadAllScript@ThreadLocalData@@QEAAXXZ | 0x1406d5e80 | blocked | IDA/PDB + unavailable active dependencies | no | Original function loads script instances from table-defined AI files; no active stub definition is claimed while script-manager and table dependencies remain unrecovered. |
 | XGameServer | ThreadLocalData.cpp | ?SendBroadcast@ThreadLocalData@@QEAAXAEAVXSendPacket@@@Z | 0x1406d6100 | implemented | IDA decompile | yes | ��ȷ��ԭ-�㲥���������� |
 | XGameServer | ThreadLocalData.cpp | ?Update@ThreadLocalData@@QEAAXM@Z | 0x1406d61a0 | implemented | IDA decompile | yes | ��ȷ��ԭ-������������ͳ�״̬���?|
 | XGameServer | ThreadLocalData.cpp | ?UpdateChannelAll@ThreadLocalData@@QEAAXAEAUPS_CHANNEL_INFO@@@Z | 0x1406d67d0 | implemented | IDA decompile | yes | ��ȷ��ԭ-��������Ƶ����Ϣ |
@@ -35637,15 +35636,15 @@ yes | ?????????? |
 | - | - | ?Serialize@ExtraInputTrigger@@UEAA_NPEAVVChunkFile@@H@Z | 0x14072b3c0 | implemented | IDA ?Serialize@ExtraInputTrigger@@UEAA_NPEAVVChunkFile@@H@Z | yes | - |
 | - | - | ??0CharacterCameraLockTrigger@@QEAA@XZ | 0x14072b460 | blocked | IDA ??0CharacterCameraLockTrigger@@QEAA@XZ | yes | - |
 | - | - | ?Serialize@CharacterCameraLockTrigger@@UEAA_NPEAVVChunkFile@@H@Z | 0x14072b490 | implemented | IDA ?Serialize@CharacterCameraLockTrigger@@UEAA_NPEAVVChunkFile@@H@Z | yes | - |
-| - | - | ??0DetachTrigger@@QEAA@XZ | 0x14072b4c0 | blocked | IDA ??0DetachTrigger@@QEAA@XZ | yes | - |
+| - | - | ??0DetachTrigger@@QEAA@XZ | 0x14072b4c0 | implemented | IDA ??0DetachTrigger@@QEAA@XZ | no | 312-byte PDB LF_FIELDLIST 0x760D2 in VisionEngineTypes.h; DropTime=0 SkillID=RefEventID=-1 szAniName memset |
 | - | - | ?Serialize@DetachTrigger@@UEAA_NPEAVVChunkFile@@H@Z | 0x14072b540 | implemented | IDA ?Serialize@DetachTrigger@@UEAA_NPEAVVChunkFile@@H@Z | yes | - |
 | - | - | ??_GAttackJudgmentTrigger@@UEAAPEAXI@Z | 0x14072b600 | blocked | IDA ??_GAttackJudgmentTrigger@@UEAAPEAXI@Z | yes | - |
-| - | - | ??0MovingInputTrigger@@QEAA@XZ | 0x14072b640 | blocked | IDA ??0MovingInputTrigger@@QEAA@XZ | yes | - |
+| - | - | ??0MovingInputTrigger@@QEAA@XZ | 0x14072b640 | implemented | IDA ??0MovingInputTrigger@@QEAA@XZ | no | 240-byte PDB LF_FIELDLIST 0x69F88 in VisionEngineTypes.h; 8 fields incl SRangeInfo(192)+hkvVec3(228) zero |
 | - | - | ?Serialize@MovingInputTrigger@@UEAA_NPEAVVChunkFile@@H@Z | 0x14072b720 | implemented | IDA ?Serialize@MovingInputTrigger@@UEAA_NPEAVVChunkFile@@H@Z | yes | - |
 | - | - | ??0AlphaBlendingTrigger@@QEAA@XZ | 0x14072b980 | blocked | IDA ??0AlphaBlendingTrigger@@QEAA@XZ | yes | - |
 | - | - | ?Serialize@AlphaBlendingTrigger@@UEAA_NPEAVVChunkFile@@H@Z | 0x14072b9f0 | implemented | IDA ?Serialize@AlphaBlendingTrigger@@UEAA_NPEAVVChunkFile@@H@Z | yes | - |
 | - | - | ??0CameraFOVTrigger@@QEAA@XZ | 0x14072bad0 | blocked | IDA ??0CameraFOVTrigger@@QEAA@XZ | yes | - |
-| - | - | ??0JumpAttackTrigger@@QEAA@XZ | 0x14072bb20 | blocked | IDA ??0JumpAttackTrigger@@QEAA@XZ | yes | - |
+| - | - | ??0JumpAttackTrigger@@QEAA@XZ | 0x14072bb20 | implemented | IDA ??0JumpAttackTrigger@@QEAA@XZ | no | 184-byte PDB LF_FIELDLIST 0x6D640 in VisionEngineTypes.h; 4 floats zero |
 | - | - | ?Serialize@JumpAttackTrigger@@UEAA_NPEAVVChunkFile@@H@Z | 0x14072bb90 | implemented | IDA ?Serialize@JumpAttackTrigger@@UEAA_NPEAVVChunkFile@@H@Z | yes | - |
 | - | - | ??0CreateEffectTrigger@@QEAA@XZ | 0x14072bc40 | blocked | IDA ??0CreateEffectTrigger@@QEAA@XZ | yes | - |
 | - | - | ?Serialize@CreateEffectTrigger@@UEAA_NPEAVVChunkFile@@H@Z | 0x14072bd90 | implemented | IDA ?Serialize@CreateEffectTrigger@@UEAA_NPEAVVChunkFile@@H@Z | yes | - |
@@ -35658,17 +35657,17 @@ yes | ?????????? |
 | - | - | ??1MeshAttachmentTrigger@@UEAA@XZ | 0x14072c230 | blocked | IDA ??1MeshAttachmentTrigger@@UEAA@XZ | yes | - |
 | - | - | ??0ShaderChangeTrigger@@QEAA@XZ | 0x14072c250 | blocked | IDA ??0ShaderChangeTrigger@@QEAA@XZ | yes | - |
 | - | - | ?Serialize@ShaderChangeTrigger@@UEAA_NPEAVVChunkFile@@H@Z | 0x14072c310 | implemented | IDA ?Serialize@ShaderChangeTrigger@@UEAA_NPEAVVChunkFile@@H@Z | yes | - |
-| - | - | ??0DeathTrigger@@QEAA@XZ | 0x14072c3d0 | blocked | IDA ??0DeathTrigger@@QEAA@XZ | yes | - |
+| - | - | ??0DeathTrigger@@QEAA@XZ | 0x14072c3d0 | implemented | IDA ??0DeathTrigger@@QEAA@XZ | no | 304-byte PDB LF_FIELDLIST 0x7682F in VisionEngineTypes.h; szDeathAnim memset, IsLocalClient/bMustExcute false |
 | - | - | ?Serialize@DeathTrigger@@UEAA_NPEAVVChunkFile@@H@Z | 0x14072c430 | implemented | IDA ?Serialize@DeathTrigger@@UEAA_NPEAVVChunkFile@@H@Z | yes | - |
-| - | - | ??0InvisibleTrigger@@QEAA@XZ | 0x14072c4f0 | blocked | IDA ??0InvisibleTrigger@@QEAA@XZ | yes | - |
+| - | - | ??0InvisibleTrigger@@QEAA@XZ | 0x14072c4f0 | implemented | IDA ??0InvisibleTrigger@@QEAA@XZ | no | 192-byte PDB LF_FIELDLIST 0x79A64 in VisionEngineTypes.h; 4 bools + 5 ints zero |
 | - | - | ?Serialize@InvisibleTrigger@@UEAA_NPEAVVChunkFile@@H@Z | 0x14072c5a0 | implemented | IDA ?Serialize@InvisibleTrigger@@UEAA_NPEAVVChunkFile@@H@Z | yes | - |
-| - | - | ??0WarpToPointTrigger@@QEAA@XZ | 0x14072c6e0 | blocked | IDA ??0WarpToPointTrigger@@QEAA@XZ | yes | - |
+| - | - | ??0WarpToPointTrigger@@QEAA@XZ | 0x14072c6e0 | implemented | IDA ??0WarpToPointTrigger@@QEAA@XZ | no | 184-byte PDB LF_FIELDLIST 0x70C00 in VisionEngineTypes.h; WarpYaw=-1.0f |
 | - | - | ?Serialize@CameraZoomTrigger@@UEAA_NPEAVVChunkFile@@H@Z | 0x14072c740 | implemented | IDA ?Serialize@CameraZoomTrigger@@UEAA_NPEAVVChunkFile@@H@Z | yes | - |
-| - | - | ??0LuaFunctionCallTrigger@@QEAA@XZ | 0x14072c7d0 | blocked | IDA ??0LuaFunctionCallTrigger@@QEAA@XZ | yes | - |
+| - | - | ??0LuaFunctionCallTrigger@@QEAA@XZ | 0x14072c7d0 | implemented | IDA ??0LuaFunctionCallTrigger@@QEAA@XZ | no | 560-byte PDB LF_FIELDLIST 0x6D4D4 in VisionEngineTypes.h; LuaFilename[260]+LuaFunction[128] memset |
 | - | - | ?Serialize@LuaFunctionCallTrigger@@UEAA_NPEAVVChunkFile@@H@Z | 0x14072c830 | implemented | IDA ?Serialize@LuaFunctionCallTrigger@@UEAA_NPEAVVChunkFile@@H@Z | yes | - |
-| - | - | ??0SummonMonsterTrigger@@QEAA@XZ | 0x14072c8b0 | blocked | IDA ??0SummonMonsterTrigger@@QEAA@XZ | yes | - |
+| - | - | ??0SummonMonsterTrigger@@QEAA@XZ | 0x14072c8b0 | implemented | IDA ??0SummonMonsterTrigger@@QEAA@XZ | no | 528-byte layout restored in VisionEngineTypes.h; matches PDB LF_CLASS 0x76669 and ctor inits; Serialize vtable dep pending |
 | - | - | ?Serialize@SummonMonsterTrigger@@UEAA_NPEAVVChunkFile@@H@Z | 0x14072caa0 | implemented | IDA ?Serialize@SummonMonsterTrigger@@UEAA_NPEAVVChunkFile@@H@Z | yes | - |
-| - | - | ??0RandomSummonTrigger@@QEAA@XZ | 0x14072cf20 | blocked | IDA ??0RandomSummonTrigger@@QEAA@XZ | yes | - |
+| - | - | ??0RandomSummonTrigger@@QEAA@XZ | 0x14072cf20 | implemented | IDA ??0RandomSummonTrigger@@QEAA@XZ | no | 352-byte PDB LF_FIELDLIST 0x6D45D in VisionEngineTypes.h; szSummonAnim memset, SummonPos zero |
 | - | - | ?Serialize@RandomSummonTrigger@@UEAA_NPEAVVChunkFile@@H@Z | 0x14072d020 | implemented | IDA ?Serialize@RandomSummonTrigger@@UEAA_NPEAVVChunkFile@@H@Z | yes | - |
 | - | - | ??0AkashicTrigger@@QEAA@XZ | 0x14072d220 | blocked | IDA ??0AkashicTrigger@@QEAA@XZ | yes | - |
 | - | - | ?Serialize@AkashicTrigger@@UEAA_NPEAVVChunkFile@@H@Z | 0x14072d2a0 | implemented | IDA ?Serialize@AkashicTrigger@@UEAA_NPEAVVChunkFile@@H@Z | yes | - |
@@ -35702,9 +35701,9 @@ yes | ?????????? |
 | - | - | ?Serialize@CameraFOVTrigger@@UEAA_NPEAVVChunkFile@@H@Z | 0x14072e6b0 | implemented | IDA ?Serialize@CameraFOVTrigger@@UEAA_NPEAVVChunkFile@@H@Z | yes | - |
 | - | - | ??0LinkSkillTrigger@@QEAA@XZ | 0x14072e720 | blocked | IDA ??0LinkSkillTrigger@@QEAA@XZ | yes | - |
 | - | - | ?Serialize@LinkSkillTrigger@@UEAA_NPEAVVChunkFile@@H@Z | 0x14072e790 | implemented | IDA ?Serialize@LinkSkillTrigger@@UEAA_NPEAVVChunkFile@@H@Z | yes | - |
-| - | - | ??0CheckAttackSkillTrigger@@QEAA@XZ | 0x14072e860 | blocked | IDA ??0CheckAttackSkillTrigger@@QEAA@XZ | yes | - |
+| - | - | ??0CheckAttackSkillTrigger@@QEAA@XZ | 0x14072e860 | implemented | IDA ??0CheckAttackSkillTrigger@@QEAA@XZ | no | 192-byte PDB LF_FIELDLIST 0x729C5 in VisionEngineTypes.h; nAngle/nMinRange/nMaxRange/nSkillID/nProbability/fDuration zero |
 | - | - | ?Serialize@CheckAttackSkillTrigger@@UEAA_NPEAVVChunkFile@@H@Z | 0x14072e8f0 | implemented | IDA ?Serialize@CheckAttackSkillTrigger@@UEAA_NPEAVVChunkFile@@H@Z | yes | - |
-| - | - | ??0DelSummonMonsterTrigger@@QEAA@XZ | 0x14072e9f0 | blocked | IDA ??0DelSummonMonsterTrigger@@QEAA@XZ | yes | - |
+| - | - | ??0DelSummonMonsterTrigger@@QEAA@XZ | 0x14072e9f0 | implemented | IDA ??0DelSummonMonsterTrigger@@QEAA@XZ | no | 304-byte PDB LF_FIELDLIST 0x6BB09 in VisionEngineTypes.h; MonsterID=0, szSummonAnim memset |
 | - | - | ?Serialize@DelSummonMonsterTrigger@@UEAA_NPEAVVChunkFile@@H@Z | 0x14072ea50 | implemented | IDA ?Serialize@DelSummonMonsterTrigger@@UEAA_NPEAVVChunkFile@@H@Z | yes | - |
 | - | - | ??0ApplyPassiveSkillTrigger@@QEAA@XZ | 0x14072ead0 | blocked | IDA ??0ApplyPassiveSkillTrigger@@QEAA@XZ | yes | - |
 | - | - | ?Serialize@ApplyPassiveSkillTrigger@@UEAA_NPEAVVChunkFile@@H@Z | 0x14072eb10 | implemented | IDA ?Serialize@ApplyPassiveSkillTrigger@@UEAA_NPEAVVChunkFile@@H@Z | yes | - |
@@ -57065,7 +57064,7 @@ yes | ?????????? |
 | XGameServer | GameSockets.cpp | ?RecvExchangePriceHistory@CCommunitySocket@@UEAA_NAEAVXPacket@@@Z | 0x14020AAD0 | blocked | IDA decompile | no | stub(awaiting CLogicThreadManager/lambda dependencies) |
 | XGameServer | GameSockets.cpp | ?RecvForceInvite@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x1402147D0 | blocked | IDA decompile | no | stub(awaiting CLogicThreadManager/lambda dependencies) |
 | XGameServer | GameSockets.cpp | ?RecvForceAccept@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x1402157D0 | blocked | IDA decompile | no | stub(awaiting CLogicThreadManager/lambda dependencies) |
-| XGameServer | MoverEx.cpp | ?GetAkashicTriggerTime@CMoverEx@@UEAAMXZ | 0x140189260 | implemented | IDA decompile | yes | Get akashic trigger time |
+| XGameServer | MoverEx.cpp | ?GetAkashicTriggerTime@CMoverEx@@UEAAMXZ | 0x140189260 | implemented | IDA decompile | yes | IDA confirmed fixed return 0.0; duplicate rows merged into this MoverEx.cpp entry |
 | XGameServer | MoverEx.cpp | ?GetMaxHP@CMoverEx@@UEAAHXZ | 0x140189410 | implemented | IDA decompile | yes | 精确还原-返回(int)m_fAbility[10] | |
 | XGameServer | MoverEx.cpp | ?SetBattlePose@CMoverEx@@QEAAX_N@Z | 0x140199E50 | implemented | IDA decompile | yes | Set battle pose |
 | XGameServer | Mover.cpp | ?ProcessExtraMoving@CMover@@UEAAXXZ | 0x14036BC20 | implemented | IDA decompile | yes | IDA��ȷ��ԭ-���������ƶ�-����λ��/��ײ���?�ƶ�ͬ��
@@ -57332,7 +57331,6 @@ yes | ?????????? |
 | XGameServer | Mover.cpp | ?GetAddEtherFromOptionEffect@CMoverEx@@QEAAHXZ | 0x1400F9F90 | implemented | IDA decompile | yes | Simple getter - returns m_nAddEtherFromOptionEffect |
 | XGameServer | Mover.cpp | ?ResetAddEtherFromOptionEffect@CMoverEx@@QEAAXXZ | 0x1400F9F70 | implemented | IDA decompile | yes | Simple setter - zeros m_nAddEtherFromOptionEffect |
 | XGameServer | Mover.cpp | ?GetOwnerPlayer@CMoverEx@@QEAAPEAV1@XZ | 0x140398BF0 | implemented | IDA decompile | yes | Returns mover by owner ID or nullptr |
-| XGameServer | Mover.cpp | ?GetAkashicTriggerTime@CMoverEx@@UEAAMXZ | 0x140189260 | blocked | IDA decompile | no | Stub function - always returns 0.0 |
 | XGameServer | Mover.cpp | ?GetTargetID@CMover@@QEAAKXZ | 0x140198DE0 | implemented | IDA decompile | yes | Simple getter - returns m_dwTargetID |
 | XGameServer | Mover.cpp | ?SetTargetID@CMover@@QEAAXK@Z | 0x1403644E0 | implemented | IDA decompile | yes | Simple setter - sets m_dwTargetID |
 | XGameServer | Mover.cpp | ?GetHitID@CMover@@QEAAKXZ | 0x140364AB0 | implemented | IDA decompile | yes | Simple getter - returns m_dwHitID |
@@ -57393,11 +57391,11 @@ yes | ?????????? |
 | XGameServer | Mover.cpp | ?GetEmptyBuffSlot@CMover@@QEAAHXZ | 0x14036A810 | implemented | IDA decompile | yes | IDA精确还原 - 获取空Buff槽位遍历50个槽�?|
 | XGameServer | Mover.cpp | ?UpdateBuffCount@CMover@@QEAAXEH@Z | unknown | implemented | IDA decompile | yes | Update buff count by type |
 | XGameServer | MoverLinkStubs.cpp | ?send_eSUB_CMD_BUFF_DELETE@CMover@@QEAAXPEAV1@GK_NE@Z | 0x140372D90 | blocked | IDA decompile | no | Send buff delete packet to client - 2026-06-13 |
-| XGameServer | MoverLinkStubs.cpp | ?IsHaveImunityInvincibleBuff@CMover@@QEAAHG@Z | 0x14036A640 | blocked | IDA decompile | no | Check for immunity invincible buff - 2026-06-13 |
-| XGameServer | MoverLinkStubs.cpp | ?UpdateDefenseDisableBuff@CMover@@QEAAXXZ | 0x14036B4D0 | blocked | IDA decompile | no | Update defense disable buff flag - 2026-06-13 |
-| XGameServer | MoverLinkStubs.cpp | ?ClearImmunityStatus@CMover@@QEAAXK@Z | 0x140353040 | blocked | IDA decompile | no | Clear immunity status bitmask - 2026-06-13 |
-| XGameServer | MoverLinkStubs.cpp | ?AddDefenseChangeInfo@CMoverEx@@QEAAHEEKM@Z | 0x14037CF80 | blocked | IDA decompile | no | Add defense change info to list - 2026-06-13 |
-| XGameServer | MoverLinkStubs.cpp | ?RemoveDefenseChangeInfo@CMoverEx@@QEAAHEK@Z | 0x14037D100 | blocked | IDA decompile | no | Remove defense change info from list - 2026-06-13 |
+| XGameServer | MoverLinkStubs.cpp | ?IsHaveImunityInvincibleBuff@CMover@@QEAAHG@Z | 0x14036A640 | verified | IDA decompile | yes | Matches IDA 0x14036A600 loop over 50 buff slots (byEffectType==5 && byStatType[0]==1); landed in build-active MoverLinkStubs.cpp |
+| XGameServer | MoverLinkStubs.cpp | ?UpdateDefenseDisableBuff@CMover@@QEAAXXZ | 0x14036B4D0 | verified | IDA decompile | yes | Matches IDA 0x14036B420 flag-OR over live buffs with byEffectType==6 and early exit at 19; landed in build-active MoverLinkStubs.cpp |
+| XGameServer | MoverLinkStubs.cpp | ?ClearImmunityStatus@CMover@@QEAAXK@Z | 0x140353040 | verified | IDA decompile | yes | Matches IDA bitwise clear m_dwImmunityStatus &= ~dwStatus; landed in build-active MoverLinkStubs.cpp |
+| XGameServer | MoverLinkStubs.cpp | ?AddDefenseChangeInfo@CMoverEx@@QEAAHEEKM@Z | 0x14037CF80 | verified | IDA decompile | yes | Matches IDA branch on byType 0/1/2, flag OR (1<<byDefenseType), and ApplyDefenseChangeInfo tail |
+| XGameServer | MoverLinkStubs.cpp | ?RemoveDefenseChangeInfo@CMoverEx@@QEAAHEK@Z | 0x14037D100 | verified | IDA decompile | yes | Matches IDA list erase by dwID, effect/trigger clear, flag recompute from all three sources, ApplyDefenseChangeInfo tail |
 | XGameServer | Mover.cpp | ?SetImmunityStatus@CMover@@QEAAXK@Z | 0x1402A4F90 | implemented | IDA decompile | yes | Set immunity status bitmask - 2026-06-13 |
 | XGameServer | Mover.cpp | ?ClearBuffAbility@CMoverEx@@UEAAXHM@Z | 0x1403901A0 | implemented | IDA decompile | yes | Clear buff ability with negative value - 2026-06-13 |
 | XGameServer | Mover.cpp | ?ReduceBuffAbility@CMoverEx@@UEAAXHM@Z | 0x140390330 | implemented | IDA decompile | yes | Reduce buff ability value - 2026-06-13 |
@@ -57643,7 +57641,7 @@ yes | ?????????? |
 | XGameServer | StatusEffect.cpp | ?FindBuffStatus@CMover@@QEAAHGK@Z | 0x14036A420 | implemented | IDA decompile | yes | Find buff slot by index and attacker ID |
 | XGameServer | StatusEffect.cpp | ?FindBuffByGroupID@CMover@@QEAAHGK@Z | 0x14036A4C0 | implemented | IDA decompile | yes | Find buff slot by group ID |
 | XGameServer | StatusEffect.cpp | ?FindBuffByEffectType@CMover@@QEAAHEG@Z | 0x14036A560 | implemented | IDA decompile | yes | Find buff slot by effect type |
-| XGameServer | StatusEffect.cpp | ?IsHaveImunityInvincibleBuff@CMover@@QEAAHG@Z | 0x14036A600 | implemented | IDA decompile | yes | Check for immunity invincible buff |
+| XGameServer | StatusEffect.cpp | ?IsHaveImunityInvincibleBuff@CMover@@QEAAHG@Z | 0x14036A600 | implemented | IDA decompile | no | Duplicate in non-build StatusEffect.cpp; build-active definition lands in MoverLinkStubs.cpp (verified) |
 | XGameServer | StatusEffect.cpp | ?CheckPassDebuff@CMover@@QEAAHG@Z | 0x14036A750 | implemented | IDA decompile | yes | Check if debuff passes through |
 | XGameServer | StatusEffect.cpp | ?GetEmptyBuffSlot@CMover@@QEAAXXZ | 0x14036A810 | implemented | IDA decompile | yes | Find empty buff slot |
 | XGameServer | StatusEffect.cpp | ?ResetAllBuff@CMover@@QEAAXXZ | 0x14036A860 | implemented | IDA decompile | yes | Reset all buff states |
@@ -57652,7 +57650,7 @@ yes | ?????????? |
 | XGameServer | StatusEffect.cpp | ?GetBuffCategory@CMover@@QEAAEE@Z | 0x14036B000 | implemented | IDA decompile | yes | Get buff category by effect type |
 | XGameServer | StatusEffect.cpp | ?GetResistStatIndexByBuff@CMover@@QEAAHE@Z | 0x14036B070 | implemented | IDA decompile | yes | Get resistance stat index for buff |
 | XGameServer | StatusEffect.cpp | ?SetBuffTime@CMover@@QEAAXFME@Z | 0x14036B0F0 | implemented | IDA decompile | yes | Set buff duration and count |
-| XGameServer | StatusEffect.cpp | ?UpdateDefenseDisableBuff@CMover@@QEAAXXZ | 0x14036B420 | implemented | IDA decompile | yes | Update defense disable buff flag |
+| XGameServer | StatusEffect.cpp | ?UpdateDefenseDisableBuff@CMover@@QEAAXXZ | 0x14036B420 | implemented | IDA decompile | no | Duplicate in non-build StatusEffect.cpp; build-active definition lands in MoverLinkStubs.cpp (verified) |
 | XGameServer | StatusEffect.cpp | ?GetBuffStatus@CMover@@QEAAPEAUtagBUFF_STATE@@XZ | 0x1403539C0 | implemented | IDA decompile | yes | Get buff status array |
 | XGameServer | StatusEffect.cpp | ?GetStatFromEffect@CCalculateStatus@@QEAAXHAEAHAEA_N@Z | 0x140038DD0 | implemented | IDA decompile | yes | Get stat mapping from effect type |
 | XGameServer | StatusEffect.cpp | ?UpdateEffectStat@CGocAttribute@@QEAAXHHM_N@Z | 0x14003B640 | implemented | IDA decompile | yes | Update effect stat on attribute |

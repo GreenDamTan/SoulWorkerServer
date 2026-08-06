@@ -523,25 +523,23 @@ void CMoverEx::DeleteActionBuffer() {
             std::uint8_t byIndex = 0;
             tagACTION_BUFFER* pActionBuffer = m_xActionBuffer.FindCodeData(byCode, &byIndex);
 
-            // Handle code 26 - SummonMonsterTrigger
+            // Code 26 (SummonMonsterTrigger): keep while the summon is still pending
             if (byCode == 26 && pActionBuffer) {
-                // TODO: SummonMonsterTrigger handling when type is fully defined
-                // SummonMonsterTrigger* pTrigger = reinterpret_cast<SummonMonsterTrigger*>(pActionBuffer->pActionTrigger);
-                // if (pTrigger && !pTrigger->IsLocalClient && pTrigger->SummonType && pTrigger->AlphaValue == 0.0f) {
-                //     continue;
-                // }
+                SummonMonsterTrigger* pTrigger = static_cast<SummonMonsterTrigger*>(pActionBuffer->pActionTrigger);
+                if (pTrigger && !pTrigger->IsLocalClient && pTrigger->SummonType && pTrigger->AlphaValue == 0.0f) {
+                    continue;
+                }
             }
 
-            // Handle code 23
+            // Code 23 (Trigger byte flags at offset 296/297): keep per IDA condition
             if (byCode == 23 && pActionBuffer && pActionBuffer->pActionTrigger) {
-                // TODO: Full handling when trigger type is defined
-                // std::uint8_t* pActionTrigger = reinterpret_cast<std::uint8_t*>(pActionBuffer->pActionTrigger);
-                // if (pActionTrigger && (pActionTrigger[296] || pActionTrigger[297])) {
-                //     continue;
-                // }
+                std::uint8_t* pActionTrigger = reinterpret_cast<std::uint8_t*>(pActionBuffer->pActionTrigger);
+                if (pActionTrigger[296] == 0 && pActionTrigger[297] != 0) {
+                    continue;
+                }
             }
 
-            // Handle code 18 - KeepLookTarget
+            // Code 18 - KeepLookTarget
             if (byCode == 18 && m_bKeepLookTarget) {
                 m_bKeepLookTarget = false;
                 m_fDefTurnSpeed = m_fBackupTurnSpeed;
@@ -562,10 +560,11 @@ void CMoverEx::ExcuteActionTrigger(std::uint8_t byCode) {
             break;
         }
 
-        // IDA: ResetPosition and process
-        // tagACTION_BUFFER::ResetPosition(pActionBuffer);
+        // IDA: ResetPosition then process
+        pActionBuffer->ResetPosition();
         // ActionBufferProcess(pActionBuffer);
-        // TODO: Implement ActionBufferProcess when available
+        // TODO [DEPENDENCY]: ?ActionBufferProcess@CMoverEx@@UEAAHPEAUtagACTION_BUFFER@@@Z @ 0x140391300
+        // is the blocked 30+ branch action dispatcher; lands when its trigger/script/vtable deps are restored.
         m_xActionBuffer.Delete(byIndex);
     }
 }

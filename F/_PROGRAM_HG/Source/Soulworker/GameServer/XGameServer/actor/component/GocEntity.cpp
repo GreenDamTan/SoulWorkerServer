@@ -17,6 +17,7 @@
 
 #include "GocEntity.h"
 #include "GocNetwork.h"
+#include "GocAttribute.h"
 #include "Soulworker/Common/XNet/XIOCPBase/Packet.h"
 #include "Soulworker/GameServer/XCore/XArea/XActor.h"
 #include "Soulworker/GameServer/XGameServer/actor/Mover/Mover.h"
@@ -285,76 +286,67 @@ void CGocEntity::LoadTitle(PS_TITLE_LOAD& stLoadTitle)
 // Verified: Per IDA decompile - adds a title with validation
 bool CGocEntity::AddTitle(uint32_t dwTitleID, int nLogType)
 {
-    // Per IDA 0x14005BDC0: Get TB_TITLE_INFO from resource manager
-    // XGameServer* pServer = TXSingleton<XGameServer>::Instance();
-    // TB_TITLE_INFO* pTBTitle = pServer->m_xResourceMgr.GetTB_TITLE_INFO(dwTitleID);
-    // if (!pTBTitle) {
-    //     LogHelper::LogError("game.contents", "AddTitle error - No Table TB_TITLE_INFO[ ActorID: %d, TitleID:%d ] ( %d )", GetActorID(), dwTitleID, 229);
-    //     return false;
-    // }
-    // 
-    // // Check class restriction
-    // CGocAttribute* pAttr = GetGOC_Attribute();
-    // if (pAttr) {
-    //     int nClassIndex = pAttr->GetClass();
-    //     if (pTBTitle->Use_Class != 0 && nClassIndex != pTBTitle->Use_Class) {
-    //         LogHelper::LogError("game.contents", "AddTitle error - Wrong Class [ ActorID: %d, TitleID:%d ] ( %d )", GetActorID(), dwTitleID, 238);
-    //         return false;
-    //     }
-    // }
-    // 
-    // // Create and insert title
-    // ST_HAVE_TITLE_INFO stHaveTitle(pTBTitle, false);
-    // auto result = m_mapHaveTitle.insert(std::make_pair(dwTitleID, stHaveTitle));
-    // if (!result.second) {
-    //     LogHelper::LogError("game.contents", "AddTitle error - Duplicate Title[ ActorID:%d, TitleID:%d ] ( %d )", GetActorID(), dwTitleID, 247);
-    //     return false;
-    // }
-    // 
-    // // Remove from open set if present
-    // m_setTitleOpen.erase(dwTitleID);
-    // 
-    // // Send DB update
-    // PS_TITLE_ADD stAddTitle;
-    // stAddTitle.dwTitleID = dwTitleID;
-    // stAddTitle.nLogType = nLogType;
-    // XSendDBPacket packet(GetUser(), 3, 0x15);
-    // packet << GetUCID() << stAddTitle;
-    // pServer->SendDBGame(packet);
-    // 
-    // // Send client update
-    // XSendPacket clientPacket(3, 0x24);
-    // clientPacket << stAddTitle;
-    // SendPacket(clientPacket);
-    // 
-    // // Log title addition
-    // ST_LOG_GAME stLog;
-    // stLog._nUAID = GetUAID();
-    // stLog._nUCID = GetUCID();
-    // stLog._sMainType = 3;
-    // stLog._sSubType = 12;
-    // stLog.nParam0 = dwTitleID;
-    // stLog.nParam1 = pTBTitle->Info_Type;
-    // stLog.nParam2 = nLogType;
-    // stLog.nParam3 = GetLevel();
-    // pServer->SendDBLog(stLog);
-    
-    // Check for duplicates
-    if (m_mapHaveTitle.find(dwTitleID) != m_mapHaveTitle.end()) {
+    // IDA 0x14005BDC0: Get TB_TITLE_INFO from resource manager
+    XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+    TB_TITLE_INFO* pTBTitle = pServer->GetResourceMgr().GetTB_TITLE_INFO(dwTitleID);
+    CUser* pUser = GetUser();
+    uint32_t dwActorID = pUser ? pUser->GetActorID().dwActorID : 0;
+    if (!pTBTitle) {
+        LogHelper::LogError("game.contents", "AddTitle error - No Table TB_TITLE_INFO[ ActorID: %d, TitleID:%d ] ( %d )", dwActorID, dwTitleID, 229);
         return false;
     }
 
-    // Create and add title
-    ST_HAVE_TITLE_INFO stHaveTitle(nullptr, false);
-    m_mapHaveTitle[dwTitleID] = stHaveTitle;
+    // Check class restriction
+    CMover* pMover = GetOwnerGO();
+    std::shared_ptr<CGocAttribute> pAttr = pMover ? pMover->GetGOC_Attribute(false) : nullptr;
+    if (pAttr) {
+        int nClassIndex = pAttr->GetClass();
+        if (pTBTitle->Use_Class != 0 && nClassIndex != pTBTitle->Use_Class) {
+            LogHelper::LogError("game.contents", "AddTitle error - Wrong Class [ ActorID: %d, TitleID:%d ] ( %d )", dwActorID, dwTitleID, 238);
+            return false;
+        }
+    }
+
+    // Create and insert title
+    ST_HAVE_TITLE_INFO stHaveTitle(pTBTitle, false);
+    auto result = m_mapHaveTitle.insert(std::make_pair(dwTitleID, stHaveTitle));
+    if (!result.second) {
+        LogHelper::LogError("game.contents", "AddTitle error - Duplicate Title[ ActorID:%d, TitleID:%d ] ( %d )", dwActorID, dwTitleID, 247);
+        return false;
+    }
 
     // Remove from open set if present
-    m_setTitleOpen.erase(dwTitleID);
+    auto it = m_setTitleOpen.find(dwTitleID);
+    if (it != m_setTitleOpen.end()) {
+        m_setTitleOpen.erase(it);
+    }
 
-    // Recalculate stats
+    // Send DB update (main=3, sub=0x15)
+    XSendDBPacket xSendDBPacket(static_cast<XActor*>(pUser), 3, 0x15);
+    if (pUser) {
+        xSendDBPacket.XParse << pUser->GetUCID();
+    }
+    xSendDBPacket.XParse << dwTitleID << nLogType;
+    pServer->SendDBGame(xSendDBPacket);
+
+    // Send client update (main=3, sub=0x24)
+    XSendPacket clientPacket(3, 0x24);
+    clientPacket.XParse << dwTitleID << nLogType;
+    if (pMover) {
+        CGocNetwork::Send(static_cast<XActor*>(pMover), clientPacket);
+    }
+
+    // Log game action (main=3, sub=12)
+    ST_LOG_GAME stLog;
+    stLog._sMainType = 3;
+    stLog._sSubType = 12;
+    stLog.nParam0 = dwTitleID;
+    stLog.nParam1 = pTBTitle->Info_Type;
+    stLog.nParam2 = nLogType;
+    stLog.nParam3 = 0;
+    pServer->SendDBLog(stLog);
+
     CalculateTitleStat();
-
-    (void)nLogType; // For logging
     return true;
 }
 
@@ -376,16 +368,24 @@ void CGocEntity::DeleteTitle(int nTitleID)
     if (it != m_mapHaveTitle.end()) {
         // Per IDA: Erase from map
         m_mapHaveTitle.erase(it);
-        
-        // Per IDA: Send DB delete request
-        // XSendDBPacket packet(GetUser(), 3, 0x18);
-        // packet << GetUCID() << nTitleID;
-        // TXSingleton<XGameServer>::Instance()->SendDBGame(packet);
-        // 
-        // // Send client delete notification
-        // XSendPacket clientPacket(3, 0x28);
-        // clientPacket << nTitleID;
-        // SendPacket(clientPacket);
+
+        // Send DB delete request (main=3, sub=0x18)
+        XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+        CUser* pUser = GetUser();
+        XSendDBPacket xSendDBPacket(static_cast<XActor*>(pUser), 3, 0x18);
+        if (pUser) {
+            xSendDBPacket.XParse << pUser->GetUCID();
+        }
+        xSendDBPacket.XParse << nTitleID;
+        pServer->SendDBGame(xSendDBPacket);
+
+        // Send client delete notification (main=3, sub=0x28)
+        XSendPacket clientPacket(3, 0x28);
+        clientPacket.XParse << nTitleID;
+        CMover* pMover = GetOwnerGO();
+        if (pMover) {
+            CGocNetwork::Send(static_cast<XActor*>(pMover), clientPacket);
+        }
     }
 
     // Per IDA: Remove from open set
@@ -493,25 +493,23 @@ void CGocEntity::SendTitleList()
 // Verified: Per IDA decompile - validates title exists and type matches
 bool CGocEntity::IsValidTitle(uint32_t dwTitleID, bool bIsSuffix)
 {
-    // Per IDA: Title ID <= 0 is valid (empty/none)
+    // IDA 0x14005F170: Title ID <= 0 is valid (empty/none)
     if (static_cast<int>(dwTitleID) <= 0) {
         return true;
     }
 
-    // Per IDA: Find title in owned map
+    // Find title in owned map
     auto it = m_mapHaveTitle.find(dwTitleID);
     if (it == m_mapHaveTitle.end()) {
         return false; // Not owned
     }
 
-    // Per IDA: Check title type matches request
-    // The third byte of TB_TITLE_INFO->Title_Type (BYTE3) should match bIsSuffix
-    // TB_TITLE_INFO* pTBTitle = it->second.pTBTitle;
-    // if (pTBTitle && BYTE3(pTBTitle->Title_Type) != bIsSuffix) {
-    //     return false;
-    // }
+    // Check title type matches request (BYTE3 of TB_TITLE_INFO->Title_Type)
+    TB_TITLE_INFO* pTBTitle = it->second.pTBTitle;
+    if (pTBTitle && ((pTBTitle->Title_Type >> 24) & 0xFF) != (bIsSuffix ? 1 : 0)) {
+        return false;
+    }
 
-    (void)bIsSuffix; // TODO: Need TB_TITLE_INFO structure for precise type check
     return true;
 }
 
@@ -541,17 +539,15 @@ void CGocEntity::SendUpdateTitle(ST_TitleInfo& stInsideTitle, ST_TitleInfo& stOu
 // Verified: Per IDA decompile - updates title stat via CGocAttribute
 void CGocEntity::UpdateTitleStat(int nClassType, int nLevel, uint32_t nType, float fValue)
 {
-    // Per IDA 0x14005EF20: Get CGocAttribute and apply stat
-    // CMover* pMover = GetMover();
-    // auto pAttr = pMover->GetGOC<CGocAttribute>();
-    // if (pAttr) {
-    //     pAttr->UpdateEffectStat(nClassType, nType, fValue, 0);
-    // }
+    // IDA 0x14005EF20: Get CGocAttribute and apply stat
+    CMover* pMover = GetOwnerGO();
+    if (!pMover) return;
+    std::shared_ptr<CGocAttribute> pAttr = pMover->GetGOC_Attribute(false);
+    if (pAttr) {
+        pAttr->UpdateEffectStat(nClassType, nType, fValue, 0);
+    }
 
-    (void)nClassType;
     (void)nLevel;
-    (void)nType;
-    (void)fValue;
 }
 
 // ============================================================================
@@ -569,72 +565,63 @@ void CGocEntity::Levelup(int nBeforeLevel, int nAfterLevel)
 // Verified: Per IDA decompile - calculates and applies title stats
 void CGocEntity::CalculateTitleStat()
 {
-    // Per IDA 0x1400652B0: Get CGocAttribute
-    // CMover* pMover = GetMover();
-    // auto pAttr = pMover->GetGOC<CGocAttribute>();
-    // if (!pAttr) {
-    //     LogHelper::LogError("game.contents", "InitTitle error - pAttr is NULL [ ActorID:%d ] ( %d ) ", GetActorID(), 2578);
-    //     return;
-    // }
-    // 
-    // bool bChanged = false;
-    // 
-    // // Process inside title prefix
-    // if (m_stInsideTitle.dwPrefix != 0) {
-    //     XGameServer* pServer = TXSingleton<XGameServer>::Instance();
-    //     TB_TITLE_INFO* pTBPrefix = pServer->m_xResourceMgr.GetTB_TITLE_INFO(m_stInsideTitle.dwPrefix);
-    //     if (pTBPrefix) {
-    //         for (int i = 0; i < 5; ++i) {
-    //             if (pTBPrefix->Effect_Type[i] != 0) {
-    //                 int nLevel = pAttr->GetLevel();
-    //                 UpdateTitleStat(pTBPrefix->Effect_Class[i], nLevel, 
-    //                                pTBPrefix->Effect_Type[i], pTBPrefix->Effect_value[i]);
-    //                 bChanged = true;
-    //             }
-    //         }
-    //     } else {
-    //         LogHelper::LogError("game.contents", "InitTitle error - No Table TB_TITLE_INFO[ ActorID:%d, dwPrefix:%d ] ( %d ) ", 
-    //                            GetActorID(), m_stInsideTitle.dwPrefix, 2587);
-    //     }
-    // }
-    // 
-    // // Process inside title suffix
-    // if (m_stInsideTitle.dwSuffix != 0) {
-    //     XGameServer* pServer = TXSingleton<XGameServer>::Instance();
-    //     TB_TITLE_INFO* pTBSuffix = pServer->m_xResourceMgr.GetTB_TITLE_INFO(m_stInsideTitle.dwSuffix);
-    //     if (pTBSuffix) {
-    //         for (int i = 0; i < 5; ++i) {
-    //             if (pTBSuffix->Effect_Type[i] != 0) {
-    //                 int nLevel = pAttr->GetLevel();
-    //                 UpdateTitleStat(pTBSuffix->Effect_Class[i], nLevel,
-    //                                pTBSuffix->Effect_Type[i], pTBSuffix->Effect_value[i]);
-    //                 bChanged = true;
-    //             }
-    //         }
-    //     } else {
-    //         LogHelper::LogError("game.contents", "InitTitle error - Failed Add Title [ ActorID:%d, dwSuffix:%d ] ( %d ) ",
-    //                            GetActorID(), m_stInsideTitle.dwSuffix, 2608);
-    //     }
-    // }
-    // 
-    // // Recalculate stats if changed
-    // if (bChanged) {
-    //     pAttr->CalculateChangedStat(0);
-    //     pAttr->CalculateChangedEffect(0);
-    // }
-    
-    // Per IDA: Calculate inside title stats
+    // IDA 0x1400652B0: Get CGocAttribute
+    CMover* pMover = GetOwnerGO();
+    std::shared_ptr<CGocAttribute> pAttr = pMover ? pMover->GetGOC_Attribute(false) : nullptr;
+    if (!pAttr) {
+        uint32_t dwActorID = GetUser() ? GetUser()->GetActorID().dwActorID : 0;
+        LogHelper::LogError("game.contents", "InitTitle error - pAttr is NULL [ ActorID:%d ] ( %d ) ", dwActorID, 2578);
+        return;
+    }
+
+    bool bChanged = false;
+    XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+
+    // Process inside title prefix
     if (m_stInsideTitle.dwPrefix != 0) {
-        // Per IDA: Apply prefix title stats
-        UpdateTitleStat(0, 0, 0, 0.0f);
+        TB_TITLE_INFO* pTBPrefix = pServer->GetResourceMgr().GetTB_TITLE_INFO(m_stInsideTitle.dwPrefix);
+        if (pTBPrefix) {
+            for (int i = 0; i < 5; ++i) {
+                if (pTBPrefix->uniTitle[i] != 0) {
+                    // TODO: IDA 用 CGameWorldMode::GetState 作为 nLevel，该访问路径未落地；暂用 GetLevel
+                    int nState = pAttr->GetLevel();
+                    UpdateTitleStat(pTBPrefix->uniClass[i], nState,
+                                    pTBPrefix->uniTitle[i], pTBPrefix->uniValue[i]);
+                    bChanged = true;
+                }
+            }
+        } else {
+            uint32_t dwActorID = GetUser() ? GetUser()->GetActorID().dwActorID : 0;
+            LogHelper::LogError("game.contents", "InitTitle error - No Table TB_TITLE_INFO[ ActorID:%d, dwPrefix:%d ] ( %d ) ",
+                                dwActorID, m_stInsideTitle.dwPrefix, 2587);
+        }
     }
 
+    // Process inside title suffix
     if (m_stInsideTitle.dwSuffix != 0) {
-        // Per IDA: Apply suffix title stats
-        UpdateTitleStat(0, 0, 0, 0.0f);
+        TB_TITLE_INFO* pTBSuffix = pServer->GetResourceMgr().GetTB_TITLE_INFO(m_stInsideTitle.dwSuffix);
+        if (pTBSuffix) {
+            for (int j = 0; j < 5; ++j) {
+                if (pTBSuffix->uniTitle[j] != 0) {
+                    // TODO: IDA 用 CGameWorldMode::GetState 作为 nLevel，该访问路径未落地；暂用 GetLevel
+                    int nState = pAttr->GetLevel();
+                    UpdateTitleStat(pTBSuffix->uniClass[j], nState,
+                                    pTBSuffix->uniTitle[j], pTBSuffix->uniValue[j]);
+                    bChanged = true;
+                }
+            }
+        } else {
+            uint32_t dwActorID = GetUser() ? GetUser()->GetActorID().dwActorID : 0;
+            LogHelper::LogError("game.contents", "InitTitle error - Failed Add Title [ ActorID:%d, dwSuffix:%d ] ( %d ) ",
+                                dwActorID, m_stInsideTitle.dwSuffix, 2608);
+        }
     }
 
-    // Per IDA: Note - outside titles are for display only, no stat effects
+    // Recalculate stats if changed
+    if (bChanged) {
+        pAttr->CalculateChangedStat(0);
+        pAttr->CalculateChangedEffect(0);
+    }
 }
 
 // ============================================================================

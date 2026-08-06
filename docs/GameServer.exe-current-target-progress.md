@@ -16152,3 +16152,12 @@ Validate the current GameServer.exe reconstruction worktree before the user-auth
 - Ledger state: func-index upgraded the three rows from blocked to implemented verified=no. type-index and path-recovery-index have no change this round.
 - Verification: cmake --build build --target GameServer -- -j8 succeeded ([2/2] Linking GameServer.exe). GREENDAMTAN_AUTOSTOP_MS=5000 timeout 45s ./build/bin/GameServer.exe reached Complete Server Init and Auto shutdown tick, exit 0.
 - Review status: independent verification pending.
+---
+[2026-08-07 07:14:11 +08:00] [deepseek-v4-flash]
+### CGocPost ResetLevelUpEvent restore
+- Target: GameServer.exe; IDA MCP port 10004; model deepseek-v4-flash; local offset +08:00.
+- Evidence discovery: decompiled ResetLevelUpEvent (0x14011E100) via IDA MCP port 10004. The flow: get CUser + dwUAID; send DB packet (6, 0x23) with dwUAID via XGameServer::SendDBGame; then clear m_mapLevelMail.
+- Implementation: GocPost.cpp completed ResetLevelUpEvent from the partial stub (which already had CUser cast, dwUAID and m_mapLevelMail.clear) by adding the DB packet (6,0x23) send that was commented out.
+- Ledger state: func-index upgraded the ResetLevelUpEvent row from blocked to implemented verified=no. type-index and path-recovery-index have no change this round.
+- Verification: cmake --build build --target GameServer -- -j8 succeeded ([2/2] Linking GameServer.exe). GREENDAMTAN_AUTOSTOP_MS=5000 timeout 45s ./build/bin/GameServer.exe reached Complete Server Init and Auto shutdown tick, exit 0.
+- Review status: independent verification pending.

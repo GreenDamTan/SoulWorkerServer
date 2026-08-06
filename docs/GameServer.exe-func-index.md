@@ -4224,7 +4224,7 @@
 | CGocPost | GocPost.cpp | ?SetLevelUpEvent@CGocPost@@QEAAXHHH@Z | 0x14011ce60 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
 | CGocPost | GocPost.cpp | ?SendLevelUpEvent@CGocPost@@QEAAXHH@Z | 0x14011cf40 | implemented | IDA decompile | no | IDA��ȷ��ԭ(stub����������) |
 | CGocPost | GocPost.cpp | ?SendLevelUpEventPost@CGocPost@@QEAA_NPEAUTB_LEVEL_MAIL@@@Z | 0x14011d9d0 | implemented | IDA decompile | no | IDA��ȷ��ԭ(stub����������) |
-| CGocPost | GocPost.cpp | ?ResetLevelUpEvent@CGocPost@@QEAAXXZ | 0x14011e100 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub����������) |
+| CGocPost | GocPost.cpp | ?ResetLevelUpEvent@CGocPost@@QEAAXXZ | 0x14011e100 | implemented | IDA decompile | no | IDA��ȷ��ԭ(stub����������) |
 | CGocPost | GocPost.cpp | ?SetPostFlag@CGocPost@@QEAAX_JE@Z | 0x14011f240 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
 | CGocPost | GocPost.cpp | ?LoadRestoreItem@CGocPost@@QEAAXUPS_ITEM_RESTORE_LIST@@@Z | 0x14011e240 | implemented | IDA decompile | no | IDA��ȷ��ԭ(stub����������) |
 | - | - | ??4PS_ITEM_RESTORE_LIST@@QEAAAEAU0@AEBU0@@Z | 0x14011e650 | blocked | IDA ??4PS_ITEM_RESTORE_LIST@@QEAAAEAU0@AEBU0@@Z | yes | - |

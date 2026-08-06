@@ -762,13 +762,13 @@ void CGocPost::ResetLevelUpEvent()
     
     // IDA: Get UAID
     std::uint32_t dwUAID = pUser->GetUAID();
-    
+
     // IDA: Send DB packet (Main=6, Sub=0x23)
-    // XSendDBPacket xSendDBPacket(static_cast<IXObject*>(static_cast<XActor*>(pUser)), 6, 0x23);
-    // xSendDBPacket.XParse << dwUAID;
-    // XGameServer::SendDBGame(&xSendDBPacket);
-    // TODO: Need XSendDBPacket, XGameServer::SendDBGame
-    
+    XSendDBPacket xSendDBPacket(static_cast<XActor*>(pUser), 6, 0x23);
+    xSendDBPacket.XParse << dwUAID;
+    XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+    if (pServer) pServer->SendDBGame(xSendDBPacket);
+
     // IDA: Clear level mail map
     m_mapLevelMail.clear();
 }

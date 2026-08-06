@@ -16008,3 +16008,12 @@ Validate the current GameServer.exe reconstruction worktree before the user-auth
 - Ledger state: func-index upgraded the SetDBSync row from blocked to implemented verified=no. type-index and path-recovery-index have no change this round.
 - Verification: cmake --build build --target GameServer -- -j8 succeeded ([2/2] Linking GameServer.exe). GREENDAMTAN_AUTOSTOP_MS=5000 timeout 45s ./build/bin/GameServer.exe reached Complete Server Init and Auto shutdown tick, exit 0.
 - Review status: independent verification pending.
+---
+[2026-08-07 06:00:49 +08:00] [deepseek-v4-flash]
+### GocFriend/Myroom/Post ledger over-claim correction
+- Target: GameServer.exe; IDA MCP port 10004; model deepseek-v4-flash; local offset +08:00.
+- Evidence discovery: extended the over-claim scan to CGocFriend (15 rows), CGocMyroom (2 rows) and CGocPost (29 rows). All these func-index rows were marked blocked while GocFriend.cpp/GocMyroom.cpp/GocPost.cpp contain real non-stub definitions (source definition presence plus non-trivial bodies).
+- Implementation: corrected 46 func-index rows from blocked to implemented verified=no covering CGocFriend::PrepareFriendInvite/PrepareFriendAccept/PrepareDelFriend/PrepareAddBlock/PrepareDelBlock/PrepareRecruitList/PrepareRecruitAdd/PrepareRecruitDelete/PrepareRecruitInfo/PrepareRecommandList/FriendInvite/FriendAccept/AddBlockList/DeleteBlockList/UpdateFriendCommunity, CGocMyroom::UpdateData (both overloads), and CGocPost::SendCoupounReward/SystemPostSend (5 overloads)/DBReqGMTSendPostList/CheckGMTSystemPostSendCondition/GMTSystemPostSend/RecvPostInfo/ReqPostReceipt/SendDBPostList/SendPostSendList/SendPostRecvList/SendPostAccountList/SendPostSaveList/DeletePostAll/ReqPostReceiptAll/ReqPostAccountReceiptAll/ReceiptPostReceiveList/ReceiptPostAccountList/SendAutoMail/SendLevelUpEvent/SendLevelUpEventPost/ResetLevelUpEvent/LoadRestoreItem/SendRestorePost/SendRestoreAttendancePost/AccountPostSend. No source changes this round.
+- Ledger state: func-index corrected 46 over-claimed rows. type-index and path-recovery-index have no change. This round is documentation-only.
+- Verification: cmake --build build --target GameServer -- -j8 succeeded (no rebuild needed). GREENDAMTAN_AUTOSTOP_MS=5000 timeout 45s ./build/bin/GameServer.exe reached Complete Server Init and Auto shutdown tick, exit 0.
+- Review status: independent verification pending.

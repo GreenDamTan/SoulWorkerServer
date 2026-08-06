@@ -1054,6 +1054,35 @@ struct VAnimationInfo {
     }
 };
 
+// VJumpFrame - 跳跃关键帧 (8 bytes)
+// PDB LF_STRUCTURE 0x2C04B: Size 8, fTime float(0) fZPos float(4)
+struct VJumpFrame {
+    float fTime;   // offset 0
+    float fZPos;   // offset 4
+
+    VJumpFrame() : fTime(0.0f), fZPos(0.0f) {}
+};
+
+// VJumpInfo - 跳跃信息 (152 bytes)
+// PDB LF_FIELDLIST 0x77C03: Size 152, szName char[128](0) arTranslationFrames VArray<VJumpFrame>(128)
+// IDA ctor: ??0VJumpInfo@@QEAA@XZ @ 0x14072ECA0
+//   VArray<VJumpFrame> ctor then memset(this, 0, 0x80) then VArray::Reset(arTranslationFrames);
+//   net effect = 128-byte zeroed header + default-constructed VArray (null/count/capacity 0)
+struct VJumpInfo {
+    char szName[128];                     // offset 0
+    VArray<VJumpFrame> arTranslationFrames; // offset 128 (24 bytes)
+
+    VJumpInfo() : arTranslationFrames() {
+        std::memset(szName, 0, sizeof(szName));
+    }
+
+    float GetCurHeight(float fTime) const {
+        // IDA 0x1403A2890 - VJumpInfo::GetCurHeight
+        (void)fTime;
+        return 0.0f;
+    }
+};
+
 // VBaseResourceLump - Vision Engine 基础资源块 (104 bytes)
 struct VBaseResourceLump {
     void* __vftable;
@@ -1081,10 +1110,10 @@ struct VActionResourceLump {
     VBaseResourceLump base;                             // 基类 (offset 0, 104 bytes)
     std::vector<VAnimationInfo> m_arAnimationContainer; // 动画容器 (offset 104, 32 bytes)
     std::vector<float> m_arHitBoneRadius;               // 命中骨骼半径 (offset 136, 32 bytes)
-    std::vector<void*> m_arJumpInfos;                   // 跳跃信息 (offset 168, 32 bytes)
+    std::vector<VJumpInfo> m_arJumpInfos;               // 跳跃信息 (offset 168, 32 bytes)
     std::map<int, ActionTrigger*> m_mapAttackTrigger;   // 攻击触发器映射 (offset 200, 32 bytes)
 
-    VActionResourceLump() {}
+    VActionResourceLump() : base() {}
 
     // 获取动画列表
     VAnimationInfo* GetActionList() {
@@ -1152,15 +1181,6 @@ struct VActionResourceLump {
             return it->second;
         }
         return nullptr;
-    }
-};
-
-// VJumpInfo - Jump info structure (stub)
-struct VJumpInfo {
-    float GetCurHeight(float fTime) const {
-        // TODO: Implement from IDA
-        (void)fTime;
-        return 0.0f;
     }
 };
 

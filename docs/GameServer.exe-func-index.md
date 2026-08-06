@@ -33052,7 +33052,7 @@ yes | ?????????? |
 | - | - | ??0tagPROJECTILE_INFO@@QEAA@XZ | 0x140641800 | blocked | IDA ??0tagPROJECTILE_INFO@@QEAA@XZ | yes | - |
 | - | - | ??0tagCONNECTION_INFO@@QEAA@XZ | 0x140641860 | blocked | IDA ??0tagCONNECTION_INFO@@QEAA@XZ | yes | - |
 | - | - | ??0tagGRAP_INFO@@QEAA@XZ | 0x140641890 | blocked | IDA ??0tagGRAP_INFO@@QEAA@XZ | yes | - |
-| - | - | ??0AttackJudgmentTrigger@@QEAA@XZ | 0x1406418d0 | blocked | IDA ??0AttackJudgmentTrigger@@QEAA@XZ | yes | - |
+| - | - | ??0AttackJudgmentTrigger@@QEAA@XZ | 0x1406418d0 | implemented | IDA ??0AttackJudgmentTrigger@@QEAA@XZ | no | 2464B PDB 0x485B3 in ActionResMgr.h; 子结构 ctor+memset, iChargeLevel/iSkillLevel/iCombatType/shGroupID=-1, sAttackCollision=1, bHitShaderView/bCheckCounter=1 |
 | - | - | ??1VisEntityTemplate_cl@@UEAA@XZ | 0x140641ab0 | blocked | IDA ??1VisEntityTemplate_cl@@UEAA@XZ | yes | - |
 | - | - | ??0VisObject3DTemplate_cl@@QEAA@PEBD@Z | 0x140641ad0 | blocked | IDA ??0VisObject3DTemplate_cl@@QEAA@PEBD@Z | yes | - |
 | - | - | ??_GVisEntityTemplate_cl@@UEAAPEAXI@Z | 0x140641b60 | blocked | IDA ??_GVisEntityTemplate_cl@@UEAAPEAXI@Z | yes | - |
@@ -35709,7 +35709,7 @@ yes | ?????????? |
 | - | - | ?Serialize@ApplyPassiveSkillTrigger@@UEAA_NPEAVVChunkFile@@H@Z | 0x14072eb10 | implemented | IDA ?Serialize@ApplyPassiveSkillTrigger@@UEAA_NPEAVVChunkFile@@H@Z | yes | - |
 | - | - | ??0MyBuffControlTrigger@@QEAA@XZ | 0x14072eb60 | implemented | IDA ??0MyBuffControlTrigger@@QEAA@XZ | no | 192-byte PDB LF_FIELDLIST 0x6E06E in VisionEngineTypes.h; cMyBuffControlType=1, cBuffType 0, shApplyCount 0, arBuffID int[5] memset |
 | - | - | ?Serialize@MyBuffControlTrigger@@UEAA_NPEAVVChunkFile@@H@Z | 0x14072ebd0 | implemented | IDA ?Serialize@MyBuffControlTrigger@@UEAA_NPEAVVChunkFile@@H@Z | yes | - |
-| - | - | ??0VJumpInfo@@QEAA@XZ | 0x14072eca0 | blocked | IDA ??0VJumpInfo@@QEAA@XZ | yes | - |
+| - | - | ??0VJumpInfo@@QEAA@XZ | 0x14072eca0 | implemented | IDA ??0VJumpInfo@@QEAA@XZ | no | 152B PDB 0x77C03 in VisionEngineTypes.h; szName memset + VArray<VJumpFrame> 默认构造 |
 | - | - | ??0VActionResourceLump@@QEAA@PEAVVisResourceManager_cl@@H@Z | 0x14072ed00 | blocked | IDA ??0VActionResourceLump@@QEAA@PEAVVisResourceManager_cl@@H@Z | yes | - |
 | - | - | ??_GVActionResourceLump@@UEAAPEAXI@Z | 0x14072edb0 | blocked | IDA ??_GVActionResourceLump@@UEAAPEAXI@Z | yes | - |
 | - | - | ??1VActionResourceLump@@UEAA@XZ | 0x14072edf0 | blocked | IDA ??1VActionResourceLump@@UEAA@XZ | yes | - |

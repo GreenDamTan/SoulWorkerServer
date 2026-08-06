@@ -2,6 +2,7 @@
 
 #include "Soulworker/GameServer/XCore/VisionEngineTypes.h"
 #include "Soulworker/GameServer/XGameServer/Mover.h"  // 需要完整类型 CMover
+#include "Soulworker/GameServer/XGameServer/Physics.h"  // tagATTACK_RANGE (36 bytes)
 #include <cstdint>
 #include <map>
 #include <set>
@@ -19,39 +20,197 @@ struct TB_NPC;
 struct TB_AKASHIC_RECORDS;
 struct TB_SKILL;
 
-// tagREACTION_INFO_VIEW - 反应信息视图结构 (从 MySkillList.h 移动)
-struct tagREACTION_INFO_VIEW {
-    int iTargetType = 0;
-    int iTargetStatus = 0;
-    int iTargetGrade = 0;
-    bool bUseTargetWeight = false;
-    bool bApplyPcSABreak = false;
-    std::uint8_t _pad0[2] = {};
-    float fDamageRate = 0.0f;
-    int iBuffID = 0;
-    int iAuraID = 0;
-    int iReactionType = 0;
-    float fReactionDist = 0.0f;
-    float fReactionHeight = 0.0f;
-    float fReactionSpeed = 0.0f;
-    int iReactionArrow = 0;
-    float fReactionHeightAir = 0.0f;
-    float fReactionAngle = 0.0f;
-    float fSlowRate = 0.0f;
-    float fSlowTime = 0.0f;
-    float fSlowDelayTime = 0.0f;
-    float fHitFreezeTime = 0.0f;
-    bool bCheckCounter = false;
-    std::uint8_t _pad1[3] = {};
-    int iConditionBuffID = 0;
-    float fConditionBuffDamageRate = 0.0f;
-    bool bIgnoreTargetInvincible = false;
-    std::uint8_t _pad2[3] = {};
+// tagREACTION_INFO - 反应信息结构 (88 bytes)
+// PDB LF_FIELDLIST 0x78395: Size 88, LF_STRUCTURE 0x78396
+struct tagREACTION_INFO {
+    std::int32_t iTargetType;          // offset 0
+    std::int32_t iTargetStatus;        // offset 4
+    std::int32_t iTargetGrade;         // offset 8
+    bool bUseTargetWeight;             // offset 12
+    bool bApplyPcSABreak;              // offset 13
+    std::uint8_t _pad0[2];             // offset 14
+    float fDamageRate;                 // offset 16
+    std::int32_t iBuffID;              // offset 20
+    std::int32_t iAuraID;              // offset 24
+    std::int32_t iReactionType;        // offset 28
+    float fReactionDist;               // offset 32
+    float fReactionHeight;             // offset 36
+    float fReactionSpeed;              // offset 40
+    std::int32_t iReactionArrow;       // offset 44
+    float fReactionHeightAir;          // offset 48
+    float fReactionAngle;              // offset 52
+    float fSlowRate;                   // offset 56
+    float fSlowTime;                   // offset 60
+    float fSlowDelayTime;              // offset 64
+    float fHitFreezeTime;              // offset 68
+    bool bCheckCounter;                // offset 72
+    std::uint8_t _pad1[3];             // offset 73
+    std::int32_t iConditionBuffID;     // offset 76
+    float fConditionBuffDamageRate;    // offset 80
+    bool bIgnoreTargetInvincible;      // offset 84
+    std::uint8_t _pad2[3];             // offset 85
+
+    tagREACTION_INFO()
+        : iTargetType(0), iTargetStatus(0), iTargetGrade(0)
+        , bUseTargetWeight(false), bApplyPcSABreak(false)
+        , _pad0{0, 0}, fDamageRate(0.0f), iBuffID(0), iAuraID(0)
+        , iReactionType(0), fReactionDist(0.0f), fReactionHeight(0.0f)
+        , fReactionSpeed(0.0f), iReactionArrow(0), fReactionHeightAir(0.0f)
+        , fReactionAngle(0.0f), fSlowRate(0.0f), fSlowTime(0.0f)
+        , fSlowDelayTime(0.0f), fHitFreezeTime(0.0f), bCheckCounter(false)
+        , _pad1{0, 0, 0}, iConditionBuffID(0), fConditionBuffDamageRate(0.0f)
+        , bIgnoreTargetInvincible(false), _pad2{0, 0, 0} {}
 };
 
-// tagCONNECTION_INFO_VIEW - 连接信息视图结构 (从 MySkillList.h 移动)
-struct tagCONNECTION_INFO_VIEW {
-    float fDamageMutiple = 0.0f;
+// tagHIT_EFFECT - 命中特效信息 (48 bytes)
+// PDB LF_FIELDLIST 0x67F88: Size 48, LF_STRUCTURE 0x67F89
+struct tagHIT_EFFECT {
+    bool bTraceFXView;                // offset 0
+    float fTraceFXRotation;           // offset 4
+    std::int32_t iBattleMaterialID;   // offset 8
+    float fVictimMoveDist;            // offset 12
+    std::int32_t iVictimShakingValue; // offset 16
+    float fVictimShakingTime;         // offset 20
+    bool bHitShaderView;              // offset 24
+    std::int32_t iHitShaderR;         // offset 28
+    std::int32_t iHitShaderG;         // offset 32
+    std::int32_t iHitShaderB;         // offset 36
+    float fHitShaderStrength;         // offset 40
+    float fHitShaderLifeTime;         // offset 44
+
+    tagHIT_EFFECT()
+        : bTraceFXView(false), fTraceFXRotation(0.0f), iBattleMaterialID(0)
+        , fVictimMoveDist(0.0f), iVictimShakingValue(0), fVictimShakingTime(0.0f)
+        , bHitShaderView(false), iHitShaderR(0), iHitShaderG(0), iHitShaderB(0)
+        , fHitShaderStrength(0.0f), fHitShaderLifeTime(0.0f) {}
+};
+
+// tagGRAP_INFO - 抓取信息结构 (164 bytes)
+// PDB LF_FIELDLIST 0x68224: Size 164, LF_STRUCTURE 0x68225
+struct tagGRAP_INFO {
+    char strAttachBoneName[128];      // offset 0
+    hkvVec3 vecOffset;                // offset 128
+    hkvVec3 vecDropPos;               // offset 140
+    float qYaw;                       // offset 152
+    float qPitch;                     // offset 156
+    float qRoll;                      // offset 160
+
+    tagGRAP_INFO() : vecOffset(), vecDropPos(), qYaw(0.0f), qPitch(0.0f), qRoll(0.0f) {
+        std::memset(strAttachBoneName, 0, sizeof(strAttachBoneName));
+    }
+};
+
+// tagPROJECTILE_INFO - 投射物信息结构 (1096 bytes)
+// PDB LF_FIELDLIST 0x75C2F: Size 1096, LF_STRUCTURE 0x75C30
+struct tagPROJECTILE_INFO {
+    hkvVec3 vStartPos;                // offset 0
+    hkvVec3 vDir;                     // offset 12
+    float fMoveSpeed;                 // offset 24
+    float fLifeTime;                  // offset 28
+    char szProjParticle[128];         // offset 32
+    char szProjDisapearParticle[128]; // offset 160
+    char szProjExplodeParticle[128];  // offset 288
+    bool bIsGravity;                  // offset 416
+    std::int32_t eDirectionType;      // offset 420
+    bool bIsCollision;                // offset 424
+    bool bIsMovingToTarget;           // offset 425
+    std::int16_t RandomPattern;       // offset 426
+    float fRandomRadius;              // offset 428
+    float fRandomRadiusMin;           // offset 432
+    float fRandomAngle;               // offset 436
+    hkvVec3 vRandomPos;               // offset 440
+    std::int32_t nRandomCount;        // offset 452
+    float fRandomDelayTime;           // offset 456
+    std::int32_t nLinkedSkillID;      // offset 460
+    float fRadius;                    // offset 464
+    bool bIsContinousHit;             // offset 468
+    float fContinousTime;             // offset 472
+    float fDelayTime;                 // offset 476
+    bool bIsTargetGuided;             // offset 480
+    float fTargetUpdateTime;          // offset 484
+    float fTargetUpdateAngle;         // offset 488
+    std::int16_t shAttachToTarget;    // offset 492
+    bool bUseExplodeTrap;             // offset 494
+    bool bUseSubWeapon;               // offset 495
+    bool bTargetOnly;                 // offset 496
+    std::int16_t eRotationType;       // offset 498
+    float fRotationSpeed;             // offset 500
+    bool bMeshRotation;               // offset 504
+    bool bEffectRotation;             // offset 505
+    std::int16_t shExplodeDecision;   // offset 506
+    char szProjExplodeSound[128];     // offset 508
+    char szProjAttachSound[128];      // offset 636
+    char szProjStartSound[128];       // offset 764
+    char szProjPathAnimName[128];     // offset 892
+    float fCreateDelayTime;           // offset 1020
+    tagATTACK_RANGE sCollisionRange;  // offset 1024
+    float fExplodeDelayTime;          // offset 1060
+    bool bPenetrate;                  // offset 1064
+    std::int32_t iPenetrateCount;     // offset 1068
+    std::int16_t shExplodeFaction;    // offset 1072
+    std::int16_t shExplodeTrapMakeType; // offset 1074
+    bool bApplyEffectWhenPenetrate;   // offset 1076
+    std::int16_t shRandomShootDirX;   // offset 1078
+    std::int16_t shRandomShootDirY;   // offset 1080
+    std::int32_t iTargetPriorityType; // offset 1084
+    float fTargetFindTime;            // offset 1088
+    bool bApplyExplodeOrientation;    // offset 1092
+    bool bApplyDisappearOrientation;  // offset 1093
+    bool bEffectShowAlways;           // offset 1094
+
+    tagPROJECTILE_INFO()
+        : vStartPos(), vDir(), fMoveSpeed(0.0f), fLifeTime(0.0f)
+        , bIsGravity(false), eDirectionType(0), bIsCollision(false)
+        , bIsMovingToTarget(false), RandomPattern(0), fRandomRadius(0.0f)
+        , fRandomRadiusMin(0.0f), fRandomAngle(0.0f), vRandomPos()
+        , nRandomCount(0), fRandomDelayTime(0.0f), nLinkedSkillID(0)
+        , fRadius(0.0f), bIsContinousHit(false), fContinousTime(0.0f)
+        , fDelayTime(0.0f), bIsTargetGuided(false), fTargetUpdateTime(0.0f)
+        , fTargetUpdateAngle(0.0f), shAttachToTarget(0), bUseExplodeTrap(false)
+        , bUseSubWeapon(false), bTargetOnly(false), eRotationType(0)
+        , fRotationSpeed(0.0f), bMeshRotation(false), bEffectRotation(false)
+        , shExplodeDecision(0), fCreateDelayTime(0.0f), sCollisionRange()
+        , fExplodeDelayTime(0.0f), bPenetrate(false), iPenetrateCount(0)
+        , shExplodeFaction(0), shExplodeTrapMakeType(0)
+        , bApplyEffectWhenPenetrate(false), shRandomShootDirX(0)
+        , shRandomShootDirY(0), iTargetPriorityType(0), fTargetFindTime(0.0f)
+        , bApplyExplodeOrientation(false), bApplyDisappearOrientation(false)
+        , bEffectShowAlways(false) {
+        std::memset(szProjParticle, 0, sizeof(szProjParticle));
+        std::memset(szProjDisapearParticle, 0, sizeof(szProjDisapearParticle));
+        std::memset(szProjExplodeParticle, 0, sizeof(szProjExplodeParticle));
+        std::memset(szProjExplodeSound, 0, sizeof(szProjExplodeSound));
+        std::memset(szProjAttachSound, 0, sizeof(szProjAttachSound));
+        std::memset(szProjStartSound, 0, sizeof(szProjStartSound));
+        std::memset(szProjPathAnimName, 0, sizeof(szProjPathAnimName));
+    }
+};
+
+// tagCONNECTION_INFO - 连接信息结构 (568 bytes)
+// PDB LF_FIELDLIST 0x6E7E9: Size 568, LF_STRUCTURE 0x6E7EA
+struct tagCONNECTION_INFO {
+    std::int32_t iConnectionType;     // offset 0
+    float fLifeTime;                  // offset 4
+    float fMaxCount;                  // offset 8
+    float fDamageMutiple;             // offset 12
+    bool bUseLaserEffect;             // offset 16
+    bool bRecalcTarget;               // offset 17
+    bool bInvisibleWhenNoTarget;      // offset 18
+    char strEffect[128];              // offset 19
+    char strEffect2[128];             // offset 147
+    char strStartBone[128];           // offset 275
+    char strEndBone[128];             // offset 403
+    tagATTACK_RANGE sAttackRange;     // offset 532
+
+    tagCONNECTION_INFO()
+        : iConnectionType(0), fLifeTime(0.0f), fMaxCount(0.0f)
+        , fDamageMutiple(0.0f), bUseLaserEffect(false), bRecalcTarget(false)
+        , bInvisibleWhenNoTarget(false), sAttackRange() {
+        std::memset(strEffect, 0, sizeof(strEffect));
+        std::memset(strEffect2, 0, sizeof(strEffect2));
+        std::memset(strStartBone, 0, sizeof(strStartBone));
+        std::memset(strEndBone, 0, sizeof(strEndBone));
+    }
 };
 
 // ActionTrigger 已在 VisionEngineTypes.h 中完整定义 (168 bytes)
@@ -60,41 +219,61 @@ struct tagCONNECTION_INFO_VIEW {
 // AttackJudgmentTrigger - 攻击判定触发器 (继承自 ActionTrigger)
 // 从 IDA 获取: 总大小 2464 bytes (168 + 2296)
 // ============================================================================
-// tagCONTINUOUS_MELEE_INFO - 连续近战信息 (offset 0x884, size 136 bytes)
+// tagCONTINUOUS_MELEE_INFO - 连续近战信息 (136 bytes)
+// PDB LF_FIELDLIST 0x6B176: Size 136, LF_STRUCTURE 0x6B179
 struct tagCONTINUOUS_MELEE_INFO {
-    float fIntervalTime;                // offset 0x884 (2180) - 攻击间隔时间
-    std::uint8_t padding[132];          // remaining bytes
+    float fLifeTime;                    // offset 0
+    float fIntervalTime;                // offset 4 - 攻击间隔时间
+    char szTraceBoneName[128];          // offset 8
+
+    tagCONTINUOUS_MELEE_INFO() : fLifeTime(0.0f), fIntervalTime(0.0f) {
+        std::memset(szTraceBoneName, 0, sizeof(szTraceBoneName));
+    }
 };
 
+// AttackJudgmentTrigger - 攻击判定触发器 (2464 bytes)
+// PDB LF_FIELDLIST 0x485B3: Size 2464, 继承 ActionTrigger(168)
+// IDA ctor: ??0AttackJudgmentTrigger@@QEAA@XZ @ 0x1406418D0 (Size 2464 = 0x9A0)
+//   子结构先默认构造再整体 memset，随后回填 sHitEffect.bHitShaderView=1、sReactionInfo.bCheckCounter=1
 struct AttackJudgmentTrigger : public ActionTrigger {
-    std::int16_t sAttackRangeType;      // offset 168
-    std::int16_t sAttackType;           // offset 170
-    std::int16_t sAttackCollision;      // offset 172
-    std::int32_t iSpawnObjectID;        // offset 176
-    // tagATTACK_RANGE sAttackRange (36 bytes) - offset 180
-    std::uint8_t padding_attackRange[36];
-    // tagPROJECTILE_INFO sProjInfo (1096 bytes) - offset 216
-    std::uint8_t padding_projInfo[1096];
-    // tagHIT_EFFECT sHitEffect (48 bytes) - offset 1312
-    std::uint8_t padding_hitEffect[48];
-    // tagREACTION_INFO sReactionInfo (88 bytes) - offset 1360
-    // 简化版本使用 tagREACTION_INFO_VIEW 以便访问关键字段
-    tagREACTION_INFO_VIEW sReactionInfo;
-    std::uint8_t padding_reactionInfo[88 - sizeof(tagREACTION_INFO_VIEW)];
-    // tagCONNECTION_INFO sConnectionInfo (568 bytes) - offset 1448
-    tagCONNECTION_INFO_VIEW sConnectionInfo;
-    std::uint8_t padding_connectionInfo[568 - sizeof(tagCONNECTION_INFO_VIEW)];
-    // tagGRAP_INFO sGrapInfo (164 bytes) - offset 2016
-    std::uint8_t padding_grapInfo[164];
-    // tagCONTINUOUS_MELEE_INFO sContinuousMeleeInfo (136 bytes) - offset 2180
-    tagCONTINUOUS_MELEE_INFO sContinuousMeleeInfo;
-    std::int32_t iChargeLevel;          // offset 2316
-    std::int32_t iSkillLevel;           // offset 2320
-    std::int16_t sSkillCondition;       // offset 2324
-    std::int32_t iCombatType;           // offset 2328
-    char szDivergenceValue[128];        // offset 2332
+    std::int16_t sAttackRangeType;        // offset 168
+    std::int16_t sAttackType;             // offset 170
+    std::int16_t sAttackCollision;        // offset 172
+    std::int32_t iSpawnObjectID;          // offset 176
+    tagATTACK_RANGE sAttackRange;         // offset 180 (36 bytes)
+    tagPROJECTILE_INFO sProjInfo;         // offset 216 (1096 bytes)
+    tagHIT_EFFECT sHitEffect;             // offset 1312 (48 bytes)
+    tagREACTION_INFO sReactionInfo;       // offset 1360 (88 bytes)
+    tagCONNECTION_INFO sConnectionInfo;   // offset 1448 (568 bytes)
+    tagGRAP_INFO sGrapInfo;               // offset 2016 (164 bytes)
+    tagCONTINUOUS_MELEE_INFO sContinuousMeleeInfo; // offset 2180 (136 bytes)
+    std::int32_t iChargeLevel;            // offset 2316
+    std::int32_t iSkillLevel;             // offset 2320
+    std::int16_t sSkillCondition;         // offset 2324
+    std::int32_t iCombatType;             // offset 2328
+    char szDivergenceValue[128];          // offset 2332
     std::int16_t sWeakAttackStiffenRatio; // offset 2460
-    std::int16_t shGroupID;             // offset 2462
+    std::int16_t shGroupID;               // offset 2462
+
+    AttackJudgmentTrigger()
+        : ActionTrigger()
+        , sAttackRangeType(0), sAttackType(0), sAttackCollision(1)
+        , iSpawnObjectID(0), sAttackRange(), sProjInfo(), sHitEffect()
+        , sReactionInfo(), sConnectionInfo(), sGrapInfo(), sContinuousMeleeInfo()
+        , iChargeLevel(-1), iSkillLevel(-1), sSkillCondition(0), iCombatType(-1)
+        , sWeakAttackStiffenRatio(0), shGroupID(-1)
+    {
+        std::memset(&sAttackRange, 0, sizeof(sAttackRange));
+        std::memset(&sProjInfo, 0, sizeof(sProjInfo));
+        std::memset(&sHitEffect, 0, sizeof(sHitEffect));
+        std::memset(&sReactionInfo, 0, sizeof(sReactionInfo));
+        std::memset(&sConnectionInfo, 0, sizeof(sConnectionInfo));
+        std::memset(&sGrapInfo, 0, sizeof(sGrapInfo));
+        std::memset(&sContinuousMeleeInfo, 0, sizeof(sContinuousMeleeInfo));
+        std::memset(szDivergenceValue, 0, sizeof(szDivergenceValue));
+        sHitEffect.bHitShaderView = true;
+        sReactionInfo.bCheckCounter = true;
+    }
 };
 
 // SGroupID - 分组过滤数据结构

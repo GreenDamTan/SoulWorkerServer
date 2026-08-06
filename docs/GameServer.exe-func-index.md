@@ -4220,7 +4220,7 @@
 | CGocPost | GocPost.cpp | ?ReceiptPostReceiveList@CGocPost@@QEAAXUPS_POST_RECEIPT_ALL_SERVER@@AEAUPS_RES_POST_RECEIPT@@@Z | 0x14011a290 | implemented | IDA decompile | no | IDA��ȷ��ԭ(stub����������) |
 | CGocPost | GocPost.cpp | ?ReceiptPostAccountList@CGocPost@@QEAAXUPS_POST_RECEIPT_ALL_SERVER@@AEAUPS_RES_POST_RECEIPT@@@Z | 0x14011b720 | implemented | IDA decompile | no | IDA��ȷ��ԭ(stub����������) |
 | CGocPost | GocPost.cpp | ?CanReceiptAll@CGocPost@@QEAA_N_JAEAEEAEA_N@Z | 0x14011c210 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
-| CGocPost | GocPost.cpp | ?SendAutoMail@CGocPost@@QEAA_NH@Z | 0x14011c450 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub����������) |
+| CGocPost | GocPost.cpp | ?SendAutoMail@CGocPost@@QEAA_NG@Z | 0x14011c450 | implemented | IDA decompile | no | TB_SYSTEMMAIL_ADD 校验 + 账号邮件(2,0x45)/(6,0x18) + 系统邮件(6,9) + ST_LOG_GAME(7,16)；符号修正 H->G 对齐 uint16_t |
 | CGocPost | GocPost.cpp | ?SetLevelUpEvent@CGocPost@@QEAAXHHH@Z | 0x14011ce60 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
 | CGocPost | GocPost.cpp | ?SendLevelUpEvent@CGocPost@@QEAAXHH@Z | 0x14011cf40 | implemented | IDA decompile | no | IDA��ȷ��ԭ(stub����������) |
 | CGocPost | GocPost.cpp | ?SendLevelUpEventPost@CGocPost@@QEAA_NPEAUTB_LEVEL_MAIL@@@Z | 0x14011d9d0 | implemented | IDA decompile | no | IDA��ȷ��ԭ(stub����������) |

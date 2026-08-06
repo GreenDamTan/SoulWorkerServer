@@ -706,54 +706,128 @@ bool CGocPost::SendAutoMail(std::uint16_t nAutoMailID)
 {
     // IDA: Get TB_SYSTEMMAIL_ADD
     XGameServer* pServer = TXSingleton<XGameServer>::Instance();
-    // TODO: TB_SYSTEMMAIL_ADD* pTBMail = XResourceMgr::GetTB_SYSTEMMAIL_ADD(nAutoMailID);
-    // if (!pTBMail || !pTBMail->AutoMail_Type_On_Off) return false;
-    
-    // IDA: Check MailBox_Type
-    // if (pTBMail->MailBox_Type == 0)
-    // {
-    //     // Account post
-    //     ST_ACCOUNT_POST_DATA stAccountPostData;
-    //     stAccountPostData.dwUAID = pUser->GetUAID();
-    //     stAccountPostData.biRegTime = XGameServer::GetCurDate();
-    //     stAccountPostData.biDelDate = XGameServer::GetCurDate() + 29454;
-    //     stAccountPostData.biMoney = pTBMail->AutoMail_ADD_Gold;
-    //     stAccountPostData.byMainType = 4;
-    //     stAccountPostData.bySubType = pTBMail->Link_SystemMail_ID;
-    //     
-    //     // Fill items (max 5)
-    //     for (int i = 0; i < 5; ++i)
-    //     {
-    //         if (pTBMail->AutoMail_ADD_Count_01 + i)
-    //         {
-    //             TB_ITEM* pTB_Item = XResourceMgr::GetTB_ITEM(pTBMail->AutoMail_ADD_Item_01 + i);
-    //             if (!pTB_Item) continue;
-    //             Check stack max
-    //             stAccountPostData.stItemList[i].nItemID = pTBMail->AutoMail_ADD_Item_01 + i;
-    //             stAccountPostData.stItemList[i].sCount = pTBMail->AutoMail_ADD_Count_01 + i;
-    //         }
-    //     }
-    //     
-    //     // Send DB packet (Main=6, Sub=0x18)
-    //     Send log (MainType=7, SubType=16)
-    // }
-    // else if (pTBMail->MailBox_Type == 1)
-    // {
-    //     // System post
-    //     ST_SYSTEM_POST stSystemPost;
-    //     stSystemPost.byPostType = 1;
-    //     stSystemPost.byPostSubType = pTBMail->Link_SystemMail_ID;
-    //     stSystemPost.biMoney = pTBMail->AutoMail_ADD_Gold;
-    //     
-    //     Fill items
-    //     Generate serial
-    //     Send DB packet (Main=6, Sub=9)
-    //     Send log (MainType=7, SubType=16)
-    // }
-    
-    (void)nAutoMailID;
-    (void)pServer;
-    return false;
+    TB_SYSTEMMAIL_ADD* pTBMail = pServer->GetResourceMgr().GetTB_SYSTEMMAIL_ADD(nAutoMailID);
+    if (!pTBMail || !pTBMail->AutoMail_Type_On_Off) {
+        return false;
+    }
+
+    CUser* pUser = dynamic_cast<CUser*>(GetOwnerGO());
+
+    // IDA: MailBox_Type == 0 -> 账号邮件
+    if (pTBMail->MailBox_Type == 0)
+    {
+        ST_ACCOUNT_POST_DATA stAccountPostData;
+        if (pUser) stAccountPostData.dwUAID = pUser->GetUAID();
+        stAccountPostData.biRegTime = pServer->GetCurDate();
+        stAccountPostData.biMoney = pTBMail->AutoMail_ADD_Gold;
+
+        for (int i = 0; i < 5; ++i)
+        {
+            std::uint32_t nItemID = (&pTBMail->AutoMail_ADD_Item_01)[i];
+            std::uint16_t shCount = (&pTBMail->AutoMail_ADD_Count_01)[i];
+            if (shCount)
+            {
+                TB_ITEM* pTBItem = pServer->GetResourceMgr().GetTB_ITEM(nItemID);
+                if (!pTBItem)
+                {
+                    LogHelper::LogError("game.contents", "SendAutoMail error - No Table TB_ITEM[ ItemID:%d ]( %d )", nItemID, 2786);
+                    break;
+                }
+                if (pTBItem->Item_Stack_Max < shCount)
+                {
+                    LogHelper::LogError("game.contents", "SendAutoMail error - Fault Item Stack Max[ ItemID:%d, Count:%d ]( %d )", nItemID, shCount, 2793);
+                    shCount = pTBItem->Item_Stack_Max;
+                }
+                stAccountPostData.stItemList[i].xSerial = 0;
+                stAccountPostData.stItemList[i].nItemID = nItemID;
+                stAccountPostData.stItemList[i].sCount = shCount;
+            }
+        }
+        stAccountPostData.biDelDate = pServer->GetCurDate() + 29454;
+        stAccountPostData.byMainType = 4;
+        stAccountPostData.bySubType = pTBMail->Link_SystemMail_ID;
+
+        // IDA: DB 账号包 (2,0x45)
+        XSendDBPacket xAccountPacket(static_cast<XActor*>(pUser), 2, 0x45);
+        if (pUser) xAccountPacket.XParse << pUser->GetUAID();
+        pServer->SendDBAccount(xAccountPacket);
+
+        // IDA: DB 游戏包 (6,0x18)
+        XSendDBPacket xSendDBPacket(static_cast<XActor*>(pUser), 6, 0x18);
+        xSendDBPacket << stAccountPostData;
+        pServer->SendDBGame(xSendDBPacket);
+
+        // IDA: ST_LOG_GAME (7,16)
+        ST_LOG_GAME stRecvLog;
+        stRecvLog._sMainType = 7;
+        stRecvLog._sSubType = 16;
+        if (pUser)
+        {
+            stRecvLog._nUAID = pUser->GetUAID();
+            stRecvLog._nUCID = pUser->GetUCID();
+        }
+        stRecvLog.nParam0 = stAccountPostData.byMainType;
+        stRecvLog.nParam1 = stAccountPostData.bySubType;
+        stRecvLog.nParam2 = 0;
+        pServer->SendDBLog(stRecvLog);
+        return true;
+    }
+
+    // IDA: MailBox_Type == 1 -> 系统邮件
+    if (pTBMail->MailBox_Type != 1) {
+        return false;
+    }
+
+    ST_SYSTEM_POST stSystemPost;
+    stSystemPost.byPostType = 1;
+    stSystemPost.byPostSubType = pTBMail->Link_SystemMail_ID;
+    stSystemPost.biMoney = pTBMail->AutoMail_ADD_Gold;
+
+    for (int j = 0; j < 5; ++j)
+    {
+        std::uint32_t nItemID = (&pTBMail->AutoMail_ADD_Item_01)[j];
+        std::uint16_t shCount = (&pTBMail->AutoMail_ADD_Count_01)[j];
+        if (shCount)
+        {
+            TB_ITEM* pTBItem = pServer->GetResourceMgr().GetTB_ITEM(nItemID);
+            if (!pTBItem)
+            {
+                LogHelper::LogError("game.contents", "SendAutoMail error - No Table TB_ITEM[ ItemID:%d ]( %d )", nItemID, 2842);
+                break;
+            }
+            if (pTBItem->Item_Stack_Max < shCount)
+            {
+                LogHelper::LogError("game.contents", "SendAutoMail error - Fault Item Stack Max[ ItemID:%d, Count:%d ]( %d )", nItemID, shCount, 2849);
+                shCount = pTBItem->Item_Stack_Max;
+            }
+            stSystemPost.stSysItem[j].nItemID = nItemID;
+            stSystemPost.stSysItem[j].shCount = shCount;
+        }
+    }
+
+    std::int64_t biPostSerial = pServer->GetItemFactory().GeneratSerial().xSerial;
+
+    // IDA: DB 游戏包 (6,9)
+    XSendDBPacket xSendDBPacket(static_cast<XActor*>(pUser), 6, 9);
+    if (pUser) xSendDBPacket.XParse << pUser->GetUCID();
+    xSendDBPacket.XParse << biPostSerial;
+    xSendDBPacket << stSystemPost;
+    pServer->SendDBGame(xSendDBPacket);
+
+    // IDA: ST_LOG_GAME (7,16)
+    ST_LOG_GAME stLogGame;
+    stLogGame._sMainType = 7;
+    stLogGame._sSubType = 16;
+    if (pUser)
+    {
+        stLogGame._nUAID = pUser->GetUAID();
+        stLogGame._nUCID = pUser->GetUCID();
+    }
+    stLogGame.nParam0 = stSystemPost.byPostType;
+    stLogGame.nParam1 = stSystemPost.byPostSubType;
+    stLogGame.nParam2 = 0;
+    pServer->SendDBLog(stLogGame);
+    return true;
 }
 
 // LoadRestoreItem (IDA: 0x14011E240)

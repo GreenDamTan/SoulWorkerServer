@@ -16089,3 +16089,12 @@ Validate the current GameServer.exe reconstruction worktree before the user-auth
 - Ledger state: func-index reverted 17 rows total (13 main-table + 4 XGameServer duplicate). type-index and path-recovery-index have no change. This round is documentation-only.
 - Verification: cmake --build build --target GameServer -- -j8 succeeded (no rebuild needed). git diff --check clean. All 13 reverted main-table rows confirmed blocked by scan.
 - Review status: re-verification of the corrected ledger is recommended before closing this verification cycle.
+---
+[2026-08-07 06:48:19 +08:00] [deepseek-v4-flash]
+### CGocPost SendAutoMail restore
+- Target: GameServer.exe; IDA MCP port 10004; model deepseek-v4-flash; local offset +08:00.
+- Evidence discovery: decompiled SendAutoMail (0x14011C450) via IDA MCP port 10004. The function validates TB_SYSTEMMAIL_ADD (AutoMail_Type_On_Off), then branches on MailBox_Type: 0 = account post (build ST_ACCOUNT_POST_DATA with 5 item slots from AutoMail_ADD_Item/Count arrays, stack-max clamping against TB_ITEM::Item_Stack_Max, biDelDate = GetCurDate()+29454, byMainType=4; send DB account packet (2,0x45) via SendDBAccount, DB game packet (6,0x18) with ST_ACCOUNT_POST_DATA, and ST_LOG_GAME (7,16)); 1 = system post (build ST_SYSTEM_POST with byPostType=1, 5 item slots, generate serial via XItemFactory::GeneratSerial, send DB game packet (6,9) with UCID/serial/ST_SYSTEM_POST, and ST_LOG_GAME (7,16)). This was the runtime dependency gap the earlier verification flagged for LoadAccountEvent.
+- Implementation: GocPost.cpp replaced the return-false stub with the full two-branch flow. The func-index row's mangled symbol was corrected from ?SendAutoMail@CGocPost@@QEAA_NH@Z (int) to ?SendAutoMail@CGocPost@@QEAA_NG@Z (uint16_t) to match the source declaration and IDA's unsigned __int16 parameter; the XGameServer duplicate row already used the G form.
+- Ledger state: func-index upgraded SendAutoMail to implemented verified=no with the symbol fix. type-index and path-recovery-index have no change this round.
+- Verification: cmake --build build --target GameServer -- -j8 succeeded ([2/2] Linking GameServer.exe). GREENDAMTAN_AUTOSTOP_MS=5000 timeout 45s ./build/bin/GameServer.exe reached Complete Server Init and Auto shutdown tick, exit 0.
+- Review status: independent verification pending; LoadAccountEvent now has a working SendAutoMail dependency, though CheckAccountEvent (0x140069080) remains a stub gate.

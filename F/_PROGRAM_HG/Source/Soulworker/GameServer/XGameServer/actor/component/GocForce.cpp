@@ -124,6 +124,16 @@ bool CGocForce::IsMatchingDate() const
 }
 
 
+// IDA: ?AddMatchingDate@CGocForce@@QEAAXH@Z @ 0x140085130
+// Add matching time when m_biMatchingDate > 0
+void CGocForce::AddMatchingDate(int nAddTime)
+{
+    if (m_biMatchingDate > 0) {
+        m_biMatchingDate += nAddTime;
+    }
+}
+
+
 // IDA: ?KickOut@CGocForce@@QEAA_NKPEAVCUser@@@Z @ 0x1400846F0
 // Complete kick out logic with validation and error handling
 bool CGocForce::KickOut(std::uint32_t dwActorID, CUser* pUser)
@@ -174,7 +184,17 @@ void CGocForce::Logout()
 // Set member HP with MapInsID
 void CGocForce::SetHP(int nHP)
 {
-    (void)nHP;
+    // IDA: if (m_pForce) { uxMapID = GetOwnerGO()->GetMapInsID(); dwActorID = GetOwnerGO()->GetActorID(); CForce::SetMemberHP(pForce, dwActorID, uxMapID, nHP); }
+    if (!m_pParty) {
+        return;
+    }
+    CMover* pOwner = GetOwnerGO();
+    if (!pOwner) {
+        return;
+    }
+    std::uint32_t dwActorID = pOwner->GetActorID().dwActorID;
+    UXMapID uxMapID = pOwner->GetMapInsID();
+    m_pParty->SetMemberHP(dwActorID, uxMapID, nHP);
 }
 
 
@@ -182,7 +202,17 @@ void CGocForce::SetHP(int nHP)
 // Set member max HP with MapInsID
 void CGocForce::SetMaxHP(int nMaxHP)
 {
-    (void)nMaxHP;
+    // IDA: if (m_pForce) { uxMapID = GetOwnerGO()->GetMapInsID(); dwActorID = GetOwnerGO()->GetActorID(); CForce::SetMemberMaxHP(pForce, dwActorID, uxMapID, nMaxHP); }
+    if (!m_pParty) {
+        return;
+    }
+    CMover* pOwner = GetOwnerGO();
+    if (!pOwner) {
+        return;
+    }
+    std::uint32_t dwActorID = pOwner->GetActorID().dwActorID;
+    UXMapID uxMapID = pOwner->GetMapInsID();
+    m_pParty->SetMemberMaxHP(dwActorID, uxMapID, nMaxHP);
 }
 
 

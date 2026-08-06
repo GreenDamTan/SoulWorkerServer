@@ -1891,7 +1891,7 @@
 | - | - | ?lower_bound@?$_Tree@V?$_Tmap_traits@KUTB_TITLE_INFO@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_TITLE_INFO@@@std@@@3@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@KUTB_TITLE_INFO@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_TITLE_INFO@@@std@@@3@$0A@@std@@@std@@@2@AEBK@Z | 0x140068520 | blocked | IDA ?lower_bound@?$_Tree@V?$_Tmap_traits@KUTB_TITLE_INFO@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_TITLE_INFO@@@std@@@3@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@KUTB_TITLE_INFO@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_TITLE_INFO@@@std@@@3@$0A@@std@@@std@@@2@AEBK@Z | yes | - |
 | - | - | ?find@?$_Tree@V?$_Tmap_traits@KUTB_TITLE_INFO@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_TITLE_INFO@@@std@@@3@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@KUTB_TITLE_INFO@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_TITLE_INFO@@@std@@@3@$0A@@std@@@std@@@2@AEBK@Z | 0x140068560 | blocked | IDA ?find@?$_Tree@V?$_Tmap_traits@KUTB_TITLE_INFO@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_TITLE_INFO@@@std@@@3@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@KUTB_TITLE_INFO@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_TITLE_INFO@@@std@@@3@$0A@@std@@@std@@@2@AEBK@Z | yes | - |
 | - | - | ?GetTB_TITLE_INFO@XResourceMgr@@QEAAPEAUTB_TITLE_INFO@@K@Z | 0x140068620 | implemented | IDA ?GetTB_TITLE_INFO@XResourceMgr@@QEAAPEAUTB_TITLE_INFO@@K@Z | yes | - |
-| CGocInventory | GocInventory.cpp | ?SetReadyLoadCash@CGocInventory@@QEAAX_N@Z | 0x140068690 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| CGocInventory | GocInventory.cpp | ?SetReadyLoadCash@CGocInventory@@QEAAX_N@Z | 0x140068690 | implemented | IDA decompile | no | m_bReadyLoadCash = bFlag |
 | - | - | ??0ST_REPRESENTATIVE_INFO@@QEAA@XZ | 0x1400686b0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(Ĭ�ϳ�Ա��ʼ��) |
 | - | - | ??0ST_WM_AUTH_INFO@@QEAA@XZ | 0x140068700 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(Ĭ�ϳ�Ա��ʼ��) |
 | - | - | ??0ST_GF_AUTH_INFO@@QEAA@XZ | 0x140068770 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(Ĭ�ϳ�Ա��ʼ��) |
@@ -2247,8 +2247,8 @@
 | CGocForce | GocForce.cpp | ?SetLevel@CGocForce@@QEAAXH@Z | 0x140083730 | implemented | IDA decompile | no | m_pParty 非空时取 owner ActorID 调 CParty::SetMemberLevel |
 | CGocForce | GocForce.cpp | ?SetAwaken@CGocForce@@QEAAXE@Z | 0x1400837b0 | implemented | IDA decompile | no | m_pParty 非空时取 owner ActorID 调 CParty::SetMemberAwaken |
 | CGocForce | GocForce.cpp | ?SetProfilePhoto@CGocForce@@QEAAXK@Z | 0x140083830 | implemented | IDA decompile | no | m_pParty 非空时取 owner ActorID 调 CParty::SetMemberProfilePhoto |
-| CGocForce | GocForce.cpp | ?SetMaxHP@CGocForce@@QEAAXH@Z | 0x1400838b0 | blocked | IDA decompile | no | IDA精确还原(stub) |
-| CGocForce | GocForce.cpp | ?SetHP@CGocForce@@QEAAXH@Z | 0x140083970 | blocked | IDA decompile | no | IDA精确还原(stub) |
+| CGocForce | GocForce.cpp | ?SetMaxHP@CGocForce@@QEAAXH@Z | 0x1400838b0 | implemented | IDA decompile | no | m_pParty 非空 + owner ActorID/MapInsID -> CParty::SetMemberMaxHP |
+| CGocForce | GocForce.cpp | ?SetHP@CGocForce@@QEAAXH@Z | 0x140083970 | implemented | IDA decompile | no | m_pParty 非空 + owner ActorID/MapInsID -> CParty::SetMemberHP |
 | CGocForce | GocForce.cpp | ?SetExp@CGocForce@@QEAAXPEAVCUser@@MH@Z | 0x140083a30 | blocked | IDA decompile | no | IDA精确还原(stub) |
 | XGameServer | GocForce.cpp | ?SetForce@CGocForce@@QEAAXV?$shared_ptr@VCForce@@@tr1@std@@@Z | 0x140083f30 | implemented | IDA decompile | yes | ����Forceָ�� |
 | CGocForce | GocForce.cpp | ?Logout@CGocForce@@QEAAXXZ | 0x140084010 | blocked | IDA decompile | no | IDA精确还原(stub) |
@@ -2260,7 +2260,7 @@
 | CGocForce | GocForce.cpp | ?UpdatePartyBooster@CGocForce@@QEAAXXZ | 0x140084ee0 | blocked | IDA decompile | no | IDA精确还原(stub) |
 | CGocForce | GocForce.cpp | ?UpdatePartyBoosterByCount@CGocForce@@QEAAXHH@Z | 0x140084f30 | blocked | IDA decompile | no | IDA精确还原(stub) |
 | CGocParty | GocParty.cpp | ?SetMatchingDate@CGocParty@@QEAAX_J@Z | 0x140085030 | implemented | IDA ?SetMatchingDate@CGocParty@@QEAAX_J@Z | yes | - |
-| CGocForce | GocForce.cpp | ?AddMatchingDate@CGocForce@@QEAAXH@Z | 0x140085130 | blocked | IDA decompile | no | IDA精确还原(stub) |
+| CGocForce | GocForce.cpp | ?AddMatchingDate@CGocForce@@QEAAXH@Z | 0x140085130 | implemented | IDA decompile | no | m_biMatchingDate > 0 时累加 |
 | CGocForce | GocForce.cpp | ?IsMatchingDate@CGocForce@@QEAA_NXZ | 0x140085160 | implemented | IDA decompile | yes | IDA精确还原 |
 | CGocForce | GocForce.cpp | ?CheckPassiveSkill@CGocForce@@QEAAXPEAVCUser@@EE@Z | 0x1400851b0 | blocked | IDA decompile | no | IDA精确还原(stub) |
 | CGocForce | GocForce.cpp | ?CheckForceMatchingEnter@CGocForce@@QEAA_NXZ | 0x140085210 | blocked | IDA decompile | no | IDA精确还原(stub) |

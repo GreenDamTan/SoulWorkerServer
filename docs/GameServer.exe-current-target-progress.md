@@ -15954,3 +15954,12 @@ Validate the current GameServer.exe reconstruction worktree before the user-auth
 - Ledger state: func-index upgraded four CGocForce rows from blocked to implemented verified=no with the forwarding pattern notes. type-index and path-recovery-index have no change this round.
 - Verification: cmake --build build --target GameServer -- -j8 succeeded ([2/2] Linking GameServer.exe). GREENDAMTAN_AUTOSTOP_MS=5000 timeout 45s ./build/bin/GameServer.exe reached Complete Server Init and Auto shutdown tick, exit 0.
 - Review status: independent verification pending; ReserveReviveAll (0x140083350) and other GocForce functions depend on unlanded interfaces (CUser::SetReserveRevive/DoReserverRevive, CMover::IsDie, XArea::GetTBMapID, ThreadLocalData::IsThreadArea) and remain pending.
+---
+[2026-08-07 05:29:12 +08:00] [deepseek-v4-flash]
+### CGocForce HP/matching-date restores
+- Target: GameServer.exe; IDA MCP port 10004; model deepseek-v4-flash; local offset +08:00.
+- Evidence discovery: decompiled SetMaxHP (0x1400838B0), SetHP (0x140083970) and AddMatchingDate (0x140085130) via IDA MCP port 10004. SetMaxHP/SetHP follow the m_pForce guard + owner ActorID/MapInsID + CForce::SetMemberMaxHP/SetMemberHP forwarding pattern (with GetMapInsID this time, unlike the simple setters). AddMatchingDate is a single-line mutation guarded on m_biMatchingDate > 0.
+- Implementation: GocForce.cpp restored SetMaxHP and SetHP to the precise forwarding logic (owner GetMapInsID + GetActorID -> CParty::SetMemberMaxHP/SetMemberHP) and added the previously-missing AddMatchingDate implementation (m_biMatchingDate > 0 guard then += nAddTime). Duplicate SetMaxHP that arose during editing was removed.
+- Ledger state: func-index upgraded SetMaxHP, SetHP, AddMatchingDate rows from blocked to implemented verified=no. type-index and path-recovery-index have no change this round.
+- Verification: cmake --build build --target GameServer -- -j8 succeeded ([2/2] Linking GameServer.exe). GREENDAMTAN_AUTOSTOP_MS=5000 timeout 45s ./build/bin/GameServer.exe reached Complete Server Init and Auto shutdown tick, exit 0.
+- Review status: independent verification pending; ReserveReviveAll (0x140083350) and ChangeMaster remain blocked on unlanded interfaces.

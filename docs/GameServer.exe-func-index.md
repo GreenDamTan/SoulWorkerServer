@@ -25414,12 +25414,12 @@ yes | ?????????? |
 | XGameServer | Process/MonsterProcess.cpp | ??1CMonsterProcess@@UEAA@XZ | 0x140518f10 | implemented | IDA decompile | yes | CMonsterProcess destructor |
 | XGameServer | Process/MonsterProcess.cpp | ?Parse@CMonsterProcess@@UEAA_NAEAVXPacket@@@Z | 0x140518f40 | implemented | IDA decompile | yes | Main packet parser - dispatches to handlers based on subcmd |
 | XGameServer | Process/MonsterProcess.cpp | ?ReqTargetChange@CMonsterProcess@@IEAA_NAEAVXPacket@@@Z | 0x140519060 | implemented | IDA decompile | yes | Request target change handler |
-| XGameServer | Process/MonsterProcess.cpp | ?ReqDefensiveWeaponStart@CMonsterProcess@@IEAA_NAEAVXPacket@@@Z | 0x140519170 | blocked | IDA decompile | no | Start defensive weapon mode handler (TODO: lambda callbacks) |
-| - | - | ??R_lambda0_@?A0x6a02b118@@QEBAXXZ | 0x140519360 | blocked | IDA ??R_lambda0_@?A0x6a02b118@@QEBAXXZ | yes | - |
-| XGameServer | Process/MonsterProcess.cpp | ?ReqDefensiveWeaponEnd@CMonsterProcess@@IEAA_NAEAVXPacket@@@Z | 0x140519550 | blocked | IDA decompile | no | End defensive weapon mode handler (TODO: lambda callbacks) |
-| - | - | ??R_lambda2_@?A0x6a02b118@@QEBAXXZ | 0x140519740 | blocked | IDA ??R_lambda2_@?A0x6a02b118@@QEBAXXZ | yes | - |
-| XGameServer | Process/MonsterProcess.cpp | ?ReqDefensiveWeaponAttack@CMonsterProcess@@IEAA_NAEAVXPacket@@@Z | 0x1405198f0 | blocked | IDA decompile | no | Defensive weapon attack handler (TODO: lambda callbacks) |
-| XGameServer | Process/MonsterProcess.cpp | ?ReqControlMonsterAttack@CMonsterProcess@@IEAA_NAEAVXPacket@@@Z | 0x140519b00 | blocked | IDA decompile | no | Control monster attack handler (TODO: lambda callbacks) |
+| CGocPost | Process/MonsterProcess.cpp | ?ReqDefensiveWeaponStart@CMonsterProcess@@IEAA_NAEAVXPacket@@@Z | 0x140519170 | verified | PDB + IDA decompile + source build + smoke | yes | DoJob with lambda0 (SetDefensiveWeaponPlayer + broadcast 0x17/0x42) and lambda192 (DecrementJobCount). |
+| CGocPost | Process/MonsterProcess.cpp | ?ReqDefensiveWeaponEnd@CMonsterProcess@@IEAA_NAEAVXPacket@@@Z | 0x140519550 | verified | PDB + IDA decompile + source build + smoke | yes | DoJob with lambda2 (SetDefensiveWeaponPlayer nullptr + broadcast 0x17/0x44) and lambda192. |
+| CGocPost | Process/MonsterProcess.cpp | ?ReqDefensiveWeaponAttack@CMonsterProcess@@IEAA_NAEAVXPacket@@@Z | 0x1405198f0 | verified | PDB + IDA decompile + source build + smoke | yes | DoJob with lambda4 (SetCurSkillTableIdx + ActionAttack) and lambda192. |
+| CGocPost | Process/MonsterProcess.cpp | ?ReqControlMonsterAttack@CMonsterProcess@@IEAA_NAEAVXPacket@@@Z | 0x140519b00 | verified | PDB + IDA decompile + source build + smoke | yes | DoJob with lambda6 (SetCurSkillTableIdx + ActionAttack) and lambda192. |
+| - | - | ??R_lambda0_@?A0x6a02b118@@QEBAXXZ | 0x140519360 | blocked | IDA lambda inlined into handler | yes | Lambda bodies recovered from decompile and inlined into the DoJob callbacks. |
+| - | - | ??R_lambda2_@?A0x6a02b118@@QEBAXXZ | 0x140519740 | blocked | IDA lambda inlined into handler | yes | Lambda bodies recovered from decompile and inlined into the DoJob callbacks. |
 | - | - | ??R_lambda4_@?A0x6a02b118@@QEBAXXZ | 0x140519d10 | blocked | IDA ??R_lambda4_@?A0x6a02b118@@QEBAXXZ | yes | - |
 | XGameServer | Process/MonsterProcess.cpp | ?ReqMonsterWrongPos@CMonsterProcess@@IEAA_NAEAVXPacket@@@Z | 0x140519df0 | implemented | IDA decompile | yes | Report monster wrong position handler |
 | - | - | ??$?0V_lambda0_@?A0x6a02b118@@@?$function@$$A6AXXZ@tr1@std@@QEAA@V_lambda0_@?A0x6a02b118@@@Z | 0x140519ec0 | blocked | IDA ??$?0V_lambda0_@?A0x6a02b118@@@?$function@$$A6AXXZ@tr1@std@@QEAA@V_lambda0_@?A0x6a02b118@@@Z | yes | - |

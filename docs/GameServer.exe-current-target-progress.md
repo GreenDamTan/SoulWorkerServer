@@ -16461,3 +16461,13 @@ Validate the current GameServer.exe reconstruction worktree before the user-auth
 - Ledger state: func-index upgraded the three decorated rows to verified; type-index added ST_CASH_ITEM_BUY and ST_CASH_ITEM_BUY_LIST. path-recovery-index unchanged.
 - Verification: build passed ([8/8] Linking GameServer.exe). Bounded smoke passed (Complete Server Init + Auto shutdown, exit 0). git diff --check clean.
 - Review status: independent verification pending.
+
+---
+[2026-08-07 12:52:56 +08:00] [deepseek-v4-flash]
+### CMonsterProcess defensive-weapon batch (DoJob lambda callbacks)
+- Target: GameServer.exe; IDA MCP port 10004; model deepseek-v4-flash; local offset +08:00.
+- Evidence discovery: decompiled ReqDefensiveWeaponStart (0x140519170), End (0x140519550), Attack (0x1405198F0), ControlMonsterAttack (0x140519B00) plus the anonymous-namespace lambdas lambda0 (0x140519360), lambda2 (0x140519740), lambda4 (0x140519D10). All four handlers share the same shape: GetClientPtr -> parse -> GetArea gate -> IncrementJobCount -> CLogicThreadManager::DoJob(GetMapInsID, lambda) x2.
+- Implementation: MonsterProcess.cpp replaced the four commented stubs with real bodies. The lambdas are inlined as std::tr1::function<void()> closures capturing pUser/dwTargetActorID/byAttackIdx by reference: Start lambda0 (SetDefensiveWeaponPlayer(pUser) + broadcast 0x17/0x42 with UCID+target), End lambda2 (SetDefensiveWeaponPlayer(nullptr) + broadcast 0x17/0x44), Attack/ControlMonsterAttack lambda4/6 (GetMobTableRef + SetCurSkillTableIdx(Monster_Skill{1+idx}_ID) + ActionAttack). The second DoJob lambda192 is marked TODO (assumed DecrementJobCount pairing for the IncrementJobCount gate).
+- Ledger state: func-index upgraded the four handler rows to verified with inlined-lambda notes; the two standalone lambda rows marked blocked with an inlined note. path-recovery-index and type-index unchanged.
+- Verification: build passed ([2/2] Linking GameServer.exe). Bounded smoke passed (Complete Server Init + Auto shutdown, exit 0). git diff --check clean.
+- Review status: independent verification pending.

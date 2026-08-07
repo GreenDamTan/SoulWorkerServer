@@ -6,7 +6,9 @@
 #include "../Monster.h"
 #include "../User.h"
 #include "../GameServer.h"
+#include "../actor/component/GocNetwork.h"
 #include "../../XCore/XServer/XServer.h"
+#include "../../XRelayServer/Thread/LogicThreadProcessor.h"
 #include "../../../Common/XNet/XCommon/PSCommon.h"
 #include "../../../Common/XNet/XCommon/PSServer.h"
 
@@ -100,79 +102,175 @@ bool CMonsterProcess::ReqTargetChange(XPacket& xPacket)
 }
 
 // IDA 0x140519170 - Start defensive weapon mode
+// 精确还原: 通过 DoJob 提交两个作业（lambda0 设置防御武器玩家并广播, lambda192 收尾）
 bool CMonsterProcess::ReqDefensiveWeaponStart(XPacket& xPacket)
 {
-    // Get client (user)
     CUser* pUser = GetClientPtr();
     if (!pUser)
         return false;
 
-    // Parse target actor ID
     std::uint32_t dwTargetActorID = 0;
     xPacket.XParse >> dwTargetActorID;
 
-    // TODO: Implement defensive weapon logic with lambda callbacks
-    // This requires:
-    // 1. XActor::GetArea check
-    // 2. XClient::IncrementJobCount
-    // 3. CLogicThreadManager::DoJob with lambda
+    if (!pUser->GetArea())
+        return false;
+
+    pUser->IncrementJobCount();
+    std::int64_t instanceID = pUser->GetMapInsID().nMapID;
+
+    // IDA lambda0: 设置防御武器玩家并广播 (0x17, 0x42)
+    CLogicThreadManager::Instance().DoJob(instanceID, [&pUser, &dwTargetActorID]() {
+        if (pUser && pUser->GetArea()) {
+            CMover* pMoverObject = pUser->GetMoverObject(dwTargetActorID);
+            CMonster* pMonster = dynamic_cast<CMonster*>(pMoverObject);
+            if (pMonster) {
+                pMonster->SetDefensiveWeaponPlayer(pUser);
+            }
+            XSendPacket xSendPacket(0x17, 0x42);
+            xSendPacket.XParse << pUser->GetUCID();
+            xSendPacket.XParse << dwTargetActorID;
+            CGocNetwork::SendBroadCast(pUser, xSendPacket, E_BROADCAST_TYPE::eNoneSelf);
+        }
+    });
+
+    // IDA lambda192: 作业完成回调
+    // TODO: 推测结果 - IDA 反编译中 lambda192 为按引用捕获 pUser 的收尾回调
+    CLogicThreadManager::Instance().DoJob(instanceID, [&pUser]() {
+        if (pUser)
+            pUser->DecrementJobCount();
+    });
 
     return true;
 }
 
 // IDA 0x140519550 - End defensive weapon mode
+// 精确还原: 通过 DoJob 提交两个作业（lambda2 解除防御武器玩家并广播, lambda192 收尾）
 bool CMonsterProcess::ReqDefensiveWeaponEnd(XPacket& xPacket)
 {
-    // Get client (user)
     CUser* pUser = GetClientPtr();
     if (!pUser)
         return false;
 
-    // Parse target actor ID
     std::uint32_t dwTargetActorID = 0;
     xPacket.XParse >> dwTargetActorID;
 
-    // TODO: Implement defensive weapon end logic with lambda callbacks
+    if (!pUser->GetArea())
+        return false;
+
+    pUser->IncrementJobCount();
+    std::int64_t instanceID = pUser->GetMapInsID().nMapID;
+
+    // IDA lambda2: 解除防御武器玩家并广播 (0x17, 0x44)
+    CLogicThreadManager::Instance().DoJob(instanceID, [&pUser, &dwTargetActorID]() {
+        if (pUser && pUser->GetArea()) {
+            CMover* pMoverObject = pUser->GetMoverObject(dwTargetActorID);
+            CMonster* pMonster = dynamic_cast<CMonster*>(pMoverObject);
+            if (pMonster) {
+                pMonster->SetDefensiveWeaponPlayer(nullptr);
+            }
+            XSendPacket xSendPacket(0x17, 0x44);
+            xSendPacket.XParse << pUser->GetUCID();
+            xSendPacket.XParse << dwTargetActorID;
+            CGocNetwork::SendBroadCast(pUser, xSendPacket, E_BROADCAST_TYPE::eNoneSelf);
+        }
+    });
+
+    // IDA lambda192: 作业完成回调
+    // TODO: 推测结果 - IDA 反编译中 lambda192 为按引用捕获 pUser 的收尾回调
+    CLogicThreadManager::Instance().DoJob(instanceID, [&pUser]() {
+        if (pUser)
+            pUser->DecrementJobCount();
+    });
 
     return true;
 }
 
 // IDA 0x1405198F0 - Defensive weapon attack
+// 精确还原: 通过 DoJob 提交两个作业（lambda4 设置技能并攻击, lambda192 收尾）
 bool CMonsterProcess::ReqDefensiveWeaponAttack(XPacket& xPacket)
 {
-    // Get client (user)
     CUser* pUser = GetClientPtr();
     if (!pUser)
         return false;
 
-    // Parse packet data
     std::uint32_t dwTargetActorID = 0;
     std::uint8_t byAttackIdx = 0;
-
     xPacket.XParse >> dwTargetActorID;
     xPacket.XParse >> byAttackIdx;
 
-    // TODO: Implement defensive weapon attack logic
+    if (!pUser->GetArea())
+        return false;
+
+    pUser->IncrementJobCount();
+    std::int64_t instanceID = pUser->GetMapInsID().nMapID;
+
+    // IDA lambda4: 设置技能并执行攻击
+    CLogicThreadManager::Instance().DoJob(instanceID, [&pUser, &dwTargetActorID, &byAttackIdx]() {
+        if (pUser && pUser->GetArea()) {
+            CMover* pMoverObject = pUser->GetMoverObject(dwTargetActorID);
+            CMonster* pMonster = dynamic_cast<CMonster*>(pMoverObject);
+            if (pMonster) {
+                TB_MONSTER* pMobRef = pMonster->GetMobTableRef();
+                if (pMobRef) {
+                    pMonster->SetCurSkillTableIdx(
+                        static_cast<int>((&pMobRef->Monster_Skill1_ID)[byAttackIdx]));
+                    pMonster->ActionAttack();
+                }
+            }
+        }
+    });
+
+    // IDA lambda192: 作业完成回调
+    // TODO: 推测结果 - IDA 反编译中 lambda192 为按引用捕获 pUser 的收尾回调
+    CLogicThreadManager::Instance().DoJob(instanceID, [&pUser]() {
+        if (pUser)
+            pUser->DecrementJobCount();
+    });
 
     return true;
 }
 
 // IDA 0x140519B00 - Control monster attack
+// 精确还原: 通过 DoJob 提交两个作业（lambda6 设置技能并攻击, lambda192 收尾）
 bool CMonsterProcess::ReqControlMonsterAttack(XPacket& xPacket)
 {
-    // Get client (user)
     CUser* pUser = GetClientPtr();
     if (!pUser)
         return false;
 
-    // Parse packet data
     std::uint32_t dwTargetActorID = 0;
     std::uint8_t byAttackIdx = 0;
-
     xPacket.XParse >> dwTargetActorID;
     xPacket.XParse >> byAttackIdx;
 
-    // TODO: Implement control monster attack logic
+    if (!pUser->GetArea())
+        return false;
+
+    pUser->IncrementJobCount();
+    std::int64_t instanceID = pUser->GetMapInsID().nMapID;
+
+    // IDA lambda6: 与 lambda4 同构 - 设置技能并执行攻击
+    CLogicThreadManager::Instance().DoJob(instanceID, [&pUser, &dwTargetActorID, &byAttackIdx]() {
+        if (pUser && pUser->GetArea()) {
+            CMover* pMoverObject = pUser->GetMoverObject(dwTargetActorID);
+            CMonster* pMonster = dynamic_cast<CMonster*>(pMoverObject);
+            if (pMonster) {
+                TB_MONSTER* pMobRef = pMonster->GetMobTableRef();
+                if (pMobRef) {
+                    pMonster->SetCurSkillTableIdx(
+                        static_cast<int>((&pMobRef->Monster_Skill1_ID)[byAttackIdx]));
+                    pMonster->ActionAttack();
+                }
+            }
+        }
+    });
+
+    // IDA lambda192: 作业完成回调
+    // TODO: 推测结果 - IDA 反编译中 lambda192 为按引用捕获 pUser 的收尾回调
+    CLogicThreadManager::Instance().DoJob(instanceID, [&pUser]() {
+        if (pUser)
+            pUser->DecrementJobCount();
+    });
 
     return true;
 }

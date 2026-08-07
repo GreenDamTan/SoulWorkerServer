@@ -183,9 +183,16 @@ public:
     // IDA: ?GetUserCount@CParty@@QEAAAEXZ
     std::uint8_t GetUserCount() const;
 
+    // 供 CGocForce/CGocParty 遍历成员（原代码通过 friend 或内部访问 m_mapPartyMember）
+    const std::map<std::uint32_t, CPartyMember*>& GetMemberMap() const { return m_mapPartyMember; }
+
     // GetPartyInfo - 填充队伍信息
     // IDA: ?GetPartyInfo@CParty@@QEAAXAEAUPS_PARTY_INFO@@@Z @ 0x1401B9740
     void GetPartyInfo(PS_PARTY_INFO& stPartyInfo) const;
+
+    // CheckPassiveSkill - 检查队伍成员的被动技能
+    // IDA: ?CheckPassiveSkill@CParty@@QEAAXPEAVCUser@@EE@Z @ 0x1401BBE00
+    void CheckPassiveSkill(CUser* pOwner, std::uint8_t byTargetType, std::uint8_t byCondition);
 
     // === Member Info Update ===
 

@@ -43,6 +43,11 @@ public:
     static bool IsCachingLoadFinish(CCommunitySocket* pSocket) { return true; }
     static bool IsCanSend(CCommunitySocket* pSocket) { return true; }
 
+    // IDA: ?SendCheck@CCommunitySocket@@QEAAXAEAVXSendPacket@@@Z @ 0x1401F37E0
+    void SendCheck(XSendPacket* pPacket);
+    // IDA: ?SendCmd@CCommunitySocket@@QEAAXAEAVXSendPacket@@PEAVCUser@@EE@Z @ 0x1401F3850
+    void SendCmd(XSendPacket* pPacket, CUser* pUser, std::uint8_t byMainCmd, std::uint8_t bySubCmd);
+
     // Packet process dispatchers (implemented in GameSockets.cpp)
     bool PartyProcess(XPacket* xPacket);
     bool LeagueProcess(XPacket* xPacket);
@@ -128,6 +133,10 @@ public:
     bool RecvLeagueSyncLoad(XPacket* xPacket);
     bool RecvLeagueInventoryInfo(XPacket* xPacket);
     bool RecvLeagueInventoryMove(XPacket* xPacket);
+
+    // PDB: CCommunitySocket m_dwCachingLoad @ (LF_ULONG), m_bSyncUserInfoReq (bool)
+    unsigned int m_dwCachingLoad = 0;
+    bool m_bSyncUserInfoReq = false;
 };
 
 // CGameControlSocket - Game Control Socket

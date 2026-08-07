@@ -4,6 +4,7 @@
 #include "CFriend.h"
 // CBlockUser is defined in UserObject.h (included via CFriend.h -> PSServerFriend.h chain)
 #include "Soulworker/Common/XNet/XCommon/PSServer/PSServerFriend.h"
+#include "Soulworker/GameServer/XCore/XServer/GreenDamTan_ClientBase.h"  // ATL::CTime
 #include <cstdint>
 #include <string>
 #include <vector>
@@ -122,9 +123,9 @@ protected:
     bool m_bReqRecruitList;
     bool m_bReqRecruitInfo;
 
-    // Timers for recommend/recruit
-    std::map<int, std::uint32_t> m_tNextRecommandTime;
-    std::map<int, std::uint32_t> m_tNextRecruitTime;
+    // Timers for recommend/recruit (PDB: ATL::CTime each)
+    ATL::CTime m_tNextRecommandTime;
+    ATL::CTime m_tNextRecruitTime;
 
     // Recruit list request data
     ST_RECRUIT_LIST* m_stReqRecruitList;

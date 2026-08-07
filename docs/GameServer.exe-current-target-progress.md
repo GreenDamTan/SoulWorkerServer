@@ -16170,3 +16170,164 @@ Validate the current GameServer.exe reconstruction worktree before the user-auth
 - Ledger state: func-index upgraded the LineUp row from blocked to implemented verified=no. type-index and path-recovery-index have no change this round.
 - Verification: cmake --build build --target GameServer -- -j8 succeeded ([2/2] Linking GameServer.exe). GREENDAMTAN_AUTOSTOP_MS=5000 timeout 45s ./build/bin/GameServer.exe reached Complete Server Init and Auto shutdown tick, exit 0.
 - Review status: independent verification pending.
+---
+[2026-08-07 07:43:22 +08:00] [deepseek-v4-flash]
+### CGocEntity NetCafe/ProfilePhoto + CGocForce getters + quick-slot restores
+- Target: GameServer.exe; IDA MCP port 10004; model deepseek-v4-flash; local offset +08:00.
+- Evidence discovery: decompiled 10 GocEntity/GocForce functions and 1 GocAkashicRecord function via IDA MCP port 10004. PDB LF_FIELDLIST (UDT 0xe400) proved PS_NETCAFE_INFO (bool nNetCafe @0, int nEventNo @4, size 8). Disassembly of SetFreeReviveCount (0x140062070) confirmed the GetOwnerGO() + virtual GetUCID + XSendDBPacket(IXObject*, 3, 0x85) ordering. Found the GetQuickSlotInfo func-index row over-claimed implemented while its source definition was actually missing (linker undefined symbol).
+- Implementation: GocEntity.cpp restored LoginNetCafe (branches on E_SERVER_OPTION_NETCAFE to SetNetCafe or EventNetCafeItemDelete), SendNetCafeState (PS_NETCAFE_INFO + main 3/sub 0x54), SendSGAuthInfo (DBAccount/DBLogPacket sends + main 1/sub 0x11 token update for auth types 2/3), SetFreeReviveCount (PS_CHARACTER_FREE_REVIVE DB 3/0x85 + SendFreeReviveCount), ReviveFree (TB_ITEM 0x26272A93 stack-max gate), SendDBProfilePhoto (DB 3/0x25 + UCID), LoadProfilePhoto (add each photo, log, arm profile-photo tick). GocForce.cpp restored IsMember/GetForceUserCount/GetMasterID and dropped the PDB-mismatched const (QEAA non-const ABI) in both GocForce.h and GocForce.cpp. GocInventory.cpp restored SendQuickSlotInfo (fill uniItem[4], akashic card vector, main 8/sub 0x26). GocAkashicRecord.cpp added the missing GetQuickSlotInfo definition (active deck page + per-deck cards + UpdateAkashicPassiveList). PSServerCore.h added PS_NETCAFE_INFO with serialization. PSCommon.h added the missing PS_SG_TOKEN_UPDATE operator<<.
+- Ledger state: func-index upgraded 10 rows to verified (SendNetCafeState, SendSGAuthInfo, SetFreeReviveCount, ReviveFree, SendDBProfilePhoto, IsMember, GetForceUserCount, GetMasterID, SendQuickSlotInfo, GetQuickSlotInfo) and kept 2 as implemented verified=no (LoginNetCafe, LoadProfilePhoto) because their callees remain stubs; corrected 8 stale historical rows (EventNetCafeItemBuy/ItemDelete, CheckEquip/CheckAdd/Add/Send/RemainTimeCheck/ReqChangeProfilePhoto) back to blocked to remove over-claims. type-index added PS_NETCAFE_INFO (UDT 0xe400). path-recovery-index unchanged (no new files).
+- Verification: cmake --build build --target GameServer -- -j8 succeeded ([2/2] Linking GameServer.exe). GREENDAMTAN_AUTOSTOP_MS=5000 timeout 45s ./build/bin/GameServer.exe reached "Complete Server Init" and "Auto shutdown tick reached after 5000 ms" with no reconstruction crash. func-index diff vs HEAD shows exactly the 31 intended row changes; UTF-8 encoding preserved (surrogateescape diff clean, no BOM introduced).
+- Review status: independent verification pending.
+---
+[2026-08-07 08:03:32 +08:00] [deepseek-v4-flash]
+### CGocEntity ProfilePhoto subsystem restores (7 functions + 2 types)
+- Target: GameServer.exe; IDA MCP port 10004; model deepseek-v4-flash; local offset +08:00.
+- Evidence discovery: decompiled CheckEquipProfilePhoto (0x1400624E0), CheckAddProfilePhoto (0x140062820), AddProfilePhoto (0x140062E50), SendProfilePhoto (0x140063170), ProfilePhotoRemainTimeCheck (0x140063370), ReqChangeProfilePhoto (0x1400634C0), DeleteProfilePhoto (0x140063FB0). PDB LF_FIELDLIST proved ST_HAVE_PROFILE_PHOTO_INFO (UDT 0x3680: TB_PHOTO_ITEM* @0, ST_PROFILE_PHOTO_INFO stInfo @8, size 24, two-arg ctor) and PS_PROFILE_PHOTO_UPDATE (UDT 0xc554: stPhoto @0, bDelete @16, size 24). The active member m_mapProfilePhoto was the wrong type (map<uint16_t, ST_BOOSTER_INFO>); IDA proves map<uint32_t, ST_HAVE_PROFILE_PHOTO_INFO>.
+- Implementation: GocEntity.cpp restored all seven flows: CheckEquipProfilePhoto equips the class default photo when the equipped photo is missing (DB 3/0x28); CheckAddProfilePhoto validates TB_ITEM/TB_PHOTO_ITEM/class/period and fills permanent or period stPhoto; AddProfilePhoto validates expiration/duplication and inserts ST_HAVE_PROFILE_PHOTO_INFO; SendProfilePhoto sends main 3/sub 9 with all owned stInfo; ProfilePhotoRemainTimeCheck collects expired timed photos into DeleteProfilePhoto and re-arms the tick; ReqChangeProfilePhoto sends DB 3/0x28 with old/new states; DeleteProfilePhoto removes each photo, re-equips the class default when the deleted one was equipped, and sends main 3/sub 0x0A. GocEntity.h added ST_HAVE_PROFILE_PHOTO_INFO, fixed m_mapProfilePhoto type, and declared DeleteProfilePhoto. PSServerMail.h added PS_PROFILE_PHOTO_UPDATE with serializers plus the missing XPacket operator<< for PS_PROFILE_PHOTO_LOAD. The codebase ATL::CTime/CTimeSpan compat is used for period arithmetic (mapped to GetTime()/GetTotalSeconds()).
+- Ledger state: func-index upgraded the seven rows (decorated + historical duplicates) from blocked to verified with the correct mangled symbols and non-empty-body evidence. type-index added PS_PROFILE_PHOTO_UPDATE (0xc554) and ST_HAVE_PROFILE_PHOTO_INFO (0x3680). path-recovery-index unchanged (no new files).
+- Verification: cmake --build build --target GameServer -- -j8 succeeded ([2/2] Linking GameServer.exe). GREENDAMTAN_AUTOSTOP_MS=5000 timeout 45s ./build/bin/GameServer.exe reached "Complete Server Init" and "Auto shutdown tick reached after 5000 ms" (exit 0) with no reconstruction crash. Build needed one ambiguity fix: XSendDBPacket ctor now takes GetOwnerGO() (CMover*) instead of CUser* which has two IXObject paths.
+- Review status: independent verification pending.
+---
+[2026-08-07 08:18:40 +08:00] [deepseek-v4-flash]
+### ProfilePhoto batch follow-up corrections
+- During verification triage of the ProfilePhoto batch, four stale rows in the ProfilePhoto family were found still claiming implemented while their source bodies are genuine stubs: ResChangeProfilePhoto (0x1400638C0), ProfilePhotoFavorite (0x1400643D0), ResAddProfilePhoto (0x1400647B0), ResUpdateProfilePhoto (0x140064C50). func-index corrected all four (decorated + historical duplicates) back to blocked verified=no.
+- GetProfilePhotoInfo (0x140064FF0) had a real body but its memcpy source was invalidated by the m_mapProfilePhoto value-type change to ST_HAVE_PROFILE_PHOTO_INFO; fixed to copy it->second.stInfo directly. Build and smoke re-passed.
+- Note: dedicated verification agents for this batch failed three consecutive times with the provider transport error "The reasoning_content in the thinking mode must be passed back to the API" before producing a verdict. Direct evidence gathered instead: both new PDB types cross-checked (ST_HAVE_PROFILE_PHOTO_INFO 0x3680 size 24; PS_PROFILE_PHOTO_UPDATE 0xc554 size 24), all seven restored functions re-compared against IDA decompile, build + smoke + git diff --check re-run. Batch classified PARTIAL pending a verifier that can complete.
+---
+[2026-08-07 08:25:47 +08:00] [deepseek-v4-flash]
+### CGocEntity ProfilePhoto handler completion (4 functions)
+- Target: GameServer.exe; IDA MCP port 10004; model deepseek-v4-flash; local offset +08:00.
+- Evidence discovery: decompiled ResChangeProfilePhoto (0x1400638C0), ProfilePhotoFavorite (0x1400643D0), ResAddProfilePhoto (0x1400647B0), ResUpdateProfilePhoto (0x140064C50). Wide-string log comments decoded from raw bytes: 0x140B6BF40 -> L"초상화 변경", 0x140B6C0B0 -> L"초상화 추가", 0x140B6C0C0 -> L"초상화 즐겨찾기" (portrait change / add / favorite). SendCheck lives on CGameControlSocket (not CCommunitySocket) at GameSockets.h:226.
+- Implementation: GocEntity.cpp completed the four remaining ProfilePhoto DB handlers. ResChangeProfilePhoto updates the equipped photo ID, syncs old/new owned entries with main 3/sub 0x0A and 0x0C, forwards a main 0xF3/sub 0x38 control check, notifies party/force SetProfilePhoto, and logs subtype 23. ProfilePhotoFavorite validates TB_PHOTO_ITEM and ownership, rejects same-flag with 0xE29C, sends DB 3/0x27. ResAddProfilePhoto unlocks/sends item update, inserts or updates the owned photo, logs subtype 24, and broadcasts main 3/sub 0x0A. ResUpdateProfilePhoto logs favorite changes (subtype 25), applies stInfo, broadcasts main 3/sub 0x0A. Added includes GocParty.h/GocForce.h/GocInventory.h; SendCheck call now uses GetControlSocket().
+- Ledger state: func-index upgraded the four rows (decorated + historical duplicates) from blocked to verified. type-index and path-recovery-index unchanged this round.
+- Verification: cmake --build build --target GameServer -- -j8 succeeded ([2/2] Linking GameServer.exe). GREENDAMTAN_AUTOSTOP_MS=5000 timeout 45s ./build/bin/GameServer.exe reached "Complete Server Init" and "Auto shutdown tick reached after 5000 ms" (exit 0) with no reconstruction crash.
+- Review status: PARTIAL. A fourth dedicated verification agent (affaea23e2f0c3577) confirmed both PDB types (ST_HAVE_PROFILE_PHOTO_INFO UDT 0x3680 size 24; PS_PROFILE_PHOTO_UPDATE UDT 0xc554 size 24) and the 11 source-vs-IDA matches, but died before emitting a verdict on the same provider transport error (reasoning_content must be passed back). Direct evidence: build [2/2] Linking, smoke Complete Server Init + Auto shutdown exit 0, git diff --check clean.
+---
+[2026-08-07 08:55:19 +08:00] [deepseek-v4-flash]
+### CGocFriend Prepare* series + community socket/cache-option deps (13 functions)
+- Target: GameServer.exe; IDA MCP port 10004; model deepseek-v4-flash; local offset +08:00.
+- Evidence discovery: decompiled the 10 CGocFriend Prepare* functions (PrepareFriendInvite 0x140087C80, PrepareFriendAccept 0x1400880B0, PrepareDelFriend 0x1400882F0, PrepareAddBlock 0x140088460, PrepareDelBlock 0x1400886B0, PrepareRecruitList 0x1400888C0, PrepareRecruitAdd 0x140088C00, PrepareRecruitDelete 0x140088D30, PrepareRecruitInfo 0x140088E60, PrepareRecommandList 0x1400890C0). IDA shows all friend/community traffic routes through CCommunitySocket::SendCmd/SendCheck (0x1401F37E0/0x1401F3850) on m_communitySocket. PDB resolved the option/cache members and struct fields.
+- Implementation: GocFriend.cpp restored all 10 Prepare* bodies faithfully. GameSockets.h/.cpp added CCommunitySocket::SendCmd/SendCheck (void ABI distinct from the CGameControlSocket bool versions) plus m_dwCachingLoad/m_bSyncUserInfoReq members; the CCommunitySocket class previously lacked them. User.h/.cpp added CUser::CheckGameOption (0x1406FBC20) reading m_stGameOption. GocFriend.h corrected m_tNextRecommandTime/m_tNextRecruitTime from std::map<int,uint32_t> to ATL::CTime (PDB member type 0x52FE), updated Reset()/ResetRecommandTime() accordingly. PSServerFriend.h corrected PS_REQ_FRIEND_BLOCK_ADD/DELETE field dwReqUCID->dwReqUAID (PDB UDT 0xfb75/0xfb73) and PS_RES_FRIEND_RECOMMAND dwReqUCID->dwUCID (PDB UDT 0xfb6b), added PS_REQ_FRIEND_ACCEPT operator<<, plus their serializers. GocEntity.cpp corrected ResChangeProfilePhoto to use GetCommunitySocket().SendCheck (was wrongly GetControlSocket).
+- Ledger state: func-index upgraded 10 Prepare* rows plus CCommunitySocket::SendCmd/SendCheck and CUser::CheckGameOption rows (decorated + historical duplicates) to verified. type-index added PS_REQ_FRIEND_BLOCK_ADD (0xfb75), PS_REQ_FRIEND_BLOCK_DELETE (0xfb73), PS_RES_FRIEND_RECOMMAND (0xfb6b), and the GocFriend ATL::CTime member type. path-recovery-index unchanged (no new files).
+- Verification: cmake --build build --target GameServer -- -j8 succeeded ([70/70] Linking GameServer.exe). GREENDAMTAN_AUTOSTOP_MS=5000 timeout 45s ./build/bin/GameServer.exe reached "Complete Server Init" and "Auto shutdown tick reached after 5000 ms" (exit 0) with no reconstruction crash.
+- Review status: independent verification pending.
+---
+[2026-08-07 09:17:34 +08:00] [deepseek-v4-flash]
+### CGocForce send/booster/matching restores (5 functions + booster enum fix)
+- Target: GameServer.exe; IDA MCP port 10004; model deepseek-v4-flash; local offset +08:00.
+- Evidence discovery: decompiled SendForceInfo (0x140084310), UpdatePartyBooster (0x140084EE0), DeletePartyBoost (0x14010C940), NeedReviveBuffUser (0x14010C7A0), CheckForceMatchingEnter (0x140085210). PDB E_BOOSTER_TYPE enum (0x55e2) proved the real enumerators: Party=0, Echelon=1, Item=2, Event=3, NetCafe=4, Day_Event=5, NetCafe_SG_EVENT=6, Max=7. PDB also confirmed CParty::m_mapPartyMember is protected, so a public GetMemberMap() accessor was added to CParty.h for CGocForce iteration.
+- Implementation: GocForce.cpp restored the five flows. SendForceInfo builds PS_FORCE_INFO via CParty::GetPartyInfo + CForce::GetForceType and sends main 0x2E/sub 9. UpdatePartyBooster delegates to CForce::UpdateForceBooster(0). DeletePartyBoost clears the party booster via CGocBooster::ChangeBooster. NeedReviveBuffUser iterates members looking for a same-map dead member without the revive buff. CheckForceMatchingEnter requires every member in the same world/channel/map instance and dropped the PDB-mismatched const (QEAA non-const ABI). GocBooster.h E_BOOSTER_TYPE corrected to the PDB enumerators (old aliases eBooster_Type_Normal/TimeEvent/DayEvent were not in the PDB); GocBooster.cpp updated to eBooster_Type_Event. CParty.h added GetMemberMap() accessor. GocForce.cpp includes CForce.h and XArea.h.
+- Ledger state: func-index upgraded the five rows (decorated + historical duplicates) from blocked to verified. type-index added E_BOOSTER_TYPE. CheckPassiveSkill (0x1400851B0) remains blocked pending CParty::CheckPassiveSkill + CGocSkill/CGocAkashicRecord dependencies; ReserveReviveAll/Logout/UpdatePartyBoosterByCount/LoadRecode remain blocked pending CUser/CParty/CForce methods. path-recovery-index unchanged (no new files).
+- Verification: cmake --build build --target GameServer -- -j8 succeeded ([2/2] Linking GameServer.exe). GREENDAMTAN_AUTOSTOP_MS=5000 timeout 45s ./build/bin/GameServer.exe reached "Complete Server Init" and "Auto shutdown tick reached after 5000 ms" (exit 0) with no reconstruction crash.
+- Review status: independent verification pending.
+---
+[2026-08-07 09:34:21 +08:00] [deepseek-v4-flash]
+### Passive-skill chain restores (CGocSkill + CParty + CGocForce + TLS adapter)
+- Target: GameServer.exe; IDA MCP port 10004; model deepseek-v4-flash; local offset +08:00.
+- Evidence discovery: decompiled CGocSkill::CheckPassiveSkill (0x14016DEA0, ~1500-byte dual-branch), CParty::CheckPassiveSkill (0x1401BBE00), and re-confirmed CGocForce::CheckPassiveSkill (0x1400851B0) which the ledger over-claimed as implemented while its source was a stub. CGocAttribute's stat refresh maps to SendUpdateStatList (pervasive pattern after stat changes).
+- Implementation: GocSkill.cpp replaced the commented-pseudocode stub with the real body (mode-passive vs normal-passive iteration; condition + cooltime gates; SetPassiveSkillStat + SetSkillCooltime; main 6/sub 0x7E cooldown packet; SendUpdateStatList when changed); added GocAttribute.h include. CParty.cpp added CParty::CheckPassiveSkill (iterates members, thread-area + 2.5e7 distance gates, delegates to CGocSkill/CGocAkashicRecord CheckPassiveSkill); added GocSkill.h/GocAkashicRecord.h includes; CParty.h declared it. GocForce.cpp unblocked CheckPassiveSkill to delegate to CParty. ThreadLocalData_Stub.cpp added IsThreadArea (FindArea != nullptr) since the compiled MoverLinkStubs.cpp already defines FindArea (avoiding a duplicate-symbol error).
+- Ledger state: func-index upgraded CGocSkill::CheckPassiveSkill and CParty::CheckPassiveSkill to verified (correcting the over-claimed implemented rows with no definition), CGocForce::CheckPassiveSkill to verified, and marked ThreadLocalData::IsThreadArea implemented/verified=no as the active-adapter binding. path-recovery-index unchanged (no new files).
+- Verification: cmake --build build --target GameServer -- -j8 succeeded ([2/2] Linking GameServer.exe). GREENDAMTAN_AUTOSTOP_MS=5000 timeout 45s ./build/bin/GameServer.exe reached "Complete Server Init" and "Auto shutdown tick reached after 5000 ms" (exit 0) with no reconstruction crash. Build needed one fix: FindArea was already defined in MoverLinkStubs.cpp so only IsThreadArea was added to the stub.
+- Review status: independent verification pending.
+---
+[2026-08-07 09:43:21 +08:00] [deepseek-v4-flash]
+### CUser reserve-revive accessors (3 functions + member)
+- Target: GameServer.exe; IDA MCP port 10004; model deepseek-v4-flash; local offset +08:00.
+- Evidence discovery: decompiled CUser::GetReserveRevive (0x14070A760), GetReserveReviveImmediate (0x14070A740), SetReserveReviveImmediate (0x1403A1B40) via IDA MCP. PDB CUser field list confirms m_bReserveRevive (T_INT4 @193400) and m_bReserveReviveImmediate (T_INT4 @193404). All three are simple member accessors. The func-index had SetReserveReviveImmediate marked implemented with no source definition (over-claim, corrected to verified).
+- Implementation: User.h added GetReserveRevive/GetReserveReviveImmediate/SetReserveReviveImmediate declarations plus the PDB-backed m_bReserveReviveImmediate member; User.cpp added the three bodies and constructor initialization. These unlock the later DoReserverRevive chain (which also depends on the 5-arg CUser::Revive overload 0x1406F4F10, a large function requiring XWorldResMgr portal methods, SChangeMonsterInfo, and other structures - deferred as a separate large-function batch).
+- Ledger state: func-index upgraded the three rows from blocked (or over-claimed implemented) to verified. path-recovery-index unchanged.
+- Verification: cmake --build build --target GameServer -- -j8 succeeded ([54/54] Linking GameServer.exe). GREENDAMTAN_AUTOSTOP_MS=5000 timeout 45s ./build/bin/GameServer.exe reached "Complete Server Init" and "Auto shutdown tick reached after 5000 ms" (exit 0) with no reconstruction crash.
+- Review status: independent verification pending.
+---
+[2026-08-07 09:49:52 +08:00] [deepseek-v4-flash]
+### CGocForce Logout/Leave/KickOut restores + ChangeMaster socket fix
+- Target: GameServer.exe; IDA MCP port 10004; model deepseek-v4-flash; local offset +08:00.
+- Evidence discovery: decompiled CGocForce::Logout (0x140084010), Leave (0x140084480), KickOut (0x1400846F0). IDA shows all three route through CCommunitySocket (SendCmd/SendCheck on m_communitySocket), and that Leave does NOT call Clear (unlike the old stub). CParty::GetMember returns CPartyMember*; ST_PARTY_MEMBER carries nMapID/byLevel for the member-based checks.
+- Implementation: GocForce.cpp restored Logout (member-logout via CPartyMember::Logout + community SendCheck on 0xFA/5, else direct 0xFA/0x14 logout with UCID/2/UAID/level; ends with LogDebug + Clear), Leave (PS_FORCE_LEAVE bKickout=0 sent via community SendCmd on 0x2E/5, no Clear), KickOut (party/self/master/member/maze-type validation then PS_FORCE_LEAVE bKickout=1 via community SendCmd on 0x2E/4). Also corrected ChangeMaster to use GetCommunitySocket().SendCmd per IDA (was wrongly GetControlSocket).
+- Ledger state: func-index upgraded Logout, Leave, KickOut rows (decorated + historical duplicates) from blocked to verified. path-recovery-index unchanged (no new files).
+- Verification: cmake --build build --target GameServer -- -j8 succeeded ([2/2] Linking GameServer.exe). GREENDAMTAN_AUTOSTOP_MS=5000 timeout 45s ./build/bin/GameServer.exe reached "Complete Server Init" and "Auto shutdown tick reached after 5000 ms" (exit 0) with no reconstruction crash.
+- Review status: independent verification pending.
+---
+[2026-08-07 09:56:21 +08:00] [deepseek-v4-flash]
+### CUser::ChangeBooster restore (unblocks UpdatePartyBoosterByCount)
+- Target: GameServer.exe; IDA MCP port 10004; model deepseek-v4-flash; local offset +08:00.
+- Evidence discovery: decompiled CUser::ChangeBooster (0x1406F8420, E_BOOSTER_TYPE + uint16 ABI) via IDA MCP. It fetches CGocBooster via GetGOC<CGocBooster> and delegates to CGocBooster::ChangeBooster(eType, wIndex, 0, 0). This is a dependency of CGocForce::UpdatePartyBoosterByCount (0x140084F30).
+- Implementation: User.h added the ChangeBooster declaration and a GocBooster.h include (for E_BOOSTER_TYPE); User.cpp added the body delegating to CGocBooster::ChangeBooster(eType, wIndex, 0, false).
+- Ledger state: func-index upgraded the ChangeBooster row from blocked to verified. UpdatePartyBoosterByCount (0x140084F30) remains blocked pending public iteration over XResourceMgr::m_mapTB_PARTYEXP_MEMBER and the 16-bit combined-key semantics the IDA shows; ReserveReviveAll/SetExp/LoadRecode remain blocked on their respective CUser/CForce dependencies. path-recovery-index unchanged.
+- Verification: cmake --build build --target GameServer -- -j8 succeeded ([54/54] Linking GameServer.exe). GREENDAMTAN_AUTOSTOP_MS=5000 timeout 45s ./build/bin/GameServer.exe reached "Complete Server Init" and "Auto shutdown tick reached after 5000 ms" (exit 0) with no reconstruction crash.
+- Review status: independent verification pending.
+---
+[2026-08-07 10:02:34 +08:00] [deepseek-v4-flash]
+### CForce::GetMazeRecode + CUser::IsLeagueSkill + CGocForce::LoadRecode
+- Target: GameServer.exe; IDA MCP port 10004; model deepseek-v4-flash; local offset +08:00.
+- Evidence discovery: decompiled CForce::GetMazeRecode (0x1403A6D30), CUser::IsLeagueSkill (0x1407007A0), and re-confirmed CGocForce::LoadRecode (0x14010B430). The func-index had GetMazeRecode over-claimed as implemented with no game-side CForce definition (only XRelayServer had it) - corrected. IsLeagueSkill reads m_stLeagueInfo.bySkillInfo[nSkill] (ST_LEAGUE_INFO_FOR_GAME has bySkillInfo[8]).
+- Implementation: CForce.h declared GetMazeRecode and CForce.cpp implemented it (find member in the inherited protected m_mapPartyMember, delegate to CPartyMember::GetRecode). User.h declared IsLeagueSkill and User.cpp implemented it (bySkillInfo check). GocForce.cpp restored LoadRecode (fetch CGocRecode, GetMazeRecode into nRecode[10], SetFullRecode).
+- Ledger state: func-index upgraded GetMazeRecode (correcting the over-claim), IsLeagueSkill, and LoadRecode rows to verified. path-recovery-index unchanged (no new files).
+- Verification: cmake --build build --target GameServer -- -j8 succeeded ([55/55] Linking GameServer.exe). GREENDAMTAN_AUTOSTOP_MS=5000 timeout 45s ./build/bin/GameServer.exe reached "Complete Server Init" and "Auto shutdown tick reached after 5000 ms" (exit 0) with no reconstruction crash.
+- Review status: independent verification pending.
+---
+[2026-08-07 10:17:32 +08:00] [deepseek-v4-flash]
+### EventNetCafeItemDelete + GetInvenInfo chain (2 functions + 1 type)
+- Target: GameServer.exe; IDA MCP port 10004; model deepseek-v4-flash; local offset +08:00.
+- Evidence discovery: decompiled CGocEntity::EventNetCafeItemDelete (0x1400619D0), CGocInventory::GetInvenInfo (0x1400B2120), XBaseEquip::GetInvenInfo (0x1402FDD50). PDB resolved PS_EVENT_NETCAFE_ITEM_DELETE (UDT 0xe4d0, 32 bytes, sole vector<unsigned long> member). GetInvenInfo's real ABI takes PS_RES_STORAGE_INFO& (not the void* placeholder in the header). XBaseEquip::GetInvenInfo iterates the 20 equip slots.
+- Implementation: GocEntity.cpp restored EventNetCafeItemDelete (GetInvenInfo for types 4/3, filter Item_Cash==3, ReduceItem3 + UpdateItemEnd(0x7F, subtype 124), DB 0x21/0x22, main 0x2A/sub 0x2B). GocInventory.h/.cpp corrected GetInvenInfo signature from void* to PS_RES_STORAGE_INFO& and restored the real body. XBaseInventory.h/.cpp added XBaseEquip::GetInvenInfo (20-slot iteration via CItem::GetItem out-param). PSCommon.h added PS_EVENT_NETCAFE_ITEM_DELETE with serializers.
+- Ledger state: func-index upgraded EventNetCafeItemDelete and CGocInventory::GetInvenInfo to verified, and corrected the over-claimed XBaseEquip::GetInvenInfo row to verified with the real definition. type-index should record PS_EVENT_NETCAFE_ITEM_DELETE (0xe4d0). path-recovery-index unchanged.
+- Verification: cmake --build build --target GameServer -- -j8 succeeded ([23/23] Linking GameServer.exe). GREENDAMTAN_AUTOSTOP_MS=5000 timeout 45s ./build/bin/GameServer.exe reached "Complete Server Init" and "Auto shutdown tick reached after 5000 ms" (exit 0) with no reconstruction crash. Build needed two fixes: GetInvenInfo call sites passed pointers, and CItem::GetItem takes an out-param.
+- Review status: independent verification pending.
+---
+[2026-08-07 10:24:41 +08:00] [deepseek-v4-flash]
+### CGocEvent::CheckAccountEvent restore
+- Target: GameServer.exe; IDA MCP port 10004; model deepseek-v4-flash; local offset +08:00.
+- Evidence discovery: decompiled CGocEvent::CheckAccountEvent (0x140069080). The flow: event 255 -> owner XActor status == 6. The source had a commented pseudocode stub returning false; the historical func-index section over-claimed it as implemented.
+- Implementation: GocEvent.cpp replaced the stub with the real body (event 255 gate + XActor::GetStatus() == 6) mapping IDA's vtable slot 5 to XActor::GetStatus().
+- Ledger state: func-index upgraded the CheckAccountEvent rows (main + historical duplicate) from blocked/over-claimed to verified. path-recovery-index unchanged.
+- Verification: cmake --build build --target GameServer -- -j8 succeeded ([2/2] Linking). GREENDAMTAN_AUTOSTOP_MS=5000 smoke reached Complete Server Init + Auto shutdown (exit 0).
+- Review status: independent verification pending.
+---
+[2026-08-07 10:28:52 +08:00] [deepseek-v4-flash]
+### CGocEvent::ReqWorldEventRegister restore + PS_WORLD_EVENT_REGISTER_REQ type
+- Target: GameServer.exe; IDA MCP port 10004; model deepseek-v4-flash; local offset +08:00.
+- Evidence discovery: decompiled ReqWorldEventRegister (0x140069D90). PDB resolved PS_WORLD_EVENT_REGISTER_REQ (UDT 0x2f4a6, 4 bytes, sole int nEventID) distinct from the 56-byte PS_DB_WORLD_EVENT_REGISTER_REQ. The flow validates event activation/date range, looks up the event item+classify, collects and locks matching inventory items with SetLock 84, then sends DB 0x49/0x28.
+- Implementation: GocEvent.cpp replaced the commented-pseudocode stub with the real body (event gate, date range, GetTB_ITEM/CLASSIFY, GetTBInvenPtr, GetSameItems_2, per-item lock+collect, DB send). PSServerDB.h added PS_WORLD_EVENT_REGISTER_REQ{int nEventID}. GocEvent.cpp added a CItem.h include.
+- Ledger state: func-index upgraded the ReqWorldEventRegister rows to verified. type-index added PS_WORLD_EVENT_REGISTER_REQ. path-recovery-index unchanged.
+- Verification: build + smoke passed (Complete Server Init + Auto shutdown, exit 0).
+- Review status: independent verification pending.
+---
+[2026-08-07 10:40:44 +08:00] [deepseek-v4-flash]
+### CGocEntity::SetNetCafe restore
+- Target: GameServer.exe; IDA MCP port 10004; model deepseek-v4-flash; local offset +08:00.
+- Evidence discovery: decompiled CGocEntity::SetNetCafe (0x140060030). The flow sets netcafe bit flags (userDBBits.nUserDB bit8, syncUserBits.nSyncUser bit28), mirrors bNetCafe into stMyCharInfoEx, sends DB 3/0x59 (UAID + flag), applies/clears the eBooster_Type_NetCafe booster (KOR 0x1F4 / else 0x258), sends the main 3/sub 0x64 FP packet (GetFP/GetBonusFP/GetPCBangFP/GetFPEffect), then cascades to CGocEvent::SetStartNetCafeMission, EventNetCafeItemDelete on exit, and CGocAkashicRecord netcafe checks.
+- Implementation: GocEntity.cpp replaced the short stub with the full flow. Added GocEvent.h/GocAkashicRecord.h/GocBooster.h includes.
+- Ledger state: func-index upgraded SetNetCafe rows to verified. path-recovery-index unchanged.
+- Verification: build + smoke passed (Complete Server Init + Auto shutdown, exit 0).
+- Review status: independent verification pending.
+---
+---
+[2026-08-07 11:00:01 +08:00] [deepseek-v4-flash]
+### CGocPost ledger reconciliation (4 functions upgraded to verified)
+- Target: GameServer.exe; IDA MCP port 10004; model deepseek-v4-flash; local offset +08:00.
+- Evidence discovery: audited GocPost blocked/implemented rows and found SendPostRecvList (0x140115290), SendPostAccountList (0x140115500), SendPostSaveList (0x140115930), ResetLevelUpEvent (0x14011E100) were already fully restored in source while the func-index still marked them blocked/implemented-verified-no (a ledger lag). Decompiled SendPostRecvList and ResetLevelUpEvent to confirm source matches IDA byte-for-byte semantics (10-per-batch + bLoad tail for lists; UAID DB 6/0x23 + m_mapLevelMail.clear for reset).
+- Implementation: No source change needed this round (functions were already faithfully restored). Updated func-index rows only.
+- Ledger state: func-index upgraded SendPostRecvList/SendPostAccountList/SendPostSaveList (6 rows) and ResetLevelUpEvent (3 rows) to verified with IDA-matching notes. path-recovery-index unchanged.
+- Verification: build + smoke passed (Complete Server Init + Auto shutdown, exit 0). git diff --check clean.
+- Review status: independent verification pending.
+---
+[2026-08-07 11:12:00 +08:00] [deepseek-v4-flash]
+### CGocEvent::ResWorldEventDailyReward restore
+- Target: GameServer.exe; IDA MCP port 10004; model deepseek-v4-flash; local offset +08:00.
+- Evidence discovery: decompiled ResWorldEventDailyReward (0x14006CF00). PDB resolved PS_WORLD_EVENT_DAILY_REWARD_RES (UDT 0xea4e, 4 bytes, sole int nEventID). Flow: reset m_bWorldEventDBCall; on no error update world event info (Get/SetWorldEvent 4-tuple), refresh inventory create/update items via CGocInventory, send main 0x2A/sub 0x25 with nEventID, then ST_LOG_GAME subtype 31.
+- Implementation: GocEvent.cpp replaced the commented-stub with the real body. PSServerDB.h added PS_WORLD_EVENT_DAILY_REWARD_RES.
+- Ledger state: func-index upgraded the ResWorldEventDailyReward rows to verified. type-index after this records the new type row (PS_WORLD_EVENT_DAILY_REWARD_RES). path-recovery-index unchanged.
+- Verification: build + smoke passed (Complete Server Init + Auto shutdown, exit 0). git diff --check clean.
+- Review status: independent verification pending.
+
+---
+[2026-08-07 11:43:53 +08:00] [deepseek-v4-flash]
+### CGocEvent Res* world-event DB response batch
+- Target: GameServer.exe; IDA MCP port 10004; model deepseek-v4-flash; local offset +08:00.
+- Evidence discovery: decompiled ResWorldEventInfo (0x14006BD30), ResWorldEventRegister (0x14006BF80), ResWorldEventReward (0x14006C880). PDB resolved the two missing client response types: PS_WORLD_EVENT_REGISTER_RES (UDT 0xea50, 20 bytes: nEventID+0/nTotalCount+4/nMyCount+8/nCount+12/byDailyRewardState+16) and PS_WORLD_EVENT_REWARD_RES (UDT 0xea76, 12 bytes, REQ-same layout). Linear asm proved stUpdateItem element is PS_STORAGE_INFO (IDA mislabels it ST_PRIVATE_SHOP_INFO): slot=shSlotPos@2, serial=stItem.xSerial@16, whole-delete flag=stItem.sCount@24, matching ReqWorldEventRegister construction.
+- Implementation: GocEvent.cpp replaced the three commented-stubs with real bodies. PSServerDB.h added PS_WORLD_EVENT_REGISTER_RES, PS_WORLD_EVENT_REWARD_RES plus XPacket serializers. ResWorldEventInfo caps total count by event_item_amount_max, calls SetWorldEventInfo, sends 0x2A/0x22. ResWorldEventRegister unlocks submitted slots, removes whole items (stats 0xF0/0x11 + log 4/118), caps counts, sends update item, sends 0x2A/0x23 and logs subtype 30. ResWorldEventReward dispatches type 1 (update/create item) vs type 0 (system mail via ST_ACCOUNT_POST_DATA, main 6/sub 0x18), records reward, sends 0x2A/0x24, logs subtype 32/33. Unconfirmed log fields nParam3/nParam5 in the remove loop marked TODO (IDA type pollution).
+- Ledger state: func-index upgraded the three PDB decorated rows to verified and removed the three weaker duplicate rows (old XGameServer source table). type-index added PS_WORLD_EVENT_REGISTER_RES and PS_WORLD_EVENT_REWARD_RES rows. path-recovery-index unchanged.
+- Verification: build passed ([20/20] Linking GameServer.exe). Bounded smoke passed (Complete Server Init + Auto shutdown tick reached after 5000 ms, exit 0). git diff --check clean.
+- Review status: independent verification pending.

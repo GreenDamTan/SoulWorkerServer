@@ -1778,7 +1778,7 @@ public:
 
     // GetInvenInfo - 0x1400B2120
     // Gets inventory info by type, routes to GetEquipPtr or GetInvenPtr
-    void GetInvenInfo(std::uint8_t byInvenType, /*PS_RES_STORAGE_INFO*/ void* stInvenInfo);
+    void GetInvenInfo(std::uint8_t byInvenType, PS_RES_STORAGE_INFO& stInvenInfo);
 
     // === Item creation functions (IDA verified) ===
 

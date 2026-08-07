@@ -80,6 +80,14 @@ struct PS_WORLD_EVENT_INFO_REQ {
 
 static_assert(sizeof(PS_WORLD_EVENT_INFO_REQ) == 4, "PS_WORLD_EVENT_INFO_REQ size must match IDA");
 
+// 世界事件注册请求 (4 bytes)
+// PDB LF_CLASS 0x2F4A6: Size 4, nEventID int@0
+struct PS_WORLD_EVENT_REGISTER_REQ {
+    std::int32_t nEventID = 0;      // offset 0x00: 事件ID
+};
+
+static_assert(sizeof(PS_WORLD_EVENT_REGISTER_REQ) == 4, "PS_WORLD_EVENT_REGISTER_REQ size must match IDA");
+
 // 对齐 IDA: 世界事件信息请求 (12 bytes)
 struct PS_DB_WORLD_EVENT_INFO_REQ {
     std::uint32_t dwUAID = 0;       // offset 0x00: 账号ID
@@ -195,6 +203,28 @@ struct PS_DB_WORLD_EVENT_REGISTER_RES {
 
 static_assert(sizeof(PS_DB_WORLD_EVENT_REGISTER_RES) == 80, "PS_DB_WORLD_EVENT_REGISTER_RES size must match IDA");
 
+// 对齐 IDA/PDB (UDT 0xea50): 世界事件注册客户端响应 (20 bytes)
+struct PS_WORLD_EVENT_REGISTER_RES {
+    std::int32_t nEventID = 0;          // offset 0x00: 事件ID
+    std::int32_t nTotalCount = 0;       // offset 0x04: 总计数
+    std::int32_t nMyCount = 0;          // offset 0x08: 我的计数
+    std::int32_t nCount = 0;            // offset 0x0C: 本次注册计数
+    std::uint8_t byDailyRewardState = 0;// offset 0x10: 每日奖励状态
+    std::uint8_t _pad0[3] = {};         // padding
+};
+
+static_assert(sizeof(PS_WORLD_EVENT_REGISTER_RES) == 20, "PS_WORLD_EVENT_REGISTER_RES size must match PDB");
+
+// 对齐 IDA/PDB (UDT 0xea76): 世界事件奖励客户端响应 (12 bytes, 与 REQ 同布局)
+struct PS_WORLD_EVENT_REWARD_RES {
+    std::int32_t nEventID = 0;          // offset 0x00: 事件ID
+    std::uint8_t byRewardType = 0;      // offset 0x04: 奖励类型
+    std::uint8_t _pad0[3] = {};         // padding
+    std::int32_t nRewardIndex = 0;      // offset 0x08: 奖励索引
+};
+
+static_assert(sizeof(PS_WORLD_EVENT_REWARD_RES) == 12, "PS_WORLD_EVENT_REWARD_RES size must match PDB");
+
 // PS_DB_WORLD_EVENT_REGISTER_REQ 序列化运算符
 inline void operator>>(XPacket& packet, PS_DB_WORLD_EVENT_REGISTER_REQ& value) {
     packet.XParse >> value.dwUCID;
@@ -223,6 +253,44 @@ inline XSendDBPacket& operator<<(XSendDBPacket& packet, const PS_DB_WORLD_EVENT_
     packet.XParse << value.nTotalCount;
     packet.XParse << value.nMyCount;
     packet.XParse << value.biLastRegisterDate;
+    return packet;
+}
+
+// PS_WORLD_EVENT_REGISTER_RES 客户端序列化
+inline XPacket& operator>>(XPacket& packet, PS_WORLD_EVENT_REGISTER_RES& value) {
+    packet.XParse >> value.nEventID;
+    packet.XParse >> value.nTotalCount;
+    packet.XParse >> value.nMyCount;
+    packet.XParse >> value.nCount;
+    packet.XParse >> value.byDailyRewardState;
+    packet.XParse.GetBytes(reinterpret_cast<char*>(value._pad0), sizeof(value._pad0));
+    return packet;
+}
+
+inline XPacket& operator<<(XPacket& packet, const PS_WORLD_EVENT_REGISTER_RES& value) {
+    packet.XParse << value.nEventID;
+    packet.XParse << value.nTotalCount;
+    packet.XParse << value.nMyCount;
+    packet.XParse << value.nCount;
+    packet.XParse << value.byDailyRewardState;
+    packet.XParse.SetBytes(reinterpret_cast<const char*>(value._pad0), sizeof(value._pad0));
+    return packet;
+}
+
+// PS_WORLD_EVENT_REWARD_RES 客户端序列化 (与 REQ 同布局)
+inline XPacket& operator>>(XPacket& packet, PS_WORLD_EVENT_REWARD_RES& value) {
+    packet.XParse >> value.nEventID;
+    packet.XParse >> value.byRewardType;
+    packet.XParse.GetBytes(reinterpret_cast<char*>(value._pad0), sizeof(value._pad0));
+    packet.XParse >> value.nRewardIndex;
+    return packet;
+}
+
+inline XPacket& operator<<(XPacket& packet, const PS_WORLD_EVENT_REWARD_RES& value) {
+    packet.XParse << value.nEventID;
+    packet.XParse << value.byRewardType;
+    packet.XParse.SetBytes(reinterpret_cast<const char*>(value._pad0), sizeof(value._pad0));
+    packet.XParse << value.nRewardIndex;
     return packet;
 }
 
@@ -2390,6 +2458,14 @@ struct PS_DB_WORLD_EVENT_DAILY_REWARD {
 };
 
 static_assert(sizeof(PS_DB_WORLD_EVENT_DAILY_REWARD) == 104, "PS_DB_WORLD_EVENT_DAILY_REWARD size must match IDA");
+
+// 世界事件每日奖励响应 (4 bytes)
+// PDB LF_CLASS 0xea4e: Size 4, nEventID int@0
+struct PS_WORLD_EVENT_DAILY_REWARD_RES {
+    std::int32_t nEventID = 0;      // offset 0x00: 事件ID
+};
+
+static_assert(sizeof(PS_WORLD_EVENT_DAILY_REWARD_RES) == 4, "PS_WORLD_EVENT_DAILY_REWARD_RES size must match IDA");
 
 // PS_DB_WORLD_EVENT_DAILY_REWARD 序列化运算符
 inline void operator>>(XPacket& packet, PS_DB_WORLD_EVENT_DAILY_REWARD& value) {

@@ -5,6 +5,8 @@
 
 #include "GocForce.h"
 #include "Soulworker/GameServer/XGameServer/CParty.h"  // CParty::SetMemberLevel
+#include "Soulworker/GameServer/XGameServer/CForce.h"  // CForce::GetForceType/UpdateForceBooster
+#include "Soulworker/GameServer/XCore/XArea/XArea.h"  // XArea::GetChannel
 #include "Soulworker/GameServer/XGameServer/GameSockets.h"  // CCommunitySocket::SendCmd
 #include "GOComponent.h"
 #include "GocNetwork.h"
@@ -90,19 +92,23 @@ bool CGocForce::IsMaster(std::uint32_t dwUCID) const
 // Send PS_FORCE_INFO packet to Force owner
 void CGocForce::SendForceInfo(std::uint8_t byUpdateType)
 {
-    // Check if m_pForce is valid
-    if (!m_pParty) {
+    // IDA: if (shared_ptr bool check) return;  (m_pForce present check)
+    if (!m_pParty)
         return;
-    }
 
-    // TODO: Implement when CForce and PS_FORCE_INFO are available
-    // IDA logic:
-    // 1. Get PS_FORCE_INFO from CForce
-    // 2. Set byUpdateType and byForceType
-    // 3. Send XSendPacket(main=0x2E, sub=9) with PS_FORCE_INFO
-    // 4. Send via CGocNetwork::Send
+    // IDA: PS_FORCE_INFO stForceInfo;  (PS_PARTY_INFO ctor cast)
+    // CParty::GetPartyInfo(m_pForce.get(), &stForceInfo);
+    // stForceInfo.byUpdateType = byUpdateType;
+    // stForceInfo.byForceType = CForce::GetForceType(m_pForce.get());
+    // XSendPacket xSendPacket(0x2E, 9) << stForceInfo; CGocNetwork::Send(...);
+    PS_FORCE_INFO stForceInfo;
+    m_pParty->GetPartyInfo(reinterpret_cast<PS_PARTY_INFO&>(stForceInfo));
+    stForceInfo.byUpdateType = byUpdateType;
+    stForceInfo.byForceType = static_cast<CForce*>(m_pParty.get())->GetForceType();
 
-    (void)byUpdateType;
+    XSendPacket xSendPacket(0x2E, 9);
+    xSendPacket << stForceInfo;
+    CGocNetwork::Send(GetOwnerGO(), xSendPacket);
 }
 
 
@@ -138,9 +144,60 @@ void CGocForce::AddMatchingDate(int nAddTime)
 // Complete kick out logic with validation and error handling
 bool CGocForce::KickOut(std::uint32_t dwActorID, CUser* pUser)
 {
-    (void)dwActorID;
-    (void)pUser;
-    return false;
+    // IDA: if (!IsParty()) { SendErrorMessage(0x2E, 4, 0xCF72); return 0; }
+    if (!IsParty()) {
+        CGocNetwork::SendErrorMessage(GetOwnerGO(), 0x2E, 4, 0xCF72);
+        return false;
+    }
+    // IDA: 不能踢自己 (owner UCID == dwActorID -> 0xCF8E)
+    CMover* pOwner = GetOwnerGO();
+    std::uint32_t dwOwnerUCID = pOwner ? pOwner->GetActorID().dwActorID : 0;
+    if (dwOwnerUCID == dwActorID) {
+        CGocNetwork::SendErrorMessage(GetOwnerGO(), 0x2E, 4, 0xCF8E);
+        return false;
+    }
+    // IDA: 必须为队长 (owner 无 area 或非队长 -> 0xCF74)
+    CUser* pOwnerUser = dynamic_cast<CUser*>(pOwner);
+    if (!pOwnerUser || !pOwnerUser->GetArea() || m_pParty->GetMasterID() != dwOwnerUCID) {
+        CGocNetwork::SendErrorMessage(GetOwnerGO(), 0x2E, 4, 0xCF74);
+        return false;
+    }
+    // IDA: 目标必须为成员 (CParty::GetMember -> 0xCF13)
+    if (!m_pParty)
+        return false;
+    CPartyMember* pMember = m_pParty->GetMember(dwActorID);
+    if (!pMember) {
+        CGocNetwork::SendErrorMessage(GetOwnerGO(), 0x2E, 4, 0xCF13);
+        return false;
+    }
+    // IDA: 不能踢队长 (目标即队长 -> 0xCF6F)
+    if (m_pParty->GetMasterID() == dwActorID) {
+        CGocNetwork::SendErrorMessage(GetOwnerGO(), 0x2E, 4, 0xCF6F);
+        return false;
+    }
+    // IDA: 若目标在迷宫内 (Maze_Type 0/2/8/9) -> 0xCF80
+    int nMapID = pMember->GetMemberInfo().nMapID;
+    TB_MAZE_INFO* pTBmazeInfo = TXSingleton<XGameServer>::Instance()->GetResourceMgr().GetTB_MAZE_INFO(nMapID);
+    if (pTBmazeInfo && (!pTBmazeInfo->Maze_Type || pTBmazeInfo->Maze_Type == 2 ||
+                        pTBmazeInfo->Maze_Type == 8 || pTBmazeInfo->Maze_Type == 9)) {
+        CGocNetwork::SendErrorMessage(GetOwnerGO(), 0x2E, 4, 0xCF80);
+        return false;
+    }
+    // IDA: 发送踢出请求到 CommunitySocket
+    PS_FORCE_LEAVE stForceLeave;
+    stForceLeave.dwForceID = m_pParty->GetPartyID();
+    stForceLeave.dwLeaveMember = dwActorID;
+    stForceLeave.bKickout = 1;
+
+    XSendPacket xSendPacket(0xFA, 3);
+    xSendPacket << stForceLeave;
+    xSendPacket.XParse << (pUser ? pUser->GetUCID() : 0);
+    xSendPacket.XParse << static_cast<int>(pUser ? pUser->GetUAID() : 0);
+    xSendPacket.XParse << (pUser ? pUser->GetLevel() : 0);
+    xSendPacket.XParse << pMember->GetMemberInfo().byLevel;
+    TXSingleton<XGameServer>::Instance()->GetCommunitySocket().SendCmd(
+        &xSendPacket, pOwnerUser, 0x2E, 4);
+    return true;
 }
 
 
@@ -164,13 +221,12 @@ void CGocForce::ChangeMaster(std::uint32_t dwMaster)
             stChangeMaster.dwForceID = m_pParty->GetPartyID();
             stChangeMaster.nErrorCode = 0;
 
-            // 经控制 socket 发送 (main=0xFA, sub=4 -> relay main=0x2E, sub=3)
-            // 注: IDA 反编译显示 CCommunitySocket::SendCmd，实际 CGameControlSocket 持有 SendCmd
+            // IDA: CCommunitySocket::SendCmd(&m_communitySocket, &xSendPacket, pUser, 0x2E, 3)
             XSendPacket xSendPacket(0xFA, 4);
             xSendPacket << stChangeMaster;
             CUser* pUser = dynamic_cast<CUser*>(pOwner);
-            XGameServer* pServer = TXSingleton<XGameServer>::Instance();
-            pServer->GetControlSocket().SendCmd(&xSendPacket, pUser, 0x2E, 3);
+            TXSingleton<XGameServer>::Instance()->GetCommunitySocket().SendCmd(
+                &xSendPacket, pUser, 0x2E, 3);
         } else {
             CGocNetwork::SendErrorMessage(pOwner, 0x2E, 3, 0xCF72);
         }
@@ -184,19 +240,39 @@ void CGocForce::ChangeMaster(std::uint32_t dwMaster)
 // Leave force with packet to CommunitySocket
 void CGocForce::Leave()
 {
-    // IDA: Check if in a Force/Party
+    // IDA: if (!IsParty()) return;
     if (!IsParty()) {
         return;
     }
 
-    // TODO: Implement full logic when CUser and dependencies are available
-    // IDA logic:
-    // 1. Get CUser via RTTI cast
-    // 2. Check if user has an area (is in game world)
-    // 3. Create PS_FORCE_LEAVE packet with ForceID, LeaveMember UCID, bKickout=false
-    // 4. Send XSendPacket(main=0xFA, sub=3) to CommunitySocket (main=0x2E, sub=5)
+    // IDA: pUser = dynamic_cast<CUser*>(GetOwnerGO()); if (!pUser) return;
+    CUser* pUser = dynamic_cast<CUser*>(GetOwnerGO());
+    if (!pUser) {
+        return;
+    }
 
-    Clear();
+    // IDA: if (pUser->GetArea()) {
+    //   stForceLeave.dwForceID = GetPartyID();
+    //   stForceLeave.dwLeaveMember = GetUCID();
+    //   stForceLeave.bKickout = 0;
+    //   XSendPacket xSendPacket(0xFA, 3) << stForceLeave << GetUCID << GetUAID << GetLevel << GetLevel;
+    //   CCommunitySocket::SendCmd(&m_communitySocket, &xSendPacket, pUser, 0x2E, 5);
+    // }
+    if (pUser->GetArea()) {
+        PS_FORCE_LEAVE stForceLeave;
+        stForceLeave.dwForceID = m_pParty->GetPartyID();
+        stForceLeave.dwLeaveMember = pUser->GetUCID();
+        stForceLeave.bKickout = 0;
+
+        XSendPacket xSendPacket(0xFA, 3);
+        xSendPacket << stForceLeave;
+        xSendPacket.XParse << pUser->GetUCID();
+        xSendPacket.XParse << static_cast<int>(pUser->GetUAID());
+        xSendPacket.XParse << pUser->GetLevel();
+        xSendPacket.XParse << pUser->GetLevel();
+        TXSingleton<XGameServer>::Instance()->GetCommunitySocket().SendCmd(
+            &xSendPacket, pUser, 0x2E, 5);
+    }
 }
 
 
@@ -204,6 +280,49 @@ void CGocForce::Leave()
 // Logout handling for Force/non-Force members
 void CGocForce::Logout()
 {
+    // IDA: if (IsParty()) {
+    //   dwActorID = GetUCID();
+    //   pMembera = CParty::GetMember(m_pForce.get(), dwActorID);
+    //   if (pMembera) {
+    //     ST_UPDATE_FORCE_MEMBER stForceMember; stForceMember.dwForceID = GetPartyID();
+    //     CPartyMember::Logout(pMembera, &stForceMember);
+    //     XSendPacket xSendPacket(0xFA, 5) << stForceMember;
+    //     CCommunitySocket::SendCheck(&m_communitySocket, &xSendPacket);
+    //   }
+    // } else {
+    //   pUser = dynamic_cast<CUser*>(GetOwnerGO());
+    //   if (pUser) {
+    //     XSendPacket v23(0xFA, 0x14) << GetUCID << 2 << GetUAID << GetLevel;
+    //     CCommunitySocket::SendCheck(&m_communitySocket, &v23);
+    //   }
+    // }
+    // LogHelper::LogDebug("game.party", "<FORCE> Logout Req ( %d )", GetUCID);
+    // CGocParty::Clear(this);
+    if (IsParty()) {
+        std::uint32_t dwActorID = dynamic_cast<CUser*>(GetOwnerGO())->GetUCID();
+        CPartyMember* pMembera = m_pParty->GetMember(dwActorID);
+        if (pMembera) {
+            ST_UPDATE_PARTY_MEMBER stForceMember;
+            stForceMember.dwPartyID = m_pParty->GetPartyID();
+            pMembera->Logout(stForceMember);
+
+            XSendPacket xSendPacket(0xFA, 5);
+            xSendPacket << stForceMember;
+            TXSingleton<XGameServer>::Instance()->GetCommunitySocket().SendCheck(&xSendPacket);
+        }
+    } else {
+        CUser* pUser = dynamic_cast<CUser*>(GetOwnerGO());
+        if (pUser) {
+            XSendPacket v23(0xFA, 0x14);
+            v23.XParse << pUser->GetUCID();
+            v23.XParse << 2;
+            v23.XParse << static_cast<int>(pUser->GetUAID());
+            v23.XParse << pUser->GetLevel();
+            TXSingleton<XGameServer>::Instance()->GetCommunitySocket().SendCheck(&v23);
+        }
+    }
+    LogHelper::LogDebug("game.party", "<FORCE> Logout Req ( %d )",
+                        static_cast<int>(dynamic_cast<CUser*>(GetOwnerGO())->GetUCID()));
     Clear();
 }
 
@@ -316,6 +435,10 @@ void CGocForce::SetMapID(int nMapID, int nChannel, const UXMapID& uxMapID)
 // Update Force booster
 void CGocForce::UpdatePartyBooster()
 {
+    // IDA: if (shared_ptr bool check) { CForce::UpdateForceBooster(m_pForce.get(), 0); }
+    if (!m_pParty)
+        return;
+    static_cast<CForce*>(m_pParty.get())->UpdateForceBooster(0);
 }
 
 
@@ -341,6 +464,25 @@ void CGocForce::ReserveReviveAll(std::uint32_t dwActorID, std::uint32_t dwID)
 // Load maze recode from Force to CGocRecode
 void CGocForce::LoadRecode()
 {
+    // IDA: if (shared_ptr bool check) {
+    //   v1 = GetOwnerGO(); CMover::GetGOC<CGocRecode>(v1, &pRecode, 0);
+    //   if (pRecode) {
+    //     dwActorID = GetUCID();
+    //     CForce::GetMazeRecode(m_pForce.get(), dwActorID, nRecode);
+    //     CGocRecode::SetFullRecode(pRecode, nRecode);
+    //   }
+    // }
+    if (!m_pParty)
+        return;
+    CMover* pOwner = GetOwnerGO();
+    std::shared_ptr<CGocRecode> pRecode = pOwner ? pOwner->GetGOC_Recode(false) : nullptr;
+    if (!pRecode)
+        return;
+
+    std::uint32_t dwActorID = pOwner->GetActorID().dwActorID;
+    int nRecode[10] = {};
+    static_cast<CForce*>(m_pParty.get())->GetMazeRecode(dwActorID, nRecode);
+    pRecode->SetFullRecode(nRecode);
 }
 
 
@@ -348,6 +490,28 @@ void CGocForce::LoadRecode()
 // Check if any member needs revive buff
 bool CGocForce::NeedReviveBuffUser()
 {
+    // IDA: if (shared_ptr bool check) iterate m_pParty->m_mapPartyMember
+    if (!m_pParty)
+        return false;
+
+    // IDA: for (auto it : m_mapPartyMember) {
+    //   pMemberInfo = it->second; if (!pMemberInfo) continue;
+    //   pMember = pMemberInfo->GetMember(); if (!pMember) continue;
+    //   if (GetMapInsID(pMember) == GetMapInsID(this) && CMover::FindBuffByEffectType(&pMember->CMoverEx, 1, 0) == -1) return true;
+    // }
+    UXMapID uxOwnerMap = GetOwnerGO()->GetMapInsID();
+    for (auto& kv : m_pParty->GetMemberMap()) {
+        CPartyMember* pMemberInfo = kv.second;
+        if (!pMemberInfo)
+            continue;
+        CUser* pMember = pMemberInfo->GetMember();
+        if (!pMember)
+            continue;
+        if (pMember->GetMapInsID() == uxOwnerMap &&
+            pMember->FindBuffByEffectType(1, 0) == -1) {
+            return true;
+        }
+    }
     return false;
 }
 
@@ -356,6 +520,13 @@ bool CGocForce::NeedReviveBuffUser()
 // Remove party booster
 void CGocForce::DeletePartyBoost()
 {
+    // IDA: v1 = GetOwnerGO(); CMover::GetGOC<CGocBooster>(v1, &pBooster, 0);
+    // if (pBooster) CGocBooster::ChangeBooster(pBooster, eBooster_Type_Party, 0, 0, 0);
+    CMover* pOwner = GetOwnerGO();
+    std::shared_ptr<CGocBooster> pBooster = pOwner ? pOwner->GetGOC_Booster(false) : nullptr;
+    if (pBooster) {
+        pBooster->ChangeBooster(eBooster_Type_Party, 0, 0, false);
+    }
 }
 
 
@@ -371,9 +542,13 @@ void CGocForce::GetForceMember(CUser* pUser, std::vector<CForceMember*>& vecMemb
 
 // IDA: ?GetForceUserCount@CGocForce@@QEAAEXZ @ 0x14010D330
 // Get online member count
-std::uint8_t CGocForce::GetForceUserCount() const
+std::uint8_t CGocForce::GetForceUserCount()
 {
-    return 0;
+    // IDA: if (!CGocParty::IsParty(this)) return 0;
+    // v1 = this->m_pParty.get(); return CParty::GetUserCount(v1);
+    if (!IsParty())
+        return 0;
+    return m_pParty->GetUserCount();
 }
 
 
@@ -382,9 +557,13 @@ std::uint8_t CGocForce::GetForceUserCount() const
 
 // IDA: ?GetMasterID@CGocForce@@QEAAKXZ @ 0x14010D410
 // Get Force master ID
-std::uint32_t CGocForce::GetMasterID() const
+std::uint32_t CGocForce::GetMasterID()
 {
-    return 0;
+    // IDA: if (shared_ptr bool check) return 0;
+    // v1 = this->m_pParty.get(); return CParty::GetMasterID(v1);
+    if (!m_pParty)
+        return 0;
+    return m_pParty->GetMasterID();
 }
 
 
@@ -400,10 +579,15 @@ void CGocForce::SetExp(CUser* pUser, float fExp, int nExpType)
 
 // IDA: ?IsMember@CGocForce@@QEAA_NPEAVXActor@@@Z @ 0x14010BBB0
 // Check if actor is Force member
-bool CGocForce::IsMember(XActor* pActor) const
+bool CGocForce::IsMember(XActor* pActor)
 {
-    (void)pActor;
-    return false;
+    // IDA: if (shared_ptr bool check) return false;
+    // dwActor = pMember->GetActorID().dwActorID;
+    // v3 = this->m_pParty.get(); return CParty::IsMember(v3, dwActor);
+    if (!m_pParty)
+        return false;
+    std::uint32_t dwActor = pActor->GetActorID().dwActorID;
+    return m_pParty->IsMember(dwActor);
 }
 
 
@@ -411,17 +595,50 @@ bool CGocForce::IsMember(XActor* pActor) const
 // Check passive skill for Force members
 void CGocForce::CheckPassiveSkill(CUser* pUser, std::uint8_t byTargetType, std::uint8_t byCondition)
 {
-    (void)pUser;
-    (void)byTargetType;
-    (void)byCondition;
+    // IDA: if (shared_ptr bool check) { CParty::CheckPassiveSkill(m_pParty.get(), pUser, byTargetType, byCondition); }
+    if (!m_pParty)
+        return;
+    m_pParty->CheckPassiveSkill(pUser, byTargetType, byCondition);
 }
 
 
 // IDA: ?CheckForceMatchingEnter@CGocForce@@QEAA_NXZ @ 0x140085210
 // Check if all Force members can enter matching
-bool CGocForce::CheckForceMatchingEnter() const
+bool CGocForce::CheckForceMatchingEnter()
 {
-    return false;
+    // IDA: if (shared_ptr bool check) return 0;
+    if (!m_pParty)
+        return false;
+
+    // IDA: shWorldID = -1; nChannelID = -1; iterate m_mapPartyMember
+    std::int16_t shWorldID = -1;
+    int nChannelID = -1;
+    UXMapID uxMapID;
+
+    for (auto& kv : m_pParty->GetMemberMap()) {
+        CPartyMember* pMemberInfo = kv.second;
+        if (!pMemberInfo)
+            return false;
+        // IDA: dwActor = pMemberInfo->GetMemberID(); pMember = FindActorIDToUser(dwActor);
+        CUser* pMember = TXSingleton<XGameServer>::Instance()->FindActorIDToUser(pMemberInfo->GetMemberID());
+        if (!pMember)
+            return false;
+        if (!pMember->GetArea())
+            return false;
+
+        if (shWorldID == -1 && nChannelID == -1) {
+            shWorldID = pMember->GetWorldID();
+            nChannelID = pMember->GetArea()->GetChannel();
+            uxMapID = pMember->GetMapInsID();
+        }
+        if (shWorldID != pMember->GetWorldID())
+            return false;
+        if (nChannelID != pMember->GetArea()->GetChannel())
+            return false;
+        if (uxMapID != pMember->GetMapInsID())
+            return false;
+    }
+    return true;
 }
 
 

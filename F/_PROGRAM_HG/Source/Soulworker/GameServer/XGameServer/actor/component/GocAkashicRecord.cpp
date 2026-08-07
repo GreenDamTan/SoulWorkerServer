@@ -1131,6 +1131,23 @@ void CGocAkashicRecord::GetQuickSlotCard(std::uint32_t* pQuickSlotCard)
     }
 }
 
+// GetQuickSlotInfo (0x14001C5C0)
+// IDA: Fills card vector with active deck page and all decks, then refreshes passive list
+void CGocAkashicRecord::GetQuickSlotInfo(PS_QUICKSLOT_CARD_VEC& psQuickSlotCard)
+{
+    // IDA: psQuickSlotCard->byActivePage = this->m_byActiveDeck;
+    psQuickSlotCard.byActivePage = m_byActiveDeck;
+
+    // IDA: for (i = 0; i < this->m_byDeckCount; ++i)
+    //          std::vector<PS_QUICKSLOT_CARD>::push_back(&psQuickSlotCard->vecInfo, &this->m_psQuickSlotCard[i]);
+    for (std::uint8_t i = 0; i < m_byDeckCount; ++i) {
+        psQuickSlotCard.vecInfo.push_back(m_psQuickSlotCard[i]);
+    }
+
+    // IDA: CGocAkashicRecord::UpdateAkashicPassiveList(this);
+    UpdateAkashicPassiveList();
+}
+
 // ChangeActiveDeck (0x140020910)
 // IDA: Changes active deck, validates, sends DB update and client response
 int CGocAkashicRecord::ChangeActiveDeck(PS_DECK_ACTIVE& stActive)

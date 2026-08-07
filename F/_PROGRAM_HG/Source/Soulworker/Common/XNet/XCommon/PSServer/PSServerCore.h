@@ -284,6 +284,17 @@ struct PS_QUICKSLOT_CARD_VEC {
 static_assert(sizeof(PS_QUICKSLOT_CARD_VEC) == 40, "PS_QUICKSLOT_CARD_VEC size must match IDA");
 
 /**
+ * @brief 网吧状态信息 - 8 bytes
+ * PDB LF_FIELDLIST (UDT 0xe400): bool nNetCafe @0, int nEventNo @4, 有默认构造。
+ */
+struct PS_NETCAFE_INFO {
+    bool nNetCafe = false;
+    int nEventNo = 0;
+};
+
+static_assert(sizeof(PS_NETCAFE_INFO) == 8, "PS_NETCAFE_INFO size must match PDB");
+
+/**
  * @brief 快捷栏更新卡片 - 24 bytes
  * 对齐 IDA DBAgent.exe: byPage + padding + union{nCard[5] or uniCard[5]}
  */
@@ -805,6 +816,18 @@ inline void operator>>(XPacket& packet, PS_QUICKSLOT_ITEM& value) {
     for (int i = 0; i < 4; ++i) {
         packet.XParse >> value.uniItem[i];
     }
+}
+
+// PS_NETCAFE_INFO 序列化运算符
+inline XPacket& operator<<(XPacket& packet, const PS_NETCAFE_INFO& value) {
+    packet.XParse << value.nNetCafe;
+    packet.XParse << value.nEventNo;
+    return packet;
+}
+
+inline void operator>>(XPacket& packet, PS_NETCAFE_INFO& value) {
+    packet.XParse >> value.nNetCafe;
+    packet.XParse >> value.nEventNo;
 }
 
 // PS_QUICKSLOT_CARD_VEC 序列化运算符

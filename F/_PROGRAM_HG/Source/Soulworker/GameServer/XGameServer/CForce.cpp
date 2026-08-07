@@ -206,6 +206,16 @@ void CForce::UpdateForceBooster(int nType) {
     // TODO: Implement when booster system is available
 }
 
+// IDA: ?GetMazeRecode@CForce@@QEAAXKPEAH@Z @ 0x1403A6D30
+void CForce::GetMazeRecode(std::uint32_t dwActorID, int* pMazeRecode) {
+    // IDA: iter = m_mapPartyMember.find(dwActorID);
+    // if (iter != end) CPartyMember::GetRecode((CPartyMember*)iter->second, pMazeRecode);
+    auto iter = m_mapPartyMember.find(dwActorID);
+    if (iter != m_mapPartyMember.end()) {
+        iter->second->GetRecode(pMazeRecode);
+    }
+}
+
 // IDA: ?ApplyReward@CForce@@QEAAX... (dtor reference)
 void CForce::ApplyReward(/* parameters TBD */) {
     // IDA: Apply rewards to force members

@@ -137,6 +137,10 @@ public:
     // GetMembers - Get all force members map
     const std::map<std::uint32_t, CForceMember*>& GetMembers() const { return m_mapForceMember; }
 
+    // GetMazeRecode - 获取成员的迷宫记录
+    // IDA: ?GetMazeRecode@CForce@@QEAAXKPEAH@Z @ 0x1403A6D30
+    void GetMazeRecode(std::uint32_t dwActorID, int* pMazeRecode);
+
 protected:
     // === IDA confirmed member variables ===
     // Inherited from CParty:

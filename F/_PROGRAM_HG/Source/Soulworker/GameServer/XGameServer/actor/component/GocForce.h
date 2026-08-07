@@ -72,7 +72,7 @@ public:
 
     // IsMember - 检查是否为 Force 成员
     // IDA: ?IsMember@CGocForce@@QEAA_NPEAVXActor@@@Z @ 0x14010BBB0
-    bool IsMember(class XActor* pActor) const;
+    bool IsMember(class XActor* pActor);
 
     // IsFull - 检查 Force 是否已满 (最多 8 人)
     // IDA: ?IsFull@CGocForce@@QEAA_NXZ @ 0x1400854B0
@@ -147,7 +147,7 @@ public:
 
     // CheckForceMatchingEnter - 检查 Force 是否可以进入匹配
     // IDA: ?CheckForceMatchingEnter@CGocForce@@QEAA_NXZ @ 0x140085210
-    bool CheckForceMatchingEnter() const;
+    bool CheckForceMatchingEnter();
 
     // CheckPassiveSkill - 检查被动技能
     // IDA: ?CheckPassiveSkill@CGocForce@@QEAAXPEAVCUser@@EE@Z @ 0x1400851B0
@@ -161,11 +161,11 @@ public:
 
     // GetForceUserCount - 获取 Force 成员数量
     // IDA: ?GetForceUserCount@CGocForce@@QEAAEXZ @ 0x14010D330
-    std::uint8_t GetForceUserCount() const;
+    std::uint8_t GetForceUserCount();
 
     // GetMasterID - 获取队长 ID
     // IDA: ?GetMasterID@CGocForce@@QEAAKXZ @ 0x14010D410
-    std::uint32_t GetMasterID() const;
+    std::uint32_t GetMasterID();
 
     // === Utility ===
 

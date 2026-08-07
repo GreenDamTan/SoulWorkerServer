@@ -13,6 +13,7 @@
 // Forward declarations
 struct TB_TITLE_INFO;
 struct TB_COMMON;
+struct TB_PHOTO_ITEM;
 
 // Forward declarations for types not in shared headers
 struct ST_CHECK_AUTO_BLOCK_INFO {
@@ -51,6 +52,20 @@ struct ST_ROGUELIKE_RESULT {
     int nMapID = 0;
     int nResult = 0;
 };
+
+// PDB LF_FIELDLIST (UDT 0x3680): TB_PHOTO_ITEM* pTB_PHOTO_ITEM @0, ST_PROFILE_PHOTO_INFO stInfo @8, size 24.
+struct ST_HAVE_PROFILE_PHOTO_INFO {
+    TB_PHOTO_ITEM* pTB_PHOTO_ITEM = nullptr;
+    ST_PROFILE_PHOTO_INFO stInfo{};
+
+    ST_HAVE_PROFILE_PHOTO_INFO() = default;
+    // IDA: ?0ST_HAVE_PROFILE_PHOTO_INFO@@QEAA@PEAUTB_PHOTO_ITEM@@AEBUST_PROFILE_PHOTO_INFO@@@Z
+    ST_HAVE_PROFILE_PHOTO_INFO(TB_PHOTO_ITEM* pTB, const ST_PROFILE_PHOTO_INFO& st)
+        : pTB_PHOTO_ITEM(pTB), stInfo(st) {}
+};
+
+static_assert(sizeof(ST_HAVE_PROFILE_PHOTO_INFO) == 24,
+              "ST_HAVE_PROFILE_PHOTO_INFO size must match PDB");
 
 /**
  * @brief CGocEntity - Game Object Component for entity management
@@ -174,6 +189,9 @@ public:
     // IDA: ?GetProfilePhotoInfo@CGocEntity@@QEAA_NKAEAUST_PROFILE_PHOTO_INFO@@@Z (0x140064FF0)
     bool GetProfilePhotoInfo(uint32_t dwPhotoID, ST_PROFILE_PHOTO_INFO& stInfo);
 
+    // IDA: ?DeleteProfilePhoto@CGocEntity@@QEAAXAEAV?$vector@KV?$allocator@K@std@@@std@@@Z (0x140063FB0)
+    void DeleteProfilePhoto(std::vector<uint32_t>& vecDelList);
+
     // IDA: ?SendFreeReviveCount@CGocEntity@@QEAAXXZ (0x1400650A0)
     void SendFreeReviveCount();
 
@@ -244,7 +262,8 @@ protected:
     ST_CHECK_AUTO_BLOCK_INFO m_stCheckAutoBlock[1];
 
     // Profile photo system
-    std::map<uint16_t, ST_BOOSTER_INFO> m_mapProfilePhoto;
+    // IDA: std::_Tree<unsigned long, ST_HAVE_PROFILE_PHOTO_INFO> -> map<uint32_t, ST_HAVE_PROFILE_PHOTO_INFO>
+    std::map<uint32_t, ST_HAVE_PROFILE_PHOTO_INFO> m_mapProfilePhoto;
     int m_nProfilePhotoTick = 0;
 
     // NetCafe system

@@ -72,6 +72,28 @@ bool XBaseEquip::AddItem(std::int16_t shSlot, std::shared_ptr<CItem> pItem) {
     return true;
 }
 
+// IDA: ?GetInvenInfo@XBaseEquip@@QEAAXEAEAUPS_RES_STORAGE_INFO@@@Z @ 0x1402FDD50
+void XBaseEquip::GetInvenInfo(std::uint8_t byInvenType, PS_RES_STORAGE_INFO& stInvenInfo) {
+    // IDA: for (i = 0; i < 20; ++i) {
+    //   if (m_pItem[i]) {
+    //     PS_STORAGE_INFO stStorageInfo;
+    //     stStorageInfo.byInvenType = byInvenType;
+    //     stStorageInfo.shSlotPos = i;
+    //     stStorageInfo.stItem = m_pItem[i]->GetItem();
+    //     stInvenInfo.vecItem.push_back(stStorageInfo);
+    //   }
+    // }
+    for (int i = 0; i < 20; ++i) {
+        if (m_pItem[i]) {
+            PS_STORAGE_INFO stStorageInfo;
+            stStorageInfo.byInvenType = byInvenType;
+            stStorageInfo.shSlotPos = static_cast<std::int16_t>(i);
+            m_pItem[i]->GetItem(&stStorageInfo.stItem);
+            stInvenInfo.vecItem.push_back(stStorageInfo);
+        }
+    }
+}
+
 // IDA: 0x140301640
 XShapeEquip::XShapeEquip()
     : XBaseEquip()

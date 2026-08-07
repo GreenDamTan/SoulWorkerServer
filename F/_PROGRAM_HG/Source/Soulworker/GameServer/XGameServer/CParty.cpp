@@ -6,6 +6,8 @@
 #include "Soulworker/GameServer/XGameServer/ThreadLocalData.h"
 #include "Soulworker/GameServer/XGameServer/User.h"
 #include "Soulworker/GameServer/XGameServer/actor/component/GocNetwork.h"
+#include "Soulworker/GameServer/XGameServer/actor/component/GocSkill.h"
+#include "Soulworker/GameServer/XGameServer/actor/component/GocAkashicRecord.h"
 #include "Soulworker/Common/XNet/XIOCPBase/Packet.h"
 #include "Soulworker/Common/XNet/XCommon/PSServer/PSServerParty.h"
 
@@ -696,4 +698,50 @@ void CParty::ApplyReward() {
 // IDA: ?SendMazeClear@CParty@@QEAAXH@Z
 void CParty::SendMazeClear(int nParam) {
     // TODO: 发送迷宫清除通知
+}
+
+// IDA: ?CheckPassiveSkill@CParty@@QEAAXPEAVCUser@@EE@Z @ 0x1401BBE00
+// 检查队伍成员的被动技能（同地图、距离内触发）
+void CParty::CheckPassiveSkill(CUser* pOwner, std::uint8_t byTargetType, std::uint8_t byCondition) {
+    // IDA: if (!pOwner) return;
+    if (!pOwner)
+        return;
+
+    // IDA: CONST_CHECK_PASSIVE_DISTANCE_SQ = 2.5e7f;
+    const float CONST_CHECK_PASSIVE_DISTANCE_SQ = 25000000.0f;
+    hkvVec3 vMyPos = pOwner->GetPosition();
+
+    // IDA: 遍历 m_mapPartyMember
+    for (auto& kv : m_mapPartyMember) {
+        CPartyMember* pMember = kv.second;
+        if (!pMember)
+            continue;
+        CUser* pUser = pMember->GetMember();
+        if (!pUser)
+            continue;
+
+        // IDA: uxMapID = pUser->GetMapInsID();
+        // if (!pUser || ThreadLocalData::IsThreadArea(GetInstance(), uxMapID))
+        UXMapID uxMapID = pUser->GetMapInsID();
+        ThreadLocalData* pInstance = ThreadLocalData::GetInstance();
+        if (!pInstance || pInstance->IsThreadArea(uxMapID)) {
+            // IDA: if (pUser && (byTargetType != 6 || pUser != pOwner))
+            if (pUser && (byTargetType != 6 || pUser != pOwner)) {
+                // IDA: if (pUser == pOwner || getDistanceToSquared(pUser->GetPosition(), vMyPos) <= CONST)
+                hkvVec3 vTargetPos = pUser->GetPosition();
+                if (pUser == pOwner || vTargetPos.getDistanceToSquared(vMyPos) <= CONST_CHECK_PASSIVE_DISTANCE_SQ) {
+                    // IDA: GetGOC<CGocSkill> -> CheckPassiveSkill(byCondition)
+                    std::shared_ptr<CGocSkill> pSkill = pUser->GetGOC_Skill(false);
+                    if (pSkill) {
+                        pSkill->CheckPassiveSkill(byCondition);
+                    }
+                    // IDA: GetGOC<CGocAkashicRecord> -> CheckPassiveSkill(byCondition)
+                    std::shared_ptr<CGocAkashicRecord> pAkashic = pUser->GetGOC_AkashicRecord(false);
+                    if (pAkashic) {
+                        pAkashic->CheckPassiveSkill(byCondition);
+                    }
+                }
+            }
+        }
+    }
 }

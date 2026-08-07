@@ -1379,6 +1379,35 @@ bool CGameControlSocket::RecvServerRouletteEvent(XPacket* xPacket) {
 // CCommunitySocket Implementation
 // ============================================================================
 
+// IDA: ?SendCheck@CCommunitySocket@@QEAAXAEAVXSendPacket@@@Z @ 0x1401F37E0
+void CCommunitySocket::SendCheck(XSendPacket* pPacket) {
+    // Per IDA: 检查是否可以发送
+    if (IsCanSend(this)) {
+        XIOCPClient::Send(*pPacket);
+    } else {
+        LogHelper::LogError("game.contents",
+            "Community Send error[ Caching:%d, Sync:%d ](%d)",
+            m_dwCachingLoad, m_bSyncUserInfoReq, 58);
+    }
+}
+
+// IDA: ?SendCmd@CCommunitySocket@@QEAAXAEAVXSendPacket@@PEAVCUser@@EE@Z @ 0x1401F3850
+void CCommunitySocket::SendCmd(XSendPacket* pPacket, CUser* pUser, std::uint8_t byMainCmd, std::uint8_t bySubCmd) {
+    // Per IDA: 检查是否可以发送
+    if (IsCanSend(this)) {
+        if (!XIOCPClient::Send(*pPacket) && pUser) {
+            pUser->SendErrorMessage(byMainCmd, bySubCmd, 0xC35A);
+        }
+    } else {
+        LogHelper::LogError("game.contents",
+            "Community SendEx error[ Caching:%d, Sync:%d ](%d)",
+            m_dwCachingLoad, m_bSyncUserInfoReq, 69);
+        if (pUser) {
+            pUser->SendErrorMessage(byMainCmd, bySubCmd, 0xC35A);
+        }
+    }
+}
+
 bool CCommunitySocket::PartyProcess(XPacket* xPacket) {
     switch (xPacket->GetSubCmd()) {
         case 0x01: return RecvPartyCreate(xPacket);

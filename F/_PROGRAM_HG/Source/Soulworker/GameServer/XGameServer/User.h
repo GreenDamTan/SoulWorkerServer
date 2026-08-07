@@ -3,6 +3,7 @@
 #include "Soulworker/GameServer/XCore/XServer/GreenDamTan_ClientBase.h"
 #include "Soulworker/GameServer/XGameServer/MoverEx.h"
 #include "Soulworker/GameServer/XGameServer/MySkillList.h"
+#include "Soulworker/GameServer/XGameServer/actor/component/GocBooster.h"
 #include <cstdint>
 #include <string>
 #include <vector>
@@ -125,6 +126,17 @@ public:
     void SetLastLevelupDate(std::int64_t biDate);
     void SetReserveRevive(int nType);
 
+    // IDA: ?GetReserveRevive@CUser@@QEAAHXZ @ 0x14070A760
+    int GetReserveRevive();
+    // IDA: ?GetReserveReviveImmediate@CUser@@QEAAHXZ @ 0x14070A740
+    int GetReserveReviveImmediate();
+    // IDA: ?SetReserveReviveImmediate@CUser@@QEAAXH@Z @ 0x1403A1B40
+    void SetReserveReviveImmediate(int bReserve);
+    // IDA: ?ChangeBooster@CUser@@QEAAXW4E_BOOSTER_TYPE@@G@Z @ 0x1406F8420
+    void ChangeBooster(E_BOOSTER_TYPE eType, std::uint16_t wIndex);
+    // IDA: ?IsLeagueSkill@CUser@@QEAA_NH@Z @ 0x1407007A0
+    bool IsLeagueSkill(int nSkill);
+
     // 其他方法
     // GetFP: IDA 0x140048FB0 - 返回 unsigned short 扩展到 int64
     std::int64_t GetFP();
@@ -206,6 +218,8 @@ public:
     int IsLeague(CMover* pMover);
     // GetGameOption: IDA 0x1402F6A00 - 获取游戏选项
     void GetGameOption(struct ST_GAME_OPTION& stGameOption);
+    // CheckGameOption: IDA 0x1406FBC20 - 检查游戏选项状态
+    bool CheckGameOption(E_OPTION_INDEX eIndex, E_OPTION_STATE eState);
 
     // === 战斗相关方法 (IDA 反编译) ===
     // GetHP: IDA 0x14070AC50 (not virtual in base class)
@@ -641,6 +655,8 @@ private:
 
     // === IDA 0x140085DF0 CUser::SetReserveRevive 使用 ===
     int m_bReserveRevive;
+    // PDB: CUser m_bReserveReviveImmediate (T_INT4 @193404)
+    int m_bReserveReviveImmediate;
 
     // === IDA 0x1400F72E0 CUser::GetSocialUseID 使用 ===
     std::uint32_t m_dwSocialUseID;

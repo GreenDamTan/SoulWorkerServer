@@ -34,15 +34,19 @@ struct PS_REQ_FRIEND_ACCEPT {
 
 // 对齐 IDA 0x1400DB4F0: 黑名单添加请求
 struct PS_REQ_FRIEND_BLOCK_ADD {
-    std::uint32_t dwReqUCID = 0;
+    std::uint32_t dwReqUAID = 0;
     wchar_t strTargetName[21] = {};
 };
 
+static_assert(sizeof(PS_REQ_FRIEND_BLOCK_ADD) == 48, "PS_REQ_FRIEND_BLOCK_ADD size must match PDB");
+
 // 对齐 IDA: 黑名单删除请求（与 BLOCK_ADD 布局相同）
 struct PS_REQ_FRIEND_BLOCK_DELETE {
-    std::uint32_t dwReqUCID = 0;
+    std::uint32_t dwReqUAID = 0;
     wchar_t strTargetName[21] = {};
 };
+
+static_assert(sizeof(PS_REQ_FRIEND_BLOCK_DELETE) == 48, "PS_REQ_FRIEND_BLOCK_DELETE size must match PDB");
 
 // 对齐 IDA 0x1400E1AD0: 好友查找请求
 struct PS_REQ_FRIEND_FIND {
@@ -288,7 +292,7 @@ struct ST_RECOMMAND_FRIEND_INFO {
 
 // 对齐 IDA 0x1400E2180: 好友推荐响应
 struct PS_RES_FRIEND_RECOMMAND {
-    std::uint32_t dwReqUCID = 0;
+    std::uint32_t dwUCID = 0;
     std::vector<ST_RECOMMAND_FRIEND_INFO> vecFriends;
 };
 
@@ -965,29 +969,37 @@ inline void operator>>(XPacket& packet, PS_REQ_FRIEND_ACCEPT& value) {
     packet.XParse >> value.bAccept;
 }
 
+inline XPacket& operator<<(XPacket& packet, const PS_REQ_FRIEND_ACCEPT& value) {
+    packet.XParse << value.dwReqUCID;
+    packet.XParse << value.dwTargetUCID;
+    packet.XParse << GreenDamTan_BoundedWideString(value.strTargetUserName);
+    packet.XParse << value.bAccept;
+    return packet;
+}
+
 // PS_REQ_FRIEND_BLOCK_ADD 对齐 IDA 0x1400DB4F0
 inline XPacket& operator<<(XPacket& packet, const PS_REQ_FRIEND_BLOCK_ADD& value) {
-    packet.XParse << value.dwReqUCID;
+    packet.XParse << value.dwReqUAID;
     packet.XParse << GreenDamTan_BoundedWideString(value.strTargetName);
     return packet;
 }
 
 inline void operator>>(XPacket& packet, PS_REQ_FRIEND_BLOCK_ADD& value) {
     short outLen = 0;
-    packet.XParse >> value.dwReqUCID;
+    packet.XParse >> value.dwReqUAID;
     packet.XParse.GetWString(value.strTargetName, 21, outLen);
 }
 
 // PS_REQ_FRIEND_BLOCK_DELETE 与 BLOCK_ADD 布局相同
 inline XPacket& operator<<(XPacket& packet, const PS_REQ_FRIEND_BLOCK_DELETE& value) {
-    packet.XParse << value.dwReqUCID;
+    packet.XParse << value.dwReqUAID;
     packet.XParse << GreenDamTan_BoundedWideString(value.strTargetName);
     return packet;
 }
 
 inline void operator>>(XPacket& packet, PS_REQ_FRIEND_BLOCK_DELETE& value) {
     short outLen = 0;
-    packet.XParse >> value.dwReqUCID;
+    packet.XParse >> value.dwReqUAID;
     packet.XParse.GetWString(value.strTargetName, 21, outLen);
 }
 
@@ -1033,7 +1045,7 @@ inline void operator>>(XPacket& packet, ST_RECOMMAND_FRIEND_INFO& value) {
 
 // PS_RES_FRIEND_RECOMMAND 对齐 IDA 0x1400E2180
 inline XPacket& operator<<(XPacket& packet, const PS_RES_FRIEND_RECOMMAND& value) {
-    packet.XParse << value.dwReqUCID;
+    packet.XParse << value.dwUCID;
     const std::uint8_t count = static_cast<std::uint8_t>(std::min<std::size_t>(value.vecFriends.size(), 255));
     packet.XParse << count;
     for (std::size_t i = 0; i < count; ++i) {
@@ -1044,7 +1056,7 @@ inline XPacket& operator<<(XPacket& packet, const PS_RES_FRIEND_RECOMMAND& value
 
 inline void operator>>(XPacket& packet, PS_RES_FRIEND_RECOMMAND& value) {
     std::uint8_t count = 0;
-    packet.XParse >> value.dwReqUCID;
+    packet.XParse >> value.dwUCID;
     packet.XParse >> count;
     value.vecFriends.clear();
     value.vecFriends.reserve(count);

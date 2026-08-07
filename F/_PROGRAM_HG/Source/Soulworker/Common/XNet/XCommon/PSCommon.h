@@ -1945,6 +1945,13 @@ inline void operator>>(XPacket& packet, PS_SG_TOKEN_UPDATE& value) {
     packet.XParse >> value.bRenew;
 }
 
+inline XPacket& operator<<(XPacket& packet, const PS_SG_TOKEN_UPDATE& value) {
+    packet.XParse << std::wstring(value.szAcessToken);
+    packet.XParse << std::wstring(value.szRefreshToken);
+    packet.XParse << value.bRenew;
+    return packet;
+}
+
 inline void operator>>(XPacket& packet, PS_GAME_GUARD_AUTH& value) {
     packet.XParse.GetBytes(reinterpret_cast<char*>(value.bPacket), sizeof(value.bPacket));
     packet.XParse >> value.dwServerNumber;
@@ -3579,6 +3586,31 @@ inline void operator>>(XPacket& packet, PS_EVENT_NETCAFE_ITEM_BUY& value) {
 inline XPacket& operator<<(XPacket& packet, const PS_EVENT_NETCAFE_ITEM_BUY& value) {
     packet.XParse << static_cast<std::uint16_t>(value.vecItemIDList.size());
     for (const std::uint32_t itemID : value.vecItemIDList) {
+        packet.XParse << itemID;
+    }
+    return packet;
+}
+
+// PDB: PS_EVENT_NETCAFE_ITEM_DELETE (UDT 0xe4d0, 32 bytes) = vector<unsigned long>
+struct PS_EVENT_NETCAFE_ITEM_DELETE {
+    std::vector<std::uint32_t> vecDeleteItem;
+};
+
+inline void operator>>(XPacket& packet, PS_EVENT_NETCAFE_ITEM_DELETE& value) {
+    std::uint16_t count = 0;
+    packet.XParse >> count;
+    value.vecDeleteItem.clear();
+    value.vecDeleteItem.reserve(count);
+    for (std::uint16_t i = 0; i < count; ++i) {
+        std::uint32_t itemID = 0;
+        packet.XParse >> itemID;
+        value.vecDeleteItem.push_back(itemID);
+    }
+}
+
+inline XPacket& operator<<(XPacket& packet, const PS_EVENT_NETCAFE_ITEM_DELETE& value) {
+    packet.XParse << static_cast<std::uint16_t>(value.vecDeleteItem.size());
+    for (const std::uint32_t itemID : value.vecDeleteItem) {
         packet.XParse << itemID;
     }
     return packet;

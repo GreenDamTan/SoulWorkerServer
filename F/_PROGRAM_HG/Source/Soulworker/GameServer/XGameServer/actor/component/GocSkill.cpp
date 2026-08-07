@@ -4,6 +4,7 @@
 #include "Soulworker/GameServer/XGameServer/Actor/Component/Skill.h"
 #include "Soulworker/GameServer/XGameServer/User.h"
 #include "Soulworker/GameServer/XGameServer/actor/component/GocNetwork.h"
+#include "Soulworker/GameServer/XGameServer/actor/component/GocAttribute.h"
 #include "Soulworker/Common/XNet/XIOCPBase/Packet.h"
 #include <cstring>
 
@@ -1186,59 +1187,79 @@ void CGocSkill::ClearPassiveSkillStat(std::uint16_t wBuffID)
 void CGocSkill::CheckPassiveSkill(std::uint8_t byType)
 {
     // IDA 0x14016DEA0 (完整还原):
-    // 这是一个大型函数，遍历被动技能并处理条件触发
-    //
-    // 伪代码逻辑:
-    // CUser* pUser = _RTDynamicCast_0(owner, &CMover RTTI, &CUser RTTI, 0);
-    // if (pUser) {
-    //     CMySkillList* pSkillMgr = pUser->GetSkillMgr();
-    //     if (pSkillMgr) {
-    //         bool bUpdateStat = false;
-    //         if (IsModeState()) {
-    //             // 遍历 m_vPassiveModeSkill
-    //             for (auto& pSkillData : m_vPassiveModeSkill) {
-    //                 if (pSkillData && pSkillData->GetTable()) {
-    //                     TB_SKILL* pSkillTable = pSkillData->GetTable();
-    //                     if (pSkillTable->Behavior_Condition == byType) {
-    //                         float fCooltime = pSkillMgr->GetCooltime(E_COOLTIME_SKILL,
-    //                             pSkillTable->CoolTime_Group, pSkillTable->CoolTime_Global, false);
-    //                         if (fCooltime == 0.0f) {
-    //                             bUpdateStat = true;
-    //                             SetPassiveSkillStat(pSkillTable->Passive_Value);
-    //                             pSkillMgr->SetSkillCooltime(pSkillTable);
-    //                             // 发送冷却包给客户端
-    //                         }
-    //                     }
-    //                 }
-    //             }
-    //         } else {
-    //             // 遍历 m_vPassiveSkill
-    //             for (auto& pSkillData : m_vPassiveSkill) {
-    //                 if (pSkillData && pSkillData->GetTable()) {
-    //                     TB_SKILL* pSkillTable = pSkillData->GetTable();
-    //                     if (pSkillTable->Behavior_Condition == byType) {
-    //                         float fCooltime = pSkillMgr->GetCooltime(E_COOLTIME_SKILL,
-    //                             pSkillTable->CoolTime_Group, pSkillTable->CoolTime_Global, false);
-    //                         if (fCooltime == 0.0f) {
-    //                             bUpdateStat = true;
-    //                             SetPassiveSkillStat(pSkillTable->Passive_Value);
-    //                             pSkillMgr->SetSkillCooltime(pSkillTable);
-    //                             // 发送冷却包给客户端 (main=6, sub=0x7E)
-    //                         }
-    //                     }
-    //                 }
-    //             }
-    //         }
-    //         if (bUpdateStat) {
-    //             // 更新属性
-    //             auto pAttr = pUser->GetGOC<CGocAttribute>();
-    //             if (pAttr) pAttr->UpdateStat();
-    //         }
+    // pUser = dynamic_cast<CUser*>(GetOwnerGO()); if (pUser) {
+    //   pSkillMgr = pUser->GetSkillMgr(); if (pSkillMgr) {
+    //     bUpdateStat = 0;
+    //     if (IsModeState()) {
+    //       遍历 m_vPassiveModeSkill; 每个 pSkillData 取表:
+    //       if (pSkillTable->Behavior_Condition == byCondition
+    //           && GetCooltime(E_COOLTIME_SKILL, CoolTime_Group, CoolTime_Global, 0) == 0.0f) {
+    //         bUpdateStat = 1; SetPassiveSkillStat(Passive_Value); SetSkillCooltime(pSkillTable);
+    //         if (CoolTime) { XSendPacket(6, 0x7E) << GetUCID << Skill_Index; CGocNetwork::Send; }
+    //       }
+    //     } else {
+    //       遍历 m_vPassiveSkill; 同样逻辑
     //     }
+    //     if (bUpdateStat) { pAttr = pUser->GetGOC<CGocAttribute>(); if (pAttr) pAttr->UpdateStat(); }
+    //   }
     // }
+    CUser* pUser = dynamic_cast<CUser*>(GetOwnerGO());
+    if (!pUser)
+        return;
 
-    // TODO: 需要CUser, TB_SKILL, CMySkillList, CGocAttribute等依赖
-    (void)byType;
+    CMySkillList* pSkillMgr = pUser->GetSkillMgr();
+    if (!pSkillMgr)
+        return;
+
+    bool bUpdateStat = false;
+
+    if (IsModeState()) {
+        for (auto& pSkillData : m_vPassiveModeSkill) {
+            if (!pSkillData)
+                return;
+            TB_SKILL* pSkillTable = pSkillData->GetTable();
+            if (pSkillTable->Behavior_Condition == byType &&
+                pSkillMgr->GetCooltime(E_COOLTIME_SKILL, pSkillTable->CoolTime_Group,
+                                        pSkillTable->CoolTime_Global, 0) == 0.0f) {
+                bUpdateStat = true;
+                SetPassiveSkillStat(pSkillTable->Passive_Value);
+                pSkillMgr->SetSkillCooltime(pSkillTable);
+                if (pSkillTable->CoolTime) {
+                    XSendPacket packet(6, 0x7E);
+                    packet.XParse << pUser->GetUCID();
+                    packet.XParse << pSkillTable->Skill_Index;
+                    CGocNetwork::Send(GetOwnerGO(), packet);
+                }
+            }
+        }
+    } else {
+        for (auto& pSkillData : m_vPassiveSkill) {
+            if (!pSkillData)
+                return;
+            TB_SKILL* pSkillTable = pSkillData->GetTable();
+            if (pSkillTable->Behavior_Condition == byType &&
+                pSkillMgr->GetCooltime(E_COOLTIME_SKILL, pSkillTable->CoolTime_Group,
+                                        pSkillTable->CoolTime_Global, 0) == 0.0f) {
+                bUpdateStat = true;
+                SetPassiveSkillStat(pSkillTable->Passive_Value);
+                pSkillMgr->SetSkillCooltime(pSkillTable);
+                if (pSkillTable->CoolTime) {
+                    XSendPacket xSendPacket(6, 0x7E);
+                    xSendPacket.XParse << pUser->GetUCID();
+                    xSendPacket.XParse << pSkillTable->Skill_Index;
+                    CGocNetwork::Send(GetOwnerGO(), xSendPacket);
+                }
+            }
+        }
+    }
+
+    if (bUpdateStat) {
+        std::shared_ptr<CGocAttribute> pAttr = pUser->GetGOC_Attribute(false);
+        if (pAttr) {
+            // IDA: v44->__vftable[4].Finalize(v44) -> 属性变更后刷新并同步客户端
+            pAttr->SendUpdateStatList();
+        }
+    }
 }
 
 // ============================================================================

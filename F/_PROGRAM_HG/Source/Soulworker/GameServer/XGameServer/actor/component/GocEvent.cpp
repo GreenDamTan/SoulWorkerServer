@@ -4,6 +4,7 @@
 #include "Soulworker/GameServer/XGameServer/User.h"
 #include "Soulworker/GameServer/XGameServer/GameServer.h"
 #include "Soulworker/GameServer/XCore/XArea/XActor.h"
+#include "Soulworker/GameServer/XGameServer/Item/CItem.h"
 #include "Soulworker/Common/XNet/XCommon/PSServer/PSServerLogin.h"
 #include "Soulworker/Common/XNet/XCommon/PSServer/PSServerDB.h"
 #include "Soulworker/GameServer/XSCommon/Table/DBLoadTable.h"
@@ -282,14 +283,16 @@ void CGocEvent::AllDBUpdateNetCafeMission() {
 //   return result;
 // }
 bool CGocEvent::CheckAccountEvent(unsigned int dwEventID) {
-    // IDA精确还原：特殊事件ID 255 检查用户状态
-    // Event ID 255 是特殊账号事件，需要检查 CUser 的状态
+    // IDA 0x140069080: result = false;
+    // if (dwEventID == 255) {
+    //   v2 = GetOwnerGO();  // XActor
+    //   if (v2->GetStatus() == 6) return true;
+    // }
+    // return false;
     if (dwEventID == 255) {
-        // IDA: 通过 RTTI dynamic_cast 获取 CUser，然后调用虚函数检查状态
-        // 需要 GetOwner<CUser>() 和状态检查虚函数调用
-        // TODO: 需要完整实现 CUser RTTI 访问
-        // 原始逻辑: pUser->虚函数(检查状态) == 6
-        return false;
+        XActor* pOwner = GetOwnerGO();
+        if (pOwner && pOwner->GetStatus() == 6)
+            return true;
     }
     return false;
 }
@@ -517,49 +520,93 @@ int CGocEvent::ReqWorldEventInfo(PS_WORLD_EVENT_INFO_REQ& psReq) {
 // 世界事件注册请求 - 注册事件物品贡献
 // IDA精确还原：验证事件、查找物品、锁定物品、发送DB请求
 int CGocEvent::ReqWorldEventRegister(PS_WORLD_EVENT_REGISTER_REQ& psReq) {
-    // IDA: 错误码定义
-    // 59002 = 事件不存在
-    // 59003 = 事件未激活或不在时间范围
-    // 59007 = 正在处理中
-    // 52001 = 背包组件获取失败
-    // 52004 = 物品表不存在
-    // 52014 = 物品不存在
-    
+    // IDA 0x140069D90:
+    // 错误码: 59007=处理中, 59002=事件不存在, 59003=未激活/超时, 52001=背包组件失败, 52004=物品表不存在, 52014=物品不存在
     if (m_bWorldEventDBCall) {
         return 59007;
     }
 
-    // IDA核心流程：
-    // 1. PS_DB_WORLD_EVENT_REGISTER_REQ psDBReq;
-    //    psDBReq.dwUCID = GetOwner()->GetUCID();
-    //    psDBReq.nEventID = psReq->nEventID;
-    // 2. TB_WORLD_EVENT* pTB_WORLD_EVENT = XResourceMgr::GetTB_WORLD_EVENT(psDBReq.nEventID);
-    //    if (!pTB_WORLD_EVENT) return 59002;
-    //    if (!pTB_WORLD_EVENT->event_activation) return 59003;
-    // 3. 检查事件时间范围 (同ReqWorldEventInfo)
-    // 4. TB_ITEM* pTB_ITEM = XResourceMgr::GetTB_ITEM(pTB_WORLD_EVENT->event_item_ID);
-    //    TB_ITEM_CLASSIFY* pTB_ITEM_CLASSIFY = XResourceMgr::GetTB_ITEM_CLASSIFY(pTB_ITEM->Item_Classify_Index);
-    // 5. CGocInventory* pInven = GetOwner()->GetGOC<CGocInventory>();
-    //    XBaseInventory* pBaseInven = pInven->GetTBInvenPtr(pTB_ITEM_CLASSIFY->Item_Inven_Type);
-    // 6. psDBReq.byInvenType = pTB_ITEM_CLASSIFY->Item_Inven_Type;
-    // 7. pBaseInven->GetSameItems_2(event_item_ID, &vecFindList); // 查找所有匹配物品
-    // 8. for (auto& pItem : vecFindList) {
-    //        if (!pBaseInven->GetLock(slot)) {
-    //            PS_STORAGE_INFO psInfo;
-    //            psInfo.byInvenType = pItem->GetInvenType();
-    //            psInfo.shSlotPos = pItem->GetSlot();
-    //            psInfo.stItem = pItem->GetItem();
-    //            psDBReq.stUpdateItem.push_back(psInfo);
-    //            psDBReq.nCount += pItem->GetCount();
-    //            pBaseInven->SetLock(slot, true); // 锁定物品
-    //        }
-    //    }
-    // 9. m_bWorldEventDBCall = true;
-    // 10. XSendDBPacket(pUser, 0x49, 0x28);
-    //     XGameServer::SendDBGame(&xSendDBPacket);
+    // IDA: PS_DB_WORLD_EVENT_REGISTER_REQ psDBReq; dwUCID=GetUCID; nEventID=psReq->nEventID
+    CUser* pUser = dynamic_cast<CUser*>(GetOwnerGO());
+    if (!pUser) {
+        return 59007;
+    }
+    PS_DB_WORLD_EVENT_REGISTER_REQ psDBReq;
+    psDBReq.dwUCID = pUser->GetUCID();
+    psDBReq.nEventID = psReq.nEventID;
 
+    XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+    TB_WORLD_EVENT* pTB_WORLD_EVENT = pServer->GetResourceMgr().GetTB_WORLD_EVENT(psDBReq.nEventID);
+    if (!pTB_WORLD_EVENT) {
+        return 59002;
+    }
+    if (!pTB_WORLD_EVENT->event_activation) {
+        return 59003;
+    }
+
+    // IDA: 时间范围检查 (event_start_date / event_end_date via sscanf)
+    ATL::CTime tCurr = ATL::CTime::GetTickCount();
+    int _year = 2000, _mon = 1, _day = 1, _hour = 0, _min = 0, _sec = 0;
+    sscanf_s(pTB_WORLD_EVENT->event_start_date, "%d-%d-%d %d:%d:%d", &_year, &_mon, &_day, &_hour, &_min, &_sec);
+    ATL::CTime tStart(_year, _mon, _day, _hour, _min, _sec, -1);
+    int nYear = 2000, nMonth = 1, nDay = 1, nHour = 0, nMin = 0, nSec = 0;
+    sscanf_s(pTB_WORLD_EVENT->event_end_date, "%d-%d-%d %d:%d:%d", &nYear, &nMonth, &nDay, &nHour, &nMin, &nSec);
+    ATL::CTime tEnd(nYear, nMonth, nDay, nHour, nMin, nSec, -1);
+    if (tCurr.GetTime() < tStart.GetTime() || tEnd.GetTime() < tCurr.GetTime()) {
+        return 59003;
+    }
+
+    // IDA: GetTB_ITEM(event_item_ID); GetTB_ITEM_CLASSIFY(Item_Classify_Index)
+    TB_ITEM* pTB_ITEM = pServer->GetResourceMgr().GetTB_ITEM(pTB_WORLD_EVENT->event_item_ID);
+    if (!pTB_ITEM) {
+        return 52004;
+    }
+    TB_ITEM_CLASSIFY* pTB_ITEM_CLASSIFY = pServer->GetResourceMgr().GetTB_ITEM_CLASSIFY(pTB_ITEM->Item_Classify_Index);
+    if (!pTB_ITEM_CLASSIFY) {
+        return 52004;
+    }
+
+    // IDA: GetGOC<CGocInventory>; GetTBInvenPtr(Item_Inven_Type)
+    std::shared_ptr<CGocInventory> pInvenPtr = pUser->GetGOC_Inventory(false);
+    if (!pInvenPtr) {
+        return 52001;
+    }
+    XBaseInventory* pBaseInven = pInvenPtr->GetTBInvenPtr(pTB_ITEM_CLASSIFY->Item_Inven_Type);
+    if (!pBaseInven) {
+        return 52001;
+    }
+
+    psDBReq.byInvenType = pTB_ITEM_CLASSIFY->Item_Inven_Type;
+
+    // IDA: GetSameItems_2(event_item_ID, &vecFindList, -1)
+    std::vector<std::shared_ptr<CItem>> vecFindList;
+    pBaseInven->GetSameItems_2(pTB_WORLD_EVENT->event_item_ID, &vecFindList, -1);
+    if (vecFindList.empty()) {
+        return 52014;
+    }
+
+    // IDA: for each found item, if !GetLock(slot), lock + collect
+    for (auto& pItem : vecFindList) {
+        if (!pItem)
+            continue;
+        std::int16_t shSlot = pItem->GetSlot();
+        if (!pBaseInven->GetLock(shSlot)) {
+            PS_STORAGE_INFO psInfo;
+            psInfo.byInvenType = pItem->GetInvenType();
+            psInfo.shSlotPos = shSlot;
+            pItem->GetItem(&psInfo.stItem);
+            psInfo.stItem.sCount = 0;
+            psDBReq.stUpdateItem.vecItem.push_back(psInfo);
+            psDBReq.nCount += pItem->GetCount();
+            pBaseInven->SetLock(shSlot, 84);  // IDA: SetLock(slot, 84)
+        }
+    }
+
+    // IDA: m_bWorldEventDBCall = 1; XSendDBPacket(owner, 0x49, 0x28) << psDBReq; SendDBGame
     m_bWorldEventDBCall = true;
-    (void)psReq;
+    XSendDBPacket xSendDBPacket(GetOwnerGO(), 0x49, 0x28);
+    xSendDBPacket << psDBReq;
+    TXSingleton<XGameServer>::Instance()->SendDBGame(xSendDBPacket);
     return 0;
 }
 
@@ -810,176 +857,273 @@ int CGocEvent::ReqWorldEventDailyReward(PS_WORLD_EVENT_DAILY_REWARD_REQ& psReq) 
 
 // IDA: 0x14006BD30 - ResWorldEventInfo
 // 处理DB世界事件信息响应，发送响应给客户端
-// IDA精确还原：验证事件、限制计数、发送客户端包
 void CGocEvent::ResWorldEventInfo(PS_DB_WORLD_EVENT_INFO_RES& psRes) {
-    // 重置DB调用标志
     m_bWorldEventDBCall = false;
 
-    // IDA核心流程：
-    // 1. CUser* pUser = dynamic_cast<CUser*>(GetOwner());
-    //    if (!pUser) return;
-    // 2. XGameServer* pServer = TXSingleton<XGameServer>::Instance();
-    //    TB_WORLD_EVENT* pTB_WORLD_EVENT = XResourceMgr::GetTB_WORLD_EVENT(&pServer->m_xResourceMgr, psRes.psInfo.nEventID);
-    // 3. if (!pTB_WORLD_EVENT) {
-    //        CUser::SendErrorMessage(pUser, 0x2A, 0x22, 0xE67A); // 59002
-    //        return;
-    //    }
-    // 4. if (pTB_WORLD_EVENT->event_item_amount_max < psRes.psInfo.nTotalCount) {
-    //        psRes.psInfo.nTotalCount = pTB_WORLD_EVENT->event_item_amount_max;
-    //    }
-    // 5. psRes.byDailyRewardState = SetWorldEventInfo(
-    //        psRes.psInfo.nEventID,
-    //        psRes.psInfo.nTotalCount,
-    //        psRes.psInfo.nMyCount,
-    //        psRes.biLastRegisterDate,
-    //        psRes.biDailyRewardDate
-    //    );
-    // 6. PS_WORLD_EVENT_INFO_RES psClientRes;
-    //    psClientRes.nEventID = psRes.psInfo.nEventID;
-    //    psClientRes.nTotalCount = psRes.psInfo.nTotalCount;
-    //    psClientRes.nMyCount = psRes.psInfo.nMyCount;
-    //    psClientRes.byDailyRewardState = psRes.byDailyRewardState;
-    //    psClientRes.vecRewardInfo = psRes.psInfo.vecRewardInfo;
-    // 7. XSendPacket xSendPacket(0x2A, 0x22);
-    //    xSendPacket << psClientRes;
-    //    CGocNetwork::Send(&pUser->XActor, &xSendPacket);
+    CUser* pUser = dynamic_cast<CUser*>(GetOwnerGO());
+    if (!pUser)
+        return;
 
-    (void)psRes;
+    // IDA: PS_WORLD_EVENT_INFO_RES psRes = psDBRes->psInfo; (拷贝，后续会修正计数)
+    PS_WORLD_EVENT_INFO_RES psClientRes = psRes.psInfo;
+
+    XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+    TB_WORLD_EVENT* pTB_WORLD_EVENT = pServer->GetResourceMgr().GetTB_WORLD_EVENT(psRes.psInfo.nEventID);
+    if (pTB_WORLD_EVENT) {
+        if (pTB_WORLD_EVENT->event_item_amount_max < psClientRes.nTotalCount)
+            psClientRes.nTotalCount = pTB_WORLD_EVENT->event_item_amount_max;
+
+        psClientRes.byDailyRewardState = SetWorldEventInfo(psClientRes, psRes.biLastRegisterDate, psRes.biDailyRewardDate);
+
+        XSendPacket xSendPacket(0x2A, 0x22);
+        xSendPacket << psClientRes;
+        CGocNetwork::Send(GetOwnerGO(), xSendPacket);
+    } else {
+        pUser->SendErrorMessage(0x2A, 0x22, 0xE67A);  // IDA: 59002
+    }
 }
 
 // IDA: 0x14006BF80 - ResWorldEventRegister
-// 处理DB世界事件注册响应
-// IDA精确还原：解锁物品、更新计数、发送响应
+// 处理DB世界事件注册响应：解锁/移除提交的物品，更新计数，发送客户端响应与日志
 void CGocEvent::ResWorldEventRegister(PS_DB_WORLD_EVENT_REGISTER_RES& psRes) {
     m_bWorldEventDBCall = false;
 
-    // IDA核心流程：
-    // 1. CUser* pUser = dynamic_cast<CUser*>(GetOwner());
-    //    if (!pUser) return;
-    // 2. TB_WORLD_EVENT* pTB_WORLD_EVENT = XResourceMgr::GetTB_WORLD_EVENT(psRes.nEventID);
-    //    if (!pTB_WORLD_EVENT) return;
-    // 3. CGocInventory* pInven = pUser->GetGOC<CGocInventory>();
-    //    if (!pInven) return;
-    // 4. XBaseInventory* pBaseInven = pInven->GetTBInvenPtr(psRes.byInvenType);
-    // 5. if (psRes.nError) {
-    //        // 错误：解锁所有物品
-    //        for (auto& item : psRes.stUpdateItem) {
-    //            pBaseInven->SetLock(item.shSlotPos, false);
-    //        }
-    //        CUser::SendErrorMessage(pUser, 0x2A, 0x23, psRes.nError);
-    //        return;
-    //    }
-    // 6. // 成功：移除物品
-    //    for (auto& item : psRes.stUpdateItem) {
-    //        pBaseInven->RemoveItem(item.shSlotPos, item.stItem.shCount);
-    //        // 发送统计日志
-    //        XGameServer::SendStatisticsLog(...);
-    //    }
-    // 7. // 更新世界事件计数
-    //    biLastRegisterDate = XGameServer::GetBeforeInitDate();
-    //    SetWorldEventInfo(psRes.nEventID, psRes.nTotalCount + psRes.nRegisterCount, 
-    //                      psRes.nMyCount + psRes.nRegisterCount, biLastRegisterDate, 0);
-    // 8. // 发送成功响应
-    //    PS_WORLD_EVENT_REGISTER_RES psClientRes;
-    //    psClientRes.nEventID = psRes.nEventID;
-    //    psClientRes.nTotalCount = psRes.nTotalCount + psRes.nRegisterCount;
-    //    psClientRes.nMyCount = psRes.nMyCount + psRes.nRegisterCount;
-    //    psClientRes.nRegisterCount = psRes.nRegisterCount;
-    //    XSendPacket xSendPacket(0x2A, 0x23);
-    //    xSendPacket << psClientRes;
-    //    CGocNetwork::Send(&pUser->XActor, &xSendPacket);
-    // 9. // 发送日志到DB
-    //    XSendDBPacket xSendDBPacket(pUser, 0x02, 0x57);
-    //    XGameServer::SendDBGame(&xSendDBPacket);
+    CUser* pUser = dynamic_cast<CUser*>(GetOwnerGO());
+    if (!pUser)
+        return;
 
-    (void)psRes;
+    XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+    TB_WORLD_EVENT* pTB_WORLD_EVENT = pServer->GetResourceMgr().GetTB_WORLD_EVENT(psRes.psReq.nEventID);
+    if (!pTB_WORLD_EVENT) {
+        pUser->SendErrorMessage(0x2A, 0x23, 0xCB24);  // IDA: 52004
+        return;
+    }
+
+    std::shared_ptr<CGocInventory> pInvenPtr = pUser->GetGOC_Inventory(false);
+    XBaseInventory* pBaseInven = pInvenPtr ? pInvenPtr->GetTBInvenPtr(psRes.psReq.byInvenType) : nullptr;
+    if (!pBaseInven) {
+        pUser->SendErrorMessage(0x2A, 0x23, 0xCB21);  // IDA: 52001
+        return;
+    }
+
+    // IDA: 先解锁所有提交的物品槽位 (SetLock(slot, 0))
+    for (auto& stItem : psRes.psReq.stUpdateItem.vecItem) {
+        pBaseInven->SetLock(stItem.shSlotPos, 0);
+    }
+
+    if (psRes.nError) {
+        pUser->SendErrorMessage(0x2A, 0x22, 0xCB21);  // IDA: 注册失败错误子命令 0x22
+        return;
+    }
+
+    // IDA: 移除物品并记录统计/变更日志 (仅整件删除: stItem.sCount <= 0)
+    for (auto& stItem : psRes.psReq.stUpdateItem.vecItem) {
+        std::shared_ptr<CItem> pItem = pBaseInven->GetItem(stItem.stItem.xSerial);
+        if (pItem && stItem.stItem.sCount <= 0) {
+            int nLogValue = -static_cast<int>(pItem->GetCount());
+            pBaseInven->RemoveItem(stItem.shSlotPos);
+
+            ST_STATISTICS_ITEM stStatistics;
+            stStatistics.byFlag = 3;
+            stStatistics.biSerial = stItem.stItem.xSerial;
+            XSendDBPacket xSendDBStatistics(GetOwnerGO(), 0xF0, 0x11);
+            xSendDBStatistics << stStatistics;
+            pServer->SendDBStatistics(xSendDBStatistics);
+
+            ST_LOG_GAME stLogGame;
+            stLogGame._sMainType = 4;
+            stLogGame._sSubType = 118;
+            stLogGame._nUAID = pUser->GetUAID();
+            stLogGame._nUCID = pUser->GetUCID();
+            stLogGame.nParam0 = pItem->GetID();
+            stLogGame.nParam1 = stItem.stItem.sCount;
+            stLogGame.nParam2 = psRes.psReq.nEventID;
+            // TODO: 推测结果 - IDA 反编译中 nParam3/nParam5 为类型污染无法确认
+            stLogGame.nParam11 = nLogValue;
+            stLogGame.nParam12 = stItem.stItem.sCount;
+            pServer->SendDBLog(stLogGame);
+        }
+    }
+
+    if (pTB_WORLD_EVENT->event_item_amount_max < psRes.nTotalCount)
+        psRes.nTotalCount = pTB_WORLD_EVENT->event_item_amount_max;
+
+    pInvenPtr->SendUpdateItem(psRes.psReq.stUpdateItem);
+
+    PS_WORLD_EVENT_REGISTER_RES psClientRes;
+    psClientRes.nEventID = psRes.psReq.nEventID;
+    psClientRes.nCount = psRes.psReq.nCount;
+    psClientRes.nTotalCount = psRes.nTotalCount;
+    psClientRes.nMyCount = psRes.nMyCount;
+    psClientRes.byDailyRewardState = SetWorldEventInfo(psClientRes.nEventID, psClientRes.nTotalCount,
+                                                       psClientRes.nMyCount, psRes.biLastRegisterDate,
+                                                       GetWorldEventDailyRewardDate(psRes.psReq.nEventID));
+
+    XSendPacket xSendPacket(0x2A, 0x23);
+    xSendPacket << psClientRes;
+    CGocNetwork::Send(GetOwnerGO(), xSendPacket);
+
+    ST_LOG_GAME stLog;
+    stLog._nUAID = pUser->GetUAID();
+    stLog._nUCID = pUser->GetUCID();
+    stLog._sMainType = 25;
+    stLog._sSubType = 30;
+    stLog.nParam0 = psClientRes.nEventID;
+    stLog.nParam1 = pTB_WORLD_EVENT->event_item_ID;
+    stLog.nParam2 = psClientRes.nCount;
+    stLog.nParam3 = psClientRes.byDailyRewardState;
+    stLog.nParam4 = GetWorldEventMyCount(psClientRes.nEventID);
+    stLog.nParam5 = static_cast<std::int64_t>(GetWorldEventTotalCount(psClientRes.nEventID));
+    stLog.nParam6 = pTB_WORLD_EVENT->event_item_amount_max;
+    pServer->SendDBLog(stLog);
 }
 
 // IDA: 0x14006C880 - ResWorldEventReward
-// 处理DB世界事件奖励响应
-// IDA精确还原：添加奖励记录、发送响应、发送日志
+// 处理DB世界事件奖励响应：按奖励类型派发物品/邮件，添加领取记录，发送响应与日志
 void CGocEvent::ResWorldEventReward(PS_DB_WORLD_EVENT_REWARD& psRes) {
     m_bWorldEventDBCall = false;
 
-    // IDA核心流程：
-    // 1. CUser* pUser = dynamic_cast<CUser*>(GetOwner());
-    //    if (!pUser) return;
-    // 2. if (psRes.nError) {
-    //        CUser::SendErrorMessage(pUser, 0x2A, 0x24, psRes.nError);
-    //        return;
-    //    }
-    // 3. // 根据奖励类型处理
-    //    if (psRes.psReq.byRewardType == 1) {
-    //        // 个人贡献度奖励：物品已在ReqWorldEventReward中创建
-    //        // 发送更新/创建物品包给客户端
-    //        XSendPacket xSendPacket(0x52, 0x0C); // UpdateInventory?
-    //        xSendPacket << psRes.stUpdateItem;
-    //        CGocNetwork::Send(&pUser->XActor, &xSendPacket);
-    //    } else {
-    //        // 总贡献度奖励：通过邮件发送
-    //        PS_DB_ACCOUNT_POST_DATA psPostData;
-    //        psPostData.dwUAID = pUser->GetUAID();
-    //        psPostData.nPostType = 10; // 事件奖励邮件类型
-    //        psPostData.nItemID = psRes.dwRewardItemID;
-    //        psPostData.shCount = psRes.shRewardCount;
-    //        XSendDBPacket xSendDBPacket(pUser, 0x49, 0x2B);
-    //        XGameServer::SendDBGame(&xSendDBPacket);
-    //    }
-    // 4. // 添加奖励到已领取列表
-    //    ST_LEVEL_UP_EVENT_DATA stInfo;
-    //    stInfo.nRewardIndex = psRes.psReq.nRewardIndex;
-    //    stInfo.byRewardType = psRes.psReq.byRewardType;
-    //    stInfo.byRewardState = 2; // 已领取
-    //    AddWorldEventReward(stInfo);
-    // 5. // 发送奖励响应给客户端
-    //    PS_WORLD_EVENT_REWARD_RES psClientRes;
-    //    psClientRes.nEventID = psRes.psReq.nEventID;
-    //    psClientRes.nRewardIndex = psRes.psReq.nRewardIndex;
-    //    psClientRes.byRewardType = psRes.psReq.byRewardType;
-    //    XSendPacket xSendPacket(0x2A, 0x24);
-    //    xSendPacket << psClientRes;
-    //    CGocNetwork::Send(&pUser->XActor, &xSendPacket);
-    // 6. // 发送日志到DB
-    //    XSendDBPacket xSendDBPacket(pUser, 0x02, 0x58);
-    //    XGameServer::SendDBGame(&xSendDBPacket);
+    CUser* pUser = dynamic_cast<CUser*>(GetOwnerGO());
+    if (!pUser)
+        return;
 
-    (void)psRes;
+    if (psRes.nError) {
+        LogHelper::LogError("game.contents",
+                            "ResWorldEventReward error - UAID:%d, UCID:%d, Error:%d (%d)",
+                            pUser->GetUAID(), pUser->GetUCID(), psRes.nError, 787);
+        pUser->SendErrorMessage(0x2A, 0x24, 0xE67D);  // IDA: 59005
+        return;
+    }
+
+    if (psRes.psReq.byRewardType == 1) {
+        // IDA: 个人贡献度奖励 - 物品已创建，向客户端发送更新/创建包
+        std::shared_ptr<CGocInventory> pInvenPtr = pUser->GetGOC_Inventory(false);
+        if (pInvenPtr) {
+            pInvenPtr->SendUpdateItem(psRes.stUpdateItem);
+            pInvenPtr->SendCreateItem(psRes.stCreateItem);
+        }
+    } else if (psRes.psReq.byRewardType == 0) {
+        // IDA: 总贡献度奖励 - 通过系统邮件发放
+        ST_ACCOUNT_POST_DATA stAccountPostData;
+        stAccountPostData.byMainType = 4;
+        stAccountPostData.bySubType = XGameServer::Instance()->GetSystemPostTableIndex(0xD, 2);
+        stAccountPostData.dwUAID = pUser->GetUAID();
+        stAccountPostData.biRegTime = XGameServer::Instance()->GetCurDate();
+        stAccountPostData.biDelDate = XGameServer::Instance()->GetCurDate() + 29454;
+        stAccountPostData.stItemList[0].xSerial = 0;
+        stAccountPostData.stItemList[0].nItemID = psRes.dwRewardItemID;
+        stAccountPostData.stItemList[0].sCount = psRes.shRewardCount;
+
+        if (!stAccountPostData.bySubType) {
+            LogHelper::LogError("game.contents",
+                                "Send WorldEventReward Post error - Check TB_SystemMail(UAID:%d) (%d)",
+                                pUser->GetUAID(), 817);
+        }
+
+        XSendDBPacket xSendDBPacket(GetOwnerGO(), 6, 0x18);
+        xSendDBPacket << stAccountPostData;
+        XGameServer::Instance()->SendDBGame(xSendDBPacket);
+    }
+
+    // IDA: 记录已领取
+    ST_WORLD_EVENT_REWARD_INFO stInfo;
+    stInfo.nRewardIndex = psRes.psReq.nRewardIndex;
+    stInfo.byRewardType = psRes.psReq.byRewardType;
+    stInfo.byRewardState = 2;
+    AddWorldEventReward(stInfo);
+
+    // IDA: 发送客户端响应 (RES 与 REQ 同布局，直接拷贝)
+    PS_WORLD_EVENT_REWARD_RES psClientRes;
+    psClientRes.nEventID = psRes.psReq.nEventID;
+    psClientRes.byRewardType = psRes.psReq.byRewardType;
+    psClientRes.nRewardIndex = psRes.psReq.nRewardIndex;
+    XSendPacket xSendPacket(0x2A, 0x24);
+    xSendPacket << psClientRes;
+    CGocNetwork::Send(GetOwnerGO(), xSendPacket);
+
+    XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+    TB_WORLD_EVENT* pTB_WORLD_EVENT = pServer->GetResourceMgr().GetTB_WORLD_EVENT(psRes.psReq.nEventID);
+    if (pTB_WORLD_EVENT) {
+        ST_LOG_GAME stLog;
+        stLog._nUAID = pUser->GetUAID();
+        stLog._nUCID = pUser->GetUCID();
+        stLog._sMainType = 25;
+        if (psRes.psReq.byRewardType == 1)
+            stLog._sSubType = 32;
+        else if (psRes.psReq.byRewardType == 0)
+            stLog._sSubType = 33;
+        stLog.nParam0 = psRes.psReq.nEventID;
+        stLog.nParam1 = psRes.dwRewardItemID;
+        stLog.nParam2 = psRes.shRewardCount;
+        stLog.nParam3 = psRes.psReq.nRewardIndex;
+        stLog.nParam4 = GetWorldEventMyCount(psRes.psReq.nEventID);
+        stLog.nParam5 = static_cast<std::int64_t>(GetWorldEventTotalCount(psRes.psReq.nEventID));
+        stLog.nParam6 = pTB_WORLD_EVENT->event_item_amount_max;
+        pServer->SendDBLog(stLog);
+    }
 }
 
 // IDA: 0x14006CF00 - ResWorldEventDailyReward
 // 处理DB世界事件每日奖励响应
 // IDA精确还原：更新每日奖励日期、发送响应、发送日志
 void CGocEvent::ResWorldEventDailyReward(PS_DB_WORLD_EVENT_DAILY_REWARD& psRes) {
+    // IDA 0x14006CF00:
+    // m_bWorldEventDBCall = 0;
+    // pUser = dynamic_cast<CUser*>(GetOwner()); if (pUser) {
+    //   if (psDBRes->nError) CUser::SendErrorMessage(pUser, 0x2A, 0x25, psRes.nError);
+    //   else {
+    //     biLast = GetWorldEventLastResisterDate(nEventID); nMy=GetWorldEventMyCount; nTotal=GetWorldEventTotalCount;
+    //     SetWorldEventInfo(nEventID, nTotal, nMy, biLast, biDailyRewardDate);
+    //     pInven = GetGOC<CGocInventory>; if (pInven) { SendUpdateItem(stUpdateItem); SendCreateItem(stCreateItem); }
+    //     psClientRes.nEventID = nEventID; XSendPacket(0x2A, 0x25) << psClientRes; Send;
+    //     TB_WORLD_EVENT = GetTB_WORLD_EVENT(nEventID); if (TB) { ST_LOG_GAME ... nParam0=nEventID nParam1=daily_reward_item_ID ... ; SendDBLog }
+    //   }
+    // }
     m_bWorldEventDBCall = false;
 
-    // IDA核心流程：
-    // 1. CUser* pUser = dynamic_cast<CUser*>(GetOwner());
-    //    if (!pUser) return;
-    // 2. if (psRes.nError) {
-    //        CUser::SendErrorMessage(pUser, 0x2A, 0x25, psRes.nError);
-    //        return;
-    //    }
-    // 3. // 更新世界事件信息（标记每日奖励已领取）
-    //    std::int64_t biLastRegisterDate = GetWorldEventLastResisterDate(psRes.nEventID);
-    //    int nMyCount = GetWorldEventMyCount(psRes.nEventID);
-    //    int nTotalCount = GetWorldEventTotalCount(psRes.nEventID);
-    //    SetWorldEventInfo(psRes.nEventID, nTotalCount, nMyCount, biLastRegisterDate, psRes.biDailyRewardDate);
-    // 4. // 发送更新/创建物品包给客户端
-    //    XSendPacket xSendPacket(0x52, 0x0C); // UpdateInventory?
-    //    xSendPacket << psRes.stUpdateItem;
-    //    CGocNetwork::Send(&pUser->XActor, &xSendPacket);
-    // 5. // 发送每日奖励响应给客户端
-    //    PS_WORLD_EVENT_DAILY_REWARD_RES psClientRes;
-    //    psClientRes.nEventID = psRes.nEventID;
-    //    psClientRes.biDailyRewardDate = psRes.biDailyRewardDate;
-    //    XSendPacket xSendPacket(0x2A, 0x25);
-    //    xSendPacket << psClientRes;
-    //    CGocNetwork::Send(&pUser->XActor, &xSendPacket);
-    // 6. // 发送日志到DB
-    //    XSendDBPacket xSendDBPacket(pUser, 0x02, 0x59);
-    //    XGameServer::SendDBGame(&xSendDBPacket);
+    CUser* pUser = dynamic_cast<CUser*>(GetOwnerGO());
+    if (!pUser)
+        return;
 
-    (void)psRes;
+    if (psRes.nError) {
+        pUser->SendErrorMessage(0x2A, 0x25, 0xCB3A);
+        return;
+    }
+
+    std::int64_t biLastRegisterDate = GetWorldEventLastResisterDate(psRes.nEventID);
+    int nMyCount = GetWorldEventMyCount(psRes.nEventID);
+    int nTotalCount = GetWorldEventTotalCount(psRes.nEventID);
+    SetWorldEventInfo(psRes.nEventID, nTotalCount, nMyCount, biLastRegisterDate, psRes.biDailyRewardDate);
+
+    std::shared_ptr<CGocInventory> pInvenPtr = pUser->GetGOC_Inventory(false);
+    if (pInvenPtr) {
+        pInvenPtr->SendUpdateItem(psRes.stUpdateItem);
+        pInvenPtr->SendCreateItem(psRes.stCreateItem);
+    }
+
+    // IDA: PS_RECRUIT_DELETE ctor placeholder for PS_WORLD_EVENT_DAILY_REWARD_RES; nEventID only serialized
+    struct { std::int32_t nEventID; } psClientRes;
+    psClientRes.nEventID = psRes.nEventID;
+    XSendPacket xSendPacket(0x2A, 0x25);
+    xSendPacket.XParse << psClientRes.nEventID;
+    CGocNetwork::Send(GetOwnerGO(), xSendPacket);
+
+    // IDA: log
+    TB_WORLD_EVENT* pTB_WORLD_EVENT = TXSingleton<XGameServer>::Instance()->GetResourceMgr().GetTB_WORLD_EVENT(psRes.nEventID);
+    if (pTB_WORLD_EVENT) {
+        ST_LOG_GAME stLog;
+        stLog._nUAID = pUser->GetUAID();
+        stLog._nUCID = pUser->GetUCID();
+        stLog._sMainType = 25;
+        stLog._sSubType = 31;
+        stLog.nParam0 = psRes.nEventID;
+        stLog.nParam1 = pTB_WORLD_EVENT->event_daily_reward_item_ID;
+        stLog.nParam2 = pTB_WORLD_EVENT->event_daily_reward_item_amount;
+        stLog.nParam4 = GetWorldEventMyCount(psRes.nEventID);
+        stLog.nParam5 = static_cast<int>(GetWorldEventTotalCount(psRes.nEventID));
+        stLog.nParam6 = pTB_WORLD_EVENT->event_item_amount_max;
+        TXSingleton<XGameServer>::Instance()->SendDBLog(stLog);
+    }
 }
 
 // ============================================================================

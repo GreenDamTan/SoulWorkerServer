@@ -77,6 +77,9 @@ public:
         }
     }
 
+    // IDA: ?GetInvenInfo@XBaseEquip@@QEAAXEAEAUPS_RES_STORAGE_INFO@@@Z @ 0x1402FDD50
+    virtual void GetInvenInfo(std::uint8_t byInvenType, PS_RES_STORAGE_INFO& stInvenInfo);
+
 protected:
     // PDB: XBaseEquip is 0x188 bytes. m_mapSetItem is preserved as a semantic
     // container; its current STL ABI is not claimed to match the original.

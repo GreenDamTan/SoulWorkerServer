@@ -3193,7 +3193,7 @@ void CGocInventory::SendInventory() {
         PS_OPEN_SLOT_INFO stSlotInfo;
 
         // IDA: Get inventory info
-        GetInvenInfo(byInvenType, &stInvenInfo);
+        GetInvenInfo(byInvenType, stInvenInfo);
 
         // IDA: Get inventory pointer for slot info
         XBaseInventory* pInven = GetInvenPtr(byInvenType);
@@ -3254,7 +3254,7 @@ void CGocInventory::SendBank() {
         PS_OPEN_SLOT_INFO stSlotInfo;
 
         // IDA: Get bank info
-        GetInvenInfo(byInvenType, &stInvenInfo);
+        GetInvenInfo(byInvenType, stInvenInfo);
 
         // IDA: Get bank pointer for slot info
         XBaseInventory* pInven = GetInvenPtr(byInvenType);
@@ -3352,13 +3352,35 @@ bool CGocInventory::CanUseItem(std::uint8_t byInvenType, std::int16_t shSlot) {
 }
 
 // IDA: 0x1400ACE80
-// Sends quick slot info to client
+// Sends quick slot items and akashic card deck to client (main=8, sub=0x26)
 void CGocInventory::SendQuickSlotInfo() {
-    // IDA-verified: Send all quick slot data to client
-    // XSendPacket xSendPacket(8, 0x40);
-    // for each quick slot type and index:
-    //   xSendPacket << m_QuickSlot[i][j];
-    // CGocNetwork::Send(pActor, &xSendPacket);
+    // IDA: PS_QUICKSLOT_ITEM stQuickSlotItem;  (default ctor)
+    PS_QUICKSLOT_ITEM stQuickSlotItem;
+
+    // IDA: PS_QUICKSLOT_CARD_VEC psQuickSlotCard;  (default ctor)
+    PS_QUICKSLOT_CARD_VEC psQuickSlotCard;
+
+    // IDA: for (i = 0; i < 4; ++i) *(_DWORD*)&stQuickSlotItem[4 * i + 4] = this->m_nQuickSlotItem[i];
+    for (int i = 0; i < 4; ++i)
+        stQuickSlotItem.uniItem[i] = static_cast<std::uint32_t>(m_nQuickSlotItem[i]);
+
+    // IDA: v3 = GetOwnerGO(); CMover::GetGOC<CGocAkashicRecord>(v3, &pAkashic, 0);
+    CMover* pOwner = GetOwnerGO();
+    std::shared_ptr<CGocAkashicRecord> pAkashic;
+    pOwner->GetGOC<CGocAkashicRecord>(&pAkashic, false);
+
+    // IDA: if (pAkashic) CGocAkashicRecord::GetQuickSlotInfo(pAkashic.get(), &psQuickSlotCard);
+    if (pAkashic) {
+        pAkashic->GetQuickSlotInfo(psQuickSlotCard);
+    }
+
+    // IDA: XSendPacket xSendPacket(8u, 0x26u); operator<< item; operator<< cardVec;
+    XSendPacket xSendPacket(8, 0x26);
+    xSendPacket << stQuickSlotItem;
+    xSendPacket << psQuickSlotCard;
+
+    // IDA: v12 = GetOwnerGO(); pActor = v12 ? (XActor*)v12 : nullptr; CGocNetwork::Send(pActor, &xSendPacket);
+    CGocNetwork::Send(GetOwnerGO(), xSendPacket);
 }
 
 // ============================================================================
@@ -8889,7 +8911,7 @@ int CGocInventory::GetCurItemsExp(void* stAkashicInfo, void* stInfo, int& nNeedG
 // IDA: 0x1400B2120
 // void __fastcall CGocInventory::GetInvenInfo(CGocInventory *this, unsigned __int8 byInvenType, PS_RES_STORAGE_INFO *stInvenInfo)
 // Routes to GetEquipPtr or GetInvenPtr based on type
-void CGocInventory::GetInvenInfo(std::uint8_t byInvenType, void* stInvenInfo) {
+void CGocInventory::GetInvenInfo(std::uint8_t byInvenType, PS_RES_STORAGE_INFO& stInvenInfo) {
     // IDA: Switch on byInvenType
     switch (byInvenType) {
         case 0:   // Ability equip
@@ -8898,7 +8920,7 @@ void CGocInventory::GetInvenInfo(std::uint8_t byInvenType, void* stInvenInfo) {
             // IDA: Equipment types - use GetEquipPtr
             XBaseEquip* pEquip = GetEquipPtr(byInvenType);
             if (pEquip) {
-                // XBaseEquip::GetInvenInfo(pEquip, byInvenType, stInvenInfo);
+                pEquip->GetInvenInfo(byInvenType, stInvenInfo);
             }
             break;
         }
@@ -8915,14 +8937,13 @@ void CGocInventory::GetInvenInfo(std::uint8_t byInvenType, void* stInvenInfo) {
             // IDA: Inventory types - use GetInvenPtr (returns XBaseInventory*)
             XBaseInventory* pInven = GetInvenPtr(byInvenType);
             if (pInven) {
-                // pInven->GetSlotInfos(pInven, stInvenInfo);
+                pInven->GetSlotInfos(stInvenInfo);
             }
             break;
         }
         default:
             break;
     }
-    (void)stInvenInfo;
 }
 
 // ============================================================================

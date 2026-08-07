@@ -34,12 +34,14 @@ enum E_BOOSTER_EFFECTTYPE : std::uint8_t {
  * @brief E_BOOSTER_TYPE - Booster type enumeration
  */
 enum E_BOOSTER_TYPE : std::uint8_t {
-    eBooster_Type_Normal = 0,
-    eBooster_Type_TimeEvent = 3,
-    eBooster_Type_Event = eBooster_Type_TimeEvent,
-    eBooster_Type_DayEvent = 2,
+    eBooster_Type_Party = 0,
+    eBooster_Type_Echelon = 1,
+    eBooster_Type_Item = 2,
+    eBooster_Type_Event = 3,
+    eBooster_Type_NetCafe = 4,
     eBooster_Type_Day_Event = 5,
-    eBooster_Type_Max
+    eBooster_Type_NetCafe_SG_EVENT = 6,
+    eBooster_Type_Max = 7
 };
 
 /**

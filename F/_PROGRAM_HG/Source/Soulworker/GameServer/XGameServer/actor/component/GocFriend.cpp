@@ -82,8 +82,10 @@ void CGocFriend::Reset() {
     m_bReqRecruitList = false;
     m_bReqRecruitInfo = false;
 
-    m_tNextRecommandTime.clear();
-    m_tNextRecruitTime.clear();
+    // IDA: this->m_tNextRecommandTime = ATL::CTime::GetTickCount();
+    //      this->m_tNextRecruitTime = ATL::CTime::GetTickCount();
+    m_tNextRecommandTime = ATL::CTime::GetTickCount();
+    m_tNextRecruitTime = ATL::CTime::GetTickCount();
 
     m_stReqRecruitList = nullptr;
 }
@@ -527,7 +529,10 @@ void CGocFriend::SendBlockList() {
 
 // ResetRecommandTime - IDA: 0x1400860F0
 void CGocFriend::ResetRecommandTime() {
-    m_tNextRecommandTime.clear();
+    // IDA: m_tNextRecommandTime = GetTickCount() + CTimeSpan(600, 0, 0, 0);
+    ATL::CTime tCurr = ATL::CTime::GetTickCount();
+    ATL::CTimeSpan span(600, 0, 0, 0);
+    m_tNextRecommandTime = tCurr + span;
 }
 
 // GetRecommandListReq - IDA: 0x140086140
@@ -653,74 +658,239 @@ void CGocFriend::UpdatePartyBooster() {
 // PrepareFriendInvite - IDA: 0x140087C80
 // Prepares and sends friend invite request to community server
 void CGocFriend::PrepareFriendInvite(PS_REQ_FRIEND_INVITE& stInvite) {
-    (void)stInvite;
+    // IDA: pTarget = XGameServer::FindNameToUser(stInvite->strName);
+    CUser* pTarget = TXSingleton<XGameServer>::Instance()->FindNameToUser(stInvite.strName);
+    if (!pTarget || pTarget->CheckGameOption(eOption_Register_Friend, eGAME_OPTION_REFUSE_ALL)) {
+        // IDA: 目标拒绝好友请求 -> 发社区邀请响应 (0xF5, 3)
+        PS_RES_FRIEND_INVITE stResInvite;
+        stResInvite.dwReqUCID = GetOwnerUser()->GetUCID();
+        std::wstring strName = GetOwnerUser()->GetName();
+        std::wcscpy(stResInvite.strReqUserName, strName.c_str());
+        std::wcscpy(stResInvite.strTargetUserName, stInvite.strName);
+
+        XSendPacket xSendPacket(0xF5, 3);
+        xSendPacket << stResInvite;
+        TXSingleton<XGameServer>::Instance()->GetCommunitySocket().SendCmd(
+            &xSendPacket, GetOwnerUser(), 0x19, 0x11);
+    } else {
+        // IDA: 目标接受邀请 -> 直接发 PS_FRIEND_RESULT 错误 59202
+        LogHelper::LogError("game.contents", "PrepareFriendInvite error - Refuse game option ( %d )", 501);
+        PS_FRIEND_RESULT stResult;
+        std::wcscpy(stResult.strName, stInvite.strName);
+        stResult.nResult = 59202;
+
+        XSendPacket packet(0x19, 0x11);
+        packet << stResult;
+        CGocNetwork::Send(GetOwnerGO(), packet);
+    }
 }
 
 // PrepareFriendAccept - IDA: 0x1400880B0
 // Prepares and sends friend accept response to community server
 void CGocFriend::PrepareFriendAccept(PS_REQ_FRIEND_ACCEPT& stAccept) {
-    (void)stAccept;
+    // IDA: 空目标 UCID 或 名字长度==1 -> 错误 0xD740
+    if (!stAccept.dwTargetUCID || std::wcslen(stAccept.strTargetUserName) <= 1) {
+        CGocNetwork::SendErrorMessage(GetOwnerGO(), 0x19, 0x13, 0xD740);
+        return;
+    }
+    // IDA: 目标在黑名单 -> 0xD741
+    if (IsBlockByName(stAccept.strTargetUserName)) {
+        CGocNetwork::SendErrorMessage(GetOwnerGO(), 0x19, 0x13, 0xD741);
+        return;
+    }
+    // IDA: 不是好友(类型2) -> 0xD74A
+    if (!IsFriend(stAccept.dwTargetUCID, 2)) {
+        CGocNetwork::SendErrorMessage(GetOwnerGO(), 0x19, 0x13, 0xD74A);
+        return;
+    }
+    // IDA: 是好友 -> 填充 dwReqUCID 并发社区请求 (0xF5, 4)
+    stAccept.dwReqUCID = GetOwnerUser()->GetUCID();
+    XSendPacket xSendPacket(0xF5, 4);
+    xSendPacket << stAccept;
+    TXSingleton<XGameServer>::Instance()->GetCommunitySocket().SendCmd(
+        &xSendPacket, GetOwnerUser(), 0x19, 0x13);
 }
 
 // PrepareDelFriend - IDA: 0x1400882F0
 // Prepares and sends friend delete request to community server
 bool CGocFriend::PrepareDelFriend(PS_FRIEND_DELETE& stDelete) {
-    return IsFriend(stDelete.dwFriendID, 1);
+    // IDA: 非好友(类型1) -> 返回 false
+    if (!IsFriend(stDelete.dwFriendID, 1))
+        return false;
+    // IDA: PS_REQ_FRIEND_DELETE stFriendDel; dwReqID=GetUCID; dwFriendID
+    PS_REQ_FRIEND_DELETE stFriendDel;
+    stFriendDel.dwReqID = GetOwnerUser()->GetUCID();
+    stFriendDel.dwFriendID = stDelete.dwFriendID;
+
+    XSendPacket xSendPacket(0xF5, 5);
+    xSendPacket << stFriendDel;
+    TXSingleton<XGameServer>::Instance()->GetCommunitySocket().SendCmd(
+        &xSendPacket, GetOwnerUser(), 0x19, 5);
+    return true;
 }
 
 // PrepareAddBlock - IDA: 0x140088460
 // Prepares and sends block add request to community server
 bool CGocFriend::PrepareAddBlock(PS_FRIEND_BLOCK_ADD& stBlockAdd) {
-    return !IsBlockByName(stBlockAdd.strName) && IsValiedListCount(0x65);
+    // IDA: 已在黑名单 -> 0xD741
+    if (IsBlockByName(stBlockAdd.strName)) {
+        CGocNetwork::SendErrorMessage(GetOwnerGO(), 0x19, 0x21, 0xD741);
+        return false;
+    }
+    // IDA: 黑名单已满(101) -> 0xD742
+    if (!IsValiedListCount(0x65)) {
+        CGocNetwork::SendErrorMessage(GetOwnerGO(), 0x19, 0x21, 0xD742);
+        return false;
+    }
+    CUser* pUser = GetOwnerUser();
+    if (!pUser)
+        return false;
+    // IDA: PS_REQ_FRIEND_BLOCK_ADD psBlockAdd; dwReqUAID=GetUAID; strTargetName
+    PS_REQ_FRIEND_BLOCK_ADD psBlockAdd;
+    psBlockAdd.dwReqUAID = pUser->GetUAID();
+    std::wcscpy(psBlockAdd.strTargetName, stBlockAdd.strName);
+
+    XSendPacket xSendPacket(0xF5, 7);
+    xSendPacket << psBlockAdd;
+    TXSingleton<XGameServer>::Instance()->GetCommunitySocket().SendCmd(
+        &xSendPacket, pUser, 0x19, 0x21);
+    return true;
 }
 
 // PrepareDelBlock - IDA: 0x1400886B0
 // Prepares and sends block delete request to community server
 bool CGocFriend::PrepareDelBlock(PS_FRIEND_BLOCK_DELETE& stBlockDel) {
-    return IsBlockByName(stBlockDel.strName);
+    // IDA: 不在黑名单 -> 0xD745
+    if (!IsBlockByName(stBlockDel.strName)) {
+        CGocNetwork::SendErrorMessage(GetOwnerGO(), 0x19, 0x22, 0xD745);
+        return false;
+    }
+    CUser* pUser = GetOwnerUser();
+    if (!pUser)
+        return false;
+    // IDA: PS_REQ_FRIEND_BLOCK_DELETE psBlockDel; dwReqUAID=GetUAID; strTargetName
+    PS_REQ_FRIEND_BLOCK_DELETE psBlockDel;
+    psBlockDel.dwReqUAID = pUser->GetUAID();
+    std::wcscpy(psBlockDel.strTargetName, stBlockDel.strName);
+
+    XSendPacket xSendPacket(0xF5, 8);
+    xSendPacket << psBlockDel;
+    TXSingleton<XGameServer>::Instance()->GetCommunitySocket().SendCmd(
+        &xSendPacket, pUser, 0x19, 0x22);
+    return true;
 }
 
 // PrepareRecruitList - IDA: 0x1400888C0
 // Prepares and sends recruit list request to community server
 bool CGocFriend::PrepareRecruitList(PS_RECRUIT_LIST& stRecruit) {
-    if (stRecruit.byClass >= 9 || stRecruit.byLevelMin > stRecruit.byLevelMax) {
+    // IDA: 冷却检查 - m_tNextRecruitTime > GetTickCount() 则拒绝
+    if (m_tNextRecruitTime > ATL::CTime::GetTickCount())
+        return false;
+    // IDA: 类别/等级范围校验
+    if (stRecruit.byClass >= 9 || stRecruit.byLevelMin > stRecruit.byLevelMax)
+        return false;
+    // IDA: 已在请求中
+    PS_RECRUIT_LIST stListTemp;
+    if (GetRecruitListReq(&stListTemp)) {
+        LogHelper::LogError("game.contents", "PrepareRecruitList error - Already Request ( ucid:%d / %d )",
+                            static_cast<int>(GetOwnerUser()->GetActorID().dwActorID), 665);
         return false;
     }
+    // IDA: 标记请求并发送
     SetRecruitListReq(true, &stRecruit);
-    return true;
+    CUser* pUser = GetOwnerUser();
+    if (!pUser || (pUser->stMyCharInfoEx()->userDBBits.UserDB.bLoadFriendServer)) {
+        m_tNextRecruitTime = ATL::CTime::GetTickCount();
+        stRecruit.dwUCID = pUser ? pUser->GetUCID() : 0;
+        XSendPacket xSendPacket(0xF5, 0x15);
+        xSendPacket << stRecruit;
+        TXSingleton<XGameServer>::Instance()->GetCommunitySocket().SendCmd(
+            &xSendPacket, pUser, 0x19, 0x41);
+        return true;
+    }
+    LogHelper::LogError("game.contents", "PrepareRecruitList error - Wait Community Add User ( ucid:%d / %d )",
+                        static_cast<int>(GetOwnerUser()->GetActorID().dwActorID), 675);
+    return false;
 }
 
 // PrepareRecruitAdd - IDA: 0x140088C00
 // Prepares and sends recruit add request to community server
 bool CGocFriend::PrepareRecruitAdd() {
+    // IDA: PS_RECRUIT_DELETE stRecruit; dwUCID=GetUCID
+    PS_RECRUIT_DELETE stRecruit;
+    stRecruit.dwUCID = GetOwnerUser()->GetUCID();
+    XSendPacket xSendPacket(0xF5, 0x16);
+    xSendPacket << stRecruit;
+    TXSingleton<XGameServer>::Instance()->GetCommunitySocket().SendCmd(
+        &xSendPacket, GetOwnerUser(), 0x19, 0x42);
     return true;
 }
 
 // PrepareRecruitDelete - IDA: 0x140088D30
 // Prepares and sends recruit delete request to community server
 bool CGocFriend::PrepareRecruitDelete() {
+    // IDA: PS_RECRUIT_DELETE stRecruit; dwUCID=GetUCID
+    PS_RECRUIT_DELETE stRecruit;
+    stRecruit.dwUCID = GetOwnerUser()->GetUCID();
+    XSendPacket xSendPacket(0xF5, 0x17);
+    xSendPacket << stRecruit;
+    TXSingleton<XGameServer>::Instance()->GetCommunitySocket().SendCmd(
+        &xSendPacket, GetOwnerUser(), 0x19, 0x43);
     return true;
 }
 
 // PrepareRecruitInfo - IDA: 0x140088E60
 // Prepares and sends recruit info request to community server
 bool CGocFriend::PrepareRecruitInfo() {
+    // IDA: 已在请求中
     if (GetRecruitInfoReq()) {
+        LogHelper::LogError("game.contents", "PrepareRecruitInfo error - Already Request ( ucid:%d / %d )",
+                            static_cast<int>(GetOwnerUser()->GetActorID().dwActorID), 725);
         return false;
     }
     SetRecruitInfoReq(true);
-    return true;
+    CUser* pUser = GetOwnerUser();
+    if (!pUser || (pUser->stMyCharInfoEx()->userDBBits.UserDB.bLoadFriendServer)) {
+        // IDA: 发招募信息请求 (0xF5, 0x18) + UCID
+        XSendPacket xSendPacket(0xF5, 0x18);
+        xSendPacket.XParse << static_cast<int>(pUser ? pUser->GetUCID() : 0);
+        TXSingleton<XGameServer>::Instance()->GetCommunitySocket().SendCmd(
+            &xSendPacket, pUser, 0x19, 0x44);
+        return true;
+    }
+    LogHelper::LogError("game.contents", "PrepareRecruitInfo error - Wait Community Add User ( ucid:%d / %d )",
+                        static_cast<int>(GetOwnerUser()->GetActorID().dwActorID), 735);
+    return false;
 }
 
 // PrepareRecommandList - IDA: 0x1400890C0
 // Prepares and sends friend recommendation request to community server
 bool CGocFriend::PrepareRecommandList() {
+    // IDA: 冷却检查 - m_tNextRecommandTime > GetTickCount() 则拒绝
+    if (m_tNextRecommandTime > ATL::CTime::GetTickCount())
+        return false;
+    // IDA: 已在请求中
     if (GetRecommandListReq()) {
+        LogHelper::LogError("game.contents", "PrepareRecommandList error - Already Request ( ucid:%d / %d )",
+                            static_cast<int>(GetOwnerUser()->GetActorID().dwActorID), 758);
         return false;
     }
     SetRecommandListReq(true);
-    ResetRecommandTime();
-    return true;
+    CUser* pUser = GetOwnerUser();
+    if (!pUser || (pUser->stMyCharInfoEx()->userDBBits.UserDB.bLoadFriendServer)) {
+        // IDA: PS_RES_FRIEND_RECOMMAND stFriendRes; dwUCID=GetUCID; (0xF5, 0x11)
+        PS_RES_FRIEND_RECOMMAND stFriendRes;
+        stFriendRes.dwUCID = pUser ? pUser->GetUCID() : 0;
+        XSendPacket xSendPacket(0xF5, 0x11);
+        xSendPacket << stFriendRes;
+        TXSingleton<XGameServer>::Instance()->GetCommunitySocket().SendCmd(
+            &xSendPacket, pUser, 0x19, 0x51);
+        ResetRecommandTime();
+        return true;
+    }
+    LogHelper::LogError("game.contents", "PrepareRecommandList error - Wait Community Add User ( ucid:%d / %d )",
+                        static_cast<int>(GetOwnerUser()->GetActorID().dwActorID), 768);
+    return false;
 }
 
 // FriendInvite - IDA: 0x140089390

@@ -84,6 +84,7 @@ CUser::CUser()
     , m_dwStatus(0)
     , m_byBlockType(0)
     , m_bReserveRevive(0)
+    , m_bReserveReviveImmediate(0)
     , m_dwSocialUseID(0)
     , m_bFirstEnter(false)
     , m_nCreateDate(0)
@@ -452,6 +453,31 @@ int CUser::IsLeague(CMover* pMover) {
 void CUser::GetGameOption(ST_GAME_OPTION& stGameOption) {
     // IDA: 直接复制 m_stGameOption 到输出参数
     stGameOption = m_stGameOption;
+}
+
+// ============================================================================
+// CheckGameOption IDA 0x1406FBC20
+// IDA 精确还原 - 检查游戏选项状态
+// ============================================================================
+bool CUser::CheckGameOption(E_OPTION_INDEX eIndex, E_OPTION_STATE eState) {
+    // IDA: switch (eIndex) 检查对应选项
+    int nState = 0;
+    switch (eIndex) {
+    case eOption_OtherInfo:
+        nState = m_stGameOption.nOption_OtherInfo;
+        break;
+    case eOption_Register_Friend:
+        nState = m_stGameOption.nOption_Register_Friend;
+        if (nState == 1) {
+            nState = 0;
+            eState = eGAME_OPTION_ALLOW_ALL;
+        }
+        break;
+    case eOption_WhisperMsg:
+        nState = m_stGameOption.nOption_WhisperMsg;
+        break;
+    }
+    return nState == eState;
 }
 
 void CUser::InitComponant() {
@@ -846,6 +872,40 @@ void CUser::SetLastLevelupDate(std::int64_t biDate) {
 void CUser::SetReserveRevive(int nType) {
     // IDA 0x140085DF0: this->m_bReserveRevive = bReserve
     m_bReserveRevive = nType;
+}
+
+// IDA: ?GetReserveRevive@CUser@@QEAAHXZ @ 0x14070A760
+int CUser::GetReserveRevive() {
+    // IDA: return (unsigned int)this->m_bReserveRevive;
+    return m_bReserveRevive;
+}
+
+// IDA: ?GetReserveReviveImmediate@CUser@@QEAAHXZ @ 0x14070A740
+int CUser::GetReserveReviveImmediate() {
+    // IDA: return (unsigned int)this->m_bReserveReviveImmediate;
+    return m_bReserveReviveImmediate;
+}
+
+// IDA: ?SetReserveReviveImmediate@CUser@@QEAAXH@Z @ 0x1403A1B40
+void CUser::SetReserveReviveImmediate(int bReserve) {
+    // IDA: this->m_bReserveReviveImmediate = bReserve;
+    m_bReserveReviveImmediate = bReserve;
+}
+
+// IDA: ?ChangeBooster@CUser@@QEAAXW4E_BOOSTER_TYPE@@G@Z @ 0x1406F8420
+void CUser::ChangeBooster(E_BOOSTER_TYPE eType, std::uint16_t wIndex) {
+    // IDA: CMover::GetGOC<CGocBooster>(&this->CMoverEx, &pBooster, 0);
+    // if (pBooster) CGocBooster::ChangeBooster(pBooster, eType, wIndex, 0, 0);
+    std::shared_ptr<CGocBooster> pBooster = GetGOC_Booster(false);
+    if (pBooster) {
+        pBooster->ChangeBooster(eType, wIndex, 0, false);
+    }
+}
+
+// IDA: ?IsLeagueSkill@CUser@@QEAA_NH@Z @ 0x1407007A0
+bool CUser::IsLeagueSkill(int nSkill) {
+    // IDA: return this->m_stLeagueInfo.bySkillInfo[nSkill] != 0;
+    return m_stLeagueInfo.bySkillInfo[nSkill] != 0;
 }
 
 std::int64_t CUser::GetFP() {

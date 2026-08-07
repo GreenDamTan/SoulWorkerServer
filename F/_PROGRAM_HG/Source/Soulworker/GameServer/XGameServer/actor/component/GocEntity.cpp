@@ -19,6 +19,12 @@
 #include "GocNetwork.h"
 #include "GocAttribute.h"
 #include "GocRecode.h"
+#include "GocParty.h"
+#include "GocForce.h"
+#include "GocInventory.h"
+#include "GocEvent.h"
+#include "GocAkashicRecord.h"
+#include "GocBooster.h"
 #include "Soulworker/Common/XNet/XIOCPBase/Packet.h"
 #include "Soulworker/GameServer/XCore/XArea/XActor.h"
 #include "Soulworker/GameServer/XGameServer/actor/Mover/Mover.h"
@@ -29,6 +35,7 @@
 #include "Soulworker/GameServer/XCore/XServer/GreenDamTan_LogHelper.h"
 #include <cstring>
 #include <ctime>
+#include <windows.h>
 
 // Forward declarations - avoid circular dependencies
 class CMover;
@@ -1028,12 +1035,20 @@ void CGocEntity::UpdateCutscene(PS_CUTSCENE_UPDATE& stCutscene)
 // Verified: Per IDA decompile - handles netcafe login
 void CGocEntity::LoginNetCafe(bool bFirstEnter)
 {
-    // Per IDA: Check server option
-    // if (GetServerContents(E_SERVER_OPTION_NETCAFE)) {
-    //     SetNetCafe(pUser->stMyCharInfoEx.bNetCafe, false, true);
+    // IDA: v2 = TXSingleton<XGameServer>::Instance();
+    // if (XResourceMgr::GetServerContents(&v2->m_xResourceMgr, E_SERVER_OPTION_NETCAFE)) {
+    //     v4 = GetOwnerGO(); v3 = dynamic_cast<CUser*>(v4)->stMyCharInfoEx();
+    //     CGocEntity::SetNetCafe(this, v3->bNetCafe, 0, 1);
     // } else {
-    //     EventNetCafeItemDelete();
+    //     CGocEntity::EventNetCafeItemDelete(this);
     // }
+    XGameServer* pGameServer = TXSingleton<XGameServer>::Instance();
+    if (pGameServer->GetResourceMgr().GetServerContents(E_SERVER_OPTION_NETCAFE)) {
+        CUser* pUser = GetUser();
+        SetNetCafe(pUser->stMyCharInfoEx()->bNetCafe, false, true);
+    } else {
+        EventNetCafeItemDelete();
+    }
 
     (void)bFirstEnter;
 }
@@ -1043,17 +1058,83 @@ void CGocEntity::LoginNetCafe(bool bFirstEnter)
 // Verified: Per IDA decompile - sets netcafe state with DB sync
 void CGocEntity::SetNetCafe(bool bNetCafe, bool bDBSync, bool bLoad)
 {
+    // IDA: this->m_bLoadNetCafe = bLoad;
     m_bLoadNetCafe = bLoad;
-    
-    if (m_bNetCafe != bNetCafe) {
+
+    // IDA: pUser = dynamic_cast<CUser*>(GetOwnerGO());
+    // if (pUser) { stMyCharInfoEx()->nUserDB |= 0x100; stMyCharInfoEx()->nSyncUser |= 0x1000000; }
+    CUser* pUser = GetUser();
+    if (pUser) {
+        pUser->stMyCharInfoEx()->userDBBits.nUserDB |= 0x100;        // bit8 = bLoadFriendServer
+        pUser->stMyCharInfoEx()->syncUserBits.nSyncUser |= 0x1000000; // bit28 = bSyncNetCafe
+    }
+
+    // IDA: if (bNetCafe != this->m_bNetCafe) {
+    if (bNetCafe != m_bNetCafe) {
         m_bNetCafe = bNetCafe;
-        
-        // Per IDA: Send DB update
-        // if (bDBSync) {
-        //     XSendDBPacket packet(3, 0x59);
-        //     packet << m_bNetCafe;
-        //     SendDBPacket(packet);
-        // }
+
+        // IDA: v38 = dynamic_cast<CUser*>(GetOwnerGO()); if (!v38) return;
+        CUser* v38 = GetUser();
+        if (!v38)
+            return;
+
+        // IDA: stMyCharInfoEx()->bNetCafe = bNetCafe;
+        v38->stMyCharInfoEx()->bNetCafe = bNetCafe;
+
+        // IDA: if (bDBSync) { XSendDBPacket(owner, 3, 0x59) << GetUAID << bNetCafe; SendDBGame; }
+        if (bDBSync) {
+            XSendDBPacket xSendDBPacket(GetOwnerGO(), 3, 0x59);
+            xSendDBPacket.XParse << static_cast<int>(v38->GetUAID());
+            xSendDBPacket.XParse << bNetCafe;
+            TXSingleton<XGameServer>::Instance()->SendDBGame(xSendDBPacket);
+        }
+
+        // IDA: if (m_bNetCafe) { booster KOR(0x1F4)/else(0x258) } else { booster 0 }
+        if (m_bNetCafe) {
+            std::uint16_t wBoosterID = (TXSingleton<XGameServer>::Instance()->GetOption().GetNationType() == NATION_TYPE_JPN) ? 0x1F4 : 0x258;
+            std::shared_ptr<CGocBooster> pBooster = v38->GetGOC_Booster(false);
+            if (pBooster) {
+                pBooster->ChangeBooster(eBooster_Type_NetCafe, wBoosterID, 0, false);
+            }
+        } else {
+            std::shared_ptr<CGocBooster> pBooster = v38->GetGOC_Booster(false);
+            if (pBooster) {
+                pBooster->ChangeBooster(eBooster_Type_NetCafe, 0, 0, false);
+            }
+        }
+
+        // IDA: bFPEffect = GetGOC<CGocAttribute> ? GetFPEffect() : 0;
+        bool bFPEffect = false;
+        std::shared_ptr<CGocAttribute> pAttribute = v38->GetGOC_Attribute(false);
+        if (pAttribute) {
+            bFPEffect = pAttribute->GetFPEffect();
+        }
+
+        // IDA: XSendPacket xSendPacket(3, 0x64) << GetFP << GetBonusFP << GetPCBangFP(true) << bFPEffect; Send
+        XSendPacket xSendPacket(3, 0x64);
+        xSendPacket.XParse << v38->GetFP();
+        xSendPacket.XParse << v38->GetBonusFP();
+        xSendPacket.XParse << v38->GetPCBangFP(true);
+        xSendPacket.XParse << bFPEffect;
+        CGocNetwork::Send(GetOwnerGO(), xSendPacket);
+    }
+
+    // IDA: GetGOC<CGocEvent>; if (pEvent) CGocEvent::SetStartNetCafeMission(this->m_bNetCafe);
+    std::shared_ptr<CGocEvent> pEvent = GetOwnerGO()->GetGOC_Event(false);
+    if (pEvent) {
+        pEvent->SetStartNetCafeMission(m_bNetCafe);
+    }
+
+    // IDA: if (!m_bNetCafe && bDBSync) EventNetCafeItemDelete();
+    if (!m_bNetCafe && bDBSync) {
+        EventNetCafeItemDelete();
+    }
+
+    // IDA: pAkashic = GetGOC<CGocAkashicRecord>; if (pAkashic && bDBSync) { CheckEventNetCafeAkashicRecord(); CheckEventNetCafeQuickSlot(); }
+    std::shared_ptr<CGocAkashicRecord> pAkashic = GetOwnerGO()->GetGOC_AkashicRecord(false);
+    if (pAkashic && bDBSync) {
+        pAkashic->CheckEventNetCafeAkashicRecord();
+        pAkashic->CheckEventNetCafeQuickSlot();
     }
 }
 
@@ -1062,12 +1143,16 @@ void CGocEntity::SetNetCafe(bool bNetCafe, bool bDBSync, bool bLoad)
 // Verified: Per IDA decompile - sends netcafe state to client
 void CGocEntity::SendNetCafeState()
 {
-    // Per IDA: Send netcafe state packet
-    // PS_NETCAFE_INFO stInfo;
-    // stInfo.bNetCafe = m_bNetCafe;
-    // XSendPacket packet(3, 0x54);
-    // packet << stInfo;
-    // SendPacket(packet);
+    // IDA: PS_NETCAFE_INFO stNetcafe; stNetcafe.nNetCafe = this->m_bNetCafe;
+    PS_NETCAFE_INFO stNetcafe;
+    stNetcafe.nNetCafe = m_bNetCafe;
+
+    // IDA: XSendPacket xSendPacket(3u, 0x54u); operator<<(&xSendPacket, &stNetcafe);
+    XSendPacket xSendPacket(3, 0x54);
+    xSendPacket << stNetcafe;
+
+    // IDA: v8 = GetOwnerGO(); pActor = v8 ? (XActor*)v8 : nullptr; CGocNetwork::Send(pActor, &xSendPacket);
+    CGocNetwork::Send(GetOwnerGO(), xSendPacket);
 }
 
 // ============================================================================
@@ -1075,14 +1160,32 @@ void CGocEntity::SendNetCafeState()
 // Verified: Per IDA decompile - sends SG auth info
 void CGocEntity::SendSGAuthInfo(bool bSyncDB)
 {
-    // Per IDA: Send auth info
-    // if (bSyncDB) {
-    //     XSendDBPacket packet(2, 0x52);
-    //     packet << m_stSGAuthInfo;
-    //     SendDBPacket(packet);
-    // }
+    // IDA: if (bSyncDB) { XSendDBPacket(owner, 2u, 0x52u) << m_stSGAuthInfo; XGameServer::SendDBAccount(...); }
+    if (bSyncDB) {
+        XSendDBPacket xSendDBPacket(GetOwnerGO(), 2, 0x52);
+        xSendDBPacket << m_stSGAuthInfo;
+        TXSingleton<XGameServer>::Instance()->SendDBAccount(xSendDBPacket);
+    }
 
-    (void)bSyncDB;
+    // IDA: XSendDBPacket(owner, 0x42u, 0x20u) << m_stSGAuthInfo; XGameServer::SendDBLog(...);
+    XSendDBPacket xSendDBPacket(GetOwnerGO(), 0x42, 0x20);
+    xSendDBPacket << m_stSGAuthInfo;
+    TXSingleton<XGameServer>::Instance()->SendDBLogPacket(xSendDBPacket);
+
+    // IDA: if (byAuthType == 2 || byAuthType == 3) {
+    //          PS_SG_TOKEN_UPDATE stUpdate;
+    //          MultiByteToWideChar(0, 0, szToken, -1, stUpdate.szAcessToken, 1025);
+    //          MultiByteToWideChar(0, 0, szRefreshToken, -1, stUpdate.szRefreshToken, 1025);
+    //          XSendPacket xSendPacket(1u, 0x11u) << stUpdate; CGocNetwork::Send(...);
+    //      }
+    if (m_stSGAuthInfo.byAuthType == 2 || m_stSGAuthInfo.byAuthType == 3) {
+        PS_SG_TOKEN_UPDATE stUpdate;
+        MultiByteToWideChar(0, 0, m_stSGAuthInfo.szToken, -1, stUpdate.szAcessToken, 1025);
+        MultiByteToWideChar(0, 0, m_stSGAuthInfo.szRefreshToken, -1, stUpdate.szRefreshToken, 1025);
+        XSendPacket xSendPacket(1, 0x11);
+        xSendPacket << stUpdate;
+        CGocNetwork::Send(GetOwnerGO(), xSendPacket);
+    }
 }
 
 // ============================================================================
@@ -1107,16 +1210,76 @@ void CGocEntity::EventNetCafeItemBuy(PS_EVENT_NETCAFE_ITEM_BUY& stBuy)
 // Verified: Per IDA decompile - deletes netcafe items when leaving netcafe
 void CGocEntity::EventNetCafeItemDelete()
 {
-    // Per IDA: Find and delete netcafe items
-    // CGocInventory* pInventory = GetGOC_Inventory();
-    // if (!pInventory) return;
-    // 
-    // std::vector<uint32_t> vecDeleteItems;
-    // pInventory->FindNetCafeItems(vecDeleteItems);
-    // 
-    // for (uint32_t dwItemID : vecDeleteItems) {
-    //     pInventory->ReduceItem(dwItemID, 1);
+    // IDA: v3 = GetOwnerGO(); CMover::GetGOC<CGocInventory>(v3, &pInvenPtr, 0);
+    CMover* pOwner = GetOwnerGO();
+    std::shared_ptr<CGocInventory> pInvenPtr = pOwner ? pOwner->GetGOC_Inventory(false) : nullptr;
+    if (!pInvenPtr)
+        return;
+
+    // IDA: stInvenInfo; GetInvenInfo(4, &stInvenInfo); GetInvenInfo(3, &stInvenInfo);
+    PS_RES_STORAGE_INFO stInvenInfo;
+    pInvenPtr->GetInvenInfo(4, stInvenInfo);
+    pInvenPtr->GetInvenInfo(3, stInvenInfo);
+
+    // IDA: psDelete; stReduceItems;
+    PS_EVENT_NETCAFE_ITEM_DELETE psDelete;
+    PS_RES_STORAGE_INFO stReduceItems;
+
+    // IDA: for (i = 0; i < stInvenInfo.vecItem.size(); ++i) {
+    //   stItemInfo = stInvenInfo.vecItem[i];
+    //   pTB_ITEM = GetTB_ITEM(stItemInfo.stItem.nItemID);
+    //   if (pTB_ITEM && pTB_ITEM->Item_Cash == 3) {
+    //     stReduceItems.vecItem.push_back(stItemInfo);
+    //     psDelete.vecDeleteItem.push_back(stItemInfo.stItem.nItemID);
+    //   }
     // }
+    for (std::size_t i = 0; i < stInvenInfo.vecItem.size(); ++i) {
+        PS_STORAGE_INFO stItemInfo = stInvenInfo.vecItem[i];
+        TB_ITEM* pTB_ITEM = TXSingleton<XGameServer>::Instance()->GetResourceMgr().GetTB_ITEM(stItemInfo.stItem.nItemID);
+        if (pTB_ITEM && pTB_ITEM->Item_Cash == 3) {
+            stReduceItems.vecItem.push_back(stItemInfo);
+            psDelete.vecDeleteItem.push_back(stItemInfo.stItem.nItemID);
+        }
+    }
+
+    // IDA: if (!stReduceItems.vecItem.empty()) {
+    if (!stReduceItems.vecItem.empty()) {
+        // IDA: psUpdateItemList; for (j...) { stDelItem = stReduceItems.vecItem[j];
+        //   if (!ReduceItem3(stDelItem.byInvenType, stDelItem.shSlotPos, stDelItem.stItem.sCount, 0x7F, &psUpdateItemList)) return; }
+        PS_RES_STORAGE_INFO psUpdateItemList;
+        for (std::size_t j = 0; j < stReduceItems.vecItem.size(); ++j) {
+            PS_STORAGE_INFO stDelItem = stReduceItems.vecItem[j];
+            if (!pInvenPtr->ReduceItem3(stDelItem.byInvenType, stDelItem.shSlotPos,
+                                        stDelItem.stItem.sCount, 0x7F, psUpdateItemList)) {
+                LogHelper::LogError("game.item", "EventNetCafeItemDelete - Failed ReduceItem2[UCID:%d]",
+                                    static_cast<int>(GetUser()->GetActorID().dwActorID));
+                return;
+            }
+        }
+
+        // IDA: stLog._sSubType = 124; UpdateItemEnd(0x7F, psUpdateItemList, &stLog)
+        ST_LOG_GAME stLog;
+        stLog._sSubType = 124;
+        if (!pInvenPtr->UpdateItemEnd(0x7F, psUpdateItemList, stLog)) {
+            LogHelper::LogError("game.item", "EventNetCafeItemDelete - Failed UpdateItemEnd[UCID:%d]",
+                                static_cast<int>(GetUser()->GetActorID().dwActorID));
+            return;
+        }
+
+        // IDA: psCreateItemList (empty); XSendDBPacket(owner, 0x21, 0x22) << UCID << psUpdateItemList << psCreateItemList; SendDBGame
+        PS_RES_STORAGE_INFO psCreateItemList;
+        psCreateItemList.vecItem.clear();
+        XSendDBPacket xSendDBPacket(GetOwnerGO(), 0x21, 0x22);
+        xSendDBPacket.XParse << GetUser()->GetUCID();
+        xSendDBPacket << psUpdateItemList;
+        xSendDBPacket << psCreateItemList;
+        TXSingleton<XGameServer>::Instance()->SendDBGame(xSendDBPacket);
+
+        // IDA: XSendPacket xSendPacket(0x2A, 0x2B) << psDelete; CGocNetwork::Send
+        XSendPacket xSendPacket(0x2A, 0x2B);
+        xSendPacket << psDelete;
+        CGocNetwork::Send(GetOwnerGO(), xSendPacket);
+    }
 }
 
 // ============================================================================
@@ -1124,20 +1287,26 @@ void CGocEntity::EventNetCafeItemDelete()
 // Verified: Per IDA decompile - sets free revive count
 void CGocEntity::SetFreeReviveCount(int nCount, bool bSync)
 {
+    // IDA: this->m_nFreeReviveCount = nCount;
     m_nFreeReviveCount = nCount;
 
-    // Per IDA: Sync to DB
-    // if (bSync) {
-    //     PS_CHARACTER_FREE_REVIVE stRevive;
-    //     stRevive.nCount = nCount;
-    //     XSendDBPacket packet(3, 0x85);
-    //     packet << stRevive;
-    //     SendDBPacket(packet);
-    //     
-    //     SendFreeReviveCount();
-    // }
-
-    (void)bSync;
+    // IDA: if (bSync) {
+    //          PS_CHARACTER_FREE_REVIVE psRevive;
+    //          psRevive.dwUCID = GetUCID();
+    //          psRevive.nFreeReviveCount = this->m_nFreeReviveCount;
+    //          XSendDBPacket xSendDBPacket(owner, 3u, 0x85u) << psRevive;
+    //          XGameServer::SendDBGame(...);
+    //          CGocEntity::SendFreeReviveCount(this);
+    //      }
+    if (bSync) {
+        PS_CHARACTER_FREE_REVIVE psRevive;
+        psRevive.dwUCID = GetUser()->GetUCID();
+        psRevive.nFreeReviveCount = m_nFreeReviveCount;
+        XSendDBPacket xSendDBPacket(GetOwnerGO(), 3, 0x85);
+        xSendDBPacket << psRevive;
+        TXSingleton<XGameServer>::Instance()->SendDBGame(xSendDBPacket);
+        SendFreeReviveCount();
+    }
 }
 
 // ============================================================================
@@ -1145,20 +1314,17 @@ void CGocEntity::SetFreeReviveCount(int nCount, bool bSync)
 // Verified: Per IDA decompile - increments free revive count with TB_ITEM stack max check
 bool CGocEntity::ReviveFree()
 {
-    // Per IDA: Get TB_ITEM for free revive item (0x26272A93) and check stack max
-    // XGameServer* pGameServer = TXSingleton<XGameServer>::Instance();
-    // if (!pGameServer) return false;
-    //
-    // TB_ITEM* pTB_ITEM = XResourceMgr::GetTB_ITEM(&pGameServer->m_xResourceMgr, 0x26272A93);
-    // if (!pTB_ITEM || m_nFreeReviveCount >= pTB_ITEM->Item_Stack_Max) {
-    //     return false;
-    // }
-    //
-    // SetFreeReviveCount(++m_nFreeReviveCount, true);
+    // IDA: v1 = TXSingleton<XGameServer>::Instance();
+    // pTB_ITEM = XResourceMgr::GetTB_ITEM(&v1->m_xResourceMgr, 0x26272A93u);
+    // if (!pTB_ITEM || this->m_nFreeReviveCount >= pTB_ITEM->Item_Stack_Max) return false;
+    // CGocEntity::SetFreeReviveCount(this, ++this->m_nFreeReviveCount, 1);
     // return true;
-
-    // TODO: 需要完整的依赖实现 - XGameServer, XResourceMgr, TB_ITEM
-    return false;
+    XGameServer* pGameServer = TXSingleton<XGameServer>::Instance();
+    TB_ITEM* pTB_ITEM = pGameServer->GetResourceMgr().GetTB_ITEM(0x26272A93);
+    if (!pTB_ITEM || m_nFreeReviveCount >= pTB_ITEM->Item_Stack_Max)
+        return false;
+    SetFreeReviveCount(++m_nFreeReviveCount, true);
+    return true;
 }
 
 
@@ -1167,20 +1333,13 @@ bool CGocEntity::ReviveFree()
 // Verified: Per IDA decompile - sends DB request to load profile photo
 void CGocEntity::SendDBProfilePhoto()
 {
-    // Per IDA: Get CUser via RTDynamicCast
-    // CUser* pUser = GetUser();
-    // if (!pUser) return;
-    //
-    // XActor* pActor = static_cast<XActor*>(pUser);
-    // XSendDBPacket xSendDBPacket(pActor, 3, 0x25);
-    // xSendDBPacket << pUser->GetUCID();
-    //
-    // XGameServer* pGameServer = TXSingleton<XGameServer>::Instance();
-    // if (pGameServer) {
-    //     pGameServer->SendDBGame(xSendDBPacket);
-    // }
-
-    // TODO: 需要完整的依赖实现 - XSendDBPacket, CUser::GetUCID
+    // IDA: v7 = GetOwnerGO(); pObject = v7 ? (IXObject*)v7 : nullptr;
+    // XSendDBPacket xSendDBPacket(pObject, 3u, 0x25u);
+    // XParse::operator<<(&xSendDBPacket.XParse, GetUCID);
+    // v3 = TXSingleton<XGameServer>::Instance(); XGameServer::SendDBGame(v3, &xSendDBPacket);
+    XSendDBPacket xSendDBPacket(GetOwnerGO(), 3, 0x25);
+    xSendDBPacket.XParse << GetUser()->GetUCID();
+    TXSingleton<XGameServer>::Instance()->SendDBGame(xSendDBPacket);
 }
 
 
@@ -1189,23 +1348,18 @@ void CGocEntity::SendDBProfilePhoto()
 // Verified: Per IDA decompile - loads profile photos from DB response
 void CGocEntity::LoadProfilePhoto(PS_PROFILE_PHOTO_LOAD& stLoad)
 {
-    // Per IDA: Iterate through vector and add each photo
-    // for (size_t i = 0; i < stLoad.vecList.size(); ++i) {
-    //     ST_PROFILE_PHOTO_INFO* pInfo = &stLoad.vecList[i];
-    //     AddProfilePhoto(*pInfo);
-    // }
-    //
-    // CUser* pUser = GetUser();
-    // if (pUser) {
-    //     LogHelper::LogDebug("game.contents", "LoadProfilePhoto (UCID:%d, count:%d)",
-    //         pUser->GetUCID(), stLoad.vecList.size());
-    // }
-    //
-    // CheckEquipProfilePhoto();
-    // m_nProfilePhotoTick = GetTickCount64() + 10000;
+    // IDA: for (sh = 0; sh < stLoad.vecList.size(); ++sh) CGocEntity::AddProfilePhoto(this, &stLoad.vecList[sh]);
+    for (std::int16_t sh = 0; sh < static_cast<std::int16_t>(stLoad.vecList.size()); ++sh) {
+        AddProfilePhoto(stLoad.vecList[sh]);
+    }
 
-    (void)stLoad;
-    // TODO: 需要完整的依赖实现
+    // IDA: LogHelper::LogDebug("game.contents", "LoadProfilePhoto (UCID:%d, count:%d)", GetUCID, vecList.size());
+    LogHelper::LogDebug("game.contents", "LoadProfilePhoto (UCID:%d, count:%d)",
+                        static_cast<int>(GetUser()->GetUCID()), static_cast<int>(stLoad.vecList.size()));
+
+    // IDA: CGocEntity::CheckEquipProfilePhoto(this); this->m_nProfilePhotoTick = GetTickCount64() + 10000;
+    CheckEquipProfilePhoto();
+    m_nProfilePhotoTick = static_cast<int>(::GetTickCount64() + 10000);
 }
 
 
@@ -1214,39 +1368,58 @@ void CGocEntity::LoadProfilePhoto(PS_PROFILE_PHOTO_LOAD& stLoad)
 // Verified: Per IDA decompile - checks and sets default equipped profile photo
 void CGocEntity::CheckEquipProfilePhoto()
 {
-    // Per IDA: Get CUser via RTDynamicCast
-    // CUser* pUser = GetUser();
-    // if (!pUser) return;
-    //
-    // uint32_t dwOldPhotoID = pUser->GetProfilePhotoID();
-    // auto it_Old = m_mapProfilePhoto.find(dwOldPhotoID);
-    // if (it_Old != m_mapProfilePhoto.end()) {
-    //     return;
-    // }
-    //
-    // auto pAttr = pUser->GetGOC<CGocAttribute>();
-    // if (!pAttr) return;
-    //
-    // uint8_t byType = (pAttr->GetAwaken() == 1) ? 2 : 1;
-    // uint8_t byClass = pUser->GetClass();
-    //
-    // XGameServer* pGameServer = TXSingleton<XGameServer>::Instance();
-    // if (!pGameServer) return;
-    //
-    // TB_PHOTO_ITEM* pTB_PHOTO_ITEM = XResourceMgr::FindDefaultPhotoItemID(
-    //     &pGameServer->m_xResourceMgr, byClass, byType);
-    // if (!pTB_PHOTO_ITEM) return;
-    //
-    // auto it_Have = m_mapProfilePhoto.find(pTB_PHOTO_ITEM->ID);
-    // if (it_Have == m_mapProfilePhoto.end()) {
-    //     return;
-    // }
-    //
-    // // Send DB change request for default photo
-    // PS_DB_PROFILE_PHOTO_CHANGE psPhoto;
-    // ... send packet
+    // IDA: pUser = dynamic_cast<CUser*>(GetOwnerGO()); if (pUser) { ... }
+    CUser* pUser = GetUser();
+    if (!pUser)
+        return;
 
-    // TODO: 需要完整的依赖实现 - CUser::GetProfilePhotoID, CGocAttribute, TB_PHOTO_ITEM, PS_DB_PROFILE_PHOTO_CHANGE
+    // IDA: dwOldPhotoID = pUser->stMyCharInfoEx()->stBaseInfo.dwProfilePhotoID;
+    std::uint32_t dwOldPhotoID = pUser->stMyCharInfoEx()->stBaseInfo.dwProfilePhotoID;
+
+    // IDA: it_Old = m_mapProfilePhoto.find(dwOldPhotoID);
+    // if (it_Old == end) { ... try to equip the default photo ... }
+    auto it_Old = m_mapProfilePhoto.find(dwOldPhotoID);
+    if (it_Old != m_mapProfilePhoto.end())
+        return;
+
+    // IDA: CMover::GetGOC<CGocAttribute>(pUser, &pAttr, 0);
+    std::shared_ptr<CGocAttribute> pAttr = pUser->GetGOC_Attribute(false);
+    if (!pAttr)
+        return;
+
+    // IDA: byType = (CGocAttribute::GetAwaken(v3) == 1) ? 2 : 1;
+    std::uint8_t byType = (pAttr->GetAwaken() == 1) ? 2 : 1;
+    // IDA: byClass = VObjectComponentCollection::Count(v4) -> pUser->GetClass();
+    std::uint8_t byClass = pUser->GetClass();
+
+    // IDA: pTB_PHOTO_ITEM = FindDefaultPhotoItemID(&m_xResourceMgr, byClass, byType);
+    TB_PHOTO_ITEM* pTB_PHOTO_ITEM =
+        TXSingleton<XGameServer>::Instance()->GetResourceMgr().FindDefaultPhotoItemID(byClass, byType);
+    if (!pTB_PHOTO_ITEM)
+        return;
+
+    // IDA: it_Have = m_mapProfilePhoto.find(pTB_PHOTO_ITEM->ID);
+    // if (it_Have != end) { ... send DB change request ... }
+    auto it_Have = m_mapProfilePhoto.find(pTB_PHOTO_ITEM->ID);
+    if (it_Have == m_mapProfilePhoto.end())
+        return;
+
+    // IDA: PS_DB_PROFILE_PHOTO_CHANGE psPhoto;
+    // psPhoto.dwUCID = GetUCID();
+    // psPhoto.stOldPhotoInfo.dwPhotoID = dwOldPhotoID;
+    // qmemcpy(&psPhoto.stNewPhotoInfo, &it_Have->second.stInfo, sizeof(stNewPhotoInfo));
+    // psPhoto.stOldPhotoInfo.byState = 0; psPhoto.stNewPhotoInfo.byState = 1;
+    // XSendDBPacket xSendDBPacket(owner, 3u, 0x28u) << psPhoto; SendDBGame(...);
+    PS_DB_PROFILE_PHOTO_CHANGE psPhoto;
+    psPhoto.dwUCID = pUser->GetUCID();
+    psPhoto.stOldPhotoInfo.dwPhotoID = dwOldPhotoID;
+    psPhoto.stNewPhotoInfo = it_Have->second.stInfo;
+    psPhoto.stOldPhotoInfo.byState = 0;
+    psPhoto.stNewPhotoInfo.byState = 1;
+
+    XSendDBPacket xSendDBPacket(GetOwnerGO(), 3, 0x28);
+    xSendDBPacket << psPhoto;
+    TXSingleton<XGameServer>::Instance()->SendDBGame(xSendDBPacket);
 }
 
 
@@ -1255,18 +1428,88 @@ void CGocEntity::CheckEquipProfilePhoto()
 // Verified: Per IDA decompile - validates and prepares profile photo info
 bool CGocEntity::CheckAddProfilePhoto(uint32_t dwItemID, ST_PROFILE_PHOTO_INFO& stPhoto)
 {
-    // Per IDA: Get TB_ITEM for the item ID and validate
-    // XGameServer* pGameServer = TXSingleton<XGameServer>::Instance();
-    // if (!pGameServer) return false;
-    //
-    // TB_ITEM* pTB_ITEM = XResourceMgr::GetTB_ITEM(&pGameServer->m_xResourceMgr, dwItemID);
-    // TB_PHOTO_ITEM* pTB_PHOTO_ITEM = XResourceMgr::GetTB_PHOTO_ITEM(...);
-    // ... validation and period handling
+    // IDA: v3 = XGameServer::Instance(); pTB_ITEM = GetTB_ITEM(&m_xResourceMgr, dwItemID);
+    XGameServer* pGameServer = TXSingleton<XGameServer>::Instance();
+    TB_ITEM* pTB_ITEM = pGameServer->GetResourceMgr().GetTB_ITEM(dwItemID);
+    if (!pTB_ITEM) {
+        LogHelper::LogError("game.contents", "CheckAddProfilePhoto - TB_ITEM (UCID:%d, ID:%d)",
+                            static_cast<int>(GetUser()->GetActorID().dwActorID), dwItemID);
+        return false;
+    }
 
-    (void)dwItemID;
-    (void)stPhoto;
-    // TODO: 需要完整的依赖实现 - TB_ITEM, TB_PHOTO_ITEM, ATL::CTime, ATL::CTimeSpan
-    return false;
+    // IDA: pTB_PHOTO_ITEM = GetTB_PHOTO_ITEM(pTB_ITEM->Item_Effect_ID);
+    TB_PHOTO_ITEM* pTB_PHOTO_ITEM = pGameServer->GetResourceMgr().GetTB_PHOTO_ITEM(pTB_ITEM->Item_Effect_ID);
+    if (!pTB_PHOTO_ITEM) {
+        LogHelper::LogError("game.contents", "CheckAddProfilePhoto - TB_PHOTO_ITEM (UCID:%d, ID:%d)",
+                            static_cast<int>(GetUser()->GetActorID().dwActorID), pTB_ITEM->Item_Effect_ID);
+        return false;
+    }
+
+    // IDA: if (GetClass() != pTB_PHOTO_ITEM->Char_Class && pTB_PHOTO_ITEM->Char_Class)
+    std::uint8_t byClass = GetUser()->GetClass();
+    if (byClass != pTB_PHOTO_ITEM->Char_Class && pTB_PHOTO_ITEM->Char_Class) {
+        LogHelper::LogError("game.contents", "CheckAddProfilePhoto - diff class (UCID:%d, class:%d)",
+                            static_cast<int>(GetUser()->GetActorID().dwActorID), byClass);
+        return false;
+    }
+
+    // IDA: stPhoto->dwPhotoID = pTB_PHOTO_ITEM->ID;
+    stPhoto.dwPhotoID = pTB_PHOTO_ITEM->ID;
+
+    // IDA: if (pTB_ITEM->Item_Use_Period_Type) { ... type must be 2 with a value ... }
+    if (pTB_ITEM->Item_Use_Period_Type) {
+        if (pTB_ITEM->Item_Use_Period_Type != 2) {
+            LogHelper::LogError("game.contents", "CheckAddProfilePhoto - Period_Type (UCID:%d, ID:%d)",
+                                static_cast<int>(GetUser()->GetActorID().dwActorID), dwItemID);
+            return false;
+        }
+        if (!pTB_ITEM->Item_Use_Period_Value) {
+            LogHelper::LogError("game.contents", "CheckAddProfilePhoto - Period_Value (UCID:%d, ID:%d)",
+                                static_cast<int>(GetUser()->GetActorID().dwActorID), pTB_ITEM->Item_Effect_ID);
+            return false;
+        }
+
+        auto it = m_mapProfilePhoto.find(stPhoto.dwPhotoID);
+        if (it != m_mapProfilePhoto.end()) {
+            ST_HAVE_PROFILE_PHOTO_INFO* stHavePhoto = &it->second;
+            // IDA: if (!*((_BYTE*)&second.m_eObjectFlags + 4)) -> stInfo.byPeriodType
+            if (!stHavePhoto->stInfo.byPeriodType) {
+                LogHelper::LogError("game.contents", "CheckAddProfilePhoto - byPeriodType = 0 (UCID:%d, ID:%d)",
+                                    static_cast<int>(GetUser()->GetActorID().dwActorID), stPhoto.dwPhotoID);
+                return false;
+            }
+            // IDA: qmemcpy(stPhoto, &stHavePhoto->stInfo, sizeof(ST_PROFILE_PHOTO_INFO));
+            // ATL::CTimeSpan tSpan(0, 0, Item_Use_Period_Value, 0);
+            // stPhoto->byPeriodType = 1; stPhoto->nEndDate += tSpan;
+            std::memcpy(&stPhoto, &stHavePhoto->stInfo, sizeof(ST_PROFILE_PHOTO_INFO));
+            ATL::CTimeSpan tSpan(0, 0, pTB_ITEM->Item_Use_Period_Value, 0);
+            stPhoto.byPeriodType = 1;
+            stPhoto.nEndDate += tSpan.GetTotalSeconds();
+        } else {
+            // IDA: ATL::CTime tCurr = GetTickCount(); tCurr += CTimeSpan(0,0,Value,0);
+            // stPhoto->byPeriodType = 1; stPhoto->nEndDate = tCurr;
+            ATL::CTime tCurr = ATL::CTime::GetTickCount();
+            ATL::CTimeSpan span(0, 0, pTB_ITEM->Item_Use_Period_Value, 0);
+            tCurr = tCurr + span;
+            stPhoto.byPeriodType = 1;
+            stPhoto.nEndDate = tCurr.GetTime();
+        }
+    } else {
+        // IDA: permanent photo - existing entry copies its info, then resets period fields to 0
+        auto it = m_mapProfilePhoto.find(stPhoto.dwPhotoID);
+        if (it != m_mapProfilePhoto.end()) {
+            ST_HAVE_PROFILE_PHOTO_INFO* stHavePhoto = &it->second;
+            if (!stHavePhoto->stInfo.byPeriodType) {
+                LogHelper::LogError("game.contents", "CheckAddProfilePhoto - byPeriodType = 0 (UCID:%d, ID:%d)",
+                                    static_cast<int>(GetUser()->GetActorID().dwActorID), stPhoto.dwPhotoID);
+                return false;
+            }
+            std::memcpy(&stPhoto, &stHavePhoto->stInfo, sizeof(ST_PROFILE_PHOTO_INFO));
+        }
+        stPhoto.byPeriodType = 0;
+        stPhoto.nEndDate = 0;
+    }
+    return true;
 }
 
 
@@ -1275,23 +1518,49 @@ bool CGocEntity::CheckAddProfilePhoto(uint32_t dwItemID, ST_PROFILE_PHOTO_INFO& 
 // Verified: Per IDA decompile - adds a profile photo to owned list
 int CGocEntity::AddProfilePhoto(ST_PROFILE_PHOTO_INFO& stPhoto)
 {
-    // Per IDA: Get CUser via RTDynamicCast
-    // CUser* pUser = GetUser();
-    // if (!pUser) return 58011;
-    //
-    // XGameServer* pGameServer = TXSingleton<XGameServer>::Instance();
-    // if (!pGameServer) return 58011;
-    //
-    // TB_PHOTO_ITEM* pTB_PHOTO_ITEM = XResourceMgr::GetTB_PHOTO_ITEM(...);
-    // if (!pTB_PHOTO_ITEM) return 58011;
-    //
-    // // Period type and expiration handling
-    // // Duplicate check
-    // // Insert into map
+    // IDA: pUser = dynamic_cast<CUser*>(GetOwnerGO()); if (!pUser) return 58011;
+    CUser* pUser = GetUser();
+    if (!pUser)
+        return 58011;
 
-    (void)stPhoto;
-    // TODO: 需要完整的依赖实现 - TB_PHOTO_ITEM, ST_HAVE_PROFILE_PHOTO_INFO
-    return 58011;
+    // IDA: pTB_PHOTO_ITEM = GetTB_PHOTO_ITEM(stPhoto->dwPhotoID);
+    TB_PHOTO_ITEM* pTB_PHOTO_ITEM =
+        TXSingleton<XGameServer>::Instance()->GetResourceMgr().GetTB_PHOTO_ITEM(stPhoto.dwPhotoID);
+    if (!pTB_PHOTO_ITEM) {
+        LogHelper::LogError("game.contents", "AddProfilePhoto - No Table (UCID:%d, Photo:%d)",
+                            static_cast<int>(pUser->GetActorID().dwActorID), stPhoto.dwPhotoID);
+        return 58011;
+    }
+
+    // IDA: if (!stPhoto->byPeriodType) stPhoto->nEndDate = 0;
+    if (!stPhoto.byPeriodType)
+        stPhoto.nEndDate = 0;
+
+    // IDA: if (stPhoto->byPeriodType == 1 && stPhoto->nEndDate <= CTime::GetTickCount()) -> error
+    if (stPhoto.byPeriodType == 1 &&
+        stPhoto.nEndDate <= ATL::CTime::GetTickCount().GetTime()) {
+        LogHelper::LogError("game.contents", "AddProfilePhoto - EndDate Error (UCID:%d, Photo:%d, End:%d)",
+                            static_cast<int>(pUser->GetActorID().dwActorID), stPhoto.dwPhotoID,
+                            static_cast<int>(stPhoto.nEndDate));
+        return 58011;
+    }
+
+    // IDA: it = m_mapProfilePhoto.find(stPhoto->dwPhotoID); if (it != end) -> duplication
+    auto it = m_mapProfilePhoto.find(stPhoto.dwPhotoID);
+    if (it != m_mapProfilePhoto.end()) {
+        LogHelper::LogError("game.contents", "AddProfilePhoto - Duplication (UCID:%d, Photo:%d)",
+                            static_cast<int>(pUser->GetActorID().dwActorID), stPhoto.dwPhotoID);
+        return 58010;
+    }
+
+    // IDA: ST_HAVE_PROFILE_PHOTO_INFO stNewPhoto(pTB_PHOTO_ITEM, stPhoto);
+    // m_mapProfilePhoto.insert(make_pair(stPhoto->dwPhotoID, stNewPhoto));
+    ST_HAVE_PROFILE_PHOTO_INFO stNewPhoto(pTB_PHOTO_ITEM, stPhoto);
+    m_mapProfilePhoto.insert(std::make_pair(stPhoto.dwPhotoID, stNewPhoto));
+
+    LogHelper::LogDebug("game.contents", "AddProfilePhoto (UCID:%d, Photo:%d)",
+                        static_cast<int>(pUser->GetActorID().dwActorID), stPhoto.dwPhotoID);
+    return 0;
 }
 
 
@@ -1300,23 +1569,19 @@ int CGocEntity::AddProfilePhoto(ST_PROFILE_PHOTO_INFO& stPhoto)
 // Verified: Per IDA decompile - sends profile photo list to client
 void CGocEntity::SendProfilePhoto()
 {
-    // Per IDA: Get CUser for UCID
-    // CUser* pUser = GetUser();
-    // if (!pUser) return;
-    //
-    // PS_PROFILE_PHOTO_LOAD psLoad;
-    // psLoad.dwUCID = pUser->GetUCID();
-    //
-    // for (auto it = m_mapProfilePhoto.begin(); it != m_mapProfilePhoto.end(); ++it) {
-    //     psLoad.vecList.push_back(it->second.stInfo);
-    // }
-    //
-    // XActor* pActor = static_cast<XActor*>(pUser);
-    // XSendPacket xSendPacket(3, 9);
-    // xSendPacket << psLoad;
-    // CGocNetwork::Send(pActor, &xSendPacket);
+    // IDA: PS_PROFILE_PHOTO_LOAD psLoad; psLoad.dwUCID = GetUCID();
+    PS_PROFILE_PHOTO_LOAD psLoad;
+    psLoad.dwUCID = GetUser()->GetUCID();
 
-    // TODO: 需要完整的依赖实现
+    // IDA: iterate m_mapProfilePhoto, push each entry's stInfo into psLoad.vecList
+    for (auto& kv : m_mapProfilePhoto) {
+        psLoad.vecList.push_back(kv.second.stInfo);
+    }
+
+    // IDA: XSendPacket xSendPacket(3u, 9u) << psLoad; CGocNetwork::Send(...);
+    XSendPacket xSendPacket(3, 9);
+    xSendPacket << psLoad;
+    CGocNetwork::Send(GetOwnerGO(), xSendPacket);
 }
 
 
@@ -1325,30 +1590,31 @@ void CGocEntity::SendProfilePhoto()
 // Verified: Per IDA decompile - checks timed profile photo expiration
 void CGocEntity::ProfilePhotoRemainTimeCheck()
 {
-    // Per IDA: Check timer
-    // if (m_nProfilePhotoTick <= 0 || m_nProfilePhotoTick > GetTickCount64()) {
-    //     return;
-    // }
-    //
-    // ATL::CTime tCurr = ATL::CTime::GetTickCount();
-    // std::vector<uint32_t> vecDelList;
-    //
-    // for (auto it = m_mapProfilePhoto.begin(); it != m_mapProfilePhoto.end(); ++it) {
-    //     ST_HAVE_PROFILE_PHOTO_INFO& stPhoto = it->second;
-    //     if (stPhoto.stInfo.byPeriodType == 1) {
-    //         if (stPhoto.stInfo.nEndDate <= static_cast<__int64>(tCurr)) {
-    //             vecDelList.push_back(stPhoto.stInfo.dwPhotoID);
-    //         }
-    //     }
-    // }
-    //
-    // if (!vecDelList.empty()) {
-    //     DeleteProfilePhoto(&vecDelList);
-    // }
-    //
-    // m_nProfilePhotoTick = GetTickCount64() + 10000;
+    // IDA: if (m_nProfilePhotoTick > 0 && m_nProfilePhotoTick <= GetTickCount64())
+    if (m_nProfilePhotoTick > 0 && m_nProfilePhotoTick <= static_cast<int>(::GetTickCount64())) {
+        // IDA: ATL::CTime tCurr = GetTickCount();
+        ATL::CTime tCurr = ATL::CTime::GetTickCount();
 
-    // TODO: 需要完整的依赖实现 - ATL::CTime, DeleteProfilePhoto
+        // IDA: std::vector<uint32_t> vecDelList;
+        std::vector<uint32_t> vecDelList;
+
+        // IDA: iterate m_mapProfilePhoto; if stInfo.byPeriodType and stInfo.nEndDate <= tCurr -> push dwPhotoID
+        for (auto& kv : m_mapProfilePhoto) {
+            ST_HAVE_PROFILE_PHOTO_INFO& stPhoto = kv.second;
+            if (stPhoto.stInfo.byPeriodType) {
+                if (stPhoto.stInfo.nEndDate <= tCurr.GetTime()) {
+                    vecDelList.push_back(stPhoto.stInfo.dwPhotoID);
+                }
+            }
+        }
+
+        // IDA: if (!vecDelList.empty()) CGocEntity::DeleteProfilePhoto(this, &vecDelList);
+        if (!vecDelList.empty())
+            DeleteProfilePhoto(vecDelList);
+
+        // IDA: this->m_nProfilePhotoTick = GetTickCount64() + 10000;
+        m_nProfilePhotoTick = static_cast<int>(::GetTickCount64() + 10000);
+    }
 }
 
 
@@ -1357,26 +1623,119 @@ void CGocEntity::ProfilePhotoRemainTimeCheck()
 // Verified: Per IDA decompile - requests profile photo change
 int CGocEntity::ReqChangeProfilePhoto(uint32_t dwPhotoID)
 {
-    // Per IDA: Get CUser via RTDynamicCast
-    // CUser* pUser = GetUser();
-    // if (!pUser) return 58011;
-    //
-    // uint32_t dwOldPhotoID = pUser->GetProfilePhotoID();
-    // if (dwOldPhotoID == dwPhotoID) return 58012;
-    //
-    // auto it_Old = m_mapProfilePhoto.find(dwOldPhotoID);
-    // if (it_Old == m_mapProfilePhoto.end()) return 58010;
-    //
-    // auto it = m_mapProfilePhoto.find(dwPhotoID);
-    // if (it == m_mapProfilePhoto.end()) return 58010;
-    //
-    // // Build and send DB change request
-    // PS_DB_PROFILE_PHOTO_CHANGE psPhoto;
-    // ... send packet
+    // IDA: pUser = dynamic_cast<CUser*>(GetOwnerGO()); if (!pUser) return 58011;
+    CUser* pUser = GetUser();
+    if (!pUser)
+        return 58011;
 
-    (void)dwPhotoID;
-    // TODO: 需要完整的依赖实现 - CUser::GetProfilePhotoID, PS_DB_PROFILE_PHOTO_CHANGE
-    return 58011;
+    // IDA: dwOldPhotoID = pUser->stMyCharInfoEx()->stBaseInfo.dwProfilePhotoID;
+    std::uint32_t dwOldPhotoID = pUser->stMyCharInfoEx()->stBaseInfo.dwProfilePhotoID;
+
+    // IDA: if (dwOldPhotoID == dwPhotoID) -> already exist, return 58012
+    if (dwOldPhotoID == dwPhotoID) {
+        LogHelper::LogError("game.contents", "ReqChangeProfilePhoto - already exist (UCID:%d, Photo:%d)",
+                            static_cast<int>(pUser->GetActorID().dwActorID), dwPhotoID);
+        return 58012;
+    }
+
+    // IDA: it_Old = m_mapProfilePhoto.find(dwOldPhotoID); if (== end) -> no have, return 58010
+    auto it_Old = m_mapProfilePhoto.find(dwOldPhotoID);
+    if (it_Old == m_mapProfilePhoto.end()) {
+        LogHelper::LogError("game.contents", "ReqChangeProfilePhoto - no have (UCID:%d, Photo:%d)",
+                            static_cast<int>(pUser->GetActorID().dwActorID), dwOldPhotoID);
+        return 58010;
+    }
+
+    // IDA: it = m_mapProfilePhoto.find(dwPhotoID); if (== end) -> no have, return 58010
+    auto it = m_mapProfilePhoto.find(dwPhotoID);
+    if (it == m_mapProfilePhoto.end()) {
+        LogHelper::LogError("game.contents", "ReqChangeProfilePhoto - no have (UCID:%d, Photo:%d)",
+                            static_cast<int>(pUser->GetActorID().dwActorID), dwPhotoID);
+        return 58010;
+    }
+
+    // IDA: PS_DB_PROFILE_PHOTO_CHANGE psPhoto;
+    // psPhoto.dwUCID = GetUCID();
+    // psPhoto.stOldPhotoInfo = it_Old->second.stInfo; psPhoto.stNewPhotoInfo = it->second.stInfo;
+    // psPhoto.stOldPhotoInfo.byState = 0; psPhoto.stNewPhotoInfo.byState = 1;
+    // XSendDBPacket(owner, 3u, 0x28u) << psPhoto; SendDBGame(...);
+    PS_DB_PROFILE_PHOTO_CHANGE psPhoto;
+    psPhoto.dwUCID = pUser->GetUCID();
+    psPhoto.stOldPhotoInfo = it_Old->second.stInfo;
+    psPhoto.stNewPhotoInfo = it->second.stInfo;
+    psPhoto.stOldPhotoInfo.byState = 0;
+    psPhoto.stNewPhotoInfo.byState = 1;
+
+    XSendDBPacket xSendDBPacket(GetOwnerGO(), 3, 0x28);
+    xSendDBPacket << psPhoto;
+    TXSingleton<XGameServer>::Instance()->SendDBGame(xSendDBPacket);
+    return 0;
+}
+
+
+// ============================================================================
+// IDA: ?DeleteProfilePhoto@CGocEntity@@QEAAXAEAV?$vector@KV?$allocator@K@std@@@std@@@Z (0x140063FB0)
+// Verified: Per IDA decompile - deletes expired/requested profile photos
+void CGocEntity::DeleteProfilePhoto(std::vector<uint32_t>& vecDelList)
+{
+    // IDA: pUser = dynamic_cast<CUser*>(GetOwnerGO()); if (!pUser) return;
+    CUser* pUser = GetUser();
+    if (!pUser)
+        return;
+
+    // IDA: for (sh = 0; sh < vecDelList.size(); ++sh)
+    for (std::int16_t sh = 0; sh < static_cast<std::int16_t>(vecDelList.size()); ++sh) {
+        std::uint32_t dwPhotoID = vecDelList[sh];
+
+        // IDA: it = m_mapProfilePhoto.find(dwPhotoID); if (it == end) continue;
+        auto it = m_mapProfilePhoto.find(dwPhotoID);
+        if (it == m_mapProfilePhoto.end())
+            continue;
+
+        ST_HAVE_PROFILE_PHOTO_INFO* stPhoto = &it->second;
+
+        // IDA: if (*((_BYTE*)&second.m_eObjectFlags + 6) == 1) -> stInfo.byState == 1 (currently equipped)
+        if (stPhoto->stInfo.byState == 1) {
+            // IDA: CMover::GetGOC<CGocAttribute>(pUser, &pAttr, 0);
+            std::shared_ptr<CGocAttribute> pAttr = pUser->GetGOC_Attribute(false);
+            if (pAttr) {
+                // IDA: byType = (GetAwaken() == 1) ? 2 : 1; byClass = GetClass();
+                std::uint8_t byType = (pAttr->GetAwaken() == 1) ? 2 : 1;
+                std::uint8_t byClass = pUser->GetClass();
+
+                // IDA: pTB_PHOTO_ITEM = FindDefaultPhotoItemID(byClass, byType);
+                TB_PHOTO_ITEM* pTB_PHOTO_ITEM =
+                    TXSingleton<XGameServer>::Instance()->GetResourceMgr().FindDefaultPhotoItemID(byClass, byType);
+                if (pTB_PHOTO_ITEM) {
+                    // IDA: it_Have = m_mapProfilePhoto.find(pTB_PHOTO_ITEM->ID);
+                    // if (it_Have != end) ReqChangeProfilePhoto(pTB_PHOTO_ITEM->ID);
+                    auto it_Have = m_mapProfilePhoto.find(pTB_PHOTO_ITEM->ID);
+                    if (it_Have != m_mapProfilePhoto.end()) {
+                        ReqChangeProfilePhoto(pTB_PHOTO_ITEM->ID);
+                    }
+                }
+            }
+        }
+
+        // IDA: PS_PROFILE_PHOTO_UPDATE psUpdate;
+        // qmemcpy(&psUpdate, &stPhoto->stInfo, sizeof(ST_PROFILE_PHOTO_INFO));
+        // psUpdate.bDelete = 1;
+        // XSendPacket xSendPacket(3u, 0xAu) << psUpdate; CGocNetwork::Send(...);
+        PS_PROFILE_PHOTO_UPDATE psUpdate;
+        psUpdate.stPhoto = stPhoto->stInfo;
+        psUpdate.bDelete = 1;
+
+        XSendPacket xSendPacket(3, 0x0A);
+        xSendPacket << psUpdate;
+        CGocNetwork::Send(GetOwnerGO(), xSendPacket);
+
+        // IDA: m_mapProfilePhoto.erase(dwPhotoID);
+        m_mapProfilePhoto.erase(dwPhotoID);
+
+        // IDA: LogDebug("DeleteProfilePhoto (UCID:%d, Photo:%d)", GetActorID, dwPhotoID);
+        LogHelper::LogDebug("game.contents", "DeleteProfilePhoto (UCID:%d, Photo:%d)",
+                            static_cast<int>(pUser->GetActorID().dwActorID), dwPhotoID);
+    }
 }
 
 
@@ -1385,20 +1744,79 @@ int CGocEntity::ReqChangeProfilePhoto(uint32_t dwPhotoID)
 // Verified: Per IDA decompile - handles DB response for photo change
 void CGocEntity::ResChangeProfilePhoto(PS_DB_PROFILE_PHOTO_CHANGE& psPhoto)
 {
-    // Per IDA: Update equipped photo
-    // CUser* pUser = GetUser();
-    // if (!pUser) return;
-    // 
-    // pUser->stMyCharInfoEx.stBaseInfo.dwProfilePhotoID = psPhoto.dwPhotoID;
-    // 
-    // // Send update packets
-    // PS_PROFILE_PHOTO_UPDATE stUpdate;
-    // stUpdate.dwPhotoID = psPhoto.dwPhotoID;
-    // XSendPacket packet(3, 0xA);
-    // packet << stUpdate;
-    // SendPacket(packet);
+    // IDA: pUser = dynamic_cast<CUser*>(GetOwnerGO()); if (!pUser) return;
+    CUser* pUser = GetUser();
+    if (!pUser)
+        return;
 
-    (void)psPhoto;
+    // IDA: if (psPhoto->nError) log DB error
+    if (psPhoto.nError) {
+        LogHelper::LogError("game.contents", "ResChangeProfilePhoto - DB Error (UCID:%d, Error:%d, OldPhoto:%d, NewPhoto:%d)",
+                            psPhoto.dwUCID, psPhoto.nError,
+                            psPhoto.stOldPhotoInfo.dwPhotoID, psPhoto.stNewPhotoInfo.dwPhotoID);
+        return;
+    }
+
+    // IDA: pUser->stMyCharInfoEx()->stBaseInfo.dwProfilePhotoID = psPhoto->stNewPhotoInfo.dwPhotoID;
+    pUser->stMyCharInfoEx()->stBaseInfo.dwProfilePhotoID = psPhoto.stNewPhotoInfo.dwPhotoID;
+
+    // IDA: it_Old = m_mapProfilePhoto.find(psPhoto->stOldPhotoInfo.dwPhotoID);
+    // if (it_Old != end) { update stInfo, send main 3/sub 0x0A }
+    auto it_Old = m_mapProfilePhoto.find(psPhoto.stOldPhotoInfo.dwPhotoID);
+    if (it_Old != m_mapProfilePhoto.end()) {
+        it_Old->second.stInfo = psPhoto.stOldPhotoInfo;
+        PS_PROFILE_PHOTO_UPDATE psUpdate;
+        psUpdate.stPhoto = psPhoto.stOldPhotoInfo;
+        XSendPacket packet(3, 0x0A);
+        packet << psUpdate;
+        CGocNetwork::Send(GetOwnerGO(), packet);
+    }
+
+    // IDA: it = m_mapProfilePhoto.find(psPhoto->stNewPhotoInfo.dwPhotoID);
+    // if (it != end) { update stInfo, send main 3/sub 0x0A and main 3/sub 0x0C }
+    auto it = m_mapProfilePhoto.find(psPhoto.stNewPhotoInfo.dwPhotoID);
+    if (it != m_mapProfilePhoto.end()) {
+        it->second.stInfo = psPhoto.stNewPhotoInfo;
+        PS_PROFILE_PHOTO_UPDATE st;
+        st.stPhoto = psPhoto.stNewPhotoInfo;
+        XSendPacket xSendPacket2(3, 0x0A);
+        xSendPacket2 << st;
+        CGocNetwork::Send(GetOwnerGO(), xSendPacket2);
+
+        XSendPacket xSendPacket1(3, 0x0C);
+        xSendPacket1.XParse << psPhoto.stNewPhotoInfo.dwPhotoID;
+        CGocNetwork::Send(GetOwnerGO(), xSendPacket1);
+    }
+
+    // IDA: XSendPacket xSendPacket(0xF3u, 0x38u) << GetUCID << newPhotoID; CCommunitySocket::SendCheck
+    XSendPacket xSendPacket(0xF3, 0x38);
+    xSendPacket.XParse << pUser->GetUCID();
+    xSendPacket.XParse << psPhoto.stNewPhotoInfo.dwPhotoID;
+    TXSingleton<XGameServer>::Instance()->GetCommunitySocket().SendCheck(&xSendPacket);
+
+    // IDA: if (pParty) CGocParty::SetProfilePhoto(pParty, newPhotoID)
+    std::shared_ptr<CGocParty> pParty = pUser->GetGOC_Party(false);
+    if (pParty) {
+        pParty->SetProfilePhoto(psPhoto.stNewPhotoInfo.dwPhotoID);
+    }
+
+    // IDA: if (pForce) CGocForce::SetProfilePhoto(pForce, newPhotoID)
+    std::shared_ptr<CGocForce> pForce = pUser->GetGOC_Force(false);
+    if (pForce) {
+        pForce->SetProfilePhoto(psPhoto.stNewPhotoInfo.dwPhotoID);
+    }
+
+    // IDA: ST_LOG_GAME stLog; _sMainType=3, _sSubType=23, nParam0=new, nParam1=GetLevel(), nParam2=old; wcscpy_s(szComment, L"초상화 변경")
+    ST_LOG_GAME stLog;
+    stLog._nUAID = pUser->GetUAID();
+    stLog._nUCID = pUser->GetUCID();
+    stLog._sMainType = 3;
+    stLog._sSubType = 23;
+    stLog.nParam0 = psPhoto.stNewPhotoInfo.dwPhotoID;
+    stLog.nParam1 = pUser->GetLevel();
+    stLog.nParam2 = psPhoto.stOldPhotoInfo.dwPhotoID;
+    wcscpy_s(stLog.szComment, L"\uCD08\uC0C1\uD654 \uBCC0\uACBD");
+    TXSingleton<XGameServer>::Instance()->SendDBLog(stLog);
 }
 
 // ============================================================================
@@ -1406,22 +1824,46 @@ void CGocEntity::ResChangeProfilePhoto(PS_DB_PROFILE_PHOTO_CHANGE& psPhoto)
 // Verified: Per IDA decompile - toggles profile photo favorite flag
 void CGocEntity::ProfilePhotoFavorite(PS_PROFILE_PHOTO_FAVORITE& psFavorite)
 {
-    // Per IDA: Toggle favorite
-    auto it = m_mapProfilePhoto.find(static_cast<uint16_t>(psFavorite.dwPhotoID));
-    if (it == m_mapProfilePhoto.end()) {
+    // IDA: if (!XResourceMgr::GetTB_PHOTO_ITEM(psFavorite->dwPhotoID)) -> No Table error
+    XGameServer* pGameServer = TXSingleton<XGameServer>::Instance();
+    if (!pGameServer->GetResourceMgr().GetTB_PHOTO_ITEM(psFavorite.dwPhotoID)) {
+        LogHelper::LogError("game.contents", "ProfilePhotoFavorite - No Table (UCID:%d, Photo:%d)",
+                            static_cast<int>(GetUser()->GetActorID().dwActorID), psFavorite.dwPhotoID);
+        CGocNetwork::SendErrorMessage(GetOwnerGO(), 3, 0x0B, 0xE29B);
         return;
     }
 
-    // Per IDA: Update flag and send DB update
-    // it->second.bFavorite = psFavorite.bFavorite;
-    // PS_DB_PROFILE_PHOTO_UPDATE stUpdate;
-    // stUpdate.dwPhotoID = psFavorite.dwPhotoID;
-    // stUpdate.bFavorite = psFavorite.bFavorite;
-    // XSendDBPacket packet(3, 0x27);
-    // packet << stUpdate;
-    // SendDBPacket(packet);
+    // IDA: it = m_mapProfilePhoto.find(psFavorite->dwPhotoID)
+    auto it = m_mapProfilePhoto.find(psFavorite.dwPhotoID);
+    if (it == m_mapProfilePhoto.end()) {
+        LogHelper::LogError("game.contents", "ProfilePhotoFavorite - No Have (UCID:%d, Photo:%d)",
+                            static_cast<int>(GetUser()->GetActorID().dwActorID), psFavorite.dwPhotoID);
+        CGocNetwork::SendErrorMessage(GetOwnerGO(), 3, 0x0B, 0xE29A);
+        return;
+    }
 
-    (void)psFavorite;
+    ST_HAVE_PROFILE_PHOTO_INFO* stPhoto = &it->second;
+
+    // IDA: if (stPhoto->stInfo.byFavorite == psFavorite->byFavorite) -> Same Flag error
+    if (stPhoto->stInfo.byFavorite == psFavorite.byFavorite) {
+        LogHelper::LogError("game.contents", "ProfilePhotoFavorite - Same Flag (UCID:%d, Photo:%d, Flag:%d)",
+                            static_cast<int>(GetUser()->GetActorID().dwActorID), psFavorite.dwPhotoID,
+                            psFavorite.byFavorite);
+        CGocNetwork::SendErrorMessage(GetOwnerGO(), 3, 0x0B, 0xE29C);
+        return;
+    }
+
+    // IDA: PS_DB_PROFILE_PHOTO_UPDATE psDB; dwUCID = GetUCID(); stInfo = stPhoto->stInfo;
+    // psDB.stInfo.byFavorite = psFavorite->byFavorite;
+    // XSendDBPacket xSendDBPacket(owner, 3u, 0x27u) << psDB; SendDBGame
+    PS_DB_PROFILE_PHOTO_UPDATE psDB;
+    psDB.dwUCID = GetUser()->GetUCID();
+    psDB.stInfo = stPhoto->stInfo;
+    psDB.stInfo.byFavorite = psFavorite.byFavorite;
+
+    XSendDBPacket xSendDBPacket(GetOwnerGO(), 3, 0x27);
+    xSendDBPacket << psDB;
+    TXSingleton<XGameServer>::Instance()->SendDBGame(xSendDBPacket);
 }
 
 // ============================================================================
@@ -1429,24 +1871,61 @@ void CGocEntity::ProfilePhotoFavorite(PS_PROFILE_PHOTO_FAVORITE& psFavorite)
 // Verified: Per IDA decompile - handles DB response for adding photo
 void CGocEntity::ResAddProfilePhoto(PS_DB_PROFILE_PHOTO_ADD& psAdd)
 {
-    // Per IDA: Handle DB response
-    // if (psAdd.bError) {
-    //     CGocInventory* pInventory = GetGOC_Inventory();
-    //     if (pInventory) {
-    //         pInventory->UnLockList();
-    //     }
-    //     return;
-    // }
-    // 
-    // CGocInventory* pInventory = GetGOC_Inventory();
-    // if (pInventory) {
-    //     pInventory->SendUpdateItem();
-    // }
-    // 
-    // // Add photo to map
-    // AddProfilePhoto(psAdd.stPhoto);
+    // IDA: pUser = dynamic_cast<CUser*>(GetOwnerGO()); if (!pUser) return;
+    CUser* pUser = GetUser();
+    if (!pUser)
+        return;
 
-    (void)psAdd;
+    // IDA: CMover::GetGOC<CGocInventory>(pUser, &pInvenPtr, 0); if (!pInvenPtr) return;
+    std::shared_ptr<CGocInventory> pInvenPtr = pUser->GetGOC_Inventory(false);
+    if (!pInvenPtr)
+        return;
+
+    // IDA: if (psAdd->nError) { UnLockList(psAdd->psUpdateItemList); log; return; }
+    if (psAdd.nError) {
+        pInvenPtr->UnLockList(psAdd.psUpdateItemList);
+        LogHelper::LogError("game.item", "ResAddProfilePhoto - DB Error [UCID:%d, Error:%d]",
+                            psAdd.dwUCID, psAdd.nError);
+        return;
+    }
+
+    // IDA: SendUpdateItem(psAdd->psUpdateItemList)
+    pInvenPtr->SendUpdateItem(psAdd.psUpdateItemList);
+
+    // IDA: it = m_mapProfilePhoto.find(psAdd->stInfo.dwPhotoID);
+    // if (it != end) stHavePhoto->stInfo = psAdd->stInfo; else AddProfilePhoto(psAdd->stInfo)
+    auto it = m_mapProfilePhoto.find(psAdd.stInfo.dwPhotoID);
+    if (it != m_mapProfilePhoto.end()) {
+        ST_HAVE_PROFILE_PHOTO_INFO* stHavePhoto = &it->second;
+        stHavePhoto->stInfo = psAdd.stInfo;
+    } else {
+        AddProfilePhoto(psAdd.stInfo);
+    }
+
+    // IDA: ST_LOG_GAME stLog; _sMainType=3, _sSubType=24, nParam0=dwPhotoID, nParam1=GetLevel(),
+    // nParam2=byPeriodType, nParam3=3, nParam5=dwItemID, nParam6=biSerial, nParam7=nEndDate;
+    // wcscpy_s(szComment, L"초상화 추가")
+    ST_LOG_GAME stLog;
+    stLog._nUAID = pUser->GetUAID();
+    stLog._nUCID = pUser->GetUCID();
+    stLog._sMainType = 3;
+    stLog._sSubType = 24;
+    stLog.nParam0 = psAdd.stInfo.dwPhotoID;
+    stLog.nParam1 = pUser->GetLevel();
+    stLog.nParam2 = psAdd.stInfo.byPeriodType;
+    stLog.nParam3 = 3;
+    stLog.nParam5 = psAdd.dwItemID;
+    stLog.nParam6 = static_cast<std::int32_t>(psAdd.biSerial);
+    stLog.nParam7 = static_cast<std::int32_t>(psAdd.stInfo.nEndDate);
+    wcscpy_s(stLog.szComment, L"\uCD08\uC0C1\uD654 \uCD94\uAC00");
+    TXSingleton<XGameServer>::Instance()->SendDBLog(stLog);
+
+    // IDA: PS_PROFILE_PHOTO_UPDATE psUpdate; stPhoto = psAdd->stInfo; XSendPacket(3u, 0xAu) << psUpdate; Send
+    PS_PROFILE_PHOTO_UPDATE psUpdate;
+    psUpdate.stPhoto = psAdd.stInfo;
+    XSendPacket xSendPacket(3, 0x0A);
+    xSendPacket << psUpdate;
+    CGocNetwork::Send(GetOwnerGO(), xSendPacket);
 }
 
 // ============================================================================
@@ -1454,21 +1933,48 @@ void CGocEntity::ResAddProfilePhoto(PS_DB_PROFILE_PHOTO_ADD& psAdd)
 // Verified: Per IDA decompile - handles DB response for photo update
 void CGocEntity::ResUpdateProfilePhoto(PS_DB_PROFILE_PHOTO_UPDATE& psUpdate)
 {
-    // Per IDA: Update photo info
-    auto it = m_mapProfilePhoto.find(static_cast<uint16_t>(psUpdate.stInfo.dwPhotoID));
-    if (it == m_mapProfilePhoto.end()) {
+    // IDA: pUser = dynamic_cast<CUser*>(GetOwnerGO()); if (!pUser) return;
+    CUser* pUser = GetUser();
+    if (!pUser)
+        return;
+
+    // IDA: if (psUpdate->nError) log error
+    if (psUpdate.nError) {
+        LogHelper::LogError("game.contents", "ResUpdateProfilePhoto - Error (UCID:%d, Photo:%d, Flag:%d)",
+                            static_cast<int>(pUser->GetActorID().dwActorID), psUpdate.stInfo.dwPhotoID,
+                            psUpdate.nError);
         return;
     }
 
-    // Per IDA: Update and send packet
-    // std::memcpy(&it->second, &psUpdate.stInfo, sizeof(ST_BOOSTER_INFO));
-    // PS_PROFILE_PHOTO_UPDATE stUpdate;
-    // stUpdate.dwPhotoID = psUpdate.stInfo.dwPhotoID;
-    // XSendPacket packet(3, 0xA);
-    // packet << stUpdate;
-    // SendPacket(packet);
+    // IDA: it = m_mapProfilePhoto.find(psUpdate->stInfo.dwPhotoID); if (it == end) return;
+    auto it = m_mapProfilePhoto.find(psUpdate.stInfo.dwPhotoID);
+    if (it == m_mapProfilePhoto.end())
+        return;
 
-    (void)psUpdate;
+    // IDA: if (it->second.stInfo.byFavorite != psUpdate->stInfo.byFavorite) { log _sSubType=25 }
+    ST_HAVE_PROFILE_PHOTO_INFO* stHavePhoto = &it->second;
+    if (stHavePhoto->stInfo.byFavorite != psUpdate.stInfo.byFavorite) {
+        ST_LOG_GAME stLog;
+        stLog._nUAID = pUser->GetUAID();
+        stLog._nUCID = pUser->GetUCID();
+        stLog._sMainType = 3;
+        stLog._sSubType = 25;
+        stLog.nParam0 = psUpdate.stInfo.dwPhotoID;
+        stLog.nParam1 = pUser->GetLevel();
+        stLog.nParam2 = psUpdate.stInfo.byFavorite;
+        wcscpy_s(stLog.szComment, L"\uCD08\uC0C1\uD654 \uC990\uACA8\uCC3E\uAE30");
+        TXSingleton<XGameServer>::Instance()->SendDBLog(stLog);
+    }
+
+    // IDA: stHavePhoto->stInfo = psUpdate->stInfo;
+    stHavePhoto->stInfo = psUpdate.stInfo;
+
+    // IDA: PS_PROFILE_PHOTO_UPDATE psUpdate1; stPhoto = psUpdate->stInfo; XSendPacket(3u, 0xAu) << psUpdate1; Send
+    PS_PROFILE_PHOTO_UPDATE psUpdate1;
+    psUpdate1.stPhoto = psUpdate.stInfo;
+    XSendPacket xSendPacket(3, 0x0A);
+    xSendPacket << psUpdate1;
+    CGocNetwork::Send(GetOwnerGO(), xSendPacket);
 }
 
 // ============================================================================
@@ -1476,12 +1982,12 @@ void CGocEntity::ResUpdateProfilePhoto(PS_DB_PROFILE_PHOTO_UPDATE& psUpdate)
 // Verified: Per IDA decompile - gets profile photo info by ID
 bool CGocEntity::GetProfilePhotoInfo(uint32_t dwPhotoID, ST_PROFILE_PHOTO_INFO& stInfo)
 {
-    auto it = m_mapProfilePhoto.find(static_cast<uint16_t>(dwPhotoID));
+    auto it = m_mapProfilePhoto.find(dwPhotoID);
     if (it == m_mapProfilePhoto.end()) {
         return false;
     }
 
-    std::memcpy(&stInfo, &it->second, sizeof(ST_PROFILE_PHOTO_INFO));
+    stInfo = it->second.stInfo;
     return true;
 }
 

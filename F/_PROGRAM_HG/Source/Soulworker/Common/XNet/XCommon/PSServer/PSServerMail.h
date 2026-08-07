@@ -263,6 +263,13 @@ struct PS_PROFILE_PHOTO_FAVORITE {
     std::uint8_t byFavorite = 0;           // 收藏标记 (0=取消, 1=收藏)
 };
 
+// PDB LF_FIELDLIST (UDT 0xc554): ST_PROFILE_PHOTO_INFO stPhoto @0, bool bDelete @16, size 24
+struct PS_PROFILE_PHOTO_UPDATE {
+    ST_PROFILE_PHOTO_INFO stPhoto{};       // offset 0x00: 照片信息 (16 bytes)
+    bool bDelete = false;                  // offset 0x10: 删除标记
+};
+static_assert(sizeof(PS_PROFILE_PHOTO_UPDATE) == 24, "PS_PROFILE_PHOTO_UPDATE size must match PDB");
+
 // 对齐 IDA 0x140028B70: 头像照片更新请求/响应结构
 struct PS_DB_PROFILE_PHOTO_UPDATE {
     std::uint32_t dwUCID = 0;              // 角色ID
@@ -908,6 +915,16 @@ inline XPacket& operator>>(XPacket& packet, PS_PROFILE_PHOTO_LOAD& value) {
     return packet;
 }
 
+inline XPacket& operator<<(XPacket& packet, const PS_PROFILE_PHOTO_LOAD& value) {
+    packet.XParse << value.dwUCID;
+    std::int16_t nCount = static_cast<std::int16_t>(value.vecList.size());
+    packet.XParse << nCount;
+    for (const auto& item : value.vecList) {
+        packet << item;
+    }
+    return packet;
+}
+
 inline XSendDBPacket& operator<<(XSendDBPacket& packet, const PS_PROFILE_PHOTO_LOAD& value) {
     // 向量序列化
     std::int16_t nCount = static_cast<std::int16_t>(value.vecList.size());
@@ -923,6 +940,24 @@ inline XPacket& operator>>(XPacket& packet, PS_DB_PROFILE_PHOTO_UPDATE& value) {
     packet.XParse >> value.dwUCID;
     packet >> value.stInfo;
     packet.XParse >> value.nError;
+    return packet;
+}
+
+// PS_PROFILE_PHOTO_UPDATE 序列化操作符
+inline XPacket& operator<<(XPacket& packet, const PS_PROFILE_PHOTO_UPDATE& value) {
+    packet << value.stPhoto;
+    packet.XParse << value.bDelete;
+    return packet;
+}
+
+inline void operator>>(XPacket& packet, PS_PROFILE_PHOTO_UPDATE& value) {
+    packet >> value.stPhoto;
+    packet.XParse >> value.bDelete;
+}
+
+inline XSendDBPacket& operator<<(XSendDBPacket& packet, const PS_PROFILE_PHOTO_UPDATE& value) {
+    packet << value.stPhoto;
+    packet.XParse << value.bDelete;
     return packet;
 }
 

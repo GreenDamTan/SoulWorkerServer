@@ -639,7 +639,7 @@ void CGocBooster::_ChangeBooster(E_BOOSTER_TYPE eType, std::uint16_t wIndex, std
     }
 
     // Per IDA: Handle event boosters separately
-    if (eType == eBooster_Type_TimeEvent) {
+    if (eType == eBooster_Type_Event) {
         AddTimeEventBooster(wIndex, nRemainTime);
         AddGroupID(pBoosterTable->Booster_Group, wIndex);
 

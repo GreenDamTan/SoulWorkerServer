@@ -775,7 +775,7 @@
 | XGameServer | GocAkashicRecord.cpp | ?RemoveExistBuff@CGocAkashicRecord@@QEAAXK@Z | 0x14001bf00 | implemented | IDA decompile | yes | ?????????Buff(??????) |
 | XGameServer | GocAkashicRecord.cpp | ?LoadQuickSlotCard@CGocAkashicRecord@@QEAA_NUPS_QUICKSLOT_CARD_VEC@@@Z | 0x14001bfc0 | implemented | IDA decompile | yes | ?????????????? |
 | - | - | ??1PS_QUICKSLOT_CARD_VEC@@QEAA@XZ | 0x14001c5a0 | blocked | IDA ??1PS_QUICKSLOT_CARD_VEC@@QEAA@XZ | yes | - |
-| XGameServer | GocAkashicRecord.cpp | ?GetQuickSlotInfo@CGocAkashicRecord@@QEAAXAEAUPS_QUICKSLOT_CARD_VEC@@@Z | 0x14001c5c0 | implemented | IDA decompile | yes | ???????????|
+| CGocAkashicRecord | GocAkashicRecord.cpp | ?GetQuickSlotInfo@CGocAkashicRecord@@QEAAXAEAUPS_QUICKSLOT_CARD_VEC@@@Z | 0x14001c5c0 | verified | GameServer PDB + IDA decompile + source build + smoke | yes | Fills PS_QUICKSLOT_CARD_VEC with active deck page and all decks, then refreshes the passive list. |
 | XGameServer | GocAkashicRecord.cpp | ?ThinkAkashicPassive@CGocAkashicRecord@@QEAAXXZ | 0x14001c640 | implemented | IDA decompile | yes | 处理被动Akashic效果(条件46=随机触发) |
 | XGameServer | GocAkashicRecord.cpp | ?SendAkasicRecordRes@CGocAkashicRecord@@QEAAXPEAVCUser@@PEAUTB_AKASHIC_RECORDS@@@Z | 0x14001c8c0 | implemented | IDA decompile | yes | ????Akashic????????main=6,sub=0x21) |
 | - | - | ??0PS_RES_AkashicRecord@@QEAA@XZ | 0x14001ca40 | blocked | IDA ??0PS_RES_AkashicRecord@@QEAA@XZ | yes | - |
@@ -1796,28 +1796,28 @@
 | CGocEntity | GocEntity.cpp | ?ReqFavoriteTitle@CGocEntity@@QEAAXAEAUPS_TITLE_FAVORITE@@@Z | 0x14005f210 | implemented | IDA decompile | no | TB_TITLE_INFO/TB_COMMON 校验 + 收藏上限 + 计数 + DB 同步 (3,0x24) |
 | CGocEntity | GocEntity.cpp | ?ResFavoriteTitle@CGocEntity@@QEAAXAEAUPS_DB_TITLE_FAVORITE@@@Z | 0x14005f840 | implemented | IDA decompile | no | DB 错误回滚计数; 成功应用收藏 + 客户端回包 (3,0x2A) + 日志 (sub=22) |
 | CGocEntity | GocEntity.cpp | ?UpdateCutscene@CGocEntity@@QEAAXAEAUPS_CUTSCENE_UPDATE@@@Z | 0x14005fdd0 | implemented | IDA decompile | no | XMaze 上下文 + GetCutSceneMgr + Set/SkipCutscene + CGocRecode::SetShowCutscene |
-| CGocEntity | GocEntity.cpp | ?LoginNetCafe@CGocEntity@@QEAAX_N@Z | 0x14005ffa0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
-| CGocEntity | GocEntity.cpp | ?SetNetCafe@CGocEntity@@QEAAX_N00@Z | 0x140060030 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
-| CGocEntity | GocEntity.cpp | ?SendNetCafeState@CGocEntity@@QEAAXXZ | 0x140060650 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
-| CGocEntity | GocEntity.cpp | ?SendSGAuthInfo@CGocEntity@@QEAAX_N@Z | 0x140060740 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| CGocEntity | GocEntity.cpp | ?LoginNetCafe@CGocEntity@@QEAAX_N@Z | 0x14005ffa0 | implemented | IDA decompile + source build + smoke | no | Branches on E_SERVER_OPTION_NETCAFE to SetNetCafe or EventNetCafeItemDelete; both callees remain stubs. |
+| CGocEntity | GocEntity.cpp | ?SetNetCafe@CGocEntity@@QEAAX_N00@Z | 0x140060030 | verified | GameServer PDB + IDA decompile + source build + smoke | yes | Sets netcafe flags/booster/FP packet, DB 3/0x59, and cascades to Event/Akashic netcafe handlers. |
+| CGocEntity | GocEntity.cpp | ?SendNetCafeState@CGocEntity@@QEAAXXZ | 0x140060650 | verified | GameServer PDB + IDA decompile + source build + smoke | yes | Builds PS_NETCAFE_INFO from m_bNetCafe and sends main 3/sub 0x54. |
+| CGocEntity | GocEntity.cpp | ?SendSGAuthInfo@CGocEntity@@QEAAX_N@Z | 0x140060740 | verified | GameServer PDB + IDA decompile + source build + smoke | yes | Sends m_stSGAuthInfo via DBAccount and DBLogPacket, then main 1/sub 0x11 token update for auth types 2/3. |
 | CGocEntity | GocEntity.cpp | ?EventNetCafeItemBuy@CGocEntity@@QEAAXAEAUPS_EVENT_NETCAFE_ITEM_BUY@@@Z | 0x140060a10 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
-| CGocEntity | GocEntity.cpp | ?EventNetCafeItemDelete@CGocEntity@@QEAAXXZ | 0x1400619d0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
-| CGocEntity | GocEntity.cpp | ?SetFreeReviveCount@CGocEntity@@QEAAXH_N@Z | 0x140062070 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
-| CGocEntity | GocEntity.cpp | ?ReviveFree@CGocEntity@@QEAA_NXZ | 0x1400621f0 | blocked | IDA decompile | no | stub(awaiting TB_ITEM/XResourceMgr dependencies) |
+| CGocEntity | GocEntity.cpp | ?EventNetCafeItemDelete@CGocEntity@@QEAAXXZ | 0x1400619d0 | verified | GameServer PDB + IDA decompile + source build + smoke | yes | Deletes Item_Cash==3 netcafe items via ReduceItem3/UpdateItemEnd, DB 0x21/0x22, main 0x2A/sub 0x2B. |
+| CGocEntity | GocEntity.cpp | ?SetFreeReviveCount@CGocEntity@@QEAAXH_N@Z | 0x140062070 | verified | GameServer PDB + IDA decompile/assembly + source build + smoke | yes | Assigns count, syncs PS_CHARACTER_FREE_REVIVE via DB 3/0x85, and forwards to SendFreeReviveCount. |
+| CGocEntity | GocEntity.cpp | ?ReviveFree@CGocEntity@@QEAA_NXZ | 0x1400621f0 | verified | GameServer PDB + IDA decompile + source build + smoke | yes | Checks TB_ITEM 0x26272A93 Item_Stack_Max before incrementing and syncing free revive count. |
 | - | - | ?GetProfilePhotoID@CGocEntity@@QEAAKXZ | 0x140062270 | implemented | IDA decompile | yes | IDA��ȷ��ԭ-��ȡͷ��ID |
-| CGocEntity | GocEntity.cpp | ?SendDBProfilePhoto@CGocEntity@@QEAAXXZ | 0x1400622d0 | blocked | IDA decompile | no | stub(awaiting XSendDBPacket dependencies) |
-| CGocEntity | GocEntity.cpp | ?LoadProfilePhoto@CGocEntity@@QEAAXAEAUPS_PROFILE_PHOTO_LOAD@@@Z | 0x1400623e0 | blocked | IDA decompile | no | stub(awaiting profile photo dependencies) |
-| CGocEntity | GocEntity.cpp | ?CheckEquipProfilePhoto@CGocEntity@@QEAAXXZ | 0x1400624e0 | blocked | IDA decompile | no | stub(awaiting TB_PHOTO_ITEM dependencies) |
-| CGocEntity | GocEntity.cpp | ?CheckAddProfilePhoto@CGocEntity@@QEAA_NKAEAUST_PROFILE_PHOTO_INFO@@@Z | 0x140062820 | blocked | IDA decompile | no | stub(awaiting TB_ITEM/TB_PHOTO_ITEM dependencies) |
-| CGocEntity | GocEntity.cpp | ?AddProfilePhoto@CGocEntity@@QEAAHAEAUST_PROFILE_PHOTO_INFO@@@Z | 0x140062e50 | blocked | IDA decompile | no | stub(awaiting TB_PHOTO_ITEM dependencies) |
-| CGocEntity | GocEntity.cpp | ?SendProfilePhoto@CGocEntity@@QEAAXXZ | 0x140063170 | blocked | IDA decompile | no | stub(awaiting packet dependencies) |
-| CGocEntity | GocEntity.cpp | ?ProfilePhotoRemainTimeCheck@CGocEntity@@QEAAXXZ | 0x140063370 | blocked | IDA decompile | no | stub(awaiting ATL::CTime dependencies) |
-| CGocEntity | GocEntity.cpp | ?ReqChangeProfilePhoto@CGocEntity@@QEAAHK@Z | 0x1400634c0 | blocked | IDA decompile | no | stub(awaiting profile photo dependencies) |
-| CGocEntity | GocEntity.cpp | ?ResChangeProfilePhoto@CGocEntity@@QEAAXAEAUPS_DB_PROFILE_PHOTO_CHANGE@@@Z | 0x1400638c0 | implemented | IDA decompile | yes | Response handler for profile photo change from DB |
-| - | - | ?DeleteProfilePhoto@CGocEntity@@QEAAXAEAV?$vector@KV?$allocator@K@std@@@std@@@Z | 0x140063fb0 | implemented | IDA ?DeleteProfilePhoto@CGocEntity@@QEAAXAEAV?$vector@KV?$allocator@K@std@@@std@@@Z | yes | - |
-| CGocEntity | GocEntity.cpp | ?ProfilePhotoFavorite@CGocEntity@@QEAAXAEAUPS_PROFILE_PHOTO_FAVORITE@@@Z | 0x1400643d0 | implemented | IDA decompile | yes | Sets a profile photo as favorite |
-| CGocEntity | GocEntity.cpp | ?ResAddProfilePhoto@CGocEntity@@QEAAXAEAUPS_DB_PROFILE_PHOTO_ADD@@@Z | 0x1400647b0 | implemented | IDA decompile | yes | Response handler for adding profile photo from DB |
-| CGocEntity | GocEntity.cpp | ?ResUpdateProfilePhoto@CGocEntity@@QEAAXAEAUPS_DB_PROFILE_PHOTO_UPDATE@@@Z | 0x140064c50 | implemented | IDA decompile | yes | Response handler for updating profile photo from DB |
+| CGocEntity | GocEntity.cpp | ?SendDBProfilePhoto@CGocEntity@@QEAAXXZ | 0x1400622d0 | verified | GameServer PDB + IDA decompile + source build + smoke | yes | Sends DB 3/0x25 profile-photo load request with the user UCID. |
+| CGocEntity | GocEntity.cpp | ?LoadProfilePhoto@CGocEntity@@QEAAXAEAUPS_PROFILE_PHOTO_LOAD@@@Z | 0x1400623e0 | implemented | IDA decompile + source build + smoke | no | Adds each loaded photo, logs, and arms the profile photo tick; AddProfilePhoto/CheckEquipProfilePhoto remain stubs. |
+| CGocEntity | GocEntity.cpp | ?CheckEquipProfilePhoto@CGocEntity@@QEAAXXZ | 0x1400624e0 | verified | GameServer PDB + IDA decompile + source build + smoke | yes | Equips the class default photo when the current equipped photo is missing from the owned map, sending DB 3/0x28. |
+| CGocEntity | GocEntity.cpp | ?CheckAddProfilePhoto@CGocEntity@@QEAA_NKAEAUST_PROFILE_PHOTO_INFO@@@Z | 0x140062820 | verified | GameServer PDB + IDA decompile + source build + smoke | yes | Validates TB_ITEM/TB_PHOTO_ITEM/class/period, then fills stPhoto with period or permanent semantics. |
+| CGocEntity | GocEntity.cpp | ?AddProfilePhoto@CGocEntity@@QEAAHAEAUST_PROFILE_PHOTO_INFO@@@Z | 0x140062e50 | verified | GameServer PDB + IDA decompile + source build + smoke | yes | Validates expiration and duplication, then inserts ST_HAVE_PROFILE_PHOTO_INFO into m_mapProfilePhoto. |
+| CGocEntity | GocEntity.cpp | ?SendProfilePhoto@CGocEntity@@QEAAXXZ | 0x140063170 | verified | GameServer PDB + IDA decompile + source build + smoke | yes | Builds PS_PROFILE_PHOTO_LOAD with the user UCID and all owned stInfo entries, sends main 3/sub 9. |
+| CGocEntity | GocEntity.cpp | ?ProfilePhotoRemainTimeCheck@CGocEntity@@QEAAXXZ | 0x140063370 | verified | GameServer PDB + IDA decompile + source build + smoke | yes | Collects expired timed photos and forwards them to DeleteProfilePhoto, then re-arms the tick. |
+| CGocEntity | GocEntity.cpp | ?ReqChangeProfilePhoto@CGocEntity@@QEAAHK@Z | 0x1400634c0 | verified | GameServer PDB + IDA decompile + source build + smoke | yes | Validates old/new owned photos then sends the DB 3/0x28 change request; error codes 58010/58011/58012. |
+| CGocEntity | GocEntity.cpp | ?ResChangeProfilePhoto@CGocEntity@@QEAAXAEAUPS_DB_PROFILE_PHOTO_CHANGE@@@Z | 0x1400638c0 | verified | GameServer PDB + IDA decompile + source build + smoke | yes | Updates the equipped photo ID, syncs old/new map entries with main 3/sub 0x0A and 0x0C, forwards via control socket, party/force, and logs subtype 23. |
+| CGocEntity | GocEntity.cpp | ?DeleteProfilePhoto@CGocEntity@@QEAAXAEAV?@KV?@K@std@@@std@@@Z | 0x140063fb0 | verified | GameServer PDB + IDA decompile + source build + smoke | yes | Removes each listed photo, re-equips the class default when the deleted one was equipped, sends main 3/sub 0x0A. |
+| CGocEntity | GocEntity.cpp | ?ProfilePhotoFavorite@CGocEntity@@QEAAXAEAUPS_PROFILE_PHOTO_FAVORITE@@@Z | 0x1400643d0 | verified | GameServer PDB + IDA decompile + source build + smoke | yes | Validates TB_PHOTO_ITEM and ownership, rejects same-flag, then sends the DB 3/0x27 favorite update. |
+| CGocEntity | GocEntity.cpp | ?ResAddProfilePhoto@CGocEntity@@QEAAXAEAUPS_DB_PROFILE_PHOTO_ADD@@@Z | 0x1400647b0 | verified | GameServer PDB + IDA decompile + source build + smoke | yes | Unlocks/sends item update, inserts or updates the owned photo, logs subtype 24, and broadcasts main 3/sub 0x0A. |
+| CGocEntity | GocEntity.cpp | ?ResUpdateProfilePhoto@CGocEntity@@QEAAXAEAUPS_DB_PROFILE_PHOTO_UPDATE@@@Z | 0x140064c50 | verified | GameServer PDB + IDA decompile + source build + smoke | yes | Logs favorite changes (subtype 25), applies stInfo, and broadcasts main 3/sub 0x0A. |
 | CGocEntity | GocEntity.cpp | ?GetProfilePhotoInfo@CGocEntity@@QEAA_NKAEAUST_PROFILE_PHOTO_INFO@@@Z | 0x140064ff0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
 | CGocEntity | GocEntity.cpp | ?SendFreeReviveCount@CGocEntity@@QEAAXXZ | 0x1400650a0 | implemented | IDA decompile | yes | Sends free revive count to client (NetCafe benefit) |
 | CGocEntity | GocEntity.cpp | ?CalculateTitleStat@CGocEntity@@QEAAXXZ | 0x1400652b0 | implemented | IDA decompile | yes | Calculates total stats from all equipped titles |
@@ -1908,7 +1908,7 @@
 | - | - | ??0PS_ACCOUNT_EVENT_LIST@@QEAA@XZ | 0x140068cb0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(Ĭ�ϳ�Ա��ʼ��) |
 | - | - | ??1PS_ACCOUNT_EVENT_LIST@@QEAA@XZ | 0x140068ce0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(Ĭ�ϳ�Ա��ʼ��) |
 | CGocEvent | GocEvent.cpp | ?LoadAccountEvent@CGocEvent@@QEAAXAEAUPS_ACCOUNT_EVENT_LIST@@@Z | 0x140068d00 | implemented | IDA decompile | no | 遍历事件 + CheckAccountEvent + CGocPost::SendAutoMail + DB 包 (2,0x56) |
-| CGocEvent | GocEvent.cpp | ?CheckAccountEvent@CGocEvent@@QEAA_NK@Z | 0x140069080 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| CGocEvent | GocEvent.cpp | ?CheckAccountEvent@CGocEvent@@QEAA_NK@Z | 0x140069080 | verified | GameServer PDB + IDA decompile + source build + smoke | yes | Returns true for event 255 when the owner XActor status is 6. |
 | CGocEvent | GocEvent.cpp | ?SetWorldEventInfo@CGocEvent@@QEAAEAEAUPS_WORLD_EVENT_INFO_RES@@_J1@Z | 0x1400690e0 | implemented | IDA decompile | no | 遍历 vecRewardInfo 更新/插入 m_mapWorldEventReward + 调第二重载 |
 | CGocEvent | GocEvent.cpp | ?SetWorldEventInfo@CGocEvent@@QEAAEHHH_J0@Z | 0x1400692a0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
 | CGocEvent | GocEvent.cpp | ?FindWorldEventReward@CGocEvent@@QEAA_NH@Z | 0x1400694d0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
@@ -1918,14 +1918,14 @@
 | CGocEvent | GocEvent.cpp | ?GetWorldEventLastResisterDate@CGocEvent@@QEAA_JH@Z | 0x1400696c0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
 | CGocEvent | GocEvent.cpp | ?GetWorldEventDailyRewardDate@CGocEvent@@QEAA_JH@Z | 0x140069730 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
 | CGocEvent | GocEvent.cpp | ?ReqWorldEventInfo@CGocEvent@@QEAAHAEAUPS_WORLD_EVENT_INFO_REQ@@@Z | 0x1400697a0 | implemented | IDA decompile | no | 错误码 59002/59003/59007 + TB_WORLD_EVENT 校验 + 时间范围 + DB 包 (0x49,0x27) |
-| CGocEvent | GocEvent.cpp | ?ReqWorldEventRegister@CGocEvent@@QEAAHAEAUPS_WORLD_EVENT_REGISTER_REQ@@@Z | 0x140069d90 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| CGocEvent | GocEvent.cpp | ?ReqWorldEventRegister@CGocEvent@@QEAAHAEAUPS_WORLD_EVENT_REGISTER_REQ@@@Z | 0x140069d90 | verified | GameServer PDB + IDA decompile + source build + smoke | yes | Validates event activation/date/items, locks matched items with SetLock 84, sends DB 0x49/0x28. |
 | CGocEvent | GocEvent.cpp | ?ReqWorldEventReward@CGocEvent@@QEAAHAEAUPS_WORLD_EVENT_REWARD_REQ@@@Z | 0x14006a7e0 | implemented | IDA decompile | no | 错误码 59002-59008 + TB_WORLD_EVENT_REWARD 校验 + 条件 + CreateItem2 + DB 包 (0x49,0x29) |
 | CGocEvent | GocEvent.cpp | ?ReqWorldEventDailyReward@CGocEvent@@QEAAHAEAUPS_WORLD_EVENT_DAILY_REWARD_REQ@@@Z | 0x14006b300 | implemented | IDA decompile | no | 错误码 59002-59008 + TB_WORLD_EVENT 校验 + SetWorldEventInfo 状态 + CreateItem2 + DB 包 (0x49,0x2A) |
-| - | - | ?ResWorldEventInfo@CGocEvent@@QEAAXAEAUPS_DB_WORLD_EVENT_INFO_RES@@@Z | 0x14006bd30 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| CGocEvent | GocEvent.cpp | ?ResWorldEventInfo@CGocEvent@@QEAAXAEAUPS_DB_WORLD_EVENT_INFO_RES@@@Z | 0x14006bd30 | verified | GameServer PDB + IDA decompile + source build + smoke | yes | Resets DB-call flag, caps total count by event_item_amount_max, SetWorldEventInfo, sends main 0x2A/0x22. |
 | - | - | ??0PS_WORLD_EVENT_INFO_RES@@QEAA@AEBU0@@Z | 0x14006bf00 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
-| - | - | ?ResWorldEventRegister@CGocEvent@@QEAAXAEAUPS_DB_WORLD_EVENT_REGISTER_RES@@@Z | 0x14006bf80 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
-| - | - | ?ResWorldEventReward@CGocEvent@@QEAAXAEAUPS_DB_WORLD_EVENT_REWARD@@@Z | 0x14006c880 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
-| - | - | ?ResWorldEventDailyReward@CGocEvent@@QEAAXAEAUPS_DB_WORLD_EVENT_DAILY_REWARD@@@Z | 0x14006cf00 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| CGocEvent | GocEvent.cpp | ?ResWorldEventRegister@CGocEvent@@QEAAXAEAUPS_DB_WORLD_EVENT_REGISTER_RES@@@Z | 0x14006bf80 | verified | GameServer PDB + IDA decompile + source build + smoke | yes | Unlocks submitted slots, removes whole items with stats/log, caps counts, sends update item + main 0x2A/0x23 and log subtype 30. |
+| CGocEvent | GocEvent.cpp | ?ResWorldEventReward@CGocEvent@@QEAAXAEAUPS_DB_WORLD_EVENT_REWARD@@@Z | 0x14006c880 | verified | GameServer PDB + IDA decompile + source build + smoke | yes | Dispatch by reward type: type1 sends update/create item, type0 sends system mail, records reward, sends main 0x2A/0x24, logs subtype 32/33. |
+| CGocEvent | GocEvent.cpp | ?ResWorldEventDailyReward@CGocEvent@@QEAAXAEAUPS_DB_WORLD_EVENT_DAILY_REWARD@@@Z | 0x14006cf00 | verified | GameServer PDB + IDA decompile + source build + smoke | yes | Handles DB daily-reward: resets DB-call flag, updates world event info, refreshes inventory items, sends main 0x2A/0x25, and logs subtype 31. |
 | - | - | ?SendDBRouletteInfo@CGocEvent@@QEAAXEH@Z | 0x14006d310 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | - | - | ?LoadRouletteEventInfo@CGocEvent@@QEAAXAEAUPS_ROULETTE_INFO@@@Z | 0x14006d4a0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
 | - | - | ?SendRouletteEventInfo@CGocEvent@@QEAAXXZ | 0x14006d5b0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
@@ -2251,19 +2251,19 @@
 | CGocForce | GocForce.cpp | ?SetHP@CGocForce@@QEAAXH@Z | 0x140083970 | implemented | IDA decompile | no | m_pParty 非空 + owner ActorID/MapInsID -> CParty::SetMemberHP |
 | CGocForce | GocForce.cpp | ?SetExp@CGocForce@@QEAAXPEAVCUser@@MH@Z | 0x140083a30 | blocked | IDA decompile | no | IDA精确还原(stub) |
 | XGameServer | GocForce.cpp | ?SetForce@CGocForce@@QEAAXV?$shared_ptr@VCForce@@@tr1@std@@@Z | 0x140083f30 | implemented | IDA decompile | yes | ����Forceָ�� |
-| CGocForce | GocForce.cpp | ?Logout@CGocForce@@QEAAXXZ | 0x140084010 | blocked | IDA decompile | no | IDA精确还原(stub) |
-| CGocForce | GocForce.cpp | ?SendForceInfo@CGocForce@@QEAAXE@Z | 0x140084310 | blocked | IDA decompile | no | IDA精确还原(stub) |
+| CGocForce | GocForce.cpp | ?Logout@CGocForce@@QEAAXXZ | 0x140084010 | verified | GameServer PDB + IDA decompile + source build + smoke | yes | Member-logout via CPartyMember::Logout + community SendCheck, else direct 0xFA/0x14 logout; clears the party. |
+| CGocForce | GocForce.cpp | ?SendForceInfo@CGocForce@@QEAAXE@Z | 0x140084310 | verified | GameServer PDB + IDA decompile + source build + smoke | yes | Builds PS_FORCE_INFO via GetPartyInfo/GetForceType and sends main 0x2E/sub 9. |
 | - | - | ??1PS_PARTY_INFO@@QEAA@XZ | 0x140084460 | blocked | IDA ??1PS_PARTY_INFO@@QEAA@XZ | yes | - |
-| CGocForce | GocForce.cpp | ?Leave@CGocForce@@QEAAXXZ | 0x140084480 | blocked | IDA decompile | no | IDA精确还原(stub) |
-| CGocForce | GocForce.cpp | ?KickOut@CGocForce@@QEAA_NKPEAVCUser@@@Z | 0x1400846f0 | blocked | IDA decompile | no | IDA精确还原(stub) |
+| CGocForce | GocForce.cpp | ?Leave@CGocForce@@QEAAXXZ | 0x140084480 | verified | GameServer PDB + IDA decompile + source build + smoke | yes | Builds PS_FORCE_LEAVE (bKickout=0) and sends via community socket; no Clear call in IDA. |
+| CGocForce | GocForce.cpp | ?KickOut@CGocForce@@QEAA_NKPEAVCUser@@@Z | 0x1400846f0 | verified | GameServer PDB + IDA decompile + source build + smoke | yes | Validates party/self/master/member/maze-state then sends PS_FORCE_LEAVE (bKickout=1) via community socket. |
 | CGocForce | GocForce.cpp | ?ChangeMaster@CGocForce@@QEAAXK@Z | 0x140084c80 | implemented | IDA decompile | no | IsParty + GetMasterID==owner + IsMember 校验 + CGameControlSocket::SendCmd (0x2E,3) |
-| CGocForce | GocForce.cpp | ?UpdatePartyBooster@CGocForce@@QEAAXXZ | 0x140084ee0 | blocked | IDA decompile | no | IDA精确还原(stub) |
+| CGocForce | GocForce.cpp | ?UpdatePartyBooster@CGocForce@@QEAAXXZ | 0x140084ee0 | verified | GameServer PDB + IDA decompile + source build + smoke | yes | Delegates to CForce::UpdateForceBooster(0) when the party exists. |
 | CGocForce | GocForce.cpp | ?UpdatePartyBoosterByCount@CGocForce@@QEAAXHH@Z | 0x140084f30 | blocked | IDA decompile | no | IDA精确还原(stub) |
 | CGocParty | GocParty.cpp | ?SetMatchingDate@CGocParty@@QEAAX_J@Z | 0x140085030 | implemented | IDA ?SetMatchingDate@CGocParty@@QEAAX_J@Z | yes | - |
 | CGocForce | GocForce.cpp | ?AddMatchingDate@CGocForce@@QEAAXH@Z | 0x140085130 | implemented | IDA decompile | no | m_biMatchingDate > 0 时累加 |
 | CGocForce | GocForce.cpp | ?IsMatchingDate@CGocForce@@QEAA_NXZ | 0x140085160 | implemented | IDA decompile | yes | IDA精确还原 |
-| CGocForce | GocForce.cpp | ?CheckPassiveSkill@CGocForce@@QEAAXPEAVCUser@@EE@Z | 0x1400851b0 | blocked | IDA decompile | no | IDA精确还原(stub) |
-| CGocForce | GocForce.cpp | ?CheckForceMatchingEnter@CGocForce@@QEAA_NXZ | 0x140085210 | blocked | IDA decompile | no | IDA精确还原(stub) |
+| CGocForce | GocForce.cpp | ?CheckPassiveSkill@CGocForce@@QEAAXPEAVCUser@@EE@Z | 0x1400851b0 | verified | GameServer PDB + IDA decompile + source build + smoke | yes | Delegates to CParty::CheckPassiveSkill when the party exists. |
+| CGocForce | GocForce.cpp | ?CheckForceMatchingEnter@CGocForce@@QEAA_NXZ | 0x140085210 | verified | GameServer PDB + IDA decompile + source build + smoke | yes | Requires every member in the same world/channel/map instance; non-const QEAA ABI. |
 | CGocForce | GocForce.cpp | ?IsFull@CGocForce@@QEAA_NXZ | 0x1400854b0 | implemented | IDA decompile | yes | IDA精确还原 |
 | - | - | ??E?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@EUTB_SYSTEMMAIL@@U?$less@E@std@@V?$allocator@U?$pair@$$CBEUTB_SYSTEMMAIL@@@std@@@3@$0A@@std@@@std@@@std@@QEAAAEAV01@XZ | 0x140085500 | blocked | IDA ??E?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@EUTB_SYSTEMMAIL@@U?$less@E@std@@V?$allocator@U?$pair@$$CBEUTB_SYSTEMMAIL@@@std@@@3@$0A@@std@@@std@@@std@@QEAAAEAV01@XZ | yes | - |
 | - | - | ??0?$_Vector_val@UPS_ITEM_MAKE_LIMIT_INFO@@V?$allocator@UPS_ITEM_MAKE_LIMIT_INFO@@@std@@@std@@QEAA@V?$allocator@UPS_ITEM_MAKE_LIMIT_INFO@@@1@@Z | 0x140085520 | blocked | IDA ??0?$_Vector_val@UPS_ITEM_MAKE_LIMIT_INFO@@V?$allocator@UPS_ITEM_MAKE_LIMIT_INFO@@@std@@@std@@QEAA@V?$allocator@UPS_ITEM_MAKE_LIMIT_INFO@@@1@@Z | yes | - |
@@ -2335,16 +2335,16 @@
 | CGocFriend | GocFriend.cpp | ?DeleteFriend@CGocFriend@@QEAAXK_N@Z | 0x1400877f0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
 | CGocFriend | GocFriend.cpp | ?UpdatePartyBooster@CGocFriend@@QEAAXXZ | 0x140087980 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
 | CGocFriend | GocFriend.cpp | ?DeleteBlock@CGocFriend@@QEAAXKPEA_W_N@Z | 0x140087a50 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
-| CGocFriend | GocFriend.cpp | ?PrepareFriendInvite@CGocFriend@@QEAAXAEAUPS_REQ_FRIEND_INVITE@@@Z | 0x140087c80 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
-| CGocFriend | GocFriend.cpp | ?PrepareFriendAccept@CGocFriend@@QEAAXAEAUPS_REQ_FRIEND_ACCEPT@@@Z | 0x1400880b0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
-| CGocFriend | GocFriend.cpp | ?PrepareDelFriend@CGocFriend@@QEAA_NAEAUPS_REQ_FRIEND_DELETE@@@Z | 0x1400882f0 | implemented | IDA decompile | no | IDA��ȷ��ԭ(stub) |
-| CGocFriend | GocFriend.cpp | ?PrepareAddBlock@CGocFriend@@QEAA_NAEAUPS_REQ_FRIEND_BLOCK_ADD@@@Z | 0x140088460 | implemented | IDA decompile | no | IDA��ȷ��ԭ(stub) |
-| CGocFriend | GocFriend.cpp | ?PrepareDelBlock@CGocFriend@@QEAA_NAEAUPS_REQ_FRIEND_BLOCK_DELETE@@@Z | 0x1400886b0 | implemented | IDA decompile | no | IDA��ȷ��ԭ(stub) |
-| CGocFriend | GocFriend.cpp | ?PrepareRecruitList@CGocFriend@@QEAA_NAEAUPS_RECRUIT_LIST@@@Z | 0x1400888c0 | implemented | IDA decompile | no | IDA��ȷ��ԭ(stub) |
-| CGocFriend | GocFriend.cpp | ?PrepareRecruitAdd@CGocFriend@@QEAA_NXZ | 0x140088c00 | implemented | IDA decompile | no | IDA��ȷ��ԭ(stub) |
-| CGocFriend | GocFriend.cpp | ?PrepareRecruitDelete@CGocFriend@@QEAA_NXZ | 0x140088d30 | implemented | IDA decompile | no | IDA��ȷ��ԭ(stub) |
-| CGocFriend | GocFriend.cpp | ?PrepareRecruitInfo@CGocFriend@@QEAA_NXZ | 0x140088e60 | implemented | IDA decompile | no | IDA��ȷ��ԭ(stub) |
-| CGocFriend | GocFriend.cpp | ?PrepareRecommandList@CGocFriend@@QEAA_NXZ | 0x1400890c0 | implemented | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| CGocFriend | GocFriend.cpp | ?PrepareFriendInvite@CGocFriend@@QEAAXAEAUPS_REQ_FRIEND_INVITE@@@Z | 0x140087c80 | verified | GameServer PDB + IDA decompile + source build + smoke | yes | Finds the target, rejects refusals via CheckGameOption, forwards to the community socket or sends 59202. |
+| CGocFriend | GocFriend.cpp | ?PrepareFriendAccept@CGocFriend@@QEAAXAEAUPS_REQ_FRIEND_ACCEPT@@@Z | 0x1400880b0 | verified | GameServer PDB + IDA decompile + source build + smoke | yes | Validates target name/block/friend-type then forwards the accept to the community socket. |
+| CGocFriend | GocFriend.cpp | ?PrepareDelFriend@CGocFriend@@QEAA_NAEAUPS_REQ_FRIEND_DELETE@@@Z | 0x1400882f0 | verified | GameServer PDB + IDA decompile + source build + smoke | yes | Checks friendship then sends the delete request to the community socket. |
+| CGocFriend | GocFriend.cpp | ?PrepareAddBlock@CGocFriend@@QEAA_NAEAUPS_FRIEND_BLOCK_ADD@@@Z | 0x140088460 | verified | GameServer PDB + IDA decompile + source build + smoke | yes | Rejects existing block/limit then sends the block-add to the community socket. |
+| CGocFriend | GocFriend.cpp | ?PrepareDelBlock@CGocFriend@@QEAA_NAEAUPS_FRIEND_BLOCK_DELETE@@@Z | 0x1400886b0 | verified | GameServer PDB + IDA decompile + source build + smoke | yes | Requires an existing block then sends the block-delete to the community socket. |
+| CGocFriend | GocFriend.cpp | ?PrepareRecruitList@CGocFriend@@QEAA_NAEAUPS_RECRUIT_LIST@@@Z | 0x1400888c0 | verified | GameServer PDB + IDA decompile + source build + smoke | yes | Cooldown/class/level gates plus in-flight check, then community socket recruit-list request. |
+| CGocFriend | GocFriend.cpp | ?PrepareRecruitAdd@CGocFriend@@QEAA_NXZ | 0x140088c00 | verified | GameServer PDB + IDA decompile + source build + smoke | yes | Sends a community socket recruit-add request with the UCID. |
+| CGocFriend | GocFriend.cpp | ?PrepareRecruitDelete@CGocFriend@@QEAA_NXZ | 0x140088d30 | verified | GameServer PDB + IDA decompile + source build + smoke | yes | Sends a community socket recruit-delete request with the UCID. |
+| CGocFriend | GocFriend.cpp | ?PrepareRecruitInfo@CGocFriend@@QEAA_NXZ | 0x140088e60 | verified | GameServer PDB + IDA decompile + source build + smoke | yes | In-flight check then community socket recruit-info request with the UCID. |
+| CGocFriend | GocFriend.cpp | ?PrepareRecommandList@CGocFriend@@QEAA_NXZ | 0x1400890c0 | verified | GameServer PDB + IDA decompile + source build + smoke | yes | Cooldown/in-flight gates then community socket recommend request and time reset. |
 | - | - | ??1PS_RES_FRIEND_RECOMMAND@@QEAA@XZ | 0x140089370 | blocked | IDA ??1PS_RES_FRIEND_RECOMMAND@@QEAA@XZ | yes | - |
 | CGocFriend | GocFriend.cpp | ?FriendInvite@CGocFriend@@QEAAXAEAUPS_FRIEND_RESULT@@@Z | 0x140089390 | implemented | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | CGocFriend | GocFriend.cpp | ?FriendAccept@CGocFriend@@QEAAXAEAUPS_RES_FRIEND_ACCEPT@@@Z | 0x140089720 | implemented | IDA decompile | no | IDA��ȷ��ԭ(stub) |
@@ -2877,7 +2877,7 @@
 | CGocInventory | GocInventory.cpp | ?CanUseItem@CGocInventory@@QEAA_NEF@Z | 0x1400ab0e0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | CGocInventory | GocInventory.cpp | ?SetQuickSlotItem@CGocInventory@@QEAA_NAEAUPS_QUICKSLOT_UPDATE_ITEM@@@Z | 0x1400aca50 | verified | GameServer PDB + IDA decompile/assembly + source build | yes | Validates four common/cash item IDs, clears missing IDs, updates m_nQuickSlotItem, sends main 8/sub 0x28, and saves to DB. |
 | CGocInventory | GocInventory.cpp | ?LoadQuickSlotItem@CGocInventory@@QEAA_NUPS_QUICKSLOT_ITEM@@@Z | 0x1400acd50 | verified | GameServer PDB + IDA decompile/assembly + source build | yes | By-value DB payload validates four common/cash item IDs, clears missing IDs, and copies the resulting IDs into m_nQuickSlotItem. |
-| CGocInventory | GocInventory.cpp | ?SendQuickSlotInfo@CGocInventory@@QEAAXXZ | 0x1400ace80 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| CGocInventory | GocInventory.cpp | ?SendQuickSlotInfo@CGocInventory@@QEAAXXZ | 0x1400ace80 | verified | GameServer PDB + IDA decompile + source build + smoke | yes | Fills four quick-slot items and the akashic card vector, then sends main 8/sub 0x26. |
 | CGocInventory | GocInventory.cpp | ?GetItem@CGocInventory@@QEAA?AV?$shared_ptr@VCItem@@@tr1@std@@EH@Z | 0x1400ad750 | implemented | IDA decompile | yes | ��ȷ��ԭ-ͨ��ID��ȡ��Ʒ |
 | CGocInventory | GocInventory.cpp | ?CreateItemReq@CGocInventory@@QEAA_NHF_NW4eITEM_CREATE_TYPE@@AEAUST_LOG_GAME@@@Z | 0x1400ad7e0 | verified | GameServer PDB + IDA disassembly + source build | yes | Scalar overload wraps one item, marks quest/condition responses, serializes owner actor ID into DB 0x21/0x0C, and intentionally ignores SendDBGame result. |
 | CGocInventory | GocInventory.cpp | ?BreakItemReq@CGocInventory@@QEAA_NEFHEAEAUST_LOG_GAME@@@Z | 0x1400adb20 | implemented | IDA decompile | no | IDA��ȷ��ԭ(stub) |
@@ -2917,7 +2917,7 @@
 | - | - | ?GetItemPtr@CGocInventory@@QEAA?AV?$shared_ptr@VCItem@@@tr1@std@@_J@Z | 0x1400b1c10 | implemented | IDA ?GetItemPtr@CGocInventory@@QEAA?AV?$shared_ptr@VCItem@@@tr1@std@@_J@Z | yes | - |
 | - | - | ?GetItemPtr@CGocInventory@@QEAA?AV?$shared_ptr@VCItem@@@tr1@std@@_JE@Z | 0x1400b1de0 | implemented | IDA ?GetItemPtr@CGocInventory@@QEAA?AV?$shared_ptr@VCItem@@@tr1@std@@_JE@Z | yes | - |
 | CGocInventory | GocInventory.cpp | ?LogCreateItemLog@CGocInventory@@QEAAXHAEAUST_LOG_GAME@@@Z | 0x1400b1fa0 | verified | GameServer PDB + IDA decompile + source build | yes | Restores the create-type to ST_LOG_GAME._sSubType mapping without altering unmatched types. |
-| - | - | ?GetInvenInfo@CGocInventory@@QEAAXEAEAUPS_RES_STORAGE_INFO@@@Z | 0x1400b2120 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| CGocInventory | GocInventory.cpp | ?GetInvenInfo@CGocInventory@@QEAAXEAEAUPS_RES_STORAGE_INFO@@@Z | 0x1400b2120 | verified | GameServer PDB + IDA decompile + source build + smoke | yes | Routes equip/inventory types to XBaseEquip::GetInvenInfo or XBaseInventory::GetSlotInfos; corrected void* signature. |
 | - | - | ?CheckAddItems@CGocInventory@@QEAAHAEAV?$vector@UST_CREATE_ITEM@@V?$allocator@UST_CREATE_ITEM@@@std@@@std@@@Z | 0x1400b21f0 | implemented | IDA ?CheckAddItems@CGocInventory@@QEAAHAEAV?$vector@UST_CREATE_ITEM@@V?$allocator@UST_CREATE_ITEM@@@std@@@std@@@Z | yes | - |
 | - | - | ?ItemMakeCheat@CGocInventory@@QEAA_NHF_NE@Z | 0x1400b2430 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | - | - | ?CanPackageBoxUse@CGocInventory@@QEAA_NV?$shared_ptr@VCItem@@@tr1@std@@@Z | 0x1400b2ca0 | implemented | IDA ?CanPackageBoxUse@CGocInventory@@QEAA_NV?$shared_ptr@VCItem@@@tr1@std@@@Z | yes | - |
@@ -4113,7 +4113,7 @@
 | CGocParty | GocParty.cpp | ?Send@CGocParty@@QEAAXAEAVXSendPacket@@@Z | 0x14010b1a0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
 | CGocParty | GocParty.cpp | ?SendPartyInfo@CGocParty@@QEAAXE@Z | 0x14010b1f0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
 | CGocParty | GocParty.cpp | ?SaveRecode@CGocParty@@QEAAXXZ | 0x14010b340 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
-| CGocForce | GocForce.cpp | ?LoadRecode@CGocForce@@QEAAXXZ | 0x14010b430 | blocked | IDA decompile | no | IDA精确还原(stub) |
+| CGocForce | GocForce.cpp | ?LoadRecode@CGocForce@@QEAAXXZ | 0x14010b430 | verified | GameServer PDB + IDA decompile + source build + smoke | yes | Loads the owner maze recode from CForce into CGocRecode::SetFullRecode. |
 | CGocParty | GocParty.cpp | ?SetHP@CGocParty@@QEAAXH@Z | 0x14010b540 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
 | CGocParty | GocParty.cpp | ?SetMaxHP@CGocParty@@QEAAXH@Z | 0x14010b600 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
 | CGocParty | GocParty.cpp | ?SetLevel@CGocParty@@QEAAXH@Z | 0x14010b6c0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
@@ -4122,21 +4122,21 @@
 | CGocParty | GocParty.cpp | ?Logout@CGocParty@@QEAAXXZ | 0x14010b840 | implemented | IDA ?Logout@CGocParty@@QEAAXXZ | yes | - |
 | - | - | ??0ST_UPDATE_PARTY_MEMBER@@QEAA@XZ | 0x14010bb00 | blocked | IDA ??0ST_UPDATE_PARTY_MEMBER@@QEAA@XZ | yes | - |
 | CGocParty | GocParty.cpp | ?ShowMyPartyInfo@CGocParty@@QEAAXXZ | 0x14010bb30 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
-| CGocForce | GocForce.cpp | ?IsMember@CGocForce@@QEAA_NPEAVXActor@@@Z | 0x14010bbb0 | blocked | IDA decompile | no | IDA精确还原(stub) |
+| CGocForce | GocForce.cpp | ?IsMember@CGocForce@@QEAA_NPEAVXActor@@@Z | 0x14010bbb0 | verified | GameServer PDB + IDA decompile + source build + smoke | yes | Validates m_pParty then delegates to CParty::IsMember by actor ID; non-const QEAA ABI. |
 | CGocParty | GocParty.cpp | ?SetMapID@CGocParty@@QEAAXHHTUXMapID@@@Z | 0x14010bc20 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
 | CGocParty | GocParty.cpp | ?KickOut@CGocParty@@QEAA_NKPEAVCUser@@@Z | 0x14010bcc0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
 | CGocParty | GocParty.cpp | ?Leave@CGocParty@@QEAAXXZ | 0x14010c250 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
 | CGocParty | GocParty.cpp | ?ChangeMaster@CGocParty@@QEAAXK@Z | 0x14010c540 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
-| CGocForce | GocForce.cpp | ?NeedReviveBuffUser@CGocForce@@QEAA_NXZ | 0x14010c7a0 | blocked | IDA decompile | no | IDA精确还原(stub) |
+| CGocForce | GocForce.cpp | ?NeedReviveBuffUser@CGocForce@@QEAA_NXZ | 0x14010c7a0 | verified | GameServer PDB + IDA decompile + source build + smoke | yes | Iterates members looking for a same-map dead member without the revive buff. |
 | CGocParty | GocParty.cpp | ?UpdatePartyBooster@CGocParty@@QEAAXXZ | 0x14010c8f0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
-| CGocForce | GocForce.cpp | ?DeletePartyBoost@CGocForce@@QEAAXXZ | 0x14010c940 | blocked | IDA decompile | no | IDA精确还原(stub) |
+| CGocForce | GocForce.cpp | ?DeletePartyBoost@CGocForce@@QEAAXXZ | 0x14010c940 | verified | GameServer PDB + IDA decompile + source build + smoke | yes | Clears the party booster via CGocBooster::ChangeBooster. |
 | - | - | ?GetForceMember@CGocForce@@QEAAXPEAVCUser@@AEAV?$vector@PEAVCForceMember@@V?$allocator@PEAVCForceMember@@@std@@@std@@_N@Z | 0x14010c9b0 | implemented | IDA ?GetForceMember@CGocForce@@QEAAXPEAVCUser@@AEAV?$vector@PEAVCForceMember@@V?$allocator@PEAVCForceMember@@@std@@@std@@_N@Z | yes | - |
 | CGocParty | GocParty.cpp | ?SetExp@CGocParty@@QEAAXPEAVCUser@@MH@Z | 0x14010cc20 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
 | - | - | ?GetMemberInMap@CGocParty@@QEAAXAEAV?$vector@PEAVCMover@@V?$allocator@PEAVCMover@@@std@@@std@@@Z | 0x14010d130 | implemented | IDA ?GetMemberInMap@CGocParty@@QEAAXAEAV?$vector@PEAVCMover@@V?$allocator@PEAVCMover@@@std@@@std@@@Z | yes | - |
-| CGocForce | GocForce.cpp | ?GetForceUserCount@CGocForce@@QEAAEXZ | 0x14010d330 | blocked | IDA decompile | no | IDA精确还原(stub) |
+| CGocForce | GocForce.cpp | ?GetForceUserCount@CGocForce@@QEAAEXZ | 0x14010d330 | verified | GameServer PDB + IDA decompile + source build + smoke | yes | Requires an active party then returns CParty::GetUserCount; non-const QEAA ABI. |
 | CGocParty | GocParty.cpp | ?IsFull@CGocParty@@QEAA_NXZ | 0x14010d370 | implemented | IDA ?IsFull@CGocParty@@QEAA_NXZ | yes | - |
 | CGocParty | GocParty.cpp | ?IsMatchingDate@CGocParty@@QEAA_NXZ | 0x14010d3c0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
-| CGocForce | GocForce.cpp | ?GetMasterID@CGocForce@@QEAAKXZ | 0x14010d410 | blocked | IDA decompile | no | IDA精确还原(stub) |
+| CGocForce | GocForce.cpp | ?GetMasterID@CGocForce@@QEAAKXZ | 0x14010d410 | verified | GameServer PDB + IDA decompile + source build + smoke | yes | Returns CParty::GetMasterID when m_pParty is set, else 0; non-const QEAA ABI. |
 | CGocParty | GocParty.cpp | ?ChangePartyMemberName@CGocParty@@QEAAXAEAUPS_CHANGE_NAME@@@Z | 0x14010d460 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
 | - | - | ?reset@?$shared_ptr@VCItem@@@tr1@std@@QEAAXXZ | 0x14010d4b0 | blocked | IDA ?reset@?$shared_ptr@VCItem@@@tr1@std@@QEAAXXZ | yes | - |
 | - | - | ??E?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@HPEAUSTMagePotalBox@@U?$less@H@std@@V?$allocator@U?$pair@$$CBHPEAUSTMagePotalBox@@@std@@@3@$0A@@std@@@std@@@std@@QEAA?AV01@H@Z | 0x14010d4f0 | blocked | IDA ??E?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@HPEAUSTMagePotalBox@@U?$less@H@std@@V?$allocator@U?$pair@$$CBHPEAUSTMagePotalBox@@@std@@@3@$0A@@std@@@std@@@std@@QEAA?AV01@H@Z | yes | - |
@@ -4202,10 +4202,10 @@
 | CGocPost | GocPost.cpp | ?SendDBPostList@CGocPost@@QEAAXXZ | 0x140114ab0 | implemented | IDA decompile | no | IDA��ȷ��ԭ(����TODO) |
 | CGocPost | GocPost.cpp | ?SendPostSendList@CGocPost@@QEAAXXZ | 0x140115000 | implemented | IDA decompile | no | IDA��ȷ��ԭ(����TODO) |
 | - | - | ??1ST_POST_LIST@@QEAA@XZ | 0x140115270 | blocked | IDA ??1ST_POST_LIST@@QEAA@XZ | yes | - |
-| CGocPost | GocPost.cpp | ?SendPostRecvList@CGocPost@@QEAAXXZ | 0x140115290 | implemented | IDA decompile | no | IDA��ȷ��ԭ(����TODO) |
-| CGocPost | GocPost.cpp | ?SendPostAccountList@CGocPost@@QEAAXXZ | 0x140115500 | implemented | IDA decompile | no | IDA��ȷ��ԭ(����TODO) |
+| CGocPost | GocPost.cpp | ?SendPostRecvList@CGocPost@@QEAAXXZ | 0x140115290 | verified | GameServer PDB + IDA decompile + source build + smoke | yes | Batches m_mpRecvList 10 per main 0x20/sub 2 with bLoad tail; verified against IDA. |
+| CGocPost | GocPost.cpp | ?SendPostAccountList@CGocPost@@QEAAXXZ | 0x140115500 | verified | GameServer PDB + IDA decompile + source build + smoke | yes | Batches m_mpAccountList 10 per main 0x20/sub 0x14 with bLoad tail. |
 | - | - | ??0ST_ACCOUNT_POST_DATA@@QEAA@AEBU0@@Z | 0x140115770 | blocked | IDA ??0ST_ACCOUNT_POST_DATA@@QEAA@AEBU0@@Z | yes | - |
-| CGocPost | GocPost.cpp | ?SendPostSaveList@CGocPost@@QEAAXXZ | 0x140115930 | implemented | IDA decompile | no | IDA��ȷ��ԭ(����TODO) |
+| CGocPost | GocPost.cpp | ?SendPostSaveList@CGocPost@@QEAAXXZ | 0x140115930 | verified | GameServer PDB + IDA decompile + source build + smoke | yes | Batches m_mpSaveList 10 per main 0x20/sub 2 with bLoad tail. |
 | CGocPost | GocPost.cpp | ?SetDBSync@CGocPost@@QEAAXH_N@Z | 0x140115bb0 | implemented | IDA decompile | no | m_bSyncDB 置位 + ST_LOG_GAME (51,9) + userDBBits.bLoadPostInfo |
 | CGocPost | GocPost.cpp | ?GetDeletePostList@CGocPost@@QEAAXEAEAUPS_POST_DELETE_ALL_SERVER@@@Z | 0x140115e60 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
 | CGocPost | GocPost.cpp | ?DeletePostAll@CGocPost@@QEAAXUPS_POST_DELETE_ALL_SERVER@@@Z | 0x1401162a0 | implemented | IDA decompile | no | IDA��ȷ��ԭ(����TODO) |
@@ -4224,7 +4224,7 @@
 | CGocPost | GocPost.cpp | ?SetLevelUpEvent@CGocPost@@QEAAXHHH@Z | 0x14011ce60 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
 | CGocPost | GocPost.cpp | ?SendLevelUpEvent@CGocPost@@QEAAXHH@Z | 0x14011cf40 | implemented | IDA decompile | no | IDA��ȷ��ԭ(stub����������) |
 | CGocPost | GocPost.cpp | ?SendLevelUpEventPost@CGocPost@@QEAA_NPEAUTB_LEVEL_MAIL@@@Z | 0x14011d9d0 | implemented | IDA decompile | no | IDA��ȷ��ԭ(stub����������) |
-| CGocPost | GocPost.cpp | ?ResetLevelUpEvent@CGocPost@@QEAAXXZ | 0x14011e100 | implemented | IDA decompile | no | IDA��ȷ��ԭ(stub����������) |
+| CGocPost | GocPost.cpp | ?ResetLevelUpEvent@CGocPost@@QEAAXXZ | 0x14011e100 | verified | GameServer PDB + IDA decompile + source build + smoke | yes | Clears the level-up mail map and sends DB 6/0x23 with UAID; verified against IDA. |
 | CGocPost | GocPost.cpp | ?SetPostFlag@CGocPost@@QEAAX_JE@Z | 0x14011f240 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
 | CGocPost | GocPost.cpp | ?LoadRestoreItem@CGocPost@@QEAAXUPS_ITEM_RESTORE_LIST@@@Z | 0x14011e240 | implemented | IDA decompile | no | IDA��ȷ��ԭ(stub����������) |
 | - | - | ??4PS_ITEM_RESTORE_LIST@@QEAAAEAU0@AEBU0@@Z | 0x14011e650 | blocked | IDA ??4PS_ITEM_RESTORE_LIST@@QEAAAEAU0@AEBU0@@Z | yes | - |
@@ -5159,7 +5159,7 @@
 | - | - | ??0PS_REQ_SKILL_LEARN@@QEAA@XZ | 0x14016dc40 | blocked | IDA ??0PS_REQ_SKILL_LEARN@@QEAA@XZ | yes | - |
 | XGameServer | GocSkill.cpp | ?SendDBUpdateSkillPoint@CGocSkill@@QEAAXXZ | 0x14016dc60 | implemented | IDA decompile | yes | ��ȷ��ԭ-���͸��¼��ܵ㵽���ݿ� |
 | XGameServer | GocSkill.cpp | ?SendPacketUpdateSkillPoint@CGocSkill@@QEAAXXZ | 0x14016ddb0 | implemented | IDA decompile | yes | ��ȷ��ԭ-���͸��¼��ܵ�����ͻ���?|
-| - | - | ?CheckPassiveSkill@CGocSkill@@QEAAXE@Z | 0x14016dea0 | implemented | IDA decompile | yes | ��鱻������?����������������� |
+| CGocSkill | GocSkill.cpp | ?CheckPassiveSkill@CGocSkill@@QEAAXE@Z | 0x14016dea0 | verified | GameServer PDB + IDA decompile + source build + smoke | yes | Iterates passive skills (mode or normal), checks condition/cooltime, applies stat, sends main 6/sub 0x7E, refreshes stats. |
 | - | - | ?SendPacketLoadSkill@CGocSkill@@QEAAXXZ | 0x14016e490 | implemented | IDA decompile | yes | ���ͼ��ܼ��ذ�-�������ܺͿ��鷢�Ϳͻ��� |
 | - | - | ?LearnDivergence@CGocSkill@@QEAA_NHHH@Z | 0x14016e840 | implemented | IDA decompile | yes | ��ȷ��ԭ-ѧϰ���缼��(���ʵ��? |
 | - | - | ?DeckBonusAdd@CGocSkill@@QEAA_NUPS_UPDATE_DECK_BONUS_VEC@@H@Z | 0x14016f180 | implemented | IDA decompile | yes | ��ȷ��ԭ-���ӿ���ӳɲ��������ݿ�� |
@@ -6648,7 +6648,7 @@
 | - | - | ?SendEnterMaze@CForce@@QEAAXAEAUPS_ENTER_MAP_RES@@@Z | 0x1401bb420 | implemented | IDA decompile | yes | Force.cpp (broadcasts enter maze to all members) |
 | - | - | ?SendMazeClear@CForce@@QEAAXE@Z | 0x1401bbbd0 | implemented | IDA ?SendMazeClear@CForce@@QEAAXE@Z | yes | - |
 | - | - | ?CreateMazeReq@CForce@@QEAAXXZ | 0x1401bbc90 | implemented | IDA ?CreateMazeReq@CForce@@QEAAXXZ | yes | - |
-| - | - | ?CheckPassiveSkill@CParty@@QEAAXPEAVCUser@@EE@Z | 0x1401bbe00 | implemented | IDA decompile | yes | Party.cpp (checks passive skills for party members) |
+| CParty | CParty.cpp | ?CheckPassiveSkill@CParty@@QEAAXPEAVCUser@@EE@Z | 0x1401bbe00 | verified | GameServer PDB + IDA decompile + source build + smoke | yes | Iterates members, checks thread area + distance, delegates to CGocSkill/CGocAkashicRecord CheckPassiveSkill. |
 | - | - | ?EnterMazeByForce@CForce@@QEAA_NPEAVCUser@@TUXMapID@@AEAUPS_ENTER_MAP_REQ@@@Z | 0x1401bc080 | implemented | IDA decompile | yes | Force.cpp (force enters maze with validation) |
 | - | - | ?CheckEnterMazeItem@CForce@@QEAA_NXZ | 0x1401bcf30 | implemented | IDA ?CheckEnterMazeItem@CForce@@QEAA_NXZ | yes | - |
 | - | - | ?SetPartyMemberState@CParty@@QEAAXE@Z | 0x1401bd3b0 | implemented | IDA ?SetPartyMemberState@CParty@@QEAAXE@Z | yes | - |
@@ -8152,8 +8152,8 @@
 | - | - | ?SetMatchingState@CGocForce@@QEAAXE@Z | 0x1401f3600 | implemented | IDA ?SetMatchingState@CGocForce@@QEAAXE@Z | yes | - |
 | - | - | ?GetFamilyID@CGocMyroom@@SAHXZ | 0x1401f3620 | implemented | IDA ?GetFamilyID@CGocMyroom@@SAHXZ | yes | - |
 | - | - | ?SetMyInfo@CCommunitySocket@@UEAAXPEAVXOption@@@Z | 0x1401f3630 | implemented | IDA ?SetMyInfo@CCommunitySocket@@UEAAXPEAVXOption@@@Z | yes | - |
-| - | - | ?SendCheck@CCommunitySocket@@QEAAXAEAVXSendPacket@@@Z | 0x1401f37e0 | implemented | IDA ?SendCheck@CCommunitySocket@@QEAAXAEAVXSendPacket@@@Z | yes | - |
-| - | - | ?SendCmd@CCommunitySocket@@QEAAXAEAVXSendPacket@@PEAVCUser@@EE@Z | 0x1401f3850 | implemented | IDA ?SendCmd@CCommunitySocket@@QEAAXAEAVXSendPacket@@PEAVCUser@@EE@Z | yes | - |
+| CCommunitySocket | GameSockets.cpp | ?SendCheck@CCommunitySocket@@QEAAXAEAVXSendPacket@@@Z | 0x1401f37e0 | verified | GameServer PDB + IDA decompile + source build + smoke | yes | Sends when IsCanSend, otherwise logs the community send error. |
+| CCommunitySocket | GameSockets.cpp | ?SendCmd@CCommunitySocket@@QEAAXAEAVXSendPacket@@PEAVCUser@@EE@Z | 0x1401f3850 | verified | GameServer PDB + IDA decompile + source build + smoke | yes | Sends a command packet and reports 0xC35A to the user on failure. |
 | - | - | ?ServerProcessEx@CCommunitySocket@@UEAA_NAEAVXPacket@@@Z | 0x1401f3910 | implemented | IDA ?ServerProcessEx@CCommunitySocket@@UEAA_NAEAVXPacket@@@Z | yes | - |
 | - | - | ?PartyProcess@CCommunitySocket@@UEAA_NAEAVXPacket@@@Z | 0x1401f39c0 | implemented | IDA ?PartyProcess@CCommunitySocket@@UEAA_NAEAVXPacket@@@Z | yes | - |
 | - | - | ?LeagueProcess@CCommunitySocket@@UEAA_NAEAVXPacket@@@Z | 0x1401f3dc0 | implemented | IDA ?LeagueProcess@CCommunitySocket@@UEAA_NAEAVXPacket@@@Z | yes | - |
@@ -14229,7 +14229,7 @@
 | - | - | ?DefDecEndurance@XBaseEquip@@QEAA_NPEAVCMover@@AEAUPS_ITEM_ENDURANCE_LIST@@PEAUTB_ITEM_ENDURANCE@@@Z | 0x1402fcd00 | implemented | IDA ?DefDecEndurance@XBaseEquip@@QEAA_NPEAVCMover@@AEAUPS_ITEM_ENDURANCE_LIST@@PEAUTB_ITEM_ENDURANCE@@@Z | yes | - |
 | - | - | ?DieDecEndurance@XBaseEquip@@QEAA_NPEAVCMover@@AEAUPS_ITEM_ENDURANCE_LIST@@PEAUTB_ITEM_ENDURANCE@@@Z | 0x1402fd1b0 | implemented | IDA ?DieDecEndurance@XBaseEquip@@QEAA_NPEAVCMover@@AEAUPS_ITEM_ENDURANCE_LIST@@PEAUTB_ITEM_ENDURANCE@@@Z | yes | - |
 | - | - | ?GetSetItemCount@XBaseEquip@@QEAAEKK@Z | 0x1402fda60 | implemented | IDA ?GetSetItemCount@XBaseEquip@@QEAAEKK@Z | yes | - |
-| - | - | ?GetInvenInfo@XBaseEquip@@QEAAXEAEAUPS_RES_STORAGE_INFO@@@Z | 0x1402fdd50 | implemented | IDA ?GetInvenInfo@XBaseEquip@@QEAAXEAEAUPS_RES_STORAGE_INFO@@@Z | yes | - |
+| XBaseEquip | XBaseInventory.cpp | ?GetInvenInfo@XBaseEquip@@QEAAXEAEAUPS_RES_STORAGE_INFO@@@Z | 0x1402fdd50 | verified | GameServer PDB + IDA decompile + source build + smoke | yes | Iterates 20 equip slots, fills PS_STORAGE_INFO entries; corrected over-claimed row. |
 | - | - | ?CheckEnduranceEffect@XBaseEquip@@QEAA_NV?$shared_ptr@VCItem@@@tr1@std@@PEAVCMover@@@Z | 0x1402fde70 | implemented | IDA ?CheckEnduranceEffect@XBaseEquip@@QEAA_NV?$shared_ptr@VCItem@@@tr1@std@@PEAVCMover@@@Z | yes | - |
 | - | - | ?GetItem@XBaseEquip@@QEAA?AV?$shared_ptr@VCItem@@@tr1@std@@_J@Z | 0x1402fe2a0 | verified | IDA decompile + source build | yes | Scans all 20 equipment slots for the requested serial. |
 | - | - | ?GetSocketList@XBaseEquip@@QEAAXAEAUPS_ITEM_SOCKET_LIST@@@Z | 0x1402fe380 | implemented | IDA ?GetSocketList@XBaseEquip@@QEAAXAEAUPS_ITEM_SOCKET_LIST@@@Z | yes | - |
@@ -16381,7 +16381,7 @@ yes | ?????????? |
 | - | - | ??_ECMoverEx@@WKI@EAAPEAXI@Z | 0x1403a1ae0 | blocked | IDA ??_ECMoverEx@@WKI@EAAPEAXI@Z | yes | - |
 | - | - | ??_ECMoverEx@@WBMA@EAAPEAXI@Z | 0x1403a1af0 | blocked | IDA ??_ECMoverEx@@WBMA@EAAPEAXI@Z | yes | - |
 | - | - | ??0SDelayBuff@@QEAA@XZ | 0x1403a1b00 | blocked | IDA ??0SDelayBuff@@QEAA@XZ | yes | - |
-| - | - | ?SetReserveReviveImmediate@CUser@@QEAAXH@Z | 0x1403a1b40 | implemented | IDA ?SetReserveReviveImmediate@CUser@@QEAAXH@Z | yes | - |
+| CUser | User.cpp | ?SetReserveReviveImmediate@CUser@@QEAAXH@Z | 0x1403a1b40 | verified | GameServer PDB + IDA decompile + source build + smoke | yes | Assigns m_bReserveReviveImmediate. |
 | CGocAttribute | GocAttribute.cpp | ?SetSyncStatFlag@CGocAttribute@@QEAAXHW4SYNC_STAT_TYPE@@@Z | 0x1403a1b60 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
 | - | - | ??0SOptionEffect@@QEAA@XZ | 0x1403a1b90 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
 | - | - | ??1SOptionEffect@@QEAA@XZ | 0x1403a1c00 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
@@ -16537,7 +16537,7 @@ yes | ?????????? |
 | - | - | ?MazeReward@CParty@@QEAAHK@Z | 0x1403a6600 | implemented | IDA ?MazeReward@CParty@@QEAAHK@Z | yes | - |
 | - | - | ?ApplyReward@CParty@@QEAAXXZ | 0x1403a6990 | implemented | IDA ?ApplyReward@CParty@@QEAAXXZ | yes | - |
 | - | - | ?SetMazeRecode@CForce@@QEAAXKPEAH@Z | 0x1403a6cb0 | implemented | IDA ?SetMazeRecode@CForce@@QEAAXKPEAH@Z | yes | - |
-| - | - | ?GetMazeRecode@CForce@@QEAAXKPEAH@Z | 0x1403a6d30 | implemented | IDA ?GetMazeRecode@CForce@@QEAAXKPEAH@Z | yes | - |
+| CForce | CForce.cpp | ?GetMazeRecode@CForce@@QEAAXKPEAH@Z | 0x1403a6d30 | verified | GameServer PDB + IDA decompile + source build + smoke | yes | Finds the member and delegates to CPartyMember::GetRecode; corrected over-claimed row. |
 | - | - | ?SetMemberMapID@CParty@@QEAAXKHHTUXMapID@@@Z | 0x1403a6db0 | implemented | IDA ?SetMemberMapID@CParty@@QEAAXKHHTUXMapID@@@Z | yes | - |
 | - | - | ?SetMemberHP@CParty@@QEAAXKTUXMapID@@H@Z | 0x1403a6e80 | implemented | IDA ?SetMemberHP@CParty@@QEAAXKTUXMapID@@H@Z | yes | - |
 | - | - | ?SetMemberMaxHP@CParty@@QEAAXKTUXMapID@@H@Z | 0x1403a6fe0 | implemented | IDA ?SetMemberMaxHP@CParty@@QEAAXKTUXMapID@@H@Z | yes | - |
@@ -34248,7 +34248,7 @@ yes | ?????????? |
 | XGameServer | ThreadLocalData.cpp | ?AddAi@ThreadLocalData@@QEAA_NPEAVCAi@@PEAVCMonster@@PEBD@Z | 0x1406d59c0 | implemented | IDA decompile | yes | ��ȷ��ԭ-����AI��map |
 | - | - | ??1?$pair@$$CBV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@H@std@@QEAA@XZ | 0x1406d5d80 | blocked | IDA ??1?$pair@$$CBV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@H@std@@QEAA@XZ | yes | - |
 | XGameServer | ThreadLocalData.cpp | ?FindArea@ThreadLocalData@@QEAAPEAVXArea@@TUXMapID@@@Z | 0x1406d5da0 | implemented | IDA decompile | yes | ��ȷ��ԭ-����MapID�������� |
-| XGameServer | ThreadLocalData.cpp | ?IsThreadArea@ThreadLocalData@@QEAA_NTUXMapID@@@Z | 0x1406d5e10 | implemented | IDA decompile | yes | ��ȷ��ԭ-��������Ƿ����ڵ�ǰ�߳�?|
+| ThreadLocalData | ThreadLocalData_Stub.cpp | ?IsThreadArea@ThreadLocalData@@QEAA_NTUXMapID@@@Z | 0x1406d5e10 | implemented | GameServer PDB + IDA decompile + source build + smoke | no | Active adapter: returns FindArea(uxMapID) != nullptr; FindArea lives in MoverLinkStubs.cpp. |
 | XGameServer | ThreadLocalData.cpp | ?LoadAllScript@ThreadLocalData@@QEAAXXZ | 0x1406d5e80 | blocked | IDA/PDB + unavailable active dependencies | no | Original function loads script instances from table-defined AI files; no active stub definition is claimed while script-manager and table dependencies remain unrecovered. |
 | XGameServer | ThreadLocalData.cpp | ?SendBroadcast@ThreadLocalData@@QEAAXAEAVXSendPacket@@@Z | 0x1406d6100 | implemented | IDA decompile | yes | ��ȷ��ԭ-�㲥���������� |
 | XGameServer | ThreadLocalData.cpp | ?Update@ThreadLocalData@@QEAAXM@Z | 0x1406d61a0 | implemented | IDA decompile | yes | ��ȷ��ԭ-������������ͳ�״̬���?|
@@ -34700,7 +34700,7 @@ yes | ?????????? |
 | - | - | ?SendCommnuitySelect@CUser@@QEAAXXZ | 0x1406f8200 | blocked | IDA ?SendCommnuitySelect@CUser@@QEAAXXZ | yes | - |
 | - | - | ?SendGestureLoadDB@CUser@@QEAAXK@Z | 0x1406f82c0 | blocked | IDA ?SendGestureLoadDB@CUser@@QEAAXK@Z | yes | - |
 | - | - | ?UpdateHiddenEventCondition@CUser@@QEAAXHKK@Z | 0x1406f8390 | blocked | IDA ?UpdateHiddenEventCondition@CUser@@QEAAXHKK@Z | yes | - |
-| - | - | ?ChangeBooster@CUser@@QEAAXW4E_BOOSTER_TYPE@@G@Z | 0x1406f8420 | blocked | IDA ?ChangeBooster@CUser@@QEAAXW4E_BOOSTER_TYPE@@G@Z | yes | - |
+| CUser | User.cpp | ?ChangeBooster@CUser@@QEAAXW4E_BOOSTER_TYPE@@G@Z | 0x1406f8420 | verified | GameServer PDB + IDA decompile + source build + smoke | yes | Delegates to CGocBooster::ChangeBooster(eType, wIndex, 0, false). |
 | - | - | ?FindCurDivergence@CUser@@QEAAPEBUTB_DIVERGENCE@@H@Z | 0x1406f8490 | blocked | IDA ?FindCurDivergence@CUser@@QEAAPEBUTB_DIVERGENCE@@H@Z | yes | - |
 | - | - | ?IsUsingSwapSkill@CUser@@UEAAHXZ | 0x1406f8610 | blocked | IDA ?IsUsingSwapSkill@CUser@@UEAAHXZ | yes | - |
 | - | - | ?EnterWorldByForce@CUser@@QEAAXHHAEAUSTPosInfo@@@Z | 0x1406f86a0 | blocked | IDA ?EnterWorldByForce@CUser@@QEAAXHHAEAUSTPosInfo@@@Z | yes | - |
@@ -34733,7 +34733,7 @@ yes | ?????????? |
 | - | - | ?SetActiveBroachEffect@CUser@@QEAAXK@Z | 0x1406fb490 | verified | IDA decompile + PDB signature + source build | yes | Hides old visibility, shows the resolved new state, and persists only a changed value via (3, 0x84). |
 | - | - | ?SendDBAllowInfo@CUser@@QEAAXXZ | 0x1406fbae0 | blocked | IDA ?SendDBAllowInfo@CUser@@QEAAXXZ | yes | - |
 | - | - | ?SetGameOption@CUser@@QEAAXUST_OPTION_BIT@@@Z | 0x1406fbbc0 | blocked | IDA ?SetGameOption@CUser@@QEAAXUST_OPTION_BIT@@@Z | yes | - |
-| - | - | ?CheckGameOption@CUser@@QEAA_NW4E_OPTION_INDEX@@W4E_OPTION_STATE@@@Z | 0x1406fbc20 | blocked | IDA ?CheckGameOption@CUser@@QEAA_NW4E_OPTION_INDEX@@W4E_OPTION_STATE@@@Z | yes | - |
+| CUser | User.cpp | ?CheckGameOption@CUser@@QEAA_NW4E_OPTION_INDEX@@W4E_OPTION_STATE@@@Z | 0x1406fbc20 | verified | GameServer PDB + IDA decompile + source build + smoke | yes | Checks the requested game option state against m_stGameOption. |
 | - | - | ?CheckGameOption@CUser@@QEAA_NAEAUST_OPTION_BIT@@W4E_OPTION_INDEX@@W4E_OPTION_STATE@@@Z | 0x1406fbcb0 | blocked | IDA ?CheckGameOption@CUser@@QEAA_NAEAUST_OPTION_BIT@@W4E_OPTION_INDEX@@W4E_OPTION_STATE@@@Z | yes | - |
 | - | - | ?CalculateCharacterStatOther@CUser@@QEAA_NAEAUPS_DB_CHARACTER_INFO_OTHER_RES@@AEAUPS_OTHER_CHARACTER_INFO_RES@@@Z | 0x1406fbd50 | blocked | IDA ?CalculateCharacterStatOther@CUser@@QEAA_NAEAUPS_DB_CHARACTER_INFO_OTHER_RES@@AEAUPS_OTHER_CHARACTER_INFO_RES@@@Z | yes | - |
 | - | - | ??4ST_OTHER_CHARINFO@@QEAAAEAU0@AEBU0@@Z | 0x1406fe470 | blocked | IDA ??4ST_OTHER_CHARINFO@@QEAAAEAU0@AEBU0@@Z | yes | - |
@@ -34760,7 +34760,7 @@ yes | ?????????? |
 | - | - | ?SetLogChangeMap@CUser@@QEAAX_N@Z | 0x140700500 | blocked | IDA ?SetLogChangeMap@CUser@@QEAAX_N@Z | yes | - |
 | - | - | ?UpdateLinkSkill@CUser@@UEAAXM@Z | 0x140700560 | blocked | IDA ?UpdateLinkSkill@CUser@@UEAAXM@Z | yes | - |
 | - | - | ?UpdateCheckAttackSkill@CUser@@UEAAXM@Z | 0x140700680 | blocked | IDA ?UpdateCheckAttackSkill@CUser@@UEAAXM@Z | yes | - |
-| - | - | ?IsLeagueSkill@CUser@@QEAA_NH@Z | 0x1407007a0 | blocked | IDA ?IsLeagueSkill@CUser@@QEAA_NH@Z | yes | - |
+| CUser | User.cpp | ?IsLeagueSkill@CUser@@QEAA_NH@Z | 0x1407007a0 | verified | GameServer PDB + IDA decompile + source build + smoke | yes | Returns m_stLeagueInfo.bySkillInfo[nSkill] != 0. |
 | - | - | ?IsLeagueAuth@CUser@@QEAA_NEW4E_LEAGUE_AUTH@@@Z | 0x1407007e0 | blocked | IDA ?IsLeagueAuth@CUser@@QEAA_NEW4E_LEAGUE_AUTH@@@Z | yes | - |
 | - | - | ?GetLeagueSkillEffectValue@CUser@@QEAAHH@Z | 0x140700830 | blocked | IDA ?GetLeagueSkillEffectValue@CUser@@QEAAHH@Z | yes | - |
 | - | - | ?SetLeagueCard@CUser@@QEAAXK@Z | 0x1407008f0 | blocked | IDA ?SetLeagueCard@CUser@@QEAAXK@Z | yes | - |
@@ -35040,8 +35040,8 @@ yes | ?????????? |
 | - | - | ??0PS_RES_PICKUP@@QEAA@XZ | 0x14070a6c0 | blocked | IDA ??0PS_RES_PICKUP@@QEAA@XZ | yes | - |
 | - | - | ??0ST_LOG_SYSTEM@@QEAA@XZ | 0x14070a6f0 | blocked | IDA ??0ST_LOG_SYSTEM@@QEAA@XZ | yes | - |
 | - | - | ??0ST_LOG_MONEY@@QEAA@XZ | 0x14070a710 | blocked | IDA ??0ST_LOG_MONEY@@QEAA@XZ | yes | - |
-| - | - | ?GetReserveReviveImmediate@CUser@@QEAAHXZ | 0x14070a740 | blocked | IDA ?GetReserveReviveImmediate@CUser@@QEAAHXZ | yes | - |
-| - | - | ?GetReserveRevive@CUser@@QEAAHXZ | 0x14070a760 | blocked | IDA ?GetReserveRevive@CUser@@QEAAHXZ | yes | - |
+| CUser | User.cpp | ?GetReserveReviveImmediate@CUser@@QEAAHXZ | 0x14070a740 | verified | GameServer PDB + IDA decompile + source build + smoke | yes | Returns m_bReserveReviveImmediate. |
+| CUser | User.cpp | ?GetReserveRevive@CUser@@QEAAHXZ | 0x14070a760 | verified | GameServer PDB + IDA decompile + source build + smoke | yes | Returns m_bReserveRevive. |
 | - | - | ??0ST_WORLD_CUR_DATE@@QEAA@XZ | 0x14070a780 | blocked | IDA ??0ST_WORLD_CUR_DATE@@QEAA@XZ | yes | - |
 | - | - | ?GetFinalYaw@VPublicTransport_cl@@QEAAMXZ | 0x14070a7f0 | implemented | IDA ?GetFinalYaw@VPublicTransport_cl@@QEAAMXZ | yes | - |
 | - | - | ?GetFinalPos@VPublicTransport_cl@@QEAA?AVhkvVec3@@XZ | 0x14070a810 | implemented | IDA ?GetFinalPos@VPublicTransport_cl@@QEAA?AVhkvVec3@@XZ | yes | - |
@@ -57574,7 +57574,7 @@ yes | ?????????? |
 | XGameServer | GocEvent.cpp | ?LogOut@CGocEvent@@QEAAXXZ | 0x140068A80 | implemented | IDA decompile | yes | Cleanup on logout |
 | XGameServer | GocEvent.cpp | ?RequestLoadAccountEvent@CGocEvent@@QEAAXXZ | 0x140068AA0 | implemented | IDA decompile | yes | Request account event data from DB |
 | XGameServer | GocEvent.cpp | ?LoadAccountEvent@CGocEvent@@QEAAXAEAUPS_ACCOUNT_EVENT_LIST@@@Z | 0x140068D00 | implemented | IDA decompile | yes | Load account event list from DB response |
-| XGameServer | GocEvent.cpp | ?CheckAccountEvent@CGocEvent@@QEAA_NK@Z | 0x140069080 | implemented | IDA decompile | yes | Check if account has specific event |
+| CGocEvent | GocEvent.cpp | ?CheckAccountEvent@CGocEvent@@QEAA_NK@Z | 0x140069080 | verified | GameServer PDB + IDA decompile + source build + smoke | yes | Returns true for event 255 when the owner XActor status is 6. |
 | XGameServer | GocEvent.cpp | ?SetWorldEventInfo@CGocEvent@@QEAAEAEAUPS_WORLD_EVENT_INFO_RES@@_J1@Z | 0x1400690E0 | implemented | IDA decompile | yes | Set world event info from packet |
 | XGameServer | GocEvent.cpp | ?SetWorldEventInfo@CGocEvent@@QEAAEHHH_J0@Z | 0x1400692A0 | implemented | IDA decompile | yes | Set world event info with params |
 | XGameServer | GocEvent.cpp | ?FindWorldEventReward@CGocEvent@@QEAA_NH@Z | 0x1400694D0 | implemented | IDA decompile | yes | Find world event reward by index |
@@ -57584,13 +57584,10 @@ yes | ?????????? |
 | XGameServer | GocEvent.cpp | ?GetWorldEventLastResisterDate@CGocEvent@@QEAA_JH@Z | 0x1400696C0 | implemented | IDA decompile | yes | Get world event last register date |
 | XGameServer | GocEvent.cpp | ?GetWorldEventDailyRewardDate@CGocEvent@@QEAA_JH@Z | 0x140069730 | implemented | IDA decompile | yes | Get world event daily reward date |
 | XGameServer | GocEvent.cpp | ?ReqWorldEventInfo@CGocEvent@@QEAAHAEAUPS_WORLD_EVENT_INFO_REQ@@@Z | 0x1400697A0 | implemented | IDA decompile | yes | Request world event info from DB |
-| XGameServer | GocEvent.cpp | ?ReqWorldEventRegister@CGocEvent@@QEAAHAEAUPS_WORLD_EVENT_REGISTER_REQ@@@Z | 0x140069D90 | blocked | IDA decompile | yes | Request world event registration |
+| CGocEvent | GocEvent.cpp | ?ReqWorldEventRegister@CGocEvent@@QEAAHAEAUPS_WORLD_EVENT_REGISTER_REQ@@@Z | 0x140069d90 | verified | GameServer PDB + IDA decompile + source build + smoke | yes | Validates event activation/date/items, locks matched items with SetLock 84, sends DB 0x49/0x28. |
 | XGameServer | GocEvent.cpp | ?ReqWorldEventReward@CGocEvent@@QEAAHAEAUPS_WORLD_EVENT_REWARD_REQ@@@Z | 0x14006A7E0 | implemented | IDA decompile | yes | Request world event reward |
 | XGameServer | GocEvent.cpp | ?ReqWorldEventDailyReward@CGocEvent@@QEAAHAEAUPS_WORLD_EVENT_DAILY_REWARD_REQ@@@Z | 0x14006B300 | implemented | IDA decompile | yes | Request world event daily reward |
-| XGameServer | GocEvent.cpp | ?ResWorldEventInfo@CGocEvent@@QEAAXAEAUPS_DB_WORLD_EVENT_INFO_RES@@@Z | 0x14006BD30 | blocked | IDA decompile | yes | Handle world event info DB response |
-| XGameServer | GocEvent.cpp | ?ResWorldEventRegister@CGocEvent@@QEAAXAEAUPS_DB_WORLD_EVENT_REGISTER_RES@@@Z | 0x14006BF80 | implemented | IDA decompile | yes | Handle world event register DB response |
-| XGameServer | GocEvent.cpp | ?ResWorldEventReward@CGocEvent@@QEAAXAEAUPS_DB_WORLD_EVENT_REWARD@@@Z | 0x14006C880 | blocked | IDA decompile | yes | Handle world event reward DB response |
-| XGameServer | GocEvent.cpp | ?ResWorldEventDailyReward@CGocEvent@@QEAAXAEAUPS_DB_WORLD_EVENT_DAILY_REWARD@@@Z | 0x14006CF00 | blocked | IDA decompile | yes | Handle world event daily reward DB response |
+| CGocEvent | GocEvent.cpp | ?ResWorldEventDailyReward@CGocEvent@@QEAAXAEAUPS_DB_WORLD_EVENT_DAILY_REWARD@@@Z | 0x14006cf00 | verified | GameServer PDB + IDA decompile + source build + smoke | yes | Handles DB daily-reward: resets DB-call flag, updates world event info, refreshes inventory items, sends main 0x2A/0x25, and logs subtype 31. |
 | XGameServer | GocEvent.cpp | ?SendDBRouletteInfo@CGocEvent@@QEAAXEH@Z | 0x14006D310 | implemented | IDA decompile | yes | Send roulette info to DB |
 | XGameServer | GocEvent.cpp | ?LoadRouletteEventInfo@CGocEvent@@QEAAXAEAUPS_ROULETTE_INFO@@@Z | 0x14006D4A0 | implemented | IDA decompile | yes | Load roulette event info from packet |
 | XGameServer | GocEvent.cpp | ?SendRouletteEventInfo@CGocEvent@@QEAAXXZ | 0x14006D5B0 | implemented | IDA decompile | yes | Send roulette event info to client |
@@ -57712,11 +57709,11 @@ yes | ?????????? |
 | XGameServer | actor/component/GocForce.cpp | ?SetHP@CGocForce@@QEAAXH@Z | 0x140083970 | implemented | IDA decompile | yes | Set member current HP through force component |
 | XGameServer | actor/component/GocForce.cpp | ?SetExp@CGocForce@@QEAAXPEAVCUser@@MH@Z | 0x140083A30 | implemented | IDA decompile | yes | Distribute experience to force members with bonuses |
 | XGameServer | actor/component/GocForce.cpp | ?SetForce@CGocForce@@QEAAXV?$shared_ptr@VCForce@@@tr1@std@@@Z | 0x140083F30 | implemented | IDA decompile | yes | Set force pointer and register member |
-| XGameServer | actor/component/GocForce.cpp | ?Logout@CGocForce@@QEAAXXZ | 0x140084010 | implemented | IDA decompile | yes | Handle force member logout |
-| XGameServer | actor/component/GocForce.cpp | ?SendForceInfo@CGocForce@@QEAAXE@Z | 0x140084310 | implemented | IDA decompile | yes | Send force info packet to member |
-| XGameServer | actor/component/GocForce.cpp | ?Leave@CGocForce@@QEAAXXZ | 0x140084480 | implemented | IDA decompile | yes | Leave force and notify community server |
-| XGameServer | actor/component/GocForce.cpp | ?KickOut@CGocForce@@QEAA_NKPEAVCUser@@@Z | 0x1400846F0 | implemented | IDA decompile | yes | Kick member from force with validation |
-| XGameServer | actor/component/GocForce.cpp | ?UpdatePartyBooster@CGocForce@@QEAAXXZ | 0x140084EE0 | implemented | IDA decompile | yes | Update force-wide booster effects |
+| CGocForce | GocForce.cpp | ?Logout@CGocForce@@QEAAXXZ | 0x140084010 | verified | GameServer PDB + IDA decompile + source build + smoke | yes | Member-logout via CPartyMember::Logout + community SendCheck, else direct 0xFA/0x14 logout; clears the party. |
+| CGocForce | GocForce.cpp | ?SendForceInfo@CGocForce@@QEAAXE@Z | 0x140084310 | verified | GameServer PDB + IDA decompile + source build + smoke | yes | Builds PS_FORCE_INFO via GetPartyInfo/GetForceType and sends main 0x2E/sub 9. |
+| CGocForce | GocForce.cpp | ?Leave@CGocForce@@QEAAXXZ | 0x140084480 | verified | GameServer PDB + IDA decompile + source build + smoke | yes | Builds PS_FORCE_LEAVE (bKickout=0) and sends via community socket; no Clear call in IDA. |
+| CGocForce | GocForce.cpp | ?KickOut@CGocForce@@QEAA_NKPEAVCUser@@@Z | 0x1400846f0 | verified | GameServer PDB + IDA decompile + source build + smoke | yes | Validates party/self/master/member/maze-state then sends PS_FORCE_LEAVE (bKickout=1) via community socket. |
+| CGocForce | GocForce.cpp | ?UpdatePartyBooster@CGocForce@@QEAAXXZ | 0x140084ee0 | verified | GameServer PDB + IDA decompile + source build + smoke | yes | Delegates to CForce::UpdateForceBooster(0) when the party exists. |
 | XGameServer | actor/component/GocForce.cpp | ?IsMatchingDate@CGocForce@@QEAA_NXZ | 0x140085160 | implemented | IDA decompile | yes | Check if force is still in matching queue |
 | XGameServer | actor/component/GocForce.cpp | ?IsFull@CGocForce@@QEAA_NXZ | 0x1400854B0 | implemented | IDA decompile | yes | Check if force is full (8 members) |
 | XGameServer | actor/component/GocLeague.cpp | ??0CGocLeague@@QEAA@XZ | 0x1400FA870 | implemented | IDA decompile | yes | CGocLeague constructor - initializes league member struct |
@@ -58166,8 +58163,8 @@ yes | ?????????? |
 | XGameServer | FriendProcess.cpp | ?SendBlockList@CGocFriend@@QEAAXXZ | 0x1400870F0 | implemented | IDA decompile | yes | - |
 | XGameServer | FriendProcess.cpp | ?AddBlock@CGocFriend@@QEAA_NAEAUST_BLOCK_INFO@@_N@Z | 0x1400875C0 | implemented | IDA decompile | yes | - |
 | XGameServer | FriendProcess.cpp | ?DeleteBlock@CGocFriend@@QEAAXKPEA_W_N@Z | 0x140087A50 | implemented | IDA decompile | yes | - |
-| XGameServer | FriendProcess.cpp | ?PrepareAddBlock@CGocFriend@@QEAA_NAEAUPS_FRIEND_BLOCK_ADD@@@Z | 0x140088460 | implemented | IDA decompile | yes | - |
-| XGameServer | FriendProcess.cpp | ?PrepareDelBlock@CGocFriend@@QEAA_NAEAUPS_FRIEND_BLOCK_DELETE@@@Z | 0x1400886B0 | implemented | IDA decompile | yes | - |
+| CGocFriend | GocFriend.cpp | ?PrepareAddBlock@CGocFriend@@QEAA_NAEAUPS_FRIEND_BLOCK_ADD@@@Z | 0x140088460 | verified | GameServer PDB + IDA decompile + source build + smoke | yes | Rejects existing block/limit then sends the block-add to the community socket. |
+| CGocFriend | GocFriend.cpp | ?PrepareDelBlock@CGocFriend@@QEAA_NAEAUPS_FRIEND_BLOCK_DELETE@@@Z | 0x1400886b0 | verified | GameServer PDB + IDA decompile + source build + smoke | yes | Requires an existing block then sends the block-delete to the community socket. |
 | XGameServer | FriendProcess.cpp | ?AddBlockList@CGocFriend@@QEAAXAEAUPS_RES_BLOCKLIST_ADD@@@Z | 0x1400898C0 | blocked | IDA decompile | yes | - |
 | XGameServer | FriendProcess.cpp | ?DeleteBlockList@CGocFriend@@QEAAXAEAUPS_RES_BLOCKLIST_DELETE@@@Z | 0x140089920 | implemented | IDA decompile | yes | - |
 | XGameServer | FriendProcess.cpp | ?GetBlockList@CGocFriend@@QEAAXAEAUPS_BLOCKLIST_INFO@@@Z | 0x140089A90 | implemented | IDA decompile | yes | - |
@@ -58275,26 +58272,26 @@ yes | ?????????? |
 | XGameServer | GocEntity.cpp | ?ReqFavoriteTitle@CGocEntity@@QEAAXAEAUPS_TITLE_FAVORITE@@@Z | 0x14005F210 | implemented | IDA decompile | yes | Request title favorite toggle |
 | XGameServer | GocEntity.cpp | ?ResFavoriteTitle@CGocEntity@@QEAAXAEAUPS_DB_TITLE_FAVORITE@@@Z | 0x14005F840 | implemented | IDA decompile | yes | Handle DB response for title favorite |
 | XGameServer | GocEntity.cpp | ?UpdateCutscene@CGocEntity@@QEAAXAEAUPS_CUTSCENE_UPDATE@@@Z | 0x14005FDD0 | implemented | IDA decompile | yes | Update cutscene state |
-| XGameServer | GocEntity.cpp | ?LoginNetCafe@CGocEntity@@QEAAX_N@Z | 0x14005FFA0 | implemented | IDA decompile | yes | Handle netcafe login |
-| XGameServer | GocEntity.cpp | ?SetNetCafe@CGocEntity@@QEAAX_N00@Z | 0x140060030 | implemented | IDA decompile | yes | Set netcafe state with DB sync |
-| XGameServer | GocEntity.cpp | ?SendNetCafeState@CGocEntity@@QEAAXXZ | 0x140060650 | implemented | IDA decompile | yes | Send netcafe state to client |
-| XGameServer | GocEntity.cpp | ?SendSGAuthInfo@CGocEntity@@QEAAX_N@Z | 0x140060740 | implemented | IDA decompile | yes | Send SG auth info |
-| XGameServer | GocEntity.cpp | ?EventNetCafeItemBuy@CGocEntity@@QEAAXAEAUPS_EVENT_NETCAFE_ITEM_BUY@@@Z | 0x140060A10 | implemented | IDA decompile | yes | Handle netcafe item purchase |
-| XGameServer | GocEntity.cpp | ?EventNetCafeItemDelete@CGocEntity@@QEAAXXZ | 0x1400619D0 | implemented | IDA decompile | yes | Delete netcafe items when leaving |
-| XGameServer | GocEntity.cpp | ?SetFreeReviveCount@CGocEntity@@QEAAXH_N@Z | 0x140062070 | implemented | IDA decompile | yes | Set free revive count with sync |
-| XGameServer | GocEntity.cpp | ?ReviveFree@CGocEntity@@QEAA_NXZ | 0x1400621F0 | implemented | IDA decompile | yes | Increment free revive count |
-| XGameServer | GocEntity.cpp | ?SendDBProfilePhoto@CGocEntity@@QEAAXXZ | 0x1400622D0 | implemented | IDA decompile | yes | Send DB request to load profile photo |
-| XGameServer | GocEntity.cpp | ?LoadProfilePhoto@CGocEntity@@QEAAXAEAUPS_PROFILE_PHOTO_LOAD@@@Z | 0x1400623E0 | implemented | IDA decompile | yes | Load profile photos from DB response |
-| XGameServer | GocEntity.cpp | ?CheckEquipProfilePhoto@CGocEntity@@QEAAXXZ | 0x1400624E0 | implemented | IDA decompile | yes | Check and set default equipped photo |
-| XGameServer | GocEntity.cpp | ?CheckAddProfilePhoto@CGocEntity@@QEAA_NKAEAUST_PROFILE_PHOTO_INFO@@@Z | 0x140062820 | implemented | IDA decompile | yes | Validate profile photo info |
-| XGameServer | GocEntity.cpp | ?AddProfilePhoto@CGocEntity@@QEAAHAEAUST_PROFILE_PHOTO_INFO@@@Z | 0x140062E50 | implemented | IDA decompile | yes | Add profile photo to owned list |
-| XGameServer | GocEntity.cpp | ?SendProfilePhoto@CGocEntity@@QEAAXXZ | 0x140063170 | implemented | IDA decompile | yes | Send profile photo list to client |
-| XGameServer | GocEntity.cpp | ?ProfilePhotoRemainTimeCheck@CGocEntity@@QEAAXXZ | 0x140063370 | implemented | IDA decompile | yes | Check timed profile photo expiration |
-| XGameServer | GocEntity.cpp | ?ReqChangeProfilePhoto@CGocEntity@@QEAAHK@Z | 0x1400634C0 | implemented | IDA decompile | yes | Request profile photo change |
-| XGameServer | GocEntity.cpp | ?ResChangeProfilePhoto@CGocEntity@@QEAAXAEAUPS_DB_PROFILE_PHOTO_CHANGE@@@Z | 0x1400638C0 | implemented | IDA decompile | yes | Handle DB response for photo change |
-| XGameServer | GocEntity.cpp | ?ProfilePhotoFavorite@CGocEntity@@QEAAXAEAUPS_PROFILE_PHOTO_FAVORITE@@@Z | 0x1400643D0 | implemented | IDA decompile | yes | Toggle profile photo favorite flag |
-| XGameServer | GocEntity.cpp | ?ResAddProfilePhoto@CGocEntity@@QEAAXAEAUPS_DB_PROFILE_PHOTO_ADD@@@Z | 0x1400647B0 | implemented | IDA decompile | yes | Handle DB response for adding photo |
-| XGameServer | GocEntity.cpp | ?ResUpdateProfilePhoto@CGocEntity@@QEAAXAEAUPS_DB_PROFILE_PHOTO_UPDATE@@@Z | 0x140064C50 | implemented | IDA decompile | yes | Handle DB response for photo update |
+| CGocEntity | GocEntity.cpp | ?LoginNetCafe@CGocEntity@@QEAAX_N@Z | 0x14005ffa0 | implemented | IDA decompile + source build + smoke | no | Branches on E_SERVER_OPTION_NETCAFE to SetNetCafe or EventNetCafeItemDelete; both callees remain stubs. |
+| CGocEntity | GocEntity.cpp | ?SetNetCafe@CGocEntity@@QEAAX_N00@Z | 0x140060030 | verified | GameServer PDB + IDA decompile + source build + smoke | yes | Sets netcafe flags/booster/FP packet, DB 3/0x59, and cascades to Event/Akashic netcafe handlers. |
+| CGocEntity | GocEntity.cpp | ?SendNetCafeState@CGocEntity@@QEAAXXZ | 0x140060650 | verified | GameServer PDB + IDA decompile + source build + smoke | yes | Builds PS_NETCAFE_INFO from m_bNetCafe and sends main 3/sub 0x54. |
+| CGocEntity | GocEntity.cpp | ?SendSGAuthInfo@CGocEntity@@QEAAX_N@Z | 0x140060740 | verified | GameServer PDB + IDA decompile + source build + smoke | yes | Sends m_stSGAuthInfo via DBAccount and DBLogPacket, then main 1/sub 0x11 token update for auth types 2/3. |
+| CGocEntity | GocEntity.cpp | ?EventNetCafeItemBuy@CGocEntity@@QEAAXAEAUPS_EVENT_NETCAFE_ITEM_BUY@@@Z | 0x140060a10 | blocked | IDA decompile | no | stub(awaiting FindPCCostumeByItemID/CreateItem2 dependencies) |
+| CGocEntity | GocEntity.cpp | ?EventNetCafeItemDelete@CGocEntity@@QEAAXXZ | 0x1400619d0 | verified | GameServer PDB + IDA decompile + source build + smoke | yes | Deletes Item_Cash==3 netcafe items via ReduceItem3/UpdateItemEnd, DB 0x21/0x22, main 0x2A/sub 0x2B. |
+| CGocEntity | GocEntity.cpp | ?SetFreeReviveCount@CGocEntity@@QEAAXH_N@Z | 0x140062070 | verified | GameServer PDB + IDA decompile/assembly + source build + smoke | yes | Assigns count, syncs PS_CHARACTER_FREE_REVIVE via DB 3/0x85, and forwards to SendFreeReviveCount. |
+| CGocEntity | GocEntity.cpp | ?ReviveFree@CGocEntity@@QEAA_NXZ | 0x1400621f0 | verified | GameServer PDB + IDA decompile + source build + smoke | yes | Checks TB_ITEM 0x26272A93 Item_Stack_Max before incrementing and syncing free revive count. |
+| CGocEntity | GocEntity.cpp | ?SendDBProfilePhoto@CGocEntity@@QEAAXXZ | 0x1400622d0 | verified | GameServer PDB + IDA decompile + source build + smoke | yes | Sends DB 3/0x25 profile-photo load request with the user UCID. |
+| CGocEntity | GocEntity.cpp | ?LoadProfilePhoto@CGocEntity@@QEAAXAEAUPS_PROFILE_PHOTO_LOAD@@@Z | 0x1400623e0 | implemented | IDA decompile + source build + smoke | no | Adds each loaded photo, logs, and arms the profile photo tick; AddProfilePhoto/CheckEquipProfilePhoto remain stubs. |
+| CGocEntity | GocEntity.cpp | ?CheckEquipProfilePhoto@CGocEntity@@QEAAXXZ | 0x1400624e0 | verified | GameServer PDB + IDA decompile + source build + smoke | yes | Equips the class default photo when the current equipped photo is missing from the owned map, sending DB 3/0x28. |
+| CGocEntity | GocEntity.cpp | ?CheckAddProfilePhoto@CGocEntity@@QEAA_NKAEAUST_PROFILE_PHOTO_INFO@@@Z | 0x140062820 | verified | GameServer PDB + IDA decompile + source build + smoke | yes | Validates TB_ITEM/TB_PHOTO_ITEM/class/period, then fills stPhoto with period or permanent semantics. |
+| CGocEntity | GocEntity.cpp | ?AddProfilePhoto@CGocEntity@@QEAAHAEAUST_PROFILE_PHOTO_INFO@@@Z | 0x140062e50 | verified | GameServer PDB + IDA decompile + source build + smoke | yes | Validates expiration and duplication, then inserts ST_HAVE_PROFILE_PHOTO_INFO into m_mapProfilePhoto. |
+| CGocEntity | GocEntity.cpp | ?SendProfilePhoto@CGocEntity@@QEAAXXZ | 0x140063170 | verified | GameServer PDB + IDA decompile + source build + smoke | yes | Builds PS_PROFILE_PHOTO_LOAD with the user UCID and all owned stInfo entries, sends main 3/sub 9. |
+| CGocEntity | GocEntity.cpp | ?ProfilePhotoRemainTimeCheck@CGocEntity@@QEAAXXZ | 0x140063370 | verified | GameServer PDB + IDA decompile + source build + smoke | yes | Collects expired timed photos and forwards them to DeleteProfilePhoto, then re-arms the tick. |
+| CGocEntity | GocEntity.cpp | ?ReqChangeProfilePhoto@CGocEntity@@QEAAHK@Z | 0x1400634c0 | verified | GameServer PDB + IDA decompile + source build + smoke | yes | Validates old/new owned photos then sends the DB 3/0x28 change request; error codes 58010/58011/58012. |
+| CGocEntity | GocEntity.cpp | ?ResChangeProfilePhoto@CGocEntity@@QEAAXAEAUPS_DB_PROFILE_PHOTO_CHANGE@@@Z | 0x1400638c0 | verified | GameServer PDB + IDA decompile + source build + smoke | yes | Updates the equipped photo ID, syncs old/new map entries with main 3/sub 0x0A and 0x0C, forwards via control socket, party/force, and logs subtype 23. |
+| CGocEntity | GocEntity.cpp | ?ProfilePhotoFavorite@CGocEntity@@QEAAXAEAUPS_PROFILE_PHOTO_FAVORITE@@@Z | 0x1400643d0 | verified | GameServer PDB + IDA decompile + source build + smoke | yes | Validates TB_PHOTO_ITEM and ownership, rejects same-flag, then sends the DB 3/0x27 favorite update. |
+| CGocEntity | GocEntity.cpp | ?ResAddProfilePhoto@CGocEntity@@QEAAXAEAUPS_DB_PROFILE_PHOTO_ADD@@@Z | 0x1400647b0 | verified | GameServer PDB + IDA decompile + source build + smoke | yes | Unlocks/sends item update, inserts or updates the owned photo, logs subtype 24, and broadcasts main 3/sub 0x0A. |
+| CGocEntity | GocEntity.cpp | ?ResUpdateProfilePhoto@CGocEntity@@QEAAXAEAUPS_DB_PROFILE_PHOTO_UPDATE@@@Z | 0x140064c50 | verified | GameServer PDB + IDA decompile + source build + smoke | yes | Logs favorite changes (subtype 25), applies stInfo, and broadcasts main 3/sub 0x0A. |
 | XGameServer | GocEntity.cpp | ?GetProfilePhotoInfo@CGocEntity@@QEAA_NKAEAUST_PROFILE_PHOTO_INFO@@@Z | 0x140064FF0 | implemented | IDA decompile | yes | Get profile photo info by ID |
 | XGameServer | GocEntity.cpp | ?SendFreeReviveCount@CGocEntity@@QEAAXXZ | 0x1400650A0 | implemented | IDA decompile | yes | Send free revive count to client |
 | XGameServer | GocEntity.cpp | ?UpdateRoguelikeStep@CGocEntity@@QEAAXXZ | - | implemented | IDA decompile | yes | Increment roguelike step counters |
@@ -58348,7 +58345,7 @@ yes | ?????????? |
 | XGameServer | GocPost.cpp | CGocPost::SetLevelUpEvent | 0x14011CE60 | implemented | IDA decompile | yes | Set level up event data in m_mapLevelMail |
 | XGameServer | GocPost.cpp | CGocPost::SendLevelUpEvent | 0x14011CF40 | implemented | IDA decompile | yes | Send level up mail with class/level check and condition processing |
 | XGameServer | GocPost.cpp | CGocPost::SendLevelUpEventPost | 0x14011D9D0 | implemented | IDA decompile | yes | Send level up event post (system or account mail) |
-| XGameServer | GocPost.cpp | CGocPost::ResetLevelUpEvent | 0x14011E100 | implemented | IDA decompile | yes | Reset level up event data and send DB clear request |
+| CGocPost | GocPost.cpp | ?ResetLevelUpEvent@CGocPost@@QEAAXXZ | 0x14011e100 | verified | GameServer PDB + IDA decompile + source build + smoke | yes | Clears the level-up mail map and sends DB 6/0x23 with UAID; verified against IDA. |
 | XGameServer | GocPost.cpp | CGocPost::SendAutoMail | 0x14011C450 | implemented | IDA decompile | yes | Send automatic mail from TB_SYSTEMMAIL_ADD table |
 | XGameServer | GocPost.cpp | CGocPost::LoadRestoreItem | 0x14011E240 | implemented | IDA decompile | yes | Load restore items with XItemFactory creation and DB storage |
 | XGameServer | GocPost.cpp | CGocPost::SendRestorePost | 0x14011E680 | implemented | IDA decompile | yes | Send restore posts in batches of 20 items |
@@ -58444,7 +58441,7 @@ yes | ?????????? |
 | XGameServer | GocPost.cpp | ?SetLevelUpEvent@CGocPost@@QEAAXHHH@Z | 0x14011CE60 | implemented | IDA decompile | yes | Set level up event data |
 | XGameServer | GocPost.cpp | ?SendLevelUpEvent@CGocPost@@QEAAXHH@Z | 0x14011CF40 | implemented | IDA decompile | yes | Send level up event - 3 condition types |
 | XGameServer | GocPost.cpp | ?SendLevelUpEventPost@CGocPost@@QEAA_NPEAUTB_LEVEL_MAIL@@@Z | 0x14011D9D0 | implemented | IDA decompile | yes | Send level up post - system/account path |
-| XGameServer | GocPost.cpp | ?ResetLevelUpEvent@CGocPost@@QEAAXXZ | 0x14011E100 | blocked | IDA decompile | yes | Reset level up event - DB Main=6 Sub=0x23 |
+| CGocPost | GocPost.cpp | ?ResetLevelUpEvent@CGocPost@@QEAAXXZ | 0x14011e100 | verified | GameServer PDB + IDA decompile + source build + smoke | yes | Clears the level-up mail map and sends DB 6/0x23 with UAID; verified against IDA. |
 | XGameServer | GocPost.cpp | ?SendAutoMail@CGocPost@@QEAA_NG@Z | 0x14011C450 | implemented | IDA decompile | yes | Send auto mail - TB_SYSTEMMAIL_ADD |
 | XGameServer | GocPost.cpp | ?LoadRestoreItem@CGocPost@@QEAAXAEAUPS_ITEM_RESTORE_LIST@@@Z | 0x14011E240 | implemented | IDA decompile | yes | Load restore items - DB Main=0x21 Sub=0x39 |
 | XGameServer | GocPost.cpp | ?SendRestorePost@CGocPost@@QEAAXXZ | 0x14011E680 | implemented | IDA decompile | yes | Send restore posts - batch 20 |
@@ -58470,7 +58467,7 @@ yes | ?????????? |
 | XGameServer | GocInventory.cpp | CGocInventory::MoveItem | 0x1400A8AF0 | implemented | IDA decompile | yes | Move item between slots with validation |
 | XGameServer | GocInventory.cpp | CGocInventory::SetQuickSlotItem | 0x1400ACA50 | verified | GameServer PDB + IDA decompile/assembly + source build | yes | Set item to quick slot; decorated ABI is PS_QUICKSLOT_UPDATE_ITEM&. |
 | XGameServer | GocInventory.cpp | CGocInventory::LoadQuickSlotItem | 0x1400ACD50 | verified | GameServer PDB + IDA decompile/assembly + source build | yes | Load quick slot data from database; decorated ABI is by-value PS_QUICKSLOT_ITEM. |
-| XGameServer | GocInventory.cpp | CGocInventory::SendQuickSlotInfo | 0x1400ACE80 | implemented | IDA decompile | yes | Send quick slot info to client |
+| CGocInventory | GocInventory.cpp | ?SendQuickSlotInfo@CGocInventory@@QEAAXXZ | 0x1400ace80 | verified | GameServer PDB + IDA decompile + source build + smoke | yes | Fills four quick-slot items and the akashic card vector, then sends main 8/sub 0x26. |
 | XGameServer | GocInventory.cpp | CGocInventory::BreakItemReq | 0x1400ADB20 | implemented | IDA decompile | yes | Handle item break/enhance request |
 | XGameServer | GocInventory.cpp | CGocInventory::OnUpdate | 0x1400AE280 | implemented | IDA decompile | yes | Periodic update for inventory state |
 | XGameServer | GocInventory.cpp | CGocInventory::IsTradeCheck | 0x1400AEEE0 | implemented | IDA decompile | yes | Check if item can be traded |
@@ -58481,31 +58478,31 @@ yes | ?????????? |
 | XGameServer | GocForce.cpp | ?Init@CGocForce@@QEAAXXZ | 0x140083140 | implemented | IDA decompile | yes | Reset m_biMatchingDate=0 and m_byMatchingState=0 |
 | XGameServer | GocForce.cpp | ?IsFull@CGocForce@@QEAA_NXZ | 0x1400854B0 | implemented | IDA decompile | yes | Check if Force has 8 members (max capacity) |
 | XGameServer | GocForce.cpp | ?IsMaster@CGocForce@@QEAA_NK@Z | 0x140083160 | implemented | IDA decompile | yes | Check if given UCID is Force master via CWayPoint::GetCurID |
-| XGameServer | GocForce.cpp | ?SendForceInfo@CGocForce@@QEAAXE@Z | 0x140084310 | implemented | IDA decompile | yes | Send PS_FORCE_INFO packet to owner (main=0x2E sub=9) |
+| CGocForce | GocForce.cpp | ?SendForceInfo@CGocForce@@QEAAXE@Z | 0x140084310 | verified | GameServer PDB + IDA decompile + source build + smoke | yes | Builds PS_FORCE_INFO via GetPartyInfo/GetForceType and sends main 0x2E/sub 9. |
 | XGameServer | GocForce.cpp | ?IsMatchingDate@CGocForce@@QEAA_NXZ | 0x140085160 | implemented | IDA decompile | yes | Check if m_biMatchingDate+180 >= XGameServer::GetCurDate() |
-| XGameServer | GocForce.cpp | ?KickOut@CGocForce@@QEAA_NKPEAVCUser@@@Z | 0x1400846F0 | implemented | IDA decompile | yes | Kick member with 7 validation checks and error codes |
+| CGocForce | GocForce.cpp | ?KickOut@CGocForce@@QEAA_NKPEAVCUser@@@Z | 0x1400846f0 | verified | GameServer PDB + IDA decompile + source build + smoke | yes | Validates party/self/master/member/maze-state then sends PS_FORCE_LEAVE (bKickout=1) via community socket. |
 | XGameServer | GocForce.cpp | ?ChangeMaster@CGocForce@@QEAAXK@Z | 0x140084C80 | implemented | IDA decompile | yes | Change master with validation and CommunitySocket send |
-| XGameServer | GocForce.cpp | ?Leave@CGocForce@@QEAAXXZ | 0x140084480 | implemented | IDA decompile | yes | Leave Force with PS_FORCE_LEAVE packet (main=0xFA sub=3) |
-| XGameServer | GocForce.cpp | ?Logout@CGocForce@@QEAAXXZ | 0x140084010 | implemented | IDA decompile | yes | Logout handling with Force/non-Force branches |
+| CGocForce | GocForce.cpp | ?Leave@CGocForce@@QEAAXXZ | 0x140084480 | verified | GameServer PDB + IDA decompile + source build + smoke | yes | Builds PS_FORCE_LEAVE (bKickout=0) and sends via community socket; no Clear call in IDA. |
+| CGocForce | GocForce.cpp | ?Logout@CGocForce@@QEAAXXZ | 0x140084010 | verified | GameServer PDB + IDA decompile + source build + smoke | yes | Member-logout via CPartyMember::Logout + community SendCheck, else direct 0xFA/0x14 logout; clears the party. |
 | XGameServer | GocForce.cpp | ?SetHP@CGocForce@@QEAAXH@Z | 0x140083970 | implemented | IDA decompile | yes | Set member HP via CForce::SetMemberHP |
 | XGameServer | GocForce.cpp | ?SetMaxHP@CGocForce@@QEAAXH@Z | 0x1400838B0 | implemented | IDA decompile | yes | Set member max HP via CForce::SetMemberMaxHP |
 | XGameServer | GocForce.cpp | ?SetLevel@CGocForce@@QEAAXH@Z | 0x140083730 | implemented | IDA decompile | yes | Set member level via CForce::SetMemberLevel |
 | XGameServer | GocForce.cpp | ?SetAwaken@CGocForce@@QEAAXE@Z | 0x1400837B0 | implemented | IDA decompile | yes | Set member awaken grade via CForce::SetMemberAwaken |
 | XGameServer | GocForce.cpp | ?SetProfilePhoto@CGocForce@@QEAAXK@Z | 0x140083830 | implemented | IDA decompile | yes | Set member profile photo via CForce::SetMemberProfilePhoto |
 | XGameServer | GocForce.cpp | ?SetMapID@CGocForce@@QEAAXHHTUXMapID@@@Z | 0x140083690 | implemented | IDA decompile | yes | Set member map ID via CForce::SetMemberMapID |
-| XGameServer | GocForce.cpp | ?UpdatePartyBooster@CGocForce@@QEAAXXZ | 0x140084EE0 | implemented | IDA decompile | yes | Update Force booster via CForce::UpdateForceBooster(0) |
+| CGocForce | GocForce.cpp | ?UpdatePartyBooster@CGocForce@@QEAAXXZ | 0x140084ee0 | verified | GameServer PDB + IDA decompile + source build + smoke | yes | Delegates to CForce::UpdateForceBooster(0) when the party exists. |
 | XGameServer | GocForce.cpp | ?UpdatePartyBoosterByCount@CGocForce@@QEAAXHH@Z | 0x140084F30 | implemented | IDA decompile | yes | Update booster by party/friend count from TB_PARTYEXP_MEMBER |
 | XGameServer | GocForce.cpp | ?ReserveReviveAll@CGocForce@@QEAAXKK@Z | 0x140083350 | implemented | IDA decompile | yes | Reserve revive for all members with distance checks |
-| XGameServer | GocForce.cpp | ?LoadRecode@CGocForce@@QEAAXXZ | 0x14010B430 | implemented | IDA decompile | yes | Load maze recode from CForce to CGocRecode component |
-| XGameServer | GocForce.cpp | ?NeedReviveBuffUser@CGocForce@@QEAA_NXZ | 0x14010C7A0 | implemented | IDA decompile | yes | Check if any member needs revive buff (effect type 1) |
-| XGameServer | GocForce.cpp | ?DeletePartyBoost@CGocForce@@QEAAXXZ | 0x14010C940 | implemented | IDA decompile | yes | Remove party booster via CGocBooster::ChangeBooster |
+| CGocForce | GocForce.cpp | ?LoadRecode@CGocForce@@QEAAXXZ | 0x14010b430 | verified | GameServer PDB + IDA decompile + source build + smoke | yes | Loads the owner maze recode from CForce into CGocRecode::SetFullRecode. |
+| CGocForce | GocForce.cpp | ?NeedReviveBuffUser@CGocForce@@QEAA_NXZ | 0x14010c7a0 | verified | GameServer PDB + IDA decompile + source build + smoke | yes | Iterates members looking for a same-map dead member without the revive buff. |
+| CGocForce | GocForce.cpp | ?DeletePartyBoost@CGocForce@@QEAAXXZ | 0x14010c940 | verified | GameServer PDB + IDA decompile + source build + smoke | yes | Clears the party booster via CGocBooster::ChangeBooster. |
 | XGameServer | GocForce.cpp | ?GetForceMember@CGocForce@@QEAAXPEAVCUser@@AEAVvector@PEAVCForceMember@@Vallocator@PEAVCForceMember@@@std@@@std@@_N@Z | 0x14010C9B0 | implemented | IDA decompile | yes | Get Force member list with offline/distance/maze filtering |
-| XGameServer | GocForce.cpp | ?GetForceUserCount@CGocForce@@QEAAEXZ | 0x14010D330 | implemented | IDA decompile | yes | Get online member count via CParty::GetUserCount |
-| XGameServer | GocForce.cpp | ?GetMasterID@CGocForce@@QEAAKXZ | 0x14010D410 | implemented | IDA decompile | yes | Get Force master ID via CWayPoint::GetCurID |
+| CGocForce | GocForce.cpp | ?GetForceUserCount@CGocForce@@QEAAEXZ | 0x14010d330 | verified | GameServer PDB + IDA decompile + source build + smoke | yes | Requires an active party then returns CParty::GetUserCount; non-const QEAA ABI. |
+| CGocForce | GocForce.cpp | ?GetMasterID@CGocForce@@QEAAKXZ | 0x14010d410 | verified | GameServer PDB + IDA decompile + source build + smoke | yes | Returns CParty::GetMasterID when m_pParty is set, else 0; non-const QEAA ABI. |
 | XGameServer | GocForce.cpp | ?SetExp@CGocForce@@QEAAXPEAVCUser@@MH@Z | 0x140083A30 | implemented | IDA decompile | yes | Complex exp distribution with level gap and monster interval tables |
-| XGameServer | GocForce.cpp | ?IsMember@CGocForce@@QEAA_NPEAVXActor@@@Z | 0x14010BBB0 | implemented | IDA decompile | yes | Check if XActor is Force member |
-| XGameServer | GocForce.cpp | ?CheckPassiveSkill@CGocForce@@QEAAXPEAVCUser@@EE@Z | 0x1400851B0 | implemented | IDA decompile | yes | Check passive skill via CParty::CheckPassiveSkill |
-| XGameServer | GocForce.cpp | ?CheckForceMatchingEnter@CGocForce@@QEAA_NXZ | 0x140085210 | implemented | IDA decompile | yes | Check if all members in same world/channel/map instance |
+| CGocForce | GocForce.cpp | ?IsMember@CGocForce@@QEAA_NPEAVXActor@@@Z | 0x14010bbb0 | verified | GameServer PDB + IDA decompile + source build + smoke | yes | Validates m_pParty then delegates to CParty::IsMember by actor ID; non-const QEAA ABI. |
+| CGocForce | GocForce.cpp | ?CheckPassiveSkill@CGocForce@@QEAAXPEAVCUser@@EE@Z | 0x1400851b0 | verified | GameServer PDB + IDA decompile + source build + smoke | yes | Delegates to CParty::CheckPassiveSkill when the party exists. |
+| CGocForce | GocForce.cpp | ?CheckForceMatchingEnter@CGocForce@@QEAA_NXZ | 0x140085210 | verified | GameServer PDB + IDA decompile + source build + smoke | yes | Requires every member in the same world/channel/map instance; non-const QEAA ABI. |
 | XGameServer | GocForce.cpp | ?GetFamilyID@CGocForce@@SAHXZ | 0x140039030 | implemented | IDA decompile | yes | Return constant 22 |
 
 | XGameServer | GocMyRoom.cpp | ??0CGocMyroom@@QEAA@XZ | 0x1400FAC40 | implemented | IDA decompile | yes | Constructor - initialize member variables |
@@ -58610,9 +58607,9 @@ yes | ?????????? |
 | XGameServer | GocQuest.cpp | ?SetCompleteQuestQeq@CGocQuest@@QEAAX_N@Z | 0x140597200 | implemented | IDA decompile | yes | Set m_bComplete flag |
 | XGameServer | GocQuest.cpp | ?CompleteQuestForNewChar@CGocQuest@@QEAAX_N@Z | 0x14013B1A0 | implemented | IDA decompile | yes | Precise IDA restoration - complete quests for new character |
 | XGameServer | GocPost.cpp | ?SendPostSendList@CGocPost@@QEAAXXZ | 0x140115000 | implemented | IDA decompile | yes | Send send post list to client in batches of 10 |
-| XGameServer | GocPost.cpp | ?SendPostRecvList@CGocPost@@QEAAXXZ | 0x140115290 | blocked | IDA decompile | yes | Send receive post list to client in batches of 10 |
-| XGameServer | GocPost.cpp | ?SendPostAccountList@CGocPost@@QEAAXXZ | 0x140115500 | blocked | IDA decompile | yes | Send account post list to client in batches of 10 |
-| XGameServer | GocPost.cpp | ?SendPostSaveList@CGocPost@@QEAAXXZ | 0x140115930 | blocked | IDA decompile | yes | Send save post list to client in batches of 10 |
+| CGocPost | GocPost.cpp | ?SendPostRecvList@CGocPost@@QEAAXXZ | 0x140115290 | verified | GameServer PDB + IDA decompile + source build + smoke | yes | Batches m_mpRecvList 10 per main 0x20/sub 2 with bLoad tail; verified against IDA. |
+| CGocPost | GocPost.cpp | ?SendPostAccountList@CGocPost@@QEAAXXZ | 0x140115500 | verified | GameServer PDB + IDA decompile + source build + smoke | yes | Batches m_mpAccountList 10 per main 0x20/sub 0x14 with bLoad tail. |
+| CGocPost | GocPost.cpp | ?SendPostSaveList@CGocPost@@QEAAXXZ | 0x140115930 | verified | GameServer PDB + IDA decompile + source build + smoke | yes | Batches m_mpSaveList 10 per main 0x20/sub 2 with bLoad tail. |
 | XGameServer | Mover.cpp | ?GetLevel@CMover@@UEAAEXZ | 0x140366CB0 | implemented | IDA decompile | yes | IDA精确还原-通过CGocAttribute获取Level |
 | XGameServer | Mover.cpp | ?GetClass@CMover@@UEAAEXZ | 0x140366C30 | implemented | IDA decompile | yes | IDA精确还原-通过CGocAttribute获取Class |
 | XGameServer | Mover.cpp | ?GetMaxHP@CMover@@UEAAHXZ | 0x140366EE0 | implemented | IDA decompile | yes | IDA精确还原-通过CGocAttribute获取MaxHP(Stat=10) |

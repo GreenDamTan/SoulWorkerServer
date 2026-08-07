@@ -141,6 +141,12 @@ VDefaultTimer* ThreadLocalData::GetTimer() {
     return g_threadLocalSlots.timer;
 }
 
+// IDA: ?IsThreadArea@ThreadLocalData@@QEAA_NTUXMapID@@@Z @ 0x1406D5E10
+bool ThreadLocalData::IsThreadArea(UXMapID uxMapID) {
+    // IDA: Check if area belongs to this thread
+    return FindArea(uxMapID) != nullptr;
+}
+
 void ThreadLocalData::DestroyInstance() {
     VDefaultTimer* timer = g_threadLocalSlots.timer;
     if (timer) {

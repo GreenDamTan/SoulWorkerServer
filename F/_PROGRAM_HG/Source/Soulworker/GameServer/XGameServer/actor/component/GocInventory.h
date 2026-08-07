@@ -856,6 +856,14 @@ public:
     // Checks if exp boost item can be used (effect type 21, count, inven 13, not max level)
     bool CanUseItemIncExp(std::shared_ptr<CItem> pItem);
 
+    // CanUseItemProfilePhoto - 0x1400DD7C0
+    // Checks if profile photo item can be used (effect type 20, count, inven 2/13)
+    bool CanUseItemProfilePhoto(std::shared_ptr<CItem> pItem);
+
+    // CanUseItemIncRenovatePoint - 0x1400E7BA0
+    // Checks if renovate point item can be used (not busy, inven 13)
+    bool CanUseItemIncRenovatePoint(std::shared_ptr<CItem> pItem);
+
     // === Broach update functions (IDA verified) ===
 
     // SendBroachUpdate - 0x1400C0910

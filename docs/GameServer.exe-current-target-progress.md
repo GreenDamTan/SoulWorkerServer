@@ -16401,3 +16401,23 @@ Validate the current GameServer.exe reconstruction worktree before the user-auth
 - Ledger state: func-index upgraded the two decorated rows (0x1400da370, 0x1400dcbe0) to verified. path-recovery-index and type-index unchanged.
 - Verification: build passed ([16/16] Linking GameServer.exe). Bounded smoke passed (Complete Server Init + Auto shutdown, exit 0). git diff --check clean.
 - Review status: independent verification pending.
+
+---
+[2026-08-07 12:11:54 +08:00] [deepseek-v4-flash]
+### CGocInventory CanUseItem sub-function batch 8 (CanUseItemProfilePhoto)
+- Target: GameServer.exe; IDA MCP port 10004; model deepseek-v4-flash; local offset +08:00.
+- Evidence discovery: decompiled CanUseItemProfilePhoto (0x1400DD7C0). Also decompiled CanUseItemQuestAccept (0x1400DDFE0): its Contents_Type==2 branch calls CUser::SendChatNotify which has no active definition, so QuestAccept is deferred.
+- Implementation: GocInventory.h added the shared_ptr<CItem> declaration. GocInventory.cpp restored CanUseItemProfilePhoto (effect 20 + count + inven 2/13 gates, error 0xE29D).
+- Ledger state: func-index upgraded the 0x1400dd7c0 decorated row to verified. path-recovery-index and type-index unchanged.
+- Verification: build passed ([16/16] Linking GameServer.exe). Bounded smoke passed (Complete Server Init + Auto shutdown, exit 0). git diff --check clean.
+- Review status: independent verification pending. Next: QuestAccept (needs CUser::SendChatNotify), Casual (needs GetCasualMazeID), ResealPackage, IncRenovatePoint remain.
+
+---
+[2026-08-07 12:13:39 +08:00] [deepseek-v4-flash]
+### CGocInventory CanUseItem sub-function batch 9 (CanUseItemIncRenovatePoint)
+- Target: GameServer.exe; IDA MCP port 10004; model deepseek-v4-flash; local offset +08:00.
+- Evidence discovery: decompiled CanUseItemIncRenovatePoint (0x1400E7BA0) and CanUseItemResealPackage (0x1400E6610). ResealPackage is larger (PS_ITEM_PACKAGE + TB_REPACKAGECOSTUME Item_01..13 array matching); deferred.
+- Implementation: GocInventory.h added the shared_ptr<CItem> declaration. GocInventory.cpp restored CanUseItemIncRenovatePoint (m_bRenovateItem wait gate, inven 13 gate, 0xCB2B/0xCB21).
+- Ledger state: func-index upgraded the 0x1400e7ba0 decorated row to verified. path-recovery-index and type-index unchanged.
+- Verification: build passed ([16/16] Linking GameServer.exe). Bounded smoke passed (Complete Server Init + Auto shutdown, exit 0). git diff --check clean.
+- Review status: independent verification pending. Next: ResealPackage (needs PS_ITEM_PACKAGE + TB_REPACKAGECOSTUME array), QuestAccept (needs CUser::SendChatNotify), Casual (needs GetCasualMazeID).

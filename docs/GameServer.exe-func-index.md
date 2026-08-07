@@ -3103,7 +3103,7 @@
 | - | - | ?ClearDissassembleLog@CGocInventory@@QEAAXXZ | 0x1400dcbb0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | CGocInventory | GocInventory.cpp | ?CanUseItemIncExp@CGocInventory@@QEAA_NV?$shared_ptr@VCItem@@@tr1@std@@@Z | 0x1400dcbe0 | verified | PDB + IDA decompile + source build + smoke | yes | Effect type 21 + count + inven 13 gates, max level 68 gate with 0xCD79/0xCB2B. |
 | - | - | ?UseItemIncExp@CGocInventory@@QEAA_NV?$shared_ptr@VCItem@@@tr1@std@@@Z | 0x1400dcfb0 | implemented | IDA ?UseItemIncExp@CGocInventory@@QEAA_NV?$shared_ptr@VCItem@@@tr1@std@@@Z | yes | - |
-| - | - | ?CanUseItemProfilePhoto@CGocInventory@@QEAA_NV?$shared_ptr@VCItem@@@tr1@std@@@Z | 0x1400dd7c0 | implemented | IDA ?CanUseItemProfilePhoto@CGocInventory@@QEAA_NV?$shared_ptr@VCItem@@@tr1@std@@@Z | yes | - |
+| CGocInventory | GocInventory.cpp | ?CanUseItemProfilePhoto@CGocInventory@@QEAA_NV?$shared_ptr@VCItem@@@tr1@std@@@Z | 0x1400dd7c0 | verified | PDB + IDA decompile + source build + smoke | yes | Effect type 20 + count + inven 2/13 gates, error 0xE29D. |
 | - | - | ?CheckDyeInfo@CGocInventory@@QEAA_NW4E_DYE_TYPE@@HHHAEAHAEAUST_CREATE_ITEMS@@@Z | 0x1400dda40 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | - | - | ?IsValidDyeInfo@CGocInventory@@QEAA_NHH@Z | 0x1400ddf10 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | - | - | ?CanUseItemQuestAccept@CGocInventory@@QEAA_NV?$shared_ptr@VCItem@@@tr1@std@@@Z | 0x1400ddfe0 | implemented | IDA ?CanUseItemQuestAccept@CGocInventory@@QEAA_NV?$shared_ptr@VCItem@@@tr1@std@@@Z | yes | - |
@@ -3156,7 +3156,7 @@
 | XGameServer | GocInventory.cpp | ?IsResealPackageCount@CGocInventory@@QEAA_NHH@Z | 0x1400e6ad0 | verified | GameServer PDB decorated ABI + IDA decompile/disasm + source build | yes | Signed package ID and count, plus contiguous Item_01 through Item_13 count, verified.
 | - | - | ?UseItemResealPackage@CGocInventory@@QEAA_NV?$shared_ptr@VCItem@@@tr1@std@@@Z | 0x1400e6b70 | implemented | IDA ?UseItemResealPackage@CGocInventory@@QEAA_NV?$shared_ptr@VCItem@@@tr1@std@@@Z | yes | - |
 | XGameServer | GocInventory.cpp | ?AddItemUpgradeCount@CGocInventory@@AEAA_NPEAUTB_ITEM@@FEE_NAEAUPS_RES_STORAGE_INFO@@2@Z | 0x1400e77a0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(���Ӻ���,TODO����) |
-| - | - | ?CanUseItemIncRenovatePoint@CGocInventory@@QEAA_NV?$shared_ptr@VCItem@@@tr1@std@@@Z | 0x1400e7ba0 | implemented | IDA ?CanUseItemIncRenovatePoint@CGocInventory@@QEAA_NV?$shared_ptr@VCItem@@@tr1@std@@@Z | yes | - |
+| CGocInventory | GocInventory.cpp | ?CanUseItemIncRenovatePoint@CGocInventory@@QEAA_NV?$shared_ptr@VCItem@@@tr1@std@@@Z | 0x1400e7ba0 | verified | PDB + IDA decompile + source build + smoke | yes | m_bRenovateItem wait gate, inven 13 gate with 0xCB2B/0xCB21. |
 | - | - | ?UseItemIncRenovatePoint@CGocInventory@@QEAA_NV?$shared_ptr@VCItem@@@tr1@std@@@Z | 0x1400e7d40 | implemented | IDA ?UseItemIncRenovatePoint@CGocInventory@@QEAA_NV?$shared_ptr@VCItem@@@tr1@std@@@Z | yes | - |
 | XGameServer | GocInventory.cpp | ?CalculateEquipStat@CGocInventory@@QEAAXE@Z | 0x1400e85d0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(���Ӻ���,TODO����) |
 | - | - | ??1?$map@_JUPS_STORAGE_INFO@@U?$less@_J@std@@V?$allocator@U?$pair@$$CB_JUPS_STORAGE_INFO@@@std@@@3@@std@@QEAA@XZ | 0x1400e8970 | blocked | IDA ??1?$map@_JUPS_STORAGE_INFO@@U?$less@_J@std@@V?$allocator@U?$pair@$$CB_JUPS_STORAGE_INFO@@@std@@@3@@std@@QEAA@XZ | yes | - |

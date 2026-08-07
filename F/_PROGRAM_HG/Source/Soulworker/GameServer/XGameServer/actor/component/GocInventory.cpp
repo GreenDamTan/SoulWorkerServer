@@ -8815,6 +8815,72 @@ bool CGocInventory::CanUseItemIncExp(std::shared_ptr<CItem> pItem) {
     return true;
 }
 
+// IDA: 0x1400DD7C0
+// __int64 __fastcall CGocInventory::CanUseItemProfilePhoto(CGocInventory *this, std::tr1::shared_ptr<CItem> pItem)
+// Checks if profile photo item can be used (effect type 20, count, inven 2/13)
+bool CGocInventory::CanUseItemProfilePhoto(std::shared_ptr<CItem> pItem) {
+    std::uint32_t dwUCID = GetOwnerGO()->GetActorID().GetID();
+
+    if (!pItem) {
+        CGocNetwork::SendErrorMessage(GetOwnerGO(), 8, 0x11, 0xE29D);
+        LogHelper::LogError("game.item", "CanUseItemProfilePhoto error - Item is NULL[UCID:%d]", dwUCID);
+        return false;
+    }
+
+    if (pItem->GetItemTable()->Item_Effect_Type != 20) {
+        CGocNetwork::SendErrorMessage(GetOwnerGO(), 8, 0x11, 0xE29D);
+        LogHelper::LogError("game.item", "CanUseItemProfilePhoto error - Check ITEM_EFFECT_TYPE[UCID:%d, ItemID:%d]",
+                            dwUCID, pItem->GetID());
+        return false;
+    }
+
+    if (pItem->GetCount() < 1) {
+        CGocNetwork::SendErrorMessage(GetOwnerGO(), 8, 0x11, 0xE29D);
+        LogHelper::LogError("game.item", "CanUseItemProfilePhoto error - Shortage Count[UCID:%d, ItemID:%d]",
+                            dwUCID, pItem->GetID());
+        return false;
+    }
+
+    std::uint8_t byInvenType = pItem->GetInvenType();
+    if (byInvenType != 2 && byInvenType != 13) {
+        CGocNetwork::SendErrorMessage(GetOwnerGO(), 8, 0x11, 0xE29D);
+        LogHelper::LogError("game.item",
+                            "CanUseItemProfilePhoto error - Fault Inventory[UCID:%d, ItemID:%d, InvenType:%d]",
+                            dwUCID, pItem->GetID(), byInvenType);
+        return false;
+    }
+
+    return true;
+}
+
+// IDA: 0x1400E7BA0
+// __int64 __fastcall CGocInventory::CanUseItemIncRenovatePoint(CGocInventory *this, std::tr1::shared_ptr<CItem> pItem)
+// Checks if renovate point item can be used (not busy, inven 13)
+bool CGocInventory::CanUseItemIncRenovatePoint(std::shared_ptr<CItem> pItem) {
+    std::uint32_t dwUCID = GetOwnerGO()->GetActorID().GetID();
+
+    if (m_bRenovateItem) {
+        CGocNetwork::SendErrorMessage(GetOwnerGO(), 8, 0x11, 0xCB2B);
+        LogHelper::LogError("game.item", "CanUseItemIncRenovatePoint - Wait[UCID:%d]", dwUCID);
+        return false;
+    }
+
+    if (!pItem) {
+        CGocNetwork::SendErrorMessage(GetOwnerGO(), 8, 0x11, 0xCB2B);
+        LogHelper::LogError("game.item", "CanUseItemIncRenovatePoint - Item NULL[UCID:%d]", dwUCID);
+        return false;
+    }
+
+    if (pItem->GetInvenType() != 13) {
+        CGocNetwork::SendErrorMessage(GetOwnerGO(), 8, 0x11, 0xCB21);
+        LogHelper::LogError("game.item", "CanUseItemIncRenovatePoint - Fault Inven type[UCID:%d, ID:%d]",
+                            dwUCID, pItem->GetID());
+        return false;
+    }
+
+    return true;
+}
+
 // IDA: 0x1400C0230
 // __int64 __fastcall CGocInventory::UseGraveInitItem(
 //         CGocInventory *this, unsigned __int8 byInvenType, __int16 shSlot)

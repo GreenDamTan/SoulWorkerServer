@@ -3073,7 +3073,7 @@
 | - | - | ?GetToolDisassemble@CGocInventory@@QEAAXAEAUPS_RES_TOOL_DROP_INFO@@@Z | 0x1400d5750 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | - | - | ?InsertToolDisassemble@CGocInventory@@QEAAXUPS_ITEM_DISASSEMBLE@@@Z | 0x1400d5830 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | - | - | ?IsEmptyInventory@CGocInventory@@QEAA_NHH@Z | 0x1400d5860 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
-| - | - | ?CanUseItemWarp@CGocInventory@@QEAA_NV?$shared_ptr@VCItem@@@tr1@std@@@Z | 0x1400d5970 | implemented | IDA ?CanUseItemWarp@CGocInventory@@QEAA_NV?$shared_ptr@VCItem@@@tr1@std@@@Z | yes | - |
+| CGocInventory | GocInventory.cpp | ?CanUseItemWarp@CGocInventory@@QEAA_NV?$shared_ptr@VCItem@@@tr1@std@@@Z | 0x1400d5970 | verified | PDB + IDA decompile + source build + smoke | yes | UserDB bLoad_ALL gate, inven 2/13, area IsUseItem/world rules, district type 11/23 block, social cardmatch 55093, 0xCD8A fallback. |
 | - | - | ?UseItemWarp@CGocInventory@@QEAA_N_NV?$shared_ptr@VCItem@@@tr1@std@@@Z | 0x1400d5e10 | implemented | IDA ?UseItemWarp@CGocInventory@@QEAA_N_NV?$shared_ptr@VCItem@@@tr1@std@@@Z | yes | - |
 | - | - | ?DeleteUsedWarpItem@CGocInventory@@QEAAXXZ | 0x1400d6d50 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | - | - | ?ClearUsedWarpItem@CGocInventory@@QEAAXE@Z | 0x1400d73d0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
@@ -3081,10 +3081,10 @@
 | - | - | ?LoadLimitItemInfo@CGocInventory@@QEAAXUST_ITEM_LIMIT_LIST@@@Z | 0x1400d8740 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | - | - | ?UpdateLimitItemInfo@CGocInventory@@QEAA_NHFAEAF@Z | 0x1400d89f0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | - | - | ?ReviveCash@CGocInventory@@QEAA_NXZ | 0x1400d8ce0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
-| - | - | ?CanUseItemSelect@CGocInventory@@QEAA_NV?$shared_ptr@VCItem@@@tr1@std@@@Z | 0x1400d9400 | implemented | IDA ?CanUseItemSelect@CGocInventory@@QEAA_NV?$shared_ptr@VCItem@@@tr1@std@@@Z | yes | - |
+| CGocInventory | GocInventory.cpp | ?CanUseItemSelect@CGocInventory@@QEAA_NV?$shared_ptr@VCItem@@@tr1@std@@@Z | 0x1400d9400 | verified | PDB + IDA decompile + source build + smoke | yes | Effect type 15 + use type 113 + inven 0/13 gates with error logs. |
 | - | - | ?UseItemSelect@CGocInventory@@QEAAHUPS_REQ_USE_ITEM_SELECT@@@Z | 0x1400d95a0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | - | - | ??1PS_REQ_USE_ITEM_SELECT@@QEAA@XZ | 0x1400da350 | blocked | IDA ??1PS_REQ_USE_ITEM_SELECT@@QEAA@XZ | yes | - |
-| - | - | ?CanUseItemCountBox@CGocInventory@@QEAA_NV?$shared_ptr@VCItem@@@tr1@std@@@Z | 0x1400da370 | implemented | IDA ?CanUseItemCountBox@CGocInventory@@QEAA_NV?$shared_ptr@VCItem@@@tr1@std@@@Z | yes | - |
+| CGocInventory | GocInventory.cpp | ?CanUseItemCountBox@CGocInventory@@QEAA_NV?$shared_ptr@VCItem@@@tr1@std@@@Z | 0x1400da370 | verified | PDB + IDA decompile + source build + smoke | yes | Effect type 16 + count + inven 2/13 gates with error logs. |
 | - | - | ?UseItemCountBox@CGocInventory@@QEAA_N_NV?$shared_ptr@VCItem@@@tr1@std@@@Z | 0x1400da570 | implemented | IDA ?UseItemCountBox@CGocInventory@@QEAA_N_NV?$shared_ptr@VCItem@@@tr1@std@@@Z | yes | - |
 | - | - | ??1PS_DB_ITEM_COUNTBOX@@QEAA@XZ | 0x1400db560 | blocked | IDA ??1PS_DB_ITEM_COUNTBOX@@QEAA@XZ | yes | - |
 | - | - | ??4ST_GET_INFO@@QEAAAEAU0@AEBU0@@Z | 0x1400db5c0 | blocked | IDA ??4ST_GET_INFO@@QEAAAEAU0@AEBU0@@Z | yes | - |
@@ -3095,13 +3095,13 @@
 | - | - | ?ReduceItemShop@CGocInventory@@QEAA_NPEAUTB_ITEM@@HEAEAUPS_RES_STORAGE_INFO@@@Z | 0x1400dbdf0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | - | - | ?ReduceItemCheckShop@CGocInventory@@QEAA_NPEAUTB_ITEM@@AEAHEAEAUPS_RES_STORAGE_INFO@@@Z | 0x1400dbf40 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | XGameServer | GocInventory.cpp | CGocInventory::CheckRandomOption | 0x1400DC0C0 | implemented | IDA decompile | yes | IDA精确还原 - 检查并重排随机选项，获取TB_ITEM和TB_ITEM_CLASSIFY，收集非空选项并重排 |
-| - | - | ?CanUseItemAppearance@CGocInventory@@QEAA_NV?$shared_ptr@VCItem@@@tr1@std@@@Z | 0x1400dc260 | implemented | IDA ?CanUseItemAppearance@CGocInventory@@QEAA_NV?$shared_ptr@VCItem@@@tr1@std@@@Z | yes | - |
+| CGocInventory | GocInventory.cpp | ?CanUseItemAppearance@CGocInventory@@QEAA_NV?$shared_ptr@VCItem@@@tr1@std@@@Z | 0x1400dc260 | verified | PDB + IDA decompile + source build + smoke | yes | Item_Model_ID appearance check; IsHaveAppearance overlap gate with error 0xCB64. |
 | - | - | ?UseItemAppearance@CGocInventory@@QEAA_NV?$shared_ptr@VCItem@@@tr1@std@@@Z | 0x1400dc450 | implemented | IDA ?UseItemAppearance@CGocInventory@@QEAA_NV?$shared_ptr@VCItem@@@tr1@std@@@Z | yes | - |
 | XGameServer | GocInventory.cpp | CGocInventory::IsRandomItemTitle | 0x1400DCA20 | implemented | IDA decompile | yes | IDA精确还原 - 检查物品称号是否随机，获取TB_ITEM_TITLE并检查多个Group_ID |
 | - | - | ?AddDisassembleLog@CGocInventory@@QEAAX_JUST_CREATE_ITEM@@@Z | 0x1400dcaa0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | - | - | ?GetDisassembleLog@CGocInventory@@QEAAX_JAEAUST_CREATE_ITEM@@@Z | 0x1400dcb30 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | - | - | ?ClearDissassembleLog@CGocInventory@@QEAAXXZ | 0x1400dcbb0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
-| - | - | ?CanUseItemIncExp@CGocInventory@@QEAA_NV?$shared_ptr@VCItem@@@tr1@std@@@Z | 0x1400dcbe0 | implemented | IDA ?CanUseItemIncExp@CGocInventory@@QEAA_NV?$shared_ptr@VCItem@@@tr1@std@@@Z | yes | - |
+| CGocInventory | GocInventory.cpp | ?CanUseItemIncExp@CGocInventory@@QEAA_NV?$shared_ptr@VCItem@@@tr1@std@@@Z | 0x1400dcbe0 | verified | PDB + IDA decompile + source build + smoke | yes | Effect type 21 + count + inven 13 gates, max level 68 gate with 0xCD79/0xCB2B. |
 | - | - | ?UseItemIncExp@CGocInventory@@QEAA_NV?$shared_ptr@VCItem@@@tr1@std@@@Z | 0x1400dcfb0 | implemented | IDA ?UseItemIncExp@CGocInventory@@QEAA_NV?$shared_ptr@VCItem@@@tr1@std@@@Z | yes | - |
 | - | - | ?CanUseItemProfilePhoto@CGocInventory@@QEAA_NV?$shared_ptr@VCItem@@@tr1@std@@@Z | 0x1400dd7c0 | implemented | IDA ?CanUseItemProfilePhoto@CGocInventory@@QEAA_NV?$shared_ptr@VCItem@@@tr1@std@@@Z | yes | - |
 | - | - | ?CheckDyeInfo@CGocInventory@@QEAA_NW4E_DYE_TYPE@@HHHAEAHAEAUST_CREATE_ITEMS@@@Z | 0x1400dda40 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |

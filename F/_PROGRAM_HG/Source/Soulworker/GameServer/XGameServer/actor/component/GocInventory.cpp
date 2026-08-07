@@ -8,6 +8,9 @@
 #include "Soulworker/Common/XNet/XIOCPBase/Packet.h"
 #include "Soulworker/GameServer/XGameServer/actor/Mover/Mover.h"
 #include "Soulworker/GameServer/XGameServer/GameServer.h"
+#include "Soulworker/GameServer/XCore/XArea/XDistrict.h"
+#include "Soulworker/GameServer/XGameServer/Maze.h"
+#include "Soulworker/GameServer/XGameServer/SocialItemObject.h"
 #include "Soulworker/GameServer/XSCommon/Table/DBLoadTable.h"
 #include "Soulworker/Common/XNet/XUtil/TXSingleton.h"
 #include "Soulworker/GameServer/XGameServer/Item/CItem.h"
@@ -8601,6 +8604,215 @@ bool CGocInventory::CanUseItemBooster(std::shared_ptr<CItem> pItem) {
 bool CGocInventory::CanUseBoxparClass(std::shared_ptr<CItem> pItem) {
     std::uint8_t byInvenType = pItem->GetInvenType();
     return byInvenType == 2 || byInvenType == 13;
+}
+
+// IDA: 0x1400D9400
+// __int64 __fastcall CGocInventory::CanUseItemSelect(CGocInventory *this, std::tr1::shared_ptr<CItem> pItem)
+// Checks if select item can be used (effect type 15, use type 113, inven 0 or 13)
+bool CGocInventory::CanUseItemSelect(std::shared_ptr<CItem> pItem) {
+    if (!pItem) {
+        LogHelper::LogError("game.item", "CanUseItemSelect error - NULL Item");
+        return false;
+    }
+
+    if (pItem->GetItemTable()->Item_Effect_Type != 15) {
+        LogHelper::LogError("game.item", "CanUseItemSelect error - Item Effect Type[ItemID:%d]",
+                            pItem->GetID());
+        return false;
+    }
+
+    if (pItem->GetClassifyTable()->Item_Use_Type != 113) {
+        LogHelper::LogError("game.item", "CanUseItemSelect error - Item Use Type[ItemID:%d]",
+                            pItem->GetID());
+        return false;
+    }
+
+    std::uint8_t byInvenType = pItem->GetClassifyTable()->Item_Inven_Type;
+    if (!byInvenType || byInvenType == 13)
+        return true;
+
+    LogHelper::LogError("game.item", "CanUseItemSelect error - Fault item inventory [ItemID:%d]",
+                        pItem->GetID());
+    return false;
+}
+
+// IDA: 0x1400D5970
+// __int64 __fastcall CGocInventory::CanUseItemWarp(CGocInventory *this, std::tr1::shared_ptr<CItem> pItem)
+// Checks if warp item can be used (UserDB loaded, inven 2/13, area use + world-type rules)
+bool CGocInventory::CanUseItemWarp(std::shared_ptr<CItem> pItem) {
+    CUser* pUser = dynamic_cast<CUser*>(GetOwnerGO());
+    if (!pUser)
+        return false;
+
+    std::uint32_t dwUCID = pUser->GetUCID();
+
+    if (!pUser->stMyCharInfoEx()->userDBBits.UserDB.bLoad_ALL) {
+        LogHelper::LogError("game.item", "CanUseItemWarp error - Not finish UserDB LoadAll[UCID:%d]", dwUCID);
+        CGocNetwork::SendErrorMessage(GetOwnerGO(), 8, 0x11, 0xCB2B);
+        return false;
+    }
+
+    if (!pItem) {
+        LogHelper::LogError("game.item", "CanUseItemWarp error - NULL item[UCID:%d]", dwUCID);
+        CGocNetwork::SendErrorMessage(GetOwnerGO(), 8, 0x11, 0xCB2B);
+        return false;
+    }
+
+    std::uint8_t byInvenType = pItem->GetInvenType();
+    if (byInvenType != 2 && byInvenType != 13) {
+        LogHelper::LogError("game.item", "CanUseItemWarp error - Fault inventory[UCID:%d]", dwUCID);
+        CGocNetwork::SendErrorMessage(GetOwnerGO(), 8, 0x11, 0xCB2B);
+        return false;
+    }
+
+    XArea* pArea = GetOwnerGO()->GetArea();
+    bool bCanUse = false;
+    if (pArea) {
+        XMaze* pMaze = dynamic_cast<XMaze*>(pArea);
+        bCanUse = pMaze ? pMaze->IsUseItem() : true;
+        int nCurWorldType = pArea->GetWorldType();
+
+        if ((pItem->GetClassifyTable()->Item_Use_State & 2) == 0 && (nCurWorldType == 1 || nCurWorldType == 2))
+            bCanUse = false;
+        if ((pItem->GetClassifyTable()->Item_Use_State & 1) == 0 && (nCurWorldType == 3 || !nCurWorldType))
+            bCanUse = false;
+        if (nCurWorldType == 3)
+            bCanUse = false;
+
+        XDistrict* pDistrict = dynamic_cast<XDistrict*>(pArea);
+        if (pDistrict && pDistrict->GetDistrictType() == 2) {
+            std::uint16_t wEffectType = pItem->GetItemTable()->Item_Effect_Type;
+            if (wEffectType == 11 || wEffectType == 23)
+                bCanUse = false;
+        }
+
+        if (pDistrict) {
+            if (pUser->GetSocialUseID()) {
+                CSocialItemObject* pSocialObject = pDistrict->FindSocialItemObject(pUser->GetSocialUseID());
+                if (pSocialObject && pSocialObject->GetSocialType() == 3) {
+                    LogHelper::LogError("game.item", "CanUseItemWarp error - Play social cardmatch[UCID:%d]", dwUCID);
+                    pUser->SendErrorMessage(8, 0x11, 55093);
+                    return false;
+                }
+            }
+        }
+    }
+
+    if (bCanUse)
+        return true;
+
+    CGocNetwork::SendErrorMessage(GetOwnerGO(), 8, 0x11, 0xCD8A);
+    LogHelper::LogError("game.item", "CanUseItem error - Cant use in this Area [ ActorID:%d, ItemID:%d ]",
+                        dwUCID, pItem->GetID());
+    return false;
+}
+
+// IDA: 0x1400DC260
+// __int64 __fastcall CGocInventory::CanUseItemAppearance(CGocInventory *this, std::tr1::shared_ptr<CItem> pItem)
+// Checks if appearance item can be used (appearance not already owned)
+bool CGocInventory::CanUseItemAppearance(std::shared_ptr<CItem> pItem) {
+    CUser* pUser = dynamic_cast<CUser*>(GetOwnerGO());
+    if (!pUser) {
+        LogHelper::LogError("game.item", "CanUseItemAppearance error - Invalid User[ ItemID:%d ]",
+                            pItem->GetID());
+        return false;
+    }
+
+    std::uint32_t dwUCID = pUser->GetUCID();
+
+    if (!pItem) {
+        LogHelper::LogError("game.item", "CanUseItemAppearance error - Invalid Item[UCID:%d]", dwUCID);
+        return false;
+    }
+
+    std::uint16_t wAppearanceID = static_cast<std::uint16_t>(pItem->GetItemTable()->Item_Model_ID);
+    if (IsHaveAppearance(wAppearanceID)) {
+        CGocNetwork::SendErrorMessage(GetOwnerGO(), 8, 0x11, 0xCB64);
+        LogHelper::LogError("game.item",
+                            "CanUseItemAppearance error - Overlapped Appearnace[UCID:%d, ItemID:%d, AppreanceID:%d]",
+                            dwUCID, pItem->GetID(), wAppearanceID);
+        return false;
+    }
+
+    return true;
+}
+
+// IDA: 0x1400DA370
+// __int64 __fastcall CGocInventory::CanUseItemCountBox(CGocInventory *this, std::tr1::shared_ptr<CItem> pItem)
+// Checks if count box item can be used (effect type 16, count, inven 2/13)
+bool CGocInventory::CanUseItemCountBox(std::shared_ptr<CItem> pItem) {
+    std::uint32_t dwUCID = GetOwnerGO()->GetActorID().GetID();
+
+    if (!pItem) {
+        LogHelper::LogError("game.item", "CanUseItemCountBox error - Item is NULL[UCID:%d]", dwUCID);
+        return false;
+    }
+
+    if (pItem->GetItemTable()->Item_Effect_Type != 16) {
+        LogHelper::LogError("game.item", "CanUseItemCountBox error - Check ITEM_EFFECT_TYPE[UCID:%d, ItemID:%d]",
+                            dwUCID, pItem->GetID());
+        return false;
+    }
+
+    if (pItem->GetCount() < 1) {
+        LogHelper::LogError("game.item", "CanUseItemCountBox error - Shortage Count[UCID:%d, ItemID:%d]",
+                            dwUCID, pItem->GetID());
+        return false;
+    }
+
+    std::uint8_t byInvenType = pItem->GetInvenType();
+    if (byInvenType != 2 && byInvenType != 13) {
+        LogHelper::LogError("game.item", "CanUseItemCountBox error - Fault Inventory[UCID:%d, ItemID:%d, InvenType:%d]",
+                            dwUCID, pItem->GetID(), byInvenType);
+        return false;
+    }
+
+    return true;
+}
+
+// IDA: 0x1400DCBE0
+// __int64 __fastcall CGocInventory::CanUseItemIncExp(CGocInventory *this, std::tr1::shared_ptr<CItem> pItem)
+// Checks if exp boost item can be used (effect type 21, count, inven 13, not max level)
+bool CGocInventory::CanUseItemIncExp(std::shared_ptr<CItem> pItem) {
+    CUser* pUser = dynamic_cast<CUser*>(GetOwnerGO());
+    if (!pUser)
+        return false;
+
+    std::uint32_t dwUCID = pUser->GetUCID();
+
+    if (!pItem) {
+        LogHelper::LogError("game.item", "CanUseItemIncExp error - Item is NULL[UCID:%d]", dwUCID);
+        return false;
+    }
+
+    if (pItem->GetItemTable()->Item_Effect_Type != 21) {
+        CGocNetwork::SendErrorMessage(GetOwnerGO(), 8, 0x11, 0xCB2B);
+        LogHelper::LogError("game.item", "CanUseItemIncExp error - Check ITEM_EFFECT_TYPE[UCID:%d, ItemID:%d]",
+                            dwUCID, pItem->GetID());
+        return false;
+    }
+
+    if (pItem->GetCount() < 1) {
+        CGocNetwork::SendErrorMessage(GetOwnerGO(), 8, 0x11, 0xCB2B);
+        LogHelper::LogError("game.item", "CanUseItemIncExp error - Shortage Count[UCID:%d, ItemID:%d]",
+                            dwUCID, pItem->GetID());
+        return false;
+    }
+
+    if (pItem->GetInvenType() != 13) {
+        CGocNetwork::SendErrorMessage(GetOwnerGO(), 8, 0x11, 0xCB2B);
+        LogHelper::LogError("game.item", "CanUseItemIncExp error - Fault Inventory[UCID:%d, ItemID:%d, InvenType:%d]",
+                            dwUCID, pItem->GetID(), pItem->GetInvenType());
+        return false;
+    }
+
+    if (pUser->GetLevel() == 68) {
+        CGocNetwork::SendErrorMessage(GetOwnerGO(), 8, 0x11, 0xCD79);
+        LogHelper::LogError("game.item", "CanUseItemIncExp error - Max level[UCID:%d]", dwUCID);
+        return false;
+    }
+
+    return true;
 }
 
 // IDA: 0x1400C0230

@@ -16371,3 +16371,33 @@ Validate the current GameServer.exe reconstruction worktree before the user-auth
 - Ledger state: func-index upgraded the three decorated rows (0x1400c1530, 0x1400c1c10, 0x1400c3b50) to verified with new source column. path-recovery-index and type-index unchanged.
 - Verification: build passed ([16/16] Linking GameServer.exe). Bounded smoke passed (Complete Server Init + Auto shutdown, exit 0). git diff --check clean.
 - Review status: independent verification pending.
+
+---
+[2026-08-07 12:05:35 +08:00] [deepseek-v4-flash]
+### CGocInventory CanUseItem sub-function batch 5 (CanUseItemSelect, CanUseItemWarp)
+- Target: GameServer.exe; IDA MCP port 10004; model deepseek-v4-flash; local offset +08:00.
+- Evidence discovery: decompiled CanUseItemSelect (0x1400D9400) and CanUseItemWarp (0x1400D5970). Warp uses STMyCharInfoEx_UserDBBits.bLoad_ALL (byte3 bit3 == 8, verified via PDB bitfield order) for the UserDB LoadAll gate.
+- Implementation: GocInventory.h added both shared_ptr<CItem> declarations. GocInventory.cpp restored CanUseItemSelect (effect 15 + use 113 + inven 0/13 gates with logs) and CanUseItemWarp (UserDB bLoad_ALL gate, inven 2/13, area IsUseItem/world-type rules, district type 2 with effect 11/23 block, social cardmatch 55093, fallback 0xCD8A). Since the active XArea base drops the IsUseItem/GetDistrictType virtuals, the body adapts via dynamic_cast to XMaze/XDistrict and added Maze.h/XDistrict.h/SocialItemObject.h includes.
+- Ledger state: func-index upgraded the two decorated rows (0x1400d9400, 0x1400d5970) to verified. path-recovery-index and type-index unchanged.
+- Verification: build passed ([2/2] Linking GameServer.exe). Bounded smoke passed (Complete Server Init + Auto shutdown, exit 0). git diff --check clean.
+- Review status: independent verification pending.
+
+---
+[2026-08-07 12:07:37 +08:00] [deepseek-v4-flash]
+### CGocInventory CanUseItem sub-function batch 6 (CanUseItemAppearance)
+- Target: GameServer.exe; IDA MCP port 10004; model deepseek-v4-flash; local offset +08:00.
+- Evidence discovery: decompiled CanUseItemAppearance (0x1400DC260). Also audited CanUseCasualItem (0x1400C3FD0): its Item_Use_Type==97 branch requires XResourceMgr::GetCasualMazeID which has no active definition, so Casual is deferred to a later batch.
+- Implementation: GocInventory.h added the shared_ptr<CItem> declaration. GocInventory.cpp restored CanUseItemAppearance: user gate, Item_Model_ID as appearance ID, IsHaveAppearance overlap gate with error 0xCB64 + log.
+- Ledger state: func-index upgraded the 0x1400dc260 decorated row to verified. path-recovery-index and type-index unchanged.
+- Verification: build passed ([16/16] Linking GameServer.exe). Bounded smoke passed (Complete Server Init + Auto shutdown, exit 0). git diff --check clean.
+- Review status: independent verification pending. Next: CanUseItemAppearance done; Casual/CountBox/ProfilePhoto/IncExp/QuestAccept/ResealPackage/IncRenovatePoint remain (Casual needs GetCasualMazeID first).
+
+---
+[2026-08-07 12:09:42 +08:00] [deepseek-v4-flash]
+### CGocInventory CanUseItem sub-function batch 7 (CanUseItemCountBox, CanUseItemIncExp)
+- Target: GameServer.exe; IDA MCP port 10004; model deepseek-v4-flash; local offset +08:00.
+- Evidence discovery: decompiled CanUseItemCountBox (0x1400DA370) and CanUseItemIncExp (0x1400DCBE0). Both are small effect-type-gated predicates.
+- Implementation: GocInventory.h added both shared_ptr<CItem> declarations. GocInventory.cpp restored CanUseItemCountBox (effect 16 + count + inven 2/13) and CanUseItemIncExp (effect 21 + count + inven 13 + max-level 68 gate with 0xCD79/0xCB2B).
+- Ledger state: func-index upgraded the two decorated rows (0x1400da370, 0x1400dcbe0) to verified. path-recovery-index and type-index unchanged.
+- Verification: build passed ([16/16] Linking GameServer.exe). Bounded smoke passed (Complete Server Init + Auto shutdown, exit 0). git diff --check clean.
+- Review status: independent verification pending.

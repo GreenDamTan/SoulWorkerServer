@@ -836,6 +836,26 @@ public:
     // Checks if boxpar item is in a usable inventory type (2 or 13)
     bool CanUseBoxparClass(std::shared_ptr<CItem> pItem);
 
+    // CanUseItemSelect - 0x1400D9400
+    // Checks if select item can be used (effect type 15, use type 113, inven 0 or 13)
+    bool CanUseItemSelect(std::shared_ptr<CItem> pItem);
+
+    // CanUseItemWarp - 0x1400D5970
+    // Checks if warp item can be used (UserDB loaded, inven 2/13, area use + world-type rules)
+    bool CanUseItemWarp(std::shared_ptr<CItem> pItem);
+
+    // CanUseItemAppearance - 0x1400DC260
+    // Checks if appearance item can be used (appearance not already owned)
+    bool CanUseItemAppearance(std::shared_ptr<CItem> pItem);
+
+    // CanUseItemCountBox - 0x1400DA370
+    // Checks if count box item can be used (effect type 16, count, inven 2/13)
+    bool CanUseItemCountBox(std::shared_ptr<CItem> pItem);
+
+    // CanUseItemIncExp - 0x1400DCBE0
+    // Checks if exp boost item can be used (effect type 21, count, inven 13, not max level)
+    bool CanUseItemIncExp(std::shared_ptr<CItem> pItem);
+
     // === Broach update functions (IDA verified) ===
 
     // SendBroachUpdate - 0x1400C0910

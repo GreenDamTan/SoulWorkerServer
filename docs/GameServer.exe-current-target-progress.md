@@ -16441,3 +16441,13 @@ Validate the current GameServer.exe reconstruction worktree before the user-auth
 - Ledger state: func-index upgraded 0x1400ddfe0, 0x1406fa5c0, 0x1400e6610, 0x1400c3fd0, 0x1408e7790 to verified; type-index added PS_CHAT_NOTIFY. path-recovery-index unchanged.
 - Verification: build passed ([21/21] Linking GameServer.exe). Bounded smoke passed (Complete Server Init + Auto shutdown, exit 0). git diff --check clean.
 - Review status: independent verification pending. Next: the CanUseItem main dispatcher (0x1400AB0E0) can now be restored since all sub-functions exist.
+
+---
+[2026-08-07 12:33:15 +08:00] [deepseek-v4-flash]
+### CGocInventory::CanUseItem main dispatcher restore
+- Target: GameServer.exe; IDA MCP port 10004; model deepseek-v4-flash; local offset +08:00.
+- Evidence discovery: recovered XArea vtable base 0x140AE1338 from the XArea ctor (0x1408F0CA0) disassembly; vtable[+0xC8] slot = XDistrict::IsDistirct (0x1402DF5F0). This is the gate CanUseItem uses for the roguelike-map rejection. Also decompiled the two missing dispatch dependencies CanPackageBoxUse (0x1400B2CA0) and CanRandomBoxUse (0x1400B4BE0) which only existed in the non-compiled GocInventory_RandomBox.cpp.
+- Implementation: GocInventory.cpp restored CanPackageBoxUse and CanRandomBoxUse (inven 2/13 gates; PackageBox failure returns 1, RandomBox returns 0, per IDA) plus the full CanUseItem dispatcher (0x1400AB0E0): lock/level/class/death/cooltime/count/inven/IsDistirct gates, 20-case switch dispatching to every restored sub-function, default branch with CItem::CanUse + area rules (IsUseItem/world-type) + infinite-tower (Maze_Type==7) + CMover::CanUseItem. GocInventory.h added the two shared_ptr<CItem> declarations. The IsDistirct gate is expressed as dynamic_cast<XDistrict*> per the active XArea drop of the virtual.
+- Ledger state: func-index upgraded 0x1400ab0e0, 0x1400b2ca0, 0x1400b4be0 to verified; removed duplicate RandomBox.cpp-sourced rows for CanRandomBoxUse/CanPackageBoxUse/CanUseItemCountBox. path-recovery-index and type-index unchanged.
+- Verification: build passed ([16/16] Linking GameServer.exe). Bounded smoke passed (Complete Server Init + Auto shutdown, exit 0). git diff --check clean.
+- Review status: independent verification pending. CanUseItem cluster fully restored (dispatcher + all 20 sub-functions).

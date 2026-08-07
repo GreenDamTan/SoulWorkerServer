@@ -876,6 +876,14 @@ public:
     // Checks if casual maze item can be used (level, count, maze enter limits, casual list)
     bool CanUseCasualItem(std::shared_ptr<CItem> pItem);
 
+    // CanPackageBoxUse - 0x1400B2CA0
+    // Checks if package box item is in a usable inventory type (2 or 13)
+    bool CanPackageBoxUse(std::shared_ptr<CItem> pItem);
+
+    // CanRandomBoxUse - 0x1400B4BE0
+    // Checks if random box item is in a usable inventory type (2 or 13)
+    bool CanRandomBoxUse(std::shared_ptr<CItem> pItem);
+
     // === Broach update functions (IDA verified) ===
 
     // SendBroachUpdate - 0x1400C0910

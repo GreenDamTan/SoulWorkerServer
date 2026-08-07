@@ -3351,9 +3351,203 @@ bool CGocInventory::UseItem(std::uint8_t byInvenType, std::int16_t shSlot,
 // IDA: 0x1400AB0E0
 // Checks if item can be used based on various conditions
 bool CGocInventory::CanUseItem(std::uint8_t byInvenType, std::int16_t shSlot) {
-    (void)byInvenType;
-    (void)shSlot;
-    return true;
+    CUser* pUser = dynamic_cast<CUser*>(GetOwnerGO());
+    if (!pUser)
+        return false;
+
+    bool bLock = false;
+    std::shared_ptr<CItem> pItem = GetSlotItem(byInvenType, shSlot, bLock);
+
+    if (!pItem || bLock) {
+        XGameServer::Instance()->SendItemLockLog(pUser->GetUCID(), byInvenType, shSlot,
+                                                 bLock ? 1 : 0, 8, 0);
+        CGocNetwork::SendErrorMessage(GetOwnerGO(), 8, 0x11, 0xCB2B);
+        LogHelper::LogError("game.item",
+                            "CanUseItem error - No Item in Inventory[ ActorID:%d, InvenType:%d, Slot:%d, Lock:%d ] ( %d )",
+                            pUser->GetUCID(), byInvenType, shSlot, bLock ? 1 : 0, 2621);
+        return false;
+    }
+
+    TB_ITEM* pTBItem = pItem->GetItemTable();
+    if (!pTBItem) {
+        CGocNetwork::SendErrorMessage(GetOwnerGO(), 8, 0x11, 0xCB2B);
+        LogHelper::LogError("game.item",
+                            "CanUseItem error - No Table TB_ITEM[ ActorID:%d, ItemID:%d ] ( %d )",
+                            pUser->GetUCID(), pItem->GetID(), 2629);
+        return false;
+    }
+
+    TB_ITEM_CLASSIFY* pTBClassify = pItem->GetClassifyTable();
+    if (!pTBClassify) {
+        CGocNetwork::SendErrorMessage(GetOwnerGO(), 8, 0x11, 0xCB2B);
+        LogHelper::LogError("game.item",
+                            "CanUseItem error - No Table TB_ITEM_CLASSIFY[ ActorID:%d, ItemID:%d ] ( %d )",
+                            pUser->GetUCID(), pItem->GetID(), 2637);
+        return false;
+    }
+
+    if (pTBItem->Item_Limit_Lv > pUser->GetLevel()) {
+        CGocNetwork::SendErrorMessage(GetOwnerGO(), 8, 0x11, 0xCD79);
+        LogHelper::LogError("game.item",
+                            "CanUseItem error - Item limit level[ ActorID:%d, ItemID:%d ] ( %d )",
+                            pUser->GetUCID(), pItem->GetID(), 2645);
+        return false;
+    }
+
+    if (pTBItem->Item_Limit_Class && pTBItem->Item_Limit_Class != pUser->GetClass()) {
+        CGocNetwork::SendErrorMessage(GetOwnerGO(), 8, 0x11, 0xCB29);
+        LogHelper::LogError("game.item",
+                            "CanUseItem error - Item limit class[ ActorID:%d, ItemID:%d ] ( %d )",
+                            pUser->GetUCID(), pItem->GetID(), 2653);
+        return false;
+    }
+
+    if (GetOwnerGO()->IsDie() && !(pTBClassify->Item_Use_State & 8)) {
+        CGocNetwork::SendErrorMessage(GetOwnerGO(), 8, 0x11, 0xCB3A);
+        LogHelper::LogError("game.item",
+                            "CanUseItem error - Be killed user is can not use item [ ActorID:%d, ItemID:%d ] ( %d )",
+                            pUser->GetUCID(), pItem->GetID(), 2662);
+        return false;
+    }
+
+    std::uint64_t CoolTime = GetCoolTime(pTBItem->Cooltime_Group, pTBItem->Cooltime_Save != 0);
+    std::int64_t CurDate = XGameServer::Instance()->GetCurDate();
+    if (CoolTime > static_cast<std::uint64_t>(CurDate)) {
+        CGocNetwork::SendErrorMessage(GetOwnerGO(), 8, 0x11, 0xCD7A);
+        LogHelper::LogError("game.item",
+                            "CanUseItem error - Items left Cool Time[ ActorID:%d, ItemID:%d ] ( %d )",
+                            pUser->GetUCID(), pItem->GetID(), 2669);
+        return false;
+    }
+
+    if (pItem->GetCount() < 1) {
+        CGocNetwork::SendErrorMessage(GetOwnerGO(), 8, 0x11, 0xCB2B);
+        LogHelper::LogError("game.item",
+                            "CanUseItem GetCount error - No Item in Inventory[ ActorID:%d, InvenType:%d, Slot:%d, Count:%d, Lock:%d ] ( %d )",
+                            pUser->GetUCID(), byInvenType, shSlot, pItem->GetCount(), bLock ? 1 : 0, 2676);
+        return false;
+    }
+
+    if (pItem->GetInvenType() != byInvenType || pItem->GetSlot() != shSlot) {
+        CGocNetwork::SendErrorMessage(GetOwnerGO(), 8, 0x11, 0xCB2B);
+        LogHelper::LogError("game.item",
+                            "CanUseItem Inven error - [ ActorID:%d, InvenType:%d, Slot:%d, Inven:%d, Slot:%d ] ( %d )",
+                            pUser->GetUCID(), byInvenType, shSlot, pItem->GetInvenType(), pItem->GetSlot(), 2683);
+        return false;
+    }
+
+    // IDA: XArea vtable+0xC8 (IsDistirct) - 非 District 区域（roguelike 图）不可用
+    if (!dynamic_cast<XDistrict*>(GetOwnerGO()->GetArea())) {
+        CGocNetwork::SendErrorMessage(GetOwnerGO(), 8, 0x11, 0xCB2B);
+        LogHelper::LogError("game.item", "CanUseItem Inven error - In roguelike map[ ActorID:%d ]",
+                            pUser->GetUCID());
+        return false;
+    }
+
+    int Item_Use_Type = pTBClassify->Item_Use_Type - 5;
+    switch (Item_Use_Type) {
+    case 0:
+        return CanUseItem_AkashicRecord(byInvenType, shSlot);
+    case 1:
+        return CanUseItemTitle(pItem);
+    case 7:
+        return CanItemFPUse(byInvenType, shSlot);
+    case 8:
+        return CanUseItemFPUseFree(byInvenType, shSlot);
+    case 48:
+        return CanPackageBoxUse(pItem);
+    case 51:
+        return CanRandomBoxUse(pItem);
+    case 75:
+        return CanEquipSlotOpen(byInvenType, shSlot);
+    case 76:
+        if (CanUseGraveInitItem(byInvenType, shSlot))
+            return true;
+        CGocNetwork::SendErrorMessage(GetOwnerGO(), 8, 0x11, 0xCD85);
+        return false;
+    case 78:
+        return CanUseItemBooster(pItem);
+    case 80:
+    case 92:
+        return CanUseCasualItem(pItem);
+    case 81:
+        return CanUseBoxparClass(pItem);
+    case 105:
+        return CanUseItemWarp(pItem);
+    case 106:
+        return CanUseItemAppearance(pItem);
+    case 108:
+        return CanUseItemSelect(pItem);
+    case 109:
+        return CanUseItemCountBox(pItem);
+    case 110:
+        return CanUseItemProfilePhoto(pItem);
+    case 111:
+        return CanUseItemIncExp(pItem);
+    case 115:
+        return CanUseItemQuestAccept(pItem);
+    case 116:
+        return CanUseItemResealPackage(pItem);
+    case 120:
+        return CanUseItemIncRenovatePoint(pItem);
+    default:
+        break;
+    }
+
+    // IDA default: CItem 虚函数 CanUse
+    if (!pItem->CanUse()) {
+        CGocNetwork::SendErrorMessage(GetOwnerGO(), 8, 0x11, 0xCB2B);
+        LogHelper::LogError("game.item",
+                            "CanUseItem error - Item is not used[ ActorID:%d, ItemID:%d ] ( %d )",
+                            pUser->GetUCID(), pItem->GetID(), 2754);
+        return false;
+    }
+
+    // IDA: 区域使用规则（仅 Item_Use_Type == 11）
+    if (pTBClassify->Item_Use_Type == 11) {
+        XMaze* pMaze = dynamic_cast<XMaze*>(GetOwnerGO()->GetArea());
+        if (pMaze) {
+            bool bCanUse = pMaze->IsUseItem();
+            int nWorldType = pMaze->GetWorldType();
+
+            if ((pTBClassify->Item_Use_State & 2) == 0 && (nWorldType == 1 || nWorldType == 2))
+                bCanUse = false;
+            if ((pTBClassify->Item_Use_State & 1) == 0 && (nWorldType == 3 || !nWorldType))
+                bCanUse = false;
+
+            if (!bCanUse) {
+                CGocNetwork::SendErrorMessage(GetOwnerGO(), 8, 0x11, 0xCD88);
+                LogHelper::LogError("game.item",
+                                    "CanUseItem error - Cant use in this Area [ ActorID:%d, ItemID:%d ] ( %d )",
+                                    pUser->GetUCID(), pItem->GetID(), pMaze->GetTBMapID());
+                return false;
+            }
+        }
+    }
+
+    // IDA LABEL_64: 无限塔（Maze_Type == 7）不可用
+    XMaze* pMazeCheck = dynamic_cast<XMaze*>(GetOwnerGO()->GetArea());
+    if (pMazeCheck) {
+        TB_MAZE_INFO* pMazeInfo = XGameServer::Instance()->GetResourceMgr().GetTB_MAZE_INFO(pMazeCheck->GetTBMapID());
+        if (pMazeInfo && pMazeInfo->Maze_Type == 7) {
+            CGocNetwork::SendErrorMessage(GetOwnerGO(), 8, 0x11, 0xCD84);
+            LogHelper::LogError("game.item",
+                                "CanUseItem error - Cant use in Infinite Tower[ ActorID:%d, ItemID:%d ] ( %d )",
+                                pUser->GetUCID(), pItem->GetID(), 2792);
+            return false;
+        }
+    }
+
+    // IDA: CMover::CanUseItem
+    std::uint32_t dwError = 52026;
+    if (pUser->CanUseItem(static_cast<std::uint32_t>(pItem->GetID()), dwError))
+        return true;
+
+    CGocNetwork::SendErrorMessage(GetOwnerGO(), 8, 0x11, dwError);
+    LogHelper::LogError("game.item",
+                        "CanUseItem error - Failed use item[ ActorID:%d, InvenType:%d, Slot:%d, Error:%d ] ( %d )",
+                        pUser->GetUCID(), byInvenType, shSlot, dwError, 2811);
+    return false;
 }
 
 // IDA: 0x1400ACE80
@@ -9125,6 +9319,34 @@ bool CGocInventory::CanUseCasualItem(std::shared_ptr<CItem> pItem) {
     }
 
     return true;
+}
+
+// IDA: 0x1400B2CA0
+// __int64 __fastcall CGocInventory::CanPackageBoxUse(CGocInventory *this, std::tr1::shared_ptr<CItem> pItem)
+// Checks if package box item is in a usable inventory type (2 or 13)
+bool CGocInventory::CanPackageBoxUse(std::shared_ptr<CItem> pItem) {
+    std::uint8_t byInvenType = pItem->GetInvenType();
+    if (byInvenType == 2 || byInvenType == 13)
+        return true;
+
+    CGocNetwork::SendErrorMessage(GetOwnerGO(), 8, 0x11, 0xCB2B);
+    LogHelper::LogError("game.item", "CanPackageBoxUse error - [ ActorID:%d ] ( %d )",
+                        GetOwnerGO()->GetActorID().GetID(), 4165);
+    return 1;  // IDA: 失败分支仍返回 1
+}
+
+// IDA: 0x1400B4BE0
+// __int64 __fastcall CGocInventory::CanRandomBoxUse(CGocInventory *this, std::tr1::shared_ptr<CItem> pItem)
+// Checks if random box item is in a usable inventory type (2 or 13)
+bool CGocInventory::CanRandomBoxUse(std::shared_ptr<CItem> pItem) {
+    std::uint8_t byInvenType = pItem->GetInvenType();
+    if (byInvenType == 2 || byInvenType == 13)
+        return true;
+
+    CGocNetwork::SendErrorMessage(GetOwnerGO(), 8, 0x11, 0xCB2B);
+    LogHelper::LogError("game.item", "CanRandomBoxUse error - [ ActorID:%d ] ( %d )",
+                        GetOwnerGO()->GetActorID().GetID(), 4471);
+    return false;
 }
 
 // IDA: 0x1400C0230

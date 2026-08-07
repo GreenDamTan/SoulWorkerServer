@@ -2874,7 +2874,7 @@
 | CGocInventory | GocInventory.cpp | ?MoveItem@CGocInventory@@QEAA_NAEAUPS_DB_ITEM_MOVE_VEC@@H@Z | 0x1400a8af0 | implemented | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | CGocInventory | GocInventory.cpp | ?LineUp@CGocInventory@@QEAAXE@Z | 0x1400a96b0 | implemented | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | CGocInventory | GocInventory.cpp | ?UseItem@CGocInventory@@QEAA_NEFEFAEAH@Z | 0x1400a9a30 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
-| CGocInventory | GocInventory.cpp | ?CanUseItem@CGocInventory@@QEAA_NEF@Z | 0x1400ab0e0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| CGocInventory | GocInventory.cpp | ?CanUseItem@CGocInventory@@QEAA_NEF@Z | 0x1400ab0e0 | verified | PDB + IDA decompile + source build + smoke | yes | Full dispatcher: lock/level/class/death/cooltime/count/inven/IsDistirct gates, 20-case switch to all restored sub-functions, default CanUse + area/maze rules + CMover::CanUseItem. |
 | CGocInventory | GocInventory.cpp | ?SetQuickSlotItem@CGocInventory@@QEAA_NAEAUPS_QUICKSLOT_UPDATE_ITEM@@@Z | 0x1400aca50 | verified | GameServer PDB + IDA decompile/assembly + source build | yes | Validates four common/cash item IDs, clears missing IDs, updates m_nQuickSlotItem, sends main 8/sub 0x28, and saves to DB. |
 | CGocInventory | GocInventory.cpp | ?LoadQuickSlotItem@CGocInventory@@QEAA_NUPS_QUICKSLOT_ITEM@@@Z | 0x1400acd50 | verified | GameServer PDB + IDA decompile/assembly + source build | yes | By-value DB payload validates four common/cash item IDs, clears missing IDs, and copies the resulting IDs into m_nQuickSlotItem. |
 | CGocInventory | GocInventory.cpp | ?SendQuickSlotInfo@CGocInventory@@QEAAXXZ | 0x1400ace80 | verified | GameServer PDB + IDA decompile + source build + smoke | yes | Fills four quick-slot items and the akashic card vector, then sends main 8/sub 0x26. |
@@ -2920,10 +2920,10 @@
 | CGocInventory | GocInventory.cpp | ?GetInvenInfo@CGocInventory@@QEAAXEAEAUPS_RES_STORAGE_INFO@@@Z | 0x1400b2120 | verified | GameServer PDB + IDA decompile + source build + smoke | yes | Routes equip/inventory types to XBaseEquip::GetInvenInfo or XBaseInventory::GetSlotInfos; corrected void* signature. |
 | - | - | ?CheckAddItems@CGocInventory@@QEAAHAEAV?$vector@UST_CREATE_ITEM@@V?$allocator@UST_CREATE_ITEM@@@std@@@std@@@Z | 0x1400b21f0 | implemented | IDA ?CheckAddItems@CGocInventory@@QEAAHAEAV?$vector@UST_CREATE_ITEM@@V?$allocator@UST_CREATE_ITEM@@@std@@@std@@@Z | yes | - |
 | - | - | ?ItemMakeCheat@CGocInventory@@QEAA_NHF_NE@Z | 0x1400b2430 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
-| - | - | ?CanPackageBoxUse@CGocInventory@@QEAA_NV?$shared_ptr@VCItem@@@tr1@std@@@Z | 0x1400b2ca0 | implemented | IDA ?CanPackageBoxUse@CGocInventory@@QEAA_NV?$shared_ptr@VCItem@@@tr1@std@@@Z | yes | - |
+| CGocInventory | GocInventory.cpp | ?CanPackageBoxUse@CGocInventory@@QEAA_NV?$shared_ptr@VCItem@@@tr1@std@@@Z | 0x1400b2ca0 | verified | PDB + IDA decompile + source build + smoke | yes | Inven 2/13 gate; failure branch returns 1 after 0xCB2B + log. |
 | - | - | ?PackageBoxUse@CGocInventory@@QEAA_N_NV?$shared_ptr@VCItem@@@tr1@std@@EH@Z | 0x1400b2d80 | implemented | IDA ?PackageBoxUse@CGocInventory@@QEAA_N_NV?$shared_ptr@VCItem@@@tr1@std@@EH@Z | yes | - |
 | - | - | ??1ST_STAT_VEC@@QEAA@XZ | 0x1400b4bc0 | blocked | IDA ??1ST_STAT_VEC@@QEAA@XZ | yes | - |
-| - | - | ?CanRandomBoxUse@CGocInventory@@QEAA_NV?$shared_ptr@VCItem@@@tr1@std@@@Z | 0x1400b4be0 | implemented | IDA ?CanRandomBoxUse@CGocInventory@@QEAA_NV?$shared_ptr@VCItem@@@tr1@std@@@Z | yes | - |
+| CGocInventory | GocInventory.cpp | ?CanRandomBoxUse@CGocInventory@@QEAA_NV?$shared_ptr@VCItem@@@tr1@std@@@Z | 0x1400b4be0 | verified | PDB + IDA decompile + source build + smoke | yes | Inven 2/13 gate; failure branch returns 0 after 0xCB2B + log. |
 | - | - | ?RandomBoxUse@CGocInventory@@QEAA_N_NV?$shared_ptr@VCItem@@@tr1@std@@HE0H@Z | 0x1400b4cc0 | implemented | IDA ?RandomBoxUse@CGocInventory@@QEAA_N_NV?$shared_ptr@VCItem@@@tr1@std@@HE0H@Z | yes | - |
 | CGocInventory | GocInventory.cpp | ?CanEquipSlotOpen@CGocInventory@@QEAA_NEF@Z | 0x1400b6570 | verified | PDB decorated symbol + IDA decompile + source build | yes | Exact by-value ABI; level gate, lock-log identity, slot mapping, and open-bit predicate restored. |
 | CGocInventory | GocInventory.cpp | ?EquipSlotOpen@CGocInventory@@QEAA_NEF@Z | 0x1400b6810 | verified | PDB decorated symbol + IDA decompile + source build | yes | Exact by-value ABI; ReduceItem3, ChangeEquipSlotPos, UpdateItemEnd, and DB main 0x21/sub 0x25 route restored. |
@@ -57895,12 +57895,9 @@ yes | ?????????? |
 | XGameServer | actor/component/GocInventory.cpp | CGocInventory::ReloadCash | 0x1400A4690 | implemented | IDA decompile | yes | Reload cash from DB |
 | XGameServer | actor/component/GocInventory.cpp | CGocInventory::SetReadyLoadCash | 0x140068690 | implemented | IDA decompile | yes | Set cash load flag |
 | XGameServer | actor/component/GocInventory.cpp | CGocInventory::ClearPrivateShopList | 0x1400B1330 | implemented | IDA decompile | yes | Clear private shop |
-| XGameServer | GocInventory_RandomBox.cpp | CGocInventory::CanRandomBoxUse | 0x1400B4BE0 | implemented | IDA decompile | yes | Check if random box can be used |
 | XGameServer | GocInventory_RandomBox.cpp | CGocInventory::RandomBoxUse | 0x1400B4CC0 | implemented | IDA decompile | yes | Open random box with probability-based rewards |
 | XGameServer | GocInventory_RandomBox.cpp | CGocInventory::UseGacha | 0x1400BAAD0 | implemented | IDA decompile | yes | Gacha pull system with random group selection |
-| XGameServer | GocInventory_RandomBox.cpp | CGocInventory::CanPackageBoxUse | 0x1400B2CA0 | implemented | IDA decompile | yes | Check if package box can be used |
 | XGameServer | GocInventory_RandomBox.cpp | CGocInventory::PackageBoxUse | 0x1400B2D80 | implemented | IDA decompile | yes | Open package box with fixed item sets |
-| XGameServer | GocInventory_RandomBox.cpp | CGocInventory::CanUseItemCountBox | 0x1400DA370 | implemented | IDA decompile | yes | Check if item count box can be used |
 | XGameServer | GocInventory_RandomBox.cpp | CGocInventory::UseItemCountBox | 0x1400DA570 | implemented | IDA decompile | yes | Use item count box with progressive rewards |
 | XGameServer | GocInventory_RandomBox.cpp | CGocInventory::CheckRandomOption | 0x1400DC0C0 | implemented | IDA decompile | yes | Validate and reorder random options |
 | XGameServer | GocInventory_RandomBox.cpp | CGocInventory::IsRandomItemTitle | 0x1400DCA20 | implemented | IDA decompile | yes | Check if item has random title |

@@ -3,9 +3,13 @@
 
 #include "GocPost.h"
 #include "GocNetwork.h"
+#include "GocInventory.h"
 #include "../../GameServer.h"
 #include "../../User.h"
 #include "Soulworker/Common/XNet/XCommon/PSServer/PSServerMail.h"
+#include "Soulworker/Common/XNet/XCommon/PSServer/PSServerCashShop.h"
+#include "Soulworker/Common/XNet/XCommon/PSServer/PSServerItem.h"
+#include "Soulworker/Common/XNet/XCommon/PSCommon.h"
 #include "Soulworker/Common/XNet/XIOCPBase/Packet.h"
 #include "Soulworker/Common/XNet/XUtil/TXSingleton.h"
 #include "../../../XCore/XServer/IXObject.h"
@@ -2047,4 +2051,313 @@ void CGocPost::ReceiptPostAccountList(PS_POST_RECEIPT_ALL_SERVER& psPostReceiptI
     psResPostReceiptAllInfo.byPostFlag = psPostReceiptInfo.byFlag;
     psResPostReceiptAllInfo.biRemainTime = psPostReceiptInfo.biRemainTime;
     psResPostReceiptAllInfo.wPostCount = psPostReceiptInfo.wPostCount;
+}
+
+// CashGiftSend - IDA 0x14010FBD0
+// 精确还原: 发送现金商店礼物邮件到 DB (main 0x22, sub 0x24)
+bool CGocPost::CashGiftSend(std::uint32_t dwRecvUCID, ST_CREATE_ITEMS& vecItem,
+                            const wchar_t* strSendName, PS_CASH_BUY_COUNT_LIST& psCashbuyList) {
+    if (vecItem.vecInfo.empty())
+        return false;
+
+    ST_SYSTEM_POST stSystemPost;
+    stSystemPost.byPostType = 1;
+    stSystemPost.byPostSubType = XGameServer::Instance()->GetSystemPostTableIndex(3, 2);
+
+    // IDA: 拷贝发送者名字到 stSystemPost.strName (null 结尾)
+    std::size_t nNameLen = 0;
+    if (strSendName) {
+        while (nNameLen < 20 && strSendName[nNameLen])
+            ++nNameLen;
+    }
+    for (std::size_t k = 0; k < nNameLen; ++k)
+        stSystemPost.strName[k] = strSendName[k];
+    stSystemPost.strName[nNameLen] = L'\0';
+
+    XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+
+    // IDA: for 循环填充物品 (stSysItem[5])
+    for (std::size_t i = 0; i < vecItem.vecInfo.size(); ++i) {
+        ST_CREATE_ITEM& stItem = vecItem.vecInfo[i];
+        if (stItem.nItemID <= 0)
+            break;
+        if (stItem.shCount < 1)
+            break;
+
+        TB_ITEM* pTB_Item = pServer->GetResourceMgr().GetTB_ITEM(stItem.nItemID);
+        if (!pTB_Item)
+            break;
+
+        if (pTB_Item->Item_Stack_Max < stItem.shCount) {
+            LogHelper::LogError("game.contents",
+                                "CashGiftSend error - Fault Item Stack Max[ ItemID:0 Count:0 ]( 0 )",
+                                stItem.nItemID, stItem.shCount, 616);
+            stItem.shCount = pTB_Item->Item_Stack_Max;
+        }
+
+        stSystemPost.stSysItem[i].nItemID = stItem.nItemID;
+        stSystemPost.stSysItem[i].shCount = stItem.shCount;
+    }
+
+    std::int64_t biPostSerial = pServer->GetItemFactory().GeneratSerial().xSerial;
+
+    // IDA: DB 包 (0x22, 0x24): UCID, dwRecvUCID, biPostSerial, stSystemPost, psCashbuyList, UAID
+    CUser* pUser = dynamic_cast<CUser*>(GetOwnerGO());
+    XSendDBPacket xSendDBPacket(GetOwnerGO(), 0x22, 0x24);
+    if (pUser) xSendDBPacket.XParse << pUser->GetUCID();
+    xSendDBPacket.XParse << dwRecvUCID;
+    xSendDBPacket.XParse << biPostSerial;
+    xSendDBPacket << stSystemPost;
+    xSendDBPacket << psCashbuyList;
+    if (pUser) xSendDBPacket.XParse << pUser->GetUAID();
+    pServer->SendDBGame(xSendDBPacket);
+    return true;
+}
+
+// BuyCashItem - IDA 0x140113040
+// 精确还原: 校验现金商城购买列表并发送 HAN billing DB 请求 (main 2, sub 0x44)
+int CGocPost::BuyCashItem(std::uint32_t dwUAID, ST_CASH_ITEM_BUY_LIST& stCashItemList) {
+    if (stCashItemList.vecInfo.empty() || stCashItemList.vecInfo.size() > 10) {
+        LogHelper::LogError("game.contents", "BuyCashItem error - wrong cashitem( %d / %d )",
+                            static_cast<int>(stCashItemList.vecInfo.size()), 1216);
+        return 52309;
+    }
+
+    int nDecCash = 0;
+    std::shared_ptr<CGocInventory> pInvenPtr = GetOwnerGO()->GetGOC_Inventory(false);
+    if (!pInvenPtr) {
+        LogHelper::LogError("game.contents", "BuyCashItem error - pInvenPtr is NULL ( %d )", 1224);
+        return 52309;
+    }
+
+    XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+
+    PS_HAN_BILLING_ORDER_NO_VEC psHanBill;
+    psHanBill.dwUCID = GetOwnerGO()->GetActorID().GetID();
+    psHanBill.dwUAID = dwUAID;
+    psHanBill.dwRecvUCID = GetOwnerGO()->GetActorID().GetID();
+    psHanBill.bGift = 0;
+    std::strncpy(psHanBill.szBillCode, pInvenPtr->GetHanBillNo(), sizeof(psHanBill.szBillCode) - 1);
+
+    PS_CASH_BUY_COUNT_LIST psCashbuyList;
+    ST_APPEARANCE_LIST stAppearanceList;
+
+    for (std::size_t i = 0; i < stCashItemList.vecInfo.size(); ++i) {
+        ST_CASH_ITEM_BUY& stCashBuy = stCashItemList.vecInfo[i];
+        std::uint32_t dwCashIndex = static_cast<std::uint32_t>(stCashBuy.nIndex);
+        std::uint8_t bySelect = stCashBuy.bySelect;
+
+        if (bySelect >= 5) {
+            LogHelper::LogError("game.contents", "BuyCashItem error - bySelect >= COUNT_CASH_INFO ( %d / %d )",
+                                bySelect, 1249);
+            return 52309;
+        }
+
+        if (!pServer->IsCashShopBuy(static_cast<int>(dwCashIndex))) {
+            LogHelper::LogError("game.contents", "BuyCashItem error - IsCashShopBuy ( %d / %d )",
+                                dwCashIndex, 1255);
+            return 52309;
+        }
+
+        TB_CASHSHOP* pTBCashShop = pServer->GetResourceMgr().GetTB_CASHSHOP(dwCashIndex);
+        if (!pTBCashShop) {
+            LogHelper::LogError("game.contents", "BuyCashItem error - GetTB_CASHSHOP ( %d / %d )",
+                                dwCashIndex, 1262);
+            return 52309;
+        }
+
+        // IDA: 日期限制解析 (Limit_Start_Date / Limit_End_Date)
+        auto parseDate = [](const char* szDate) -> std::time_t {
+            int y = 2000, mon = 1, d = 1, h = 0, mi = 0, s = 0;
+            if (szDate && std::sscanf(szDate, "%d-%d-%d %d:%d:%d", &y, &mon, &d, &h, &mi, &s) >= 3
+                && y >= 2000 && y <= 2040 && mon >= 1 && mon <= 12
+                && d >= 1 && d <= 31 && h <= 24 && mi <= 60 && s <= 60) {
+                std::tm tm = {};
+                tm.tm_year = y - 1900;
+                tm.tm_mon = mon - 1;
+                tm.tm_mday = d;
+                tm.tm_hour = h;
+                tm.tm_min = mi;
+                tm.tm_sec = s;
+                return std::mktime(&tm);
+            }
+            std::tm tmDef = {};
+            tmDef.tm_year = 100;  // 2000
+            tmDef.tm_mon = 0;
+            tmDef.tm_mday = 1;
+            return std::mktime(&tmDef);
+        };
+        std::int64_t tStart = static_cast<std::int64_t>(parseDate(pTBCashShop->Limit_Start_Date));
+        std::int64_t tEnd = static_cast<std::int64_t>(parseDate(pTBCashShop->Limit_End_Date));
+
+        std::int64_t biCurDate = pServer->GetCurDate();
+        if (pTBCashShop->Limit_Type == 1) {
+            if (tStart > biCurDate || tEnd < biCurDate) {
+                LogHelper::LogError("game.contents", "BuyCashItem error - E_CASH_SHOP_DATE_LIMIT( %d / %d )",
+                                    dwCashIndex, 1277);
+                return 52322;
+            }
+        } else {
+            if (tStart > biCurDate) {
+                LogHelper::LogError("game.contents", "BuyCashItem error - E_CASH_SHOP_DATE_LIMIT( %d / %d )",
+                                    dwCashIndex, 1286);
+                return 52322;
+            }
+        }
+
+        TB_CASHBILLING_INFO* pTBBilling = pServer->GetResourceMgr().GetTB_CASHBILLING_INFO(pTBCashShop->BillingInfo_ID);
+        if (!pTBBilling) {
+            LogHelper::LogError("game.contents", "BuyCashItem error - GetTB_CASHBILLING_INFO ( %d / %d )",
+                                pTBCashShop->BillingInfo_ID, 1294);
+            return 52309;
+        }
+
+        if (pTBBilling->univalue[bySelect] == 0) {
+            LogHelper::LogError("game.contents", "BuyCashItem error - pTBBilling->univalue == 0 ( %d )", 1300);
+            return 52309;
+        }
+
+        if (pTBCashShop->Sell_Number_Type) {
+            if (!pInvenPtr->UpdateCashBuyCount(static_cast<int>(dwCashIndex),
+                                               static_cast<int>(pTBBilling->univalue[bySelect]),
+                                               pTBCashShop->Sell_Number_Type,
+                                               pTBCashShop->Sell_Number_Value, &psCashbuyList)) {
+                LogHelper::LogError("game.contents", "BuyCashItem error - UpdateCashBuyCount( %d / %d )",
+                                    dwCashIndex, 1309);
+                return 52323;
+            }
+        }
+
+        TB_ITEM* pTBItem = pServer->GetResourceMgr().GetTB_ITEM(pTBBilling->uniItem[bySelect]);
+        if (!pTBItem) {
+            LogHelper::LogError("game.contents", "BuyCashItem error - GetTB_ITEM ( %d / %d )",
+                                pTBBilling->uniItem[bySelect], 1317);
+            return 52309;
+        }
+
+        if (pTBItem->Item_Stack_Max < static_cast<int>(pTBBilling->univalue[bySelect])) {
+            LogHelper::LogError("game.contents", "BuyCashItem error - Item Stack Max Error[ Count:%d ]( %d )",
+                                pTBBilling->univalue[bySelect], 1324);
+            return 52014;
+        }
+
+        if (pTBItem->Item_Limit_Class && pTBItem->Item_Limit_Class < 0x64) {
+            if (pTBItem->Item_Limit_Class != GetOwnerGO()->GetClass()) {
+                LogHelper::LogError("game.contents", "BuyCashItem error - Item_Limit_Class ( %d )", 1332);
+                return 52319;
+            }
+        }
+
+        TB_ITEM_CLASSIFY* pTBClassify = pServer->GetResourceMgr().GetTB_ITEM_CLASSIFY(pTBItem->Item_Classify_Index);
+        if (!pTBClassify) {
+            LogHelper::LogError("game.contents", "BuyCashItem error - GetTB_ITEM_CLASSIFY ( %d / %d )",
+                                pTBItem->Item_Classify_Index, 1340);
+            return 52309;
+        }
+
+        if (pTBClassify->GroupID == 19) {
+            if (!pServer->GetResourceMgr().GetTB_APPEARANCE(pTBItem->Item_Model_ID)) {
+                LogHelper::LogError("game.contents", "BuyCashItem error - GetTB_APPEARANCE ( %d / %d )",
+                                    pTBItem->Item_Model_ID, 1349);
+                return 52309;
+            }
+
+            ST_APPEARANCE_INFO stAppearanceInfo;
+            stAppearanceInfo.wAppearanceID = static_cast<std::uint16_t>(pTBItem->Item_Model_ID);
+            if (pInvenPtr->IsHaveAppearance(stAppearanceInfo.wAppearanceID)) {
+                LogHelper::LogError("game.contents", "BuyCashItem error - IsHaveAppearance( %d / %d )",
+                                    1358, stAppearanceInfo.wAppearanceID);
+                return 52321;
+            }
+            stAppearanceList.vecInfo.push_back(stAppearanceInfo);
+        } else if (pTBClassify->Item_Inven_Type != 13 && pTBClassify->Item_Inven_Type != 9) {
+            LogHelper::LogError("game.contents", "BuyCashItem error - pTBClassify->Item_Inven_Type ( %d / %d )",
+                                pTBClassify->Item_Inven_Type, 1369);
+            return 52309;
+        }
+
+        PS_HAN_BILLING_ORDER_NO stHanBilling;
+        stHanBilling.nOrderNo = 0;
+        stHanBilling.dwItemID = pTBBilling->uniItem[bySelect];
+        stHanBilling.nCount = static_cast<int>(pTBBilling->univalue[bySelect]);
+        stHanBilling.nBanance = static_cast<int>(pTBBilling->uniS_Price[bySelect]);
+        std::strncpy(stHanBilling.szCode, pTBBilling->Billing_Code_1st, sizeof(stHanBilling.szCode) - 1);
+        stHanBilling.nResult = 0;
+        stHanBilling.nShopIndex = pTBCashShop->Shop_Index;
+        psHanBill.vecOrderInfo.push_back(stHanBilling);
+
+        nDecCash += static_cast<int>(pTBBilling->uniS_Price[bySelect]);
+    }
+
+    int Cash = pInvenPtr->GetCash();
+    if (Cash >= nDecCash) {
+        XSendDBPacket xSendDBPacket(GetOwnerGO(), 2, 0x44);
+        xSendDBPacket << psHanBill;
+        xSendDBPacket.XParse << nDecCash;
+        xSendDBPacket << psCashbuyList;
+        pServer->SendDBGame(xSendDBPacket);
+        return 0;
+    }
+
+    LogHelper::LogError("game.contents", "BuyCashItem error - No Cash ( %d / %d / %d ) ",
+                        pInvenPtr->GetCash(), nDecCash, 1391);
+    return 52310;
+}
+
+// CashBuySend - IDA 0x1401145B0
+// 精确还原: 发送现金购买邮件 (DB 0x22/0x24) 与外观/失败列表客户端包 (9/0x21)
+bool CGocPost::CashBuySend(ST_CREATE_ITEMS& vecItem, PS_CASH_BUY_COUNT_LIST& psCashbuyList,
+                           ST_APPEARANCE_LIST& stAppearanceList, PS_SHOP_FAIL_ITEM& psFailList) {
+    if (vecItem.vecInfo.empty())
+        return false;
+
+    ST_SYSTEM_POST stSystemPost;
+    stSystemPost.byPostType = 1;
+    stSystemPost.byPostSubType = XGameServer::Instance()->GetSystemPostTableIndex(3, 1);
+
+    CUser* pUser = dynamic_cast<CUser*>(GetOwnerGO());
+    if (!pUser)
+        return false;
+
+    // IDA: 发送者名字 = CUser::GetName()
+    std::wstring strUserName = pUser->GetName();
+    std::size_t nNameLen = strUserName.size();
+    if (nNameLen > 20)
+        nNameLen = 20;
+    for (std::size_t k = 0; k < nNameLen; ++k)
+        stSystemPost.strName[k] = strUserName[k];
+    stSystemPost.strName[nNameLen] = L'\0';
+
+    XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+
+    // IDA: for 循环填充物品 (stSysItem[5])
+    for (std::size_t i = 0; i < vecItem.vecInfo.size(); ++i) {
+        ST_CREATE_ITEM& stItem = vecItem.vecInfo[i];
+        if (stItem.nItemID <= 0)
+            break;
+        if (stItem.shCount < 1)
+            break;
+
+        stSystemPost.stSysItem[i].nItemID = stItem.nItemID;
+        stSystemPost.stSysItem[i].shCount = stItem.shCount;
+    }
+
+    std::int64_t biPostSerial = pServer->GetItemFactory().GeneratSerial().xSerial;
+
+    // IDA: DB 包 (0x22, 0x24): UCID, UCID(Recv=自己), biPostSerial, stSystemPost, psCashbuyList, UAID
+    XSendDBPacket xSendDBPacket(GetOwnerGO(), 0x22, 0x24);
+    xSendDBPacket.XParse << pUser->GetUCID();
+    xSendDBPacket.XParse << pUser->GetUCID();
+    xSendDBPacket.XParse << biPostSerial;
+    xSendDBPacket << stSystemPost;
+    xSendDBPacket << psCashbuyList;
+    xSendDBPacket.XParse << pUser->GetUAID();
+    pServer->SendDBGame(xSendDBPacket);
+
+    // IDA: 客户端包 (9, 0x21): stAppearanceList, psFailList
+    XSendPacket xSendPacket(9, 0x21);
+    xSendPacket << stAppearanceList;
+    xSendPacket << psFailList;
+    CGocNetwork::Send(GetOwnerGO(), xSendPacket);
+    return true;
 }

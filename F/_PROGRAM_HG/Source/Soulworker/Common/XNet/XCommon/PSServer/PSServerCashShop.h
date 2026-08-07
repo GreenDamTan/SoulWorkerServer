@@ -82,6 +82,22 @@ struct PS_CASH_BUY_COUNT_LIST {
     std::vector<PS_CASH_BUY_COUNT> vecInfo;
 };
 
+// 对齐 PDB (UDT 0x13c27): 现金购买项 (8 bytes)
+struct ST_CASH_ITEM_BUY {
+    int nIndex = 0;             // offset 0x00: 商城条目索引
+    std::uint8_t bySelect = 0;  // offset 0x04: 选择档次
+};
+
+static_assert(sizeof(ST_CASH_ITEM_BUY) == 8, "ST_CASH_ITEM_BUY size must match PDB");
+
+// 对齐 PDB (UDT 0x13c3a): 现金购买列表 (40 bytes)
+struct ST_CASH_ITEM_BUY_LIST {
+    std::vector<ST_CASH_ITEM_BUY> vecInfo;
+    std::uint8_t byType = 0;
+};
+
+static_assert(sizeof(ST_CASH_ITEM_BUY_LIST) == 40, "ST_CASH_ITEM_BUY_LIST size must match PDB");
+
 // ============================================================================
 // 现金套装结构体
 // ============================================================================

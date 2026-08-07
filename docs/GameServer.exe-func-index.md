@@ -4184,7 +4184,7 @@
 | CGocPost | GocPost.cpp | ?DBReqGMTSendPostList@CGocPost@@QEAA_NH@Z | 0x14010f3f0 | implemented | IDA decompile | no | IDA��ȷ��ԭ(����TODO) |
 | CGocPost | GocPost.cpp | ?CheckGMTSystemPostSendCondition@CGocPost@@QEAA_NAEAUST_GMT_POST_CONDITION@@@Z | 0x14010f530 | implemented | IDA decompile | no | IDA��ȷ��ԭ(����TODO) |
 | CGocPost | GocPost.cpp | ?GMTSystemPostSend@CGocPost@@QEAA_NAEAUPS_GMT_POST_LIST@@@Z | 0x14010f6b0 | implemented | IDA decompile | no | IDA��ȷ��ԭ(����TODO) |
-| CGocPost | GocPost.cpp | ?CashGiftSend@CGocPost@@QEAA_NKAEAUST_CREATE_ITEMS@@PEB_WAEAUPS_CASH_BUY_COUNT_LIST@@@Z | 0x14010fbd0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub����������) |
+| CGocPost | GocPost.cpp | ?CashGiftSend@CGocPost@@QEAA_NKAEAUST_CREATE_ITEMS@@PEB_WAEAUPS_CASH_BUY_COUNT_LIST@@@Z | 0x14010fbd0 | verified | PDB + IDA decompile + source build + smoke | yes | System post byPostType 1, GetSystemPostTableIndex(3,2), stack-max cap, DB 0x22/0x24 with UCID/Recv/Serial/Post/CashList/UAID. |
 | CGocPost | GocPost.cpp | ?RecvPostInfo@CGocPost@@QEAAXUST_POST_DATA@@G@Z | 0x1401100c0 | implemented | IDA decompile | no | IDA��ȷ��ԭ(����TODO) |
 | CGocPost | GocPost.cpp | ?CanSavePost@CGocPost@@QEAA_N_JAEAUST_POST_DATA@@@Z | 0x140110210 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
 | CGocPost | GocPost.cpp | ?CanSaveDel@CGocPost@@QEAA_N_JAEA_N@Z | 0x1401102c0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
@@ -4197,8 +4197,8 @@
 | CGocPost | GocPost.cpp | ?PostReceipt@CGocPost@@QEAAX_J@Z | 0x140112d60 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
 | CGocPost | GocPost.cpp | ?SetPostAccountReceipt@CGocPost@@QEAAX_J@Z | 0x140112e50 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
 | CGocPost | GocPost.cpp | ?CanAccountPostDel@CGocPost@@QEAA_N_JAEA_NAEA_J@Z | 0x140112f40 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
-| CGocPost | GocPost.cpp | ?BuyCashItem@CGocPost@@QEAAHKAEAUST_CASH_ITEM_BUY_LIST@@@Z | 0x140113040 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub����������) |
-| CGocPost | GocPost.cpp | ?CashBuySend@CGocPost@@QEAA_NAEAUST_CREATE_ITEMS@@AEAUPS_CASH_BUY_COUNT_LIST@@AEAUST_APPEARANCE_LIST@@AEAUPS_SHOP_FAIL_ITEM@@@Z | 0x1401145b0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub����������) |
+| CGocPost | GocPost.cpp | ?BuyCashItem@CGocPost@@QEAAHKAEAUST_CASH_ITEM_BUY_LIST@@@Z | 0x140113040 | verified | PDB + IDA decompile + source build + smoke | yes | Validates buy list (select<5, IsCashShopBuy, date limit, billing, stack, class, appearance/inven), builds HAN billing vec, DB 2/0x44; error codes 52309/52322/52323/52319/52321/52310/52014. |
+| CGocPost | GocPost.cpp | ?CashBuySend@CGocPost@@QEAA_NAEAUST_CREATE_ITEMS@@AEAUPS_CASH_BUY_COUNT_LIST@@AEAUST_APPEARANCE_LIST@@AEAUPS_SHOP_FAIL_ITEM@@@Z | 0x1401145b0 | verified | PDB + IDA decompile + source build + smoke | yes | System post subType 3/1, sender name GetName, DB 0x22/0x24, client 9/0x21 with appearance+fail lists. |
 | CGocPost | GocPost.cpp | ?SendDBPostList@CGocPost@@QEAAXXZ | 0x140114ab0 | implemented | IDA decompile | no | IDA��ȷ��ԭ(����TODO) |
 | CGocPost | GocPost.cpp | ?SendPostSendList@CGocPost@@QEAAXXZ | 0x140115000 | implemented | IDA decompile | no | IDA��ȷ��ԭ(����TODO) |
 | - | - | ??1ST_POST_LIST@@QEAA@XZ | 0x140115270 | blocked | IDA ??1ST_POST_LIST@@QEAA@XZ | yes | - |

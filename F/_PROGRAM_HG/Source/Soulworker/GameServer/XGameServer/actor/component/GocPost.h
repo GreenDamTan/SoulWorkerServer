@@ -23,6 +23,10 @@ struct PS_ITEM_RESTORE_LIST;
 struct TB_LEVEL_MAIL;
 struct TB_ITEM;
 struct ST_CREATE_ITEMS;
+struct PS_CASH_BUY_COUNT_LIST;
+struct ST_CASH_ITEM_BUY_LIST;
+struct ST_APPEARANCE_LIST;
+struct PS_SHOP_FAIL_ITEM;
 class CUser;
 class XGameServer;
 
@@ -155,6 +159,20 @@ public:
 
     // Account post
     bool AccountPostSend(ST_CREATE_ITEMS& stCreateItems, std::uint8_t bySubType, std::uint16_t wType);
+
+    // CashGiftSend - 0x14010FBD0
+    // Sends a cash-shop gift post to another character via DB (main 0x22, sub 0x24)
+    bool CashGiftSend(std::uint32_t dwRecvUCID, ST_CREATE_ITEMS& vecItem, const wchar_t* strSendName,
+                      PS_CASH_BUY_COUNT_LIST& psCashbuyList);
+
+    // BuyCashItem - 0x140113040
+    // Validates a cash-shop buy list and sends the HAN billing DB request (main 2, sub 0x44)
+    int BuyCashItem(std::uint32_t dwUAID, ST_CASH_ITEM_BUY_LIST& stCashItemList);
+
+    // CashBuySend - 0x1401145B0
+    // Sends a cash-shop purchase post (DB 0x22/0x24) and appearance/fail client packet (9/0x21)
+    bool CashBuySend(ST_CREATE_ITEMS& vecItem, PS_CASH_BUY_COUNT_LIST& psCashbuyList,
+                     ST_APPEARANCE_LIST& stAppearanceList, PS_SHOP_FAIL_ITEM& psFailList);
 
     // Post flag
     void SetPostFlag(std::int64_t biSerial, std::uint8_t byFlag);

@@ -252,3 +252,5 @@
 | Common/XNet/XCommon/PSServer | PSServerDB.h | PS_WORLD_EVENT_REGISTER_RES | 0x14 | verified | GameServer PDB UDT 0xea50 field list + source static_assert + build | yes | nEventID+0, nTotalCount+4, nMyCount+8, nCount+12, byDailyRewardState+16. |
 | Common/XNet/XCommon/PSServer | PSServerDB.h | PS_WORLD_EVENT_REWARD_RES | 0x0C | verified | GameServer PDB UDT 0xea76 field list + source static_assert + build | yes | nEventID+0, byRewardType+4, nRewardIndex+8 (REQ 同布局). |
 | Common/XNet/XCommon/PSServer | PSServerChat.h | PS_CHAT_NOTIFY | 0x08 | verified | GameServer PDB UDT 0x6a026 field list + source static_assert + build | yes | nType int+0, nValue int+4. |
+| Common/XNet/XCommon/PSServer | PSServerCashShop.h | ST_CASH_ITEM_BUY | 0x08 | verified | GameServer PDB UDT 0x13c27 field list + source static_assert + build | yes | nIndex int+0, bySelect uchar+4. |
+| Common/XNet/XCommon/PSServer | PSServerCashShop.h | ST_CASH_ITEM_BUY_LIST | 0x28 | verified | GameServer PDB UDT 0x13c3a field list + source static_assert + build | yes | vector<ST_CASH_ITEM_BUY> vecInfo + byType uchar+32. |

@@ -16451,3 +16451,13 @@ Validate the current GameServer.exe reconstruction worktree before the user-auth
 - Ledger state: func-index upgraded 0x1400ab0e0, 0x1400b2ca0, 0x1400b4be0 to verified; removed duplicate RandomBox.cpp-sourced rows for CanRandomBoxUse/CanPackageBoxUse/CanUseItemCountBox. path-recovery-index and type-index unchanged.
 - Verification: build passed ([16/16] Linking GameServer.exe). Bounded smoke passed (Complete Server Init + Auto shutdown, exit 0). git diff --check clean.
 - Review status: independent verification pending. CanUseItem cluster fully restored (dispatcher + all 20 sub-functions).
+
+---
+[2026-08-07 12:46:43 +08:00] [deepseek-v4-flash]
+### CGocPost cash-purchase batch (CashGiftSend, BuyCashItem, CashBuySend)
+- Target: GameServer.exe; IDA MCP port 10004; model deepseek-v4-flash; local offset +08:00.
+- Evidence discovery: decompiled CashGiftSend (0x14010FBD0), BuyCashItem (0x140113040), CashBuySend (0x1401145B0). PDB resolved the missing ST_CASH_ITEM_BUY (UDT 0x13c27, 8B: nIndex int+0, bySelect uchar+4) and ST_CASH_ITEM_BUY_LIST (UDT 0x13c3a, 40B: vector<ST_CASH_ITEM_BUY> + byType). IDA labels dwCategoryID/wOrder on list elements are pollution for nIndex/bySelect. Active TB_CASHBILLING_INFO uses uniItem/univalue/uniS_Price arrays mapping to IDA Item_ID_1st/Value_1st/S_Price_1st.
+- Implementation: PSServerCashShop.h added ST_CASH_ITEM_BUY + ST_CASH_ITEM_BUY_LIST. GocPost.h added the three declarations + forward decls. GocPost.cpp restored: CashGiftSend (post type 1, GetSystemPostTableIndex(3,2), stack-max cap, DB 0x22/0x24), BuyCashItem (select<5/IsCashShopBuy/date-limit/billing/stack/class/appearance/inven gates, HAN billing vec, DB 2/0x44, error 52309/52322/52323/52319/52321/52310/52014), CashBuySend (post type 1 sub 3/1, sender name GetName, DB 0x22/0x24 + client 9/0x21 appearance+fail lists).
+- Ledger state: func-index upgraded the three decorated rows to verified; type-index added ST_CASH_ITEM_BUY and ST_CASH_ITEM_BUY_LIST. path-recovery-index unchanged.
+- Verification: build passed ([8/8] Linking GameServer.exe). Bounded smoke passed (Complete Server Init + Auto shutdown, exit 0). git diff --check clean.
+- Review status: independent verification pending.

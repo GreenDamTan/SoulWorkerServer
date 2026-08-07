@@ -16331,3 +16331,43 @@ Validate the current GameServer.exe reconstruction worktree before the user-auth
 - Ledger state: func-index upgraded the three PDB decorated rows to verified and removed the three weaker duplicate rows (old XGameServer source table). type-index added PS_WORLD_EVENT_REGISTER_RES and PS_WORLD_EVENT_REWARD_RES rows. path-recovery-index unchanged.
 - Verification: build passed ([20/20] Linking GameServer.exe). Bounded smoke passed (Complete Server Init + Auto shutdown tick reached after 5000 ms, exit 0). git diff --check clean.
 - Review status: independent verification pending.
+
+---
+[2026-08-07 11:52:15 +08:00] [deepseek-v4-flash]
+### CGocInventory CanUseItem sub-function batch 1 (CanItemFPUse, CanUseGraveInitItem)
+- Target: GameServer.exe; IDA MCP port 10004; model deepseek-v4-flash; local offset +08:00.
+- Evidence discovery: audited the CanUseItem (0x1400AB0E0) switch dispatch. Most CanUseItem_* sub-functions have no header declaration and no active definition (GocInventory_RandomBox.cpp / GocInventory_FP.cpp are not in CMake; func-index source=- rows are IDA-only). Chose the two header-declared, source-stubbed members for this batch. Decompiled CanItemFPUse (0x1400B7730) and CanUseGraveInitItem (0x1400BFFC0).
+- Implementation: GocInventory.cpp replaced the two commented-stubs. CanItemFPUse: GetSlotItem + lock-log 15, table gates, level gate, CanUseItemInfo gate (0xCD82), FP cap shBonusFP/shFP==200 (0xCD83), count, CItem::CanUse. CanUseGraveInitItem: inven-type 2/13 gate, lock-log 25, level gate, count, GetGOC_Recode infinite-tower-limit>=3. Added GocRecode.h include for the complete CGocRecode type.
+- Ledger state: func-index upgraded the two PDB decorated rows (0x1400b7730, 0x1400bffc0) to verified. path-recovery-index and type-index unchanged.
+- Verification: build passed ([2/2] Linking GameServer.exe). Bounded smoke passed (Auto shutdown tick reached after 5000 ms, exit 0). git diff --check clean.
+- Review status: independent verification pending. Next: remaining header-declared CanUseItem sub-functions and eventually the CanUseItem main dispatcher when all sub-function bodies exist.
+
+---
+[2026-08-07 11:54:26 +08:00] [deepseek-v4-flash]
+### CGocInventory CanUseItem sub-function batch 2 (CanUseItemFPUseFree)
+- Target: GameServer.exe; IDA MCP port 10004; model deepseek-v4-flash; local offset +08:00.
+- Evidence discovery: decompiled CanUseItemFPUseFree (0x1400BF7B0). Same shape as CanItemFPUse but lock-log type 23 and NO CanUseItemInfo gate. Audited CanUseItem_AkashicRecord (0x1400BCA40) / UseItem_AkashicRecord (0x1400BCD40): deferred, CItemAkashic lacks GetCurID/GetItemExp in active header.
+- Implementation: GocInventory.cpp replaced the commented-stub for CanUseItemFPUseFree.
+- Ledger state: func-index upgraded the 0x1400bf7b0 decorated row to verified. path-recovery-index and type-index unchanged.
+- Verification: build passed ([2/2] Linking GameServer.exe). Bounded smoke passed (Complete Server Init + Auto shutdown, exit 0). git diff --check clean.
+- Review status: independent verification pending.
+
+---
+[2026-08-07 11:57:35 +08:00] [deepseek-v4-flash]
+### CGocInventory CanUseItem sub-function batch 3 (AkashicRecord pair + OverlappedAkashic)
+- Target: GameServer.exe; IDA MCP port 10004; model deepseek-v4-flash; local offset +08:00.
+- Evidence discovery: decompiled CanUseItem_AkashicRecord (0x1400BCA40), UseItem_AkashicRecord (0x1400BCD40), OverlappedAkashic (0x14001BE10). GetCurID in IDA maps to CItem::GetID (m_stItem.nItemID); CanUseAkashic maps to virtual CItem::CanUse overridden in CItemAkashic (GroupID==20).
+- Implementation: GocInventory.cpp restored CanUseItem_AkashicRecord (inven 2/13, dynamic_cast CItemAkashic, lock-log 19, Item_Use_Type==5, GetTB_AKASHIC_RECORDS, count, CanUse) and UseItem_AkashicRecord (GetGOC_AkashicRecord, lock-log 20, OverlappedAkashic, log 73, BreakItemReq 0x4B, UseItemInfo, AddAkashicRecord). GocAkashicRecord.cpp added the missing OverlappedAkashic body (TB Array_Index map lookup, error 8/2/0x178C) which was declared but never defined and blocked the link.
+- Ledger state: func-index upgraded the three PDB decorated rows (0x1400bca40, 0x1400bcd40, 0x14001be10) to verified. path-recovery-index and type-index unchanged.
+- Verification: build passed ([2/2] Linking GameServer.exe). Bounded smoke passed (Complete Server Init + Auto shutdown, exit 0). git diff --check clean.
+- Review status: independent verification pending.
+
+---
+[2026-08-07 12:00:29 +08:00] [deepseek-v4-flash]
+### CGocInventory CanUseItem sub-function batch 4 (Title, Booster, BoxparClass)
+- Target: GameServer.exe; IDA MCP port 10004; model deepseek-v4-flash; local offset +08:00.
+- Evidence discovery: decompiled CanUseItemTitle (0x1400C1530), CanUseItemBooster (0x1400C1C10), CanUseBoxparClass (0x1400C3B50). These take std::shared_ptr<CItem> by value (QEAA_NV decoration) and had no header declaration.
+- Implementation: GocInventory.h added the three shared_ptr<CItem> declarations. GocInventory.cpp restored bodies: CanUseItemTitle (Item_Effect_Type==4), CanUseItemBooster (type 3/14 gate; type 14: GetTB_BOOSTER(Item_Effect_ID) + GetGOC_Booster + GetBoosterIDByGID(Booster_Group) active -> error 0xCD7A), CanUseBoxparClass (GetInvenType 2 or 13).
+- Ledger state: func-index upgraded the three decorated rows (0x1400c1530, 0x1400c1c10, 0x1400c3b50) to verified with new source column. path-recovery-index and type-index unchanged.
+- Verification: build passed ([16/16] Linking GameServer.exe). Bounded smoke passed (Complete Server Init + Auto shutdown, exit 0). git diff --check clean.
+- Review status: independent verification pending.

@@ -1,6 +1,7 @@
 #include "GocInventory.h"
 #include "GocNetwork.h"
 #include "GocPost.h"
+#include "GocRecode.h"
 #include "XBaseInventory.h"
 #include <algorithm>
 #include <new>
@@ -7424,94 +7425,83 @@ void CGocInventory::SendDBSocketLoad(bool bInven) {
 // char __fastcall CGocInventory::CanUseItem_AkashicRecord(CGocInventory *this, unsigned __int8 byInvenType, __int16 shSlot)
 // Checks if akashic record item can be used (types 2, 13)
 bool CGocInventory::CanUseItem_AkashicRecord(std::uint8_t byInvenType, std::int16_t shSlot) {
-    // IDA Decompiled:
-    // if ( byInvenType != 2 && byInvenType != 13 )
-    //     return false;
-    //
-    // std::shared_ptr<CItem> result;
-    // std::uint8_t bLock;
-    // GetSlotItem(&result, byInvenType, shSlot, &bLock);
-    // std::shared_ptr<CItemAkashic> pAkashic;
-    // std::tr1::dynamic_pointer_cast<CItemAkashic>(&pAkashic, &result);
-    //
-    // if ( !pAkashic || bLock ) {
-    //     // Send lock log
-    //     XGameServer::SendItemLockLog(dwUCID, byInvenType, shSlot, bLock, 19, 0);
-    //     return false;
-    // }
-    //
-    // if ( !pAkashic->GetItemTable() || !pAkashic->GetClassifyTable() )
-    //     return false;
-    //
-    // if ( pAkashic->GetClassifyTable()->Item_Use_Type != 5 )
-    //     return false;
-    //
-    // unsigned int dwIndex = pAkashic->GetCurID();
-    // if ( !XResourceMgr::GetTB_AKASHIC_RECORDS(dwIndex) )
-    //     return false;
-    //
-    // if ( pAkashic->GetCount() < 1 )
-    //     return false;
-    //
-    // return pAkashic->CanUseAkashic();
+    if (byInvenType != 2 && byInvenType != 13)
+        return false;
 
-    // TODO: 需人工审查 - Implement when CItemAkashic types available
-    return false;
+    bool bLock = false;
+    std::shared_ptr<CItem> pItem = GetSlotItem(byInvenType, shSlot, bLock);
+    std::shared_ptr<CItemAkashic> pAkashic = std::dynamic_pointer_cast<CItemAkashic>(pItem);
+
+    if (!pAkashic || bLock) {
+        XGameServer::Instance()->SendItemLockLog(GetOwnerGO()->GetActorID().GetID(),
+                                                 byInvenType, shSlot, bLock ? 1 : 0, 19, 0);
+        return false;
+    }
+
+    if (!pAkashic->GetItemTable())
+        return false;
+
+    if (!pAkashic->GetClassifyTable())
+        return false;
+
+    if (pAkashic->GetClassifyTable()->Item_Use_Type != 5)
+        return false;
+
+    unsigned int dwIndex = static_cast<unsigned int>(pAkashic->GetID());
+    if (!XGameServer::Instance()->GetResourceMgr().GetTB_AKASHIC_RECORDS(dwIndex))
+        return false;
+
+    if (pAkashic->GetCount() < 1)
+        return false;
+
+    return pAkashic->CanUse();
 }
 
 // IDA: 0x1400BCD40
 // __int64 __fastcall CGocInventory::UseItem_AkashicRecord(CGocInventory *this, unsigned __int8 byInvenType, __int16 shSlot)
 // Uses akashic record item, adds to akashic card
 bool CGocInventory::UseItem_AkashicRecord(std::uint8_t byInvenType, std::int16_t shSlot) {
-    // IDA Decompiled:
-    // CMover* pMover = GetOwner();
-    // std::shared_ptr<CGocAkashicRecord> pAkashicCard;
-    // CMover::GetGOC<CGocAkashicRecord>(pMover, &pAkashicCard, 0);
-    // if ( !pAkashicCard )
-    //     return false;
-    //
-    // std::shared_ptr<CItem> result;
-    // std::uint8_t bLock;
-    // GetSlotItem(&result, byInvenType, shSlot, &bLock);
-    // std::shared_ptr<CItemAkashic> pItemAkashic;
-    // std::tr1::dynamic_pointer_cast<CItemAkashic>(&pItemAkashic, &result);
-    //
-    // if ( !pItemAkashic || bLock ) {
-    //     XGameServer::SendItemLockLog(dwUCID, byInvenType, shSlot, bLock, 20, 0);
-    //     return false;
-    // }
-    //
-    // pItemAkashic->GetItemTable();
-    // if ( !pItemAkashic )
-    //     return false;
-    //
-    // TB_ITEM_CLASSIFY* pTBClassify = pItemAkashic->GetClassifyTable();
-    // if ( !pTBClassify )
-    //     return false;
-    //
-    // std::shared_ptr<CGocAkashicRecord> pAkashic;
-    // CMover::GetGOC<CGocAkashicRecord>(pMover, &pAkashic, 0);
-    // unsigned int dwID = pItemAkashic->GetCurID();
-    //
-    // if ( !pAkashic->OverlappedAkashic(dwID) )
-    //     return false;
-    //
-    // int nAkashicItemExp = pItemAkashic->GetItemExp();
-    // ST_LOG_GAME stLog;
-    // stLog._sSubType = 73;
-    // stLog.nParam3 = pItemAkashic->GetItemExp();
-    //
-    // int Slot = pItemAkashic->GetSlot();
-    // std::uint8_t InvenType = pItemAkashic->GetInvenType();
-    // if ( BreakItemReq(InvenType, Slot, 1, 0x4B, &stLog) ) {
-    //     UseItemInfo(pTBClassify->Item_Use_Type);
-    //     int nItemID = pItemAkashic->GetCurID();
-    //     pAkashicCard->AddAkashicRecord(nItemID, nAkashicItemExp);
-    //     return true;
-    // }
-    // return false;
+    std::shared_ptr<CGocAkashicRecord> pAkashicCard = GetOwnerGO()->GetGOC_AkashicRecord(false);
+    if (!pAkashicCard)
+        return false;
 
-    // TODO: 需人工审查 - Implement when CGocAkashicRecord types available
+    bool bLock = false;
+    std::shared_ptr<CItem> pItem = GetSlotItem(byInvenType, shSlot, bLock);
+    std::shared_ptr<CItemAkashic> pItemAkashic = std::dynamic_pointer_cast<CItemAkashic>(pItem);
+
+    if (!pItemAkashic || bLock) {
+        XGameServer::Instance()->SendItemLockLog(GetOwnerGO()->GetActorID().GetID(),
+                                                 byInvenType, shSlot, bLock ? 1 : 0, 20, 0);
+        return false;
+    }
+
+    pItemAkashic->GetItemTable();
+    if (!pItemAkashic)
+        return false;
+
+    TB_ITEM_CLASSIFY* pTBClassify = pItemAkashic->GetClassifyTable();
+    if (!pTBClassify)
+        return false;
+
+    std::shared_ptr<CGocAkashicRecord> pAkashic = GetOwnerGO()->GetGOC_AkashicRecord(false);
+    unsigned int dwID = static_cast<unsigned int>(pItemAkashic->GetID());
+
+    if (!pAkashic->OverlappedAkashic(dwID))
+        return false;
+
+    int nAkashicItemExp = pItemAkashic->GetItemExp();
+    ST_LOG_GAME stLog;
+    stLog._sSubType = 73;
+    stLog.nParam3 = pItemAkashic->GetItemExp();
+
+    int Slot = pItemAkashic->GetSlot();
+    std::uint8_t InvenType = pItemAkashic->GetInvenType();
+    if (BreakItemReq(InvenType, Slot, 1, 0x4B, &stLog)) {
+        UseItemInfo(pTBClassify->Item_Use_Type);
+        int nItemID = pItemAkashic->GetID();
+        pAkashicCard->AddAkashicRecord(nItemID, nAkashicItemExp);
+        return true;
+    }
     return false;
 }
 
@@ -7564,48 +7554,45 @@ void CGocInventory::UnLockList(PS_RES_STORAGE_INFO psUnlockList) {
 // __int64 __fastcall CGocInventory::CanItemFPUse(CGocInventory *this, unsigned __int8 byInvenType, __int16 shSlot)
 // Checks if FP item can be used (level check, usage check, FP cap)
 bool CGocInventory::CanItemFPUse(std::uint8_t byInvenType, std::int16_t shSlot) {
-    // IDA Decompiled:
-    // std::shared_ptr<CItem> pItem;
-    // std::uint8_t bLock;
-    // GetSlotItem(&pItem, byInvenType, shSlot, &bLock);
-    //
-    // if ( !pItem || bLock ) {
-    //     XGameServer::SendItemLockLog(dwUCID, byInvenType, shSlot, bLock, 15, 0);
-    //     return false;
-    // }
-    //
-    // TB_ITEM* pTBItem = pItem->GetItemTable();
-    // if ( !pTBItem )
-    //     return false;
-    //
-    // TB_ITEM_CLASSIFY* pTBClassify = pItem->GetClassifyTable();
-    // if ( !pTBClassify )
-    //     return false;
-    //
-    // // Level check
-    // CUser* pUser = dynamic_cast<CUser*>(GetOwner());
-    // if ( pTBItem->Item_Limit_Lv > pUser->GetLevel() )
-    //     return false;
-    //
-    // // Usage type check
-    // if ( !CanUseItemInfo(pTBClassify->Item_Use_Type) ) {
-    //     CGocNetwork::SendErrorMessage(GetOwner(), 8, 0x11, 0xCD82);
-    //     return false;
-    // }
-    //
-    // // FP cap check
-    // if ( pUser->stMyCharInfoEx()->shBonusFP || pUser->stMyCharInfoEx()->shFP == 200 ) {
-    //     CGocNetwork::SendErrorMessage(GetOwner(), 8, 0x11, 0xCD83);
-    //     return false;
-    // }
-    //
-    // if ( pItem->GetCount() < 1 )
-    //     return false;
-    //
-    // return pItem->CanUseItem();
+    bool bLock = false;
+    std::shared_ptr<CItem> pItem = GetSlotItem(byInvenType, shSlot, bLock);
 
-    // TODO: 需人工审查 - Implement when CItem/TB_ITEM types available
-    return false;
+    if (!pItem || bLock) {
+        XGameServer::Instance()->SendItemLockLog(GetOwnerGO()->GetActorID().GetID(),
+                                                 byInvenType, shSlot, bLock ? 1 : 0, 15, 0);
+        return false;
+    }
+
+    TB_ITEM* pTBItem = pItem->GetItemTable();
+    if (!pTBItem)
+        return false;
+
+    TB_ITEM_CLASSIFY* pTBClassify = pItem->GetClassifyTable();
+    if (!pTBClassify)
+        return false;
+
+    CUser* pUser = dynamic_cast<CUser*>(GetOwnerGO());
+    if (!pUser)
+        return false;
+
+    if (pTBItem->Item_Limit_Lv > pUser->GetLevel())
+        return false;
+
+    if (!CanUseItemInfo(pTBClassify->Item_Use_Type)) {
+        CGocNetwork::SendErrorMessage(GetOwnerGO(), 8, 0x11, 0xCD82);
+        return false;
+    }
+
+    STMyCharInfoEx* pCharInfo = pUser->stMyCharInfoEx();
+    if (pCharInfo->shBonusFP || pCharInfo->shFP == 200) {
+        CGocNetwork::SendErrorMessage(GetOwnerGO(), 8, 0x11, 0xCD83);
+        return false;
+    }
+
+    if (pItem->GetCount() < 1)
+        return false;
+
+    return pItem->CanUse();
 }
 
 // IDA: 0x1400B7AA0
@@ -8436,35 +8423,39 @@ bool CGocInventory::UpdateItemEnd(std::uint8_t byCurLock,
 //         CGocInventory *this, unsigned __int8 byInvenType, __int16 shSlot)
 // Checks if FP item can be used (level check, FP cap check)
 bool CGocInventory::CanUseItemFPUseFree(std::uint8_t byInvenType, std::int16_t shSlot) {
-    // IDA Decompiled:
-    // GetSlotItem(this, &pItem, byInvenType, shSlot, bLock);
-    // if ( pItem == null || bLock[0] ) {
-    //     // Send item lock log
-    //     XGameServer::SendItemLockLog(..., byInvenType, shSlot, bLock[0], 23, 0);
-    //     return false;
-    // }
-    // pTBItem = CItem::GetItemTable(pItem.operator->());
-    // if ( !pTBItem ) return false;
-    // if ( !CItem::GetClassifyTable(pItem.operator->()) ) return false;
-    // // Level check
-    // if ( pTBItem->Item_Limit_Lv <= GetLevel() ) {
-    //     // FP cap check: bonus FP or FP == 200
-    //     if ( CUser::stMyCharInfoEx()->shBonusFP || CUser::stMyCharInfoEx()->shFP == 200 ) {
-    //         // Send error message (error ID 0xCD83)
-    //         CGocNetwork::SendErrorMessage(GetMover(), 8, 0x11, 0xCD83);
-    //         return false;
-    //     }
-    //     // Count check
-    //     if ( CItem::GetCount(pItem.operator->()) >= 1 )
-    //         return pItem.operator->()->Finalize();  // Returns true
-    //     return false;
-    // }
-    // return false;
+    bool bLock = false;
+    std::shared_ptr<CItem> pItem = GetSlotItem(byInvenType, shSlot, bLock);
 
-    // TODO: 需人工审查 - Implement when CItem/TB_ITEM/CUser types available
-    (void)byInvenType;
-    (void)shSlot;
-    return false;
+    if (!pItem || bLock) {
+        XGameServer::Instance()->SendItemLockLog(GetOwnerGO()->GetActorID().GetID(),
+                                                 byInvenType, shSlot, bLock ? 1 : 0, 23, 0);
+        return false;
+    }
+
+    TB_ITEM* pTBItem = pItem->GetItemTable();
+    if (!pTBItem)
+        return false;
+
+    if (!pItem->GetClassifyTable())
+        return false;
+
+    CUser* pUser = dynamic_cast<CUser*>(GetOwnerGO());
+    if (!pUser)
+        return false;
+
+    if (pTBItem->Item_Limit_Lv > pUser->GetLevel())
+        return false;
+
+    STMyCharInfoEx* pCharInfo = pUser->stMyCharInfoEx();
+    if (pCharInfo->shBonusFP || pCharInfo->shFP == 200) {
+        CGocNetwork::SendErrorMessage(GetOwnerGO(), 8, 0x11, 0xCD83);
+        return false;
+    }
+
+    if (pItem->GetCount() < 1)
+        return false;
+
+    return pItem->CanUse();
 }
 
 // IDA: 0x1400BFAD0
@@ -8534,35 +8525,82 @@ bool CGocInventory::ItemFPUseFree(std::uint8_t byInvenType, std::int16_t shSlot)
 //         CGocInventory *this, unsigned __int8 byInvenType, __int16 shSlot)
 // Checks if grave init item can be used (inventory type, level, infinite tower limit)
 bool CGocInventory::CanUseGraveInitItem(std::uint8_t byInvenType, std::int16_t shSlot) {
-    // IDA Decompiled:
-    // // Must be inventory type 2 or 13
-    // if ( byInvenType != 2 && byInvenType != 13 )
-    //     return false;
-    //
-    // GetSlotItem(this, &pItem, byInvenType, shSlot, bLock);
-    // if ( pItem == null || bLock[0] ) {
-    //     XGameServer::SendItemLockLog(..., byInvenType, shSlot, bLock[0], 25, 0);
-    //     return false;
-    // }
-    //
-    // // Level check
-    // if ( ItemTable->Item_Limit_Lv <= GetLevel() ) {
-    //     // Count check
-    //     if ( CItem::GetCount(pItem.operator->()) >= 1 ) {
-    //         // Get CGocRecode and check infinite tower limit
-    //         CMover::GetGOC<CGocRecode>(GetMover(), &pRecode, 0);
-    //         if ( CGocRecode::GetInfiniteTowerLimitCount(pRecode.operator->()) >= 3 )
-    //             return true;  // Can use (limit reached)
-    //         return false;
-    //     }
-    //     return false;
-    // }
-    // return false;
+    if (byInvenType != 2 && byInvenType != 13)
+        return false;
 
-    // TODO: 需人工审查 - Implement when CItem/CGocRecode types available
-    (void)byInvenType;
-    (void)shSlot;
+    bool bLock = false;
+    std::shared_ptr<CItem> pItem = GetSlotItem(byInvenType, shSlot, bLock);
+
+    if (!pItem || bLock) {
+        XGameServer::Instance()->SendItemLockLog(GetOwnerGO()->GetActorID().GetID(),
+                                                 byInvenType, shSlot, bLock ? 1 : 0, 25, 0);
+        return false;
+    }
+
+    CUser* pUser = dynamic_cast<CUser*>(GetOwnerGO());
+    if (!pUser)
+        return false;
+
+    TB_ITEM* pTBItem = pItem->GetItemTable();
+    if (!pTBItem)
+        return false;
+
+    if (pTBItem->Item_Limit_Lv > pUser->GetLevel())
+        return false;
+
+    if (pItem->GetCount() < 1)
+        return false;
+
+    std::shared_ptr<CGocRecode> pRecode = GetOwnerGO()->GetGOC_Recode(false);
+    if (pRecode && pRecode->GetInfiniteTowerLimitCount() >= 3)
+        return true;
+
     return false;
+}
+
+// IDA: 0x1400C1530
+// __int64 __fastcall CGocInventory::CanUseItemTitle(CGocInventory *this, std::tr1::shared_ptr<CItem> pItem)
+// Checks if title item can be used (Item_Effect_Type == 4)
+bool CGocInventory::CanUseItemTitle(std::shared_ptr<CItem> pItem) {
+    return pItem->GetItemTable()->Item_Effect_Type == 4;
+}
+
+// IDA: 0x1400C1C10
+// __int64 __fastcall CGocInventory::CanUseItemBooster(CGocInventory *this, std::tr1::shared_ptr<CItem> pItem)
+// Checks if booster item can be used: type 3 or 14; type 14 requires booster group not active
+bool CGocInventory::CanUseItemBooster(std::shared_ptr<CItem> pItem) {
+    if (!pItem->GetItemTable())
+        return false;
+
+    std::uint16_t wEffectType = pItem->GetItemTable()->Item_Effect_Type;
+    if (wEffectType != 3 && wEffectType != 14)
+        return false;
+
+    if (wEffectType == 14) {
+        TB_ITEM* pTBItem = pItem->GetItemTable();
+        TB_BOOSTER* pTB_BOOSTER = XGameServer::Instance()->GetResourceMgr().GetTB_BOOSTER(pTBItem->Item_Effect_ID);
+        if (!pTB_BOOSTER)
+            return false;
+
+        std::shared_ptr<CGocBooster> pBooster = GetOwnerGO()->GetGOC_Booster(false);
+        if (!pBooster)
+            return false;
+
+        if (pBooster->GetBoosterIDByGID(pTB_BOOSTER->Booster_Group)) {
+            CGocNetwork::SendErrorMessage(GetOwnerGO(), 8, 0x11, 0xCD7A);
+            return false;
+        }
+    }
+
+    return true;
+}
+
+// IDA: 0x1400C3B50
+// __int64 __fastcall CGocInventory::CanUseBoxparClass(CGocInventory *this, std::tr1::shared_ptr<CItem> pItem)
+// Checks if boxpar item is in a usable inventory type (2 or 13)
+bool CGocInventory::CanUseBoxparClass(std::shared_ptr<CItem> pItem) {
+    std::uint8_t byInvenType = pItem->GetInvenType();
+    return byInvenType == 2 || byInvenType == 13;
 }
 
 // IDA: 0x1400C0230

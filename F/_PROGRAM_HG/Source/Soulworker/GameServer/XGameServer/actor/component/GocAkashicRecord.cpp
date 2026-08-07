@@ -1971,6 +1971,28 @@ void CGocAkashicRecord::SetDeckPageInfo(PS_QUICKSLOT_CARD& stCard, std::uint8_t 
     }
 }
 
+// OverlappedAkashic (0x14001BE10)
+// IDA: true if the player already owns the card (by Array_Index), else error 0x178C
+bool CGocAkashicRecord::OverlappedAkashic(std::uint32_t dwID)
+{
+    XGameServer* pGameServer = TXSingleton<XGameServer>::Instance();
+    TB_AKASHIC_RECORDS* pTBAkashicRecord = pGameServer->GetResourceMgr().GetTB_AKASHIC_RECORDS(dwID);
+    if (!pTBAkashicRecord)
+        return false;
+
+    int nKey = pTBAkashicRecord->Array_Index;
+    CUser* pUser = dynamic_cast<CUser*>(GetOwnerMover());
+    if (!pUser)
+        return false;
+
+    auto it = m_mapAkashic.find(nKey);
+    if (it != m_mapAkashic.end())
+        return true;
+
+    pUser->SendErrorMessage(8, 2, 0x178C);
+    return false;
+}
+
 // RemoveExistBuff (0x14001BF00)
 // IDA: Removes existing buff from user when card is removed
 void CGocAkashicRecord::RemoveExistBuff(std::uint32_t dwExistCard)

@@ -824,6 +824,18 @@ public:
     // Uses grave init item, reduces item, sends DB packet
     bool UseGraveInitItem(std::uint8_t byInvenType, std::int16_t shSlot);
 
+    // CanUseItemTitle - 0x1400C1530
+    // Checks if title item can be used (Item_Effect_Type == 4)
+    bool CanUseItemTitle(std::shared_ptr<CItem> pItem);
+
+    // CanUseItemBooster - 0x1400C1C10
+    // Checks if booster item can be used (type 3/14, booster group not active)
+    bool CanUseItemBooster(std::shared_ptr<CItem> pItem);
+
+    // CanUseBoxparClass - 0x1400C3B50
+    // Checks if boxpar item is in a usable inventory type (2 or 13)
+    bool CanUseBoxparClass(std::shared_ptr<CItem> pItem);
+
     // === Broach update functions (IDA verified) ===
 
     // SendBroachUpdate - 0x1400C0910

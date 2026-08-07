@@ -771,7 +771,7 @@
 | XGameServer | GocAkashicRecord.cpp | ?GetPassiveAkashicByGrade@CGocAkashicRecord@@QEAAPEAUTB_AKASHIC_RECORDS@@KH@Z | 0x14001baf0 | implemented | IDA decompile | yes | ?????????????Akashic(??????) |
 | - | - | ??R_lambda0_@?A0xe413bdd2@@QEBA_NPEBUTB_AKASHIC_RECORDS@@0@Z | 0x14001bc80 | blocked | IDA ??R_lambda0_@?A0xe413bdd2@@QEBA_NPEBUTB_AKASHIC_RECORDS@@0@Z | yes | - |
 | XGameServer | GocAkashicRecord.cpp | ?GetAkashicIDFromSlot@CGocAkashicRecord@@QEAAKH@Z | 0x14001bcd0 | implemented | IDA decompile | yes | ???��???AkashicID??????????(??????) |
-| XGameServer | GocAkashicRecord.cpp | ?OverlappedAkashic@CGocAkashicRecord@@QEAA_NK@Z | 0x14001be10 | implemented | IDA decompile | yes | ???Akashic??????????????) |
+| CGocAkashicRecord | GocAkashicRecord.cpp | ?OverlappedAkashic@CGocAkashicRecord@@QEAA_NK@Z | 0x14001be10 | verified | PDB + IDA decompile + source build + smoke | yes | TB Array_Index map lookup; true if owned, else error 8/2/0x178C. |
 | XGameServer | GocAkashicRecord.cpp | ?RemoveExistBuff@CGocAkashicRecord@@QEAAXK@Z | 0x14001bf00 | implemented | IDA decompile | yes | ?????????Buff(??????) |
 | XGameServer | GocAkashicRecord.cpp | ?LoadQuickSlotCard@CGocAkashicRecord@@QEAA_NUPS_QUICKSLOT_CARD_VEC@@@Z | 0x14001bfc0 | implemented | IDA decompile | yes | ?????????????? |
 | - | - | ??1PS_QUICKSLOT_CARD_VEC@@QEAA@XZ | 0x14001c5a0 | blocked | IDA ??1PS_QUICKSLOT_CARD_VEC@@QEAA@XZ | yes | - |
@@ -2936,7 +2936,7 @@
 | CGocInventory | GocInventory.cpp | ?SetItemUseInfoList@CGocInventory@@QEAAXAEAUST_USE_ITEM_INFO_LIST@@@Z | 0x1400b7370 | verified | PDB decorated symbol + PDB UDT + IDA decompile + source build | yes | Non-const reference ABI, expiry reset, map insert, date, and tick updates restored. |
 | CGocInventory | GocInventory.cpp | ?OnInitItemUseInfoDate@CGocInventory@@QEAAXXZ | 0x1400b74f0 | verified | PDB decorated symbol + IDA decompile + source build | yes | Zero-argument ABI, date gate, map reset, empty-list client packet main 8/sub 0x49, and date refresh restored. |
 | CGocInventory | GocInventory.cpp | ?CanUseItemInfo@CGocInventory@@QEAA_NH@Z | 0x1400b76b0 | verified | PDB decorated symbol + IDA decompile + source build | yes | Exact map lookup and count-less-than-three predicate restored. |
-| - | - | ?CanItemFPUse@CGocInventory@@QEAA_NEF@Z | 0x1400b7730 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| CGocInventory | GocInventory.cpp | ?CanItemFPUse@CGocInventory@@QEAA_NEF@Z | 0x1400b7730 | verified | PDB + IDA decompile + source build + smoke | yes | Lock-log 15, level gate, CanUseItemInfo gate, FP cap (bonus or 200), count, CItem::CanUse restored. |
 | - | - | ?ItemFPUse@CGocInventory@@QEAA_NEF@Z | 0x1400b7aa0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | - | - | ?UseItemInfo@CGocInventory@@QEAAXH@Z | 0x1400b7f90 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | - | - | ?OnUpdateCashItemDate@CGocInventory@@QEAAXXZ | 0x1400b8230 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
@@ -2976,8 +2976,8 @@
 | - | - | ?GetBroachList@CGocInventory@@QEAAXEAEAUPS_ITEM_BROACH_LIST@@@Z | 0x1400bc770 | verified | IDA decompile + PDB signature + source build | yes | Routes types 0/3 to equipment and 4/6/17 to inventory. |
 | - | - | ?GetPackageList@CGocInventory@@QEAAXEAEAUPS_ITEM_PACKAGE_LIST@@@Z | 0x1400bc820 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | - | - | ?SendDBSocketLoad@CGocInventory@@QEAAX_N@Z | 0x1400bc880 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
-| - | - | ?CanUseItem_AkashicRecord@CGocInventory@@QEAA_NEF@Z | 0x1400bca40 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
-| - | - | ?UseItem_AkashicRecord@CGocInventory@@QEAA_NEF@Z | 0x1400bcd40 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| CGocInventory | GocInventory.cpp | ?CanUseItem_AkashicRecord@CGocInventory@@QEAA_NEF@Z | 0x1400bca40 | verified | PDB + IDA decompile + source build + smoke | yes | Inven 2/13 gate, dynamic_cast CItemAkashic + lock-log 19, Item_Use_Type==5, GetTB_AKASHIC_RECORDS, count, CanUse. |
+| CGocInventory | GocInventory.cpp | ?UseItem_AkashicRecord@CGocInventory@@QEAA_NEF@Z | 0x1400bcd40 | verified | PDB + IDA decompile + source build + smoke | yes | GetGOC_AkashicRecord, lock-log 20, OverlappedAkashic, log 73, BreakItemReq 0x4B, UseItemInfo, AddAkashicRecord. |
 | CGocInventory | GocInventory.cpp | ?GetQuickSlotItem@CGocInventory@@QEAAXPEAH@Z | 0x1400bd210 | verified | GameServer PDB + IDA decompile/assembly + source build | yes | Copies the four contiguous m_nQuickSlotItem entries to the caller buffer. |
 | - | - | ?SendDBBroachLoad@CGocInventory@@QEAAX_N@Z | 0x1400bd260 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | - | - | ?UnLockList@CGocInventory@@QEAAXUPS_RES_STORAGE_INFO@@@Z | 0x1400bd420 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
@@ -2992,17 +2992,17 @@
 | CGocInventory | GocInventory.cpp | ?CreateItem2@CGocInventory@@QEAA_NUST_CREATE_ITEMS@@E_NAEAUPS_RES_STORAGE_INFO@@2UST_LOG_GAME@@@Z | 0x1400bec70 | verified | GameServer PDB + IDA decompile + source build | yes | Preserves AddItem2, UpdateItemEnd, AddItemEnd order and unlocks both response lists when AddItem2 fails. |
 | - | - | ?AddItemEnd@CGocInventory@@QEAA_NEUPS_RES_STORAGE_INFO@@UST_LOG_GAME@@@Z | 0x1400beee0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | - | - | ?UpdateItemEnd@CGocInventory@@QEAA_NEUPS_RES_STORAGE_INFO@@UST_LOG_GAME@@@Z | 0x1400bf260 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
-| - | - | ?CanUseItemFPUseFree@CGocInventory@@QEAA_NEF@Z | 0x1400bf7b0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| CGocInventory | GocInventory.cpp | ?CanUseItemFPUseFree@CGocInventory@@QEAA_NEF@Z | 0x1400bf7b0 | verified | PDB + IDA decompile + source build + smoke | yes | Lock-log 23, table gates, level gate, FP cap (bonus or 200, 0xCD83), count, CItem::CanUse; no CanUseItemInfo gate. |
 | - | - | ?ItemFPUseFree@CGocInventory@@QEAA_NEF@Z | 0x1400bfad0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
-| - | - | ?CanUseGraveInitItem@CGocInventory@@QEAA_NEF@Z | 0x1400bffc0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| CGocInventory | GocInventory.cpp | ?CanUseGraveInitItem@CGocInventory@@QEAA_NEF@Z | 0x1400bffc0 | verified | PDB + IDA decompile + source build + smoke | yes | Inven-type 2/13 gate, lock-log 25, level gate, count, GetGOC_Recode infinite-tower-limit>=3 restored. |
 | - | - | ?UseGraveInitItem@CGocInventory@@QEAA_NEF@Z | 0x1400c0230 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | - | - | ?SendSocketUpdate@CGocInventory@@QEAAXUPS_ITEM_SOCKET_LIST@@@Z | 0x1400c0830 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | - | - | ?SendBroachUpdate@CGocInventory@@QEAAXUPS_ITEM_BROACH_LIST@@@Z | 0x1400c0910 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | - | - | ?SendPackageInfo@CGocInventory@@QEAAXUPS_ITEM_PACKAGE_LIST@@@Z | 0x1400c0a30 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | - | - | ?ItemMakeCheatByLevel@CGocInventory@@QEAA_NEE_NEE@Z | 0x1400c0b20 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
-| - | - | ?CanUseItemTitle@CGocInventory@@QEAA_NV?$shared_ptr@VCItem@@@tr1@std@@@Z | 0x1400c1530 | implemented | IDA ?CanUseItemTitle@CGocInventory@@QEAA_NV?$shared_ptr@VCItem@@@tr1@std@@@Z | yes | - |
+| CGocInventory | GocInventory.cpp | ?CanUseItemTitle@CGocInventory@@QEAA_NV?$shared_ptr@VCItem@@@tr1@std@@@Z | 0x1400c1530 | verified | PDB + IDA decompile + source build + smoke | yes | Item_Effect_Type == 4 predicate restored. |
 | - | - | ?UseItemTitle@CGocInventory@@QEAA_NV?$shared_ptr@VCItem@@@tr1@std@@@Z | 0x1400c15a0 | implemented | IDA ?UseItemTitle@CGocInventory@@QEAA_NV?$shared_ptr@VCItem@@@tr1@std@@@Z | yes | - |
-| - | - | ?CanUseItemBooster@CGocInventory@@QEAA_NV?$shared_ptr@VCItem@@@tr1@std@@@Z | 0x1400c1c10 | implemented | IDA ?CanUseItemBooster@CGocInventory@@QEAA_NV?$shared_ptr@VCItem@@@tr1@std@@@Z | yes | - |
+| CGocInventory | GocInventory.cpp | ?CanUseItemBooster@CGocInventory@@QEAA_NV?$shared_ptr@VCItem@@@tr1@std@@@Z | 0x1400c1c10 | verified | PDB + IDA decompile + source build + smoke | yes | Type 3/14 gate; type 14 checks TB_BOOSTER + GetBoosterIDByGID active, error 0xCD7A. |
 | - | - | ?UseItemBooster@CGocInventory@@QEAA_N_NV?$shared_ptr@VCItem@@@tr1@std@@@Z | 0x1400c1e00 | implemented | IDA ?UseItemBooster@CGocInventory@@QEAA_N_NV?$shared_ptr@VCItem@@@tr1@std@@@Z | yes | - |
 | - | - | ?ItemMakeCheatOption@CGocInventory@@QEAA_NHHHH@Z | 0x1400c2690 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | - | - | ?UseSocialItem@CGocInventory@@QEAA_NV?$shared_ptr@VCItem@@@tr1@std@@@Z | 0x1400c2ed0 | implemented | IDA ?UseSocialItem@CGocInventory@@QEAA_NV?$shared_ptr@VCItem@@@tr1@std@@@Z | yes | - |
@@ -3010,7 +3010,7 @@
 | - | - | ?UpdateCashBuyCount@CGocInventory@@QEAA_NHHEHAEAUPS_CASH_BUY_COUNT_LIST@@@Z | 0x1400c3500 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | - | - | ?SendUpdateCashBuyCount@CGocInventory@@QEAAXUPS_CASH_BUY_COUNT_LIST@@@Z | 0x1400c3750 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | - | - | ?SendDBCashBuyCount@CGocInventory@@QEAAXXZ | 0x1400c39b0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
-| - | - | ?CanUseBoxparClass@CGocInventory@@QEAA_NV?$shared_ptr@VCItem@@@tr1@std@@@Z | 0x1400c3b50 | implemented | IDA ?CanUseBoxparClass@CGocInventory@@QEAA_NV?$shared_ptr@VCItem@@@tr1@std@@@Z | yes | - |
+| CGocInventory | GocInventory.cpp | ?CanUseBoxparClass@CGocInventory@@QEAA_NV?$shared_ptr@VCItem@@@tr1@std@@@Z | 0x1400c3b50 | verified | PDB + IDA decompile + source build + smoke | yes | GetInvenType 2 or 13 predicate restored. |
 | - | - | ?UseBoxparClass@CGocInventory@@QEAA_N_NV?$shared_ptr@VCItem@@@tr1@std@@EFE@Z | 0x1400c3bd0 | implemented | IDA ?UseBoxparClass@CGocInventory@@QEAA_N_NV?$shared_ptr@VCItem@@@tr1@std@@EFE@Z | yes | - |
 | - | - | ?CanUseCasualItem@CGocInventory@@QEAA_NV?$shared_ptr@VCItem@@@tr1@std@@@Z | 0x1400c3fd0 | implemented | IDA ?CanUseCasualItem@CGocInventory@@QEAA_NV?$shared_ptr@VCItem@@@tr1@std@@@Z | yes | - |
 | - | - | ?UseCasualItem@CGocInventory@@QEAA_NV?$shared_ptr@VCItem@@@tr1@std@@F@Z | 0x1400c4970 | implemented | IDA ?UseCasualItem@CGocInventory@@QEAA_NV?$shared_ptr@VCItem@@@tr1@std@@F@Z | yes | - |

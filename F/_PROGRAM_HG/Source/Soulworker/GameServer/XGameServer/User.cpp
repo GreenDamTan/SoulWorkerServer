@@ -14,6 +14,7 @@
 #include "Soulworker/GameServer/XGameServer/actor/component/GocInventory.h"
 #include "Soulworker/GameServer/XGameServer/actor/component/GocQuest.h"
 #include "Soulworker/GameServer/XGameServer/actor/component/GocNetwork.h"
+#include "Soulworker/GameServer/XGameServer/actor/component/GocRecode.h"
 #include "Soulworker/GameServer/XGameServer/actor/component/GocParty.h"
 #include "Soulworker/GameServer/XGameServer/Item/CItem.h"
 #include "Soulworker/GameServer/XGameServer/StatusEffect.h"
@@ -86,6 +87,7 @@ CUser::CUser()
     , m_bReserveRevive(0)
     , m_bReserveReviveImmediate(0)
     , m_dwSocialUseID(0)
+    , m_nRevivePoint(0)
     , m_bFirstEnter(false)
     , m_nCreateDate(0)
     , m_biAccountCreateDate(0)
@@ -510,6 +512,21 @@ void CUser::SendWorldEventBooster(unsigned long dwBuffID, std::int64_t biEndDate
             static_cast<std::uint16_t>(dwBuffID),
             biEndDate,
             false);
+    }
+}
+
+// IDA 0x1406E8F80 - SendTimeEvent
+// 无 byteClass 限制或与玩家职业匹配时，应用事件 Buff 加成
+void CUser::SendTimeEvent(ST_GM_TIME_EVENT_INFO& stInfo) {
+    if (stInfo.byteClass == 0 || GetClass() == stInfo.byteClass) {
+        std::shared_ptr<CGocBooster> pBooster = GetGOC_Booster(false);
+        if (pBooster) {
+            pBooster->ChangeBooster(
+                eBooster_Type_Event,
+                static_cast<std::uint16_t>(stInfo.dwBuff_ID),
+                stInfo.nEndDate,
+                false);
+        }
     }
 }
 
@@ -2050,6 +2067,193 @@ void CUser::Respawn() {
     m_bReserveRevive = 0;
 
     GreenDamTan_log(__FILE__, __FUNCTION__, "Player respawned");
+}
+
+// ============================================================================
+// Revive - 5 参版复活 (IDA 0x1406F4F10)
+// 精确还原: GetArea gate -> IsRevive gate -> IsDie gate -> nType 分派 ->
+// 保存状态/ResetStatus -> nType==2 复活点传送 -> 默认复活路径 (护甲/广播/日志)
+// ============================================================================
+void CUser::Revive(std::uint32_t dwOwnerID, int nType, int bBroadcast, std::uint32_t dwItemID, bool bByForce)
+{
+    XArea* pArea = GetArea();
+    if (!pArea) {
+        LogHelper::LogError("game.contents", "Revive error - GetArea() == NULL ( %d )", GetActorID().dwActorID);
+        CGocNetwork::SendErrorMessage(this, 3u, 0x43u, 0xCD89u);
+        return;
+    }
+
+    if (!bByForce && !pArea->IsRevive()) {
+        LogHelper::LogError("game.contents", "Revive error - Cant Revive this map[ MapID:%d )", pArea->GetTBMapID());
+        CGocNetwork::SendErrorMessage(this, 3u, 0x43u, 0xCD89u);
+        return;
+    }
+
+    if (!CMover::IsDie()) {
+        LogHelper::LogError("game.contents", "Revive error - Not IsDieStatus %d %d", GetActorID().dwActorID, pArea->GetTBMapID());
+        CGocNetwork::SendErrorMessage(this, 3u, 0x43u, 0xCD80u);
+        return;
+    }
+
+    if (nType == 1) {
+        int iIndex = CMover::FindBuffByEffectType(1, 0);
+        if (iIndex == -1) {
+            CGocNetwork::SendErrorMessage(this, 3u, 0x43u, 0xC741u);
+            return;
+        }
+        dwOwnerID = GetBuffStatus(iIndex)->dwID;
+        ClearBuffStatusBySlot(iIndex, true);
+    } else {
+        switch (nType) {
+        case 2:
+            if (pArea->GetWorldType() != 2) {
+                CGocNetwork::SendErrorMessage(this, 3u, 0x43u, 0xC741u);
+                return;
+            }
+            break;
+        case 3:
+            if (pArea->GetWorldType() != 1) {
+                CGocNetwork::SendErrorMessage(this, 3u, 0x43u, 0xC746u);
+                return;
+            }
+            {
+                auto pEntity = GetGOC_Entity(false);
+                if (!pEntity || !pEntity->ReviveFree()) {
+                    CGocNetwork::SendErrorMessage(this, 3u, 0x43u, 0xC746u);
+                    return;
+                }
+            }
+            break;
+        case 4:
+            {
+                XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+                XOption* pOption = &pServer->GetOption();
+                if (pOption->GetNationType() != NATION_TYPE_KOR &&
+                    pOption->GetNationType() != NATION_TYPE_JPN) {
+                    CGocNetwork::SendErrorMessage(this, 3u, 0x43u, 0xC746u);
+                    return;
+                }
+            }
+            if (pArea->GetWorldType() != 1) {
+                CGocNetwork::SendErrorMessage(this, 3u, 0x43u, 0xC746u);
+                return;
+            }
+            if (!bByForce) {
+                auto pInven = GetGOC_Inventory(false);
+                if (!pInven || !pInven->ReviveCash()) {
+                    CGocNetwork::SendErrorMessage(this, 3u, 0x43u, 0xC746u);
+                    return;
+                }
+            }
+            break;
+        case 5:
+            if (pArea->GetWorldType() != 1) {
+                CGocNetwork::SendErrorMessage(this, 3u, 0x43u, 0xC742u);
+                return;
+            }
+            {
+                std::uint16_t wTBMapID = pArea->GetTBMapID();
+                XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+                TB_MAZE_INFO* pTB = pServer->GetResourceMgr().GetTB_MAZE_INFO(wTBMapID);
+                if (!pTB || pTB->Maze_Type != 12 || pTB->Revival_Type != 2) {
+                    CGocNetwork::SendErrorMessage(this, 3u, 0x43u, 0xC742u);
+                    return;
+                }
+            }
+            break;
+        }
+    }
+
+    std::uint32_t dwOldStatus = GetStatus();
+    XActor::ResetStatus();
+
+    if (nType == 2) {
+        STPosInfo stMovePos;
+        int nMapID = pArea->GetTBMapID();
+        XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+        // TODO: 需人工审查 - XWorldResMgr::GetPortalPos/GetStartPortalPos 依赖 VEventObjectResource 子系统未还原
+        if (!pServer->GetWorldResMgr().GetPortalPos(nMapID, m_nRevivePoint, &stMovePos)) {
+            pServer->GetWorldResMgr().GetStartPortalPos(static_cast<int>(pArea->GetTBMapID()), &stMovePos);
+        }
+        if (pArea->MoveActor(this, reinterpret_cast<hkvVec3*>(&stMovePos.vPos))) {
+            XActor::SetStatus(dwOldStatus);
+            return;
+        }
+    }
+
+    if (nType == 5 ||
+        pArea->GetWorldType() != 1 ||
+        !TXSingleton<XGameServer>::Instance()->GetResourceMgr().GetTB_MAZE_INFO(pArea->GetTBMapID()) ||
+        TXSingleton<XGameServer>::Instance()->GetResourceMgr().GetTB_MAZE_INFO(pArea->GetTBMapID())->Maze_Type != 12) {
+        ClearExtraMoving();
+        auto pAttr = GetGOC_Attribute(false);
+        if (pAttr) {
+            pAttr->Revive();
+        }
+        InitSuperArmorGage();
+        m_stCharInfo.fCurSuperArmorGage = m_fMaxSuperArmorGage;
+        m_stCharInfo.fMaxSuperArmorGage = m_fMaxSuperArmorGage;
+        send_eSUB_CMD_MONSTER_SUPER_ARMOR_GAGE(this, m_fCurSuperArmorGage, m_fMaxSuperArmorGage);
+        m_bOnDie = false;
+        ChangeDefenseTypeForce(3u, 5.0f);
+
+        if (bBroadcast) {
+            PS_RES_REVIVE stRevive;
+            stRevive.dwActorID = GetActorID().dwActorID;
+            stRevive.dwOwnerID = dwOwnerID;
+            stRevive.byType = static_cast<std::uint8_t>(nType);
+            if (STPosInfo* pPosInfo = GetPosInfo()) {
+                stRevive.vPos = pPosInfo->vPos;
+                stRevive.fRot = pPosInfo->fRot;
+            }
+            XSendPacket xSendPacket(3u, 0x44u);
+            xSendPacket << stRevive;
+            CGocNetwork::SendBroadCast(this, xSendPacket, E_BROADCAST_TYPE::eNoneSelf);
+        }
+
+        auto pRecode = GetGOC_Recode(false);
+        if (pRecode) {
+            pRecode->SetReviveState(true);
+        }
+
+        std::uint16_t wMapID = 0;
+        std::int64_t nInstanceID = 0;
+        if (XArea* pCurArea = GetArea()) {
+            wMapID = pCurArea->GetTBMapID();
+            nInstanceID = pCurArea->GetInstanceID().nMapID;
+        }
+
+        ST_LOG_GAME stLog;
+        stLog._nUAID = static_cast<int>(GetUAID());
+        stLog._nUCID = static_cast<int>(GetUCID());
+        stLog._sMainType = 5;
+        stLog._sSubType = 21;
+        stLog.nParam0 = wMapID;
+        stLog.nParam1 = static_cast<int>(dwOwnerID);
+        stLog.nParam2 = nType;
+        stLog.nParam3 = static_cast<int>(dwItemID);
+        stLog.nParam6 = nInstanceID;
+        wcscpy_s(stLog.szComment, L"\uD50C\uB808\uC774\uC5B4 \uBD80\uD65C");
+        TXSingleton<XGameServer>::Instance()->SendDBLog(stLog);
+    }
+}
+
+// ============================================================================
+// InitSuperArmorGage - 初始化超级护甲槽 (IDA 0x140700B80)
+// ============================================================================
+void CUser::InitSuperArmorGage()
+{
+    auto pAttr = GetGOC_Attribute(false);
+    if (!pAttr) {
+        return;
+    }
+    float fOriginStat = pAttr->GetOriginStat(10);
+    TB_STATUS* pStatusTable = pAttr->GetStatusTable();
+    if (!pStatusTable) {
+        return;
+    }
+    m_fMaxSuperArmorGage = fOriginStat * pStatusTable->Check_Stat_SA * 0.01f;
+    m_fCurSuperArmorGage = m_fMaxSuperArmorGage;
 }
 
 // Revive - Revive player with HP percent

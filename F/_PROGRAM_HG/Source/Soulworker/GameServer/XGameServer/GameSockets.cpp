@@ -19,14 +19,28 @@
 #include "Soulworker/GameServer/XRelayServer/Thread/LogicThreadProcessor.h"
 #include "User.h"
 #include "GameServer.h"
+#include "ThreadLocalData.h"
 #include "Soulworker/GameServer/XCore/XServer/GreenDamTan_LogHelper.h"
 #include "Soulworker/GameServer/XCore/XArea/XActor.h"
+#include "Soulworker/GameServer/XGameServer/actor/component/GocParty.h"
+#include "Soulworker/GameServer/XGameServer/actor/component/GocInventory.h"
+#include "Soulworker/GameServer/XGameServer/actor/component/GocNetwork.h"
+#include "Soulworker/GameServer/XGameServer/actor/component/GocPost.h"
+#include "Soulworker/GameServer/XGameServer/BattleZone.h"
 #include <cstring>
 #include <functional>
 
 // ============================================================================
 // CGameControlSocket Implementation
 // ============================================================================
+
+// 辅助函数：向所有线程广播 (1,9) 系统事件同步包
+// CTimeEventMgr::ChangeEventValue / DeleteEventValue 的 SYSTEM_EVENT lambda 调用
+void GreenDamTan_BroadcastSystemEvent(const PS_SYNC_SYSTEM_EVENT& stEvent) {
+    XSendPacket xSendPacket(1u, 9u);
+    xSendPacket << stEvent;
+    ThreadLocalData::GetInstance()->SendBroadcast(xSendPacket);
+}
 
 // Per IDA 0x1401ca270: CGameControlSocket 构造函数
 CGameControlSocket::CGameControlSocket()
@@ -293,20 +307,19 @@ bool CGameControlSocket::RecvCreateMap(XPacket* xPacket) {
     PS_CREATE_MAP stCreateMap = {};
     *xPacket >> stCreateMap;
 
-    // Per IDA: 创建lambda任务分发到逻辑线程
-    std::function<void()> func = [stCreateMap]() {
-        // Per IDA: 在逻辑线程中处理创建地图
-        XGameServer* pServer = XGameServer::Instance();
-        if (pServer) {
-            // TODO: 实现创建地图的完整逻辑
-            GreenDamTan_log(__FILE__, __FUNCTION__, 
-                "RecvCreateMap - mapID=%lld", 
-                stCreateMap.uxMapID.nMapID);
-        }
-    };
-
-    // Per IDA: 通过CLogicThreadManager分发任务
-    CLogicThreadManager::Instance().DoJob(stCreateMap.uxMapID.nMapID, func);
+    // Per IDA: lambda7 检查地图是否已注册后分发到逻辑线程
+    CLogicThreadManager::Instance().DoJob(stCreateMap.uxMapID.nMapID,
+        [stCreateMap]() {
+            if (ThreadLocalData::GetInstance()->FindArea(stCreateMap.uxMapID)) {
+                if (stCreateMap.nResult > 0) {
+                    LogHelper::LogError("game.contents",
+                        "RecvCreateMap error - Failed Register map[ MapID:%d, Channel:%d ] ( %d )",
+                        static_cast<int>(stCreateMap.uxMapID.nMapID >> 16) >> 16,
+                        static_cast<int>(stCreateMap.uxMapID.nMapID) >> 24,
+                        342);
+                }
+            }
+        });
 
     return true;
 }
@@ -697,21 +710,43 @@ bool CGameControlSocket::RecvPostSend(XPacket* xPacket) {
         *xPacket >> stPostChar;
     }
 
+    // Per IDA: 查找用户
     XGameServer* pServer = XGameServer::Instance();
     CUser* pUser = pServer ? pServer->FindActorIDToUser(dwRecvUCID) : nullptr;
 
-    if (pUser) {
-        // Per IDA: 检查用户Area是否存在
-        // if (!pUser->GetArea()) {
-        //     return false;
-        // }
+    if (pUser && pUser->GetArea()) {
+        // Per IDA: 增加任务计数
+        pUser->IncrementJobCount();
 
-        // Per IDA: 增加任务计数并分发到逻辑线程
-        // pUser->IncrementJobCount();
+        // Per IDA: lambda41 添加收件邮件并发送给用户
+        CLogicThreadManager::Instance().DoJob(pUser->GetMapInsID().nMapID,
+            [pUser, wPostCount, stPostData, stPostChar, byState]() {
+                if (pUser && pUser->IsLive()) {
+                    CGocPost* pPost = pUser->GetGOC<CGocPost>();
+                    if (pPost) {
+                        pPost->SetConditionValue(wPostCount);
+                        if (byState) {
+                            pPost->AddRecvPost(stPostData);
+                            XSendPacket xSendPacket(0x20u, 9u);
+                            xSendPacket.XParse << wPostCount;
+                            xSendPacket << stPostData;
+                            CGocNetwork::Send(pUser, xSendPacket);
+                        } else {
+                            ST_POST_DATA stRecvData = stPostData;
+                            stRecvData.stCharInfo = stPostChar;
+                            pPost->AddRecvPost(stRecvData);
+                            XSendPacket xSendPacket(0x20u, 9u);
+                            xSendPacket.XParse << wPostCount;
+                            xSendPacket << stRecvData;
+                            CGocNetwork::Send(pUser, xSendPacket);
+                        }
+                    }
+                }
+            });
 
-        // Per IDA: 通过CLogicThreadManager分发任务
-        // TODO: 完整实现需要CLogicThreadManager::DoJob
-        GreenDamTan_log(__FILE__, __FUNCTION__, "RecvPostSend - recvUCID=%u, postCount=%u, need CLogicThreadManager::DoJob", dwRecvUCID, wPostCount);
+        // Per IDA: 递减任务计数
+        CLogicThreadManager::Instance().DoJob(pUser->GetMapInsID().nMapID,
+            [pUser]() { if (pUser) pUser->DecrementJobCount(); });
         return true;
     }
 
@@ -783,14 +818,16 @@ bool CGameControlSocket::RecvServerOptionUpdate(XPacket* xPacket) {
 }
 // Per IDA 0x1401d14c0: RecvUserNotice
 bool CGameControlSocket::RecvUserNotice(XPacket* xPacket) {
-    // Per IDA: 用户公告通知处理
+    // Per IDA: 解析公告
     PS_CHAT_NOTICE stNotice = {};
     *xPacket >> stNotice;
 
-    // Per IDA: 通过CLogicThreadManager分发到所有线程
-    // TODO: 完整实现需要CLogicThreadManager::DoJobAllThread 和 lambda
-    GreenDamTan_log(__FILE__, __FUNCTION__, "RecvUserNotice - type=%d, messageCode=%d, need CLogicThreadManager::DoJobAllThread",
-                    stNotice.byType, stNotice.nMessageCode);
+    // Per IDA: lambda35 发送广播后分发到所有线程
+    CLogicThreadManager::Instance().DoJobAllThread([stNotice]() {
+        XSendPacket xSendPacket(7u, 4u);
+        xSendPacket << stNotice;
+        ThreadLocalData::GetInstance()->SendBroadcast(xSendPacket);
+    });
     return true;
 }
 
@@ -798,17 +835,24 @@ bool CGameControlSocket::RecvUserNotice(XPacket* xPacket) {
 
 // Per IDA 0x1401d1680: RecvUserMegaPhone
 bool CGameControlSocket::RecvUserMegaPhone(XPacket* xPacket) {
-    // Per IDA: 喇叭消息处理
+    // Per IDA: 解析喇叭消息与物品链接
     PS_CHAT_MEGAPHONE stMegaPhone = {};
     PS_CHAT_ITEM_LINK_FOR_SERVER psLinkItemInfo = {};
 
     *xPacket >> stMegaPhone;
     *xPacket >> psLinkItemInfo;
 
-    // Per IDA: 通过CLogicThreadManager分发到所有线程
-    // TODO: 完整实现需要CLogicThreadManager::DoJobAllThread 和 lambda
-    GreenDamTan_log(__FILE__, __FUNCTION__, "RecvUserMegaPhone - ucid=%u, need CLogicThreadManager::DoJobAllThread",
-                    stMegaPhone.dwUCID);
+    // Per IDA: lambda36 组装 (7,6) 广播包后分发到所有线程
+    CLogicThreadManager::Instance().DoJobAllThread([stMegaPhone, psLinkItemInfo]() {
+        XSendPacket xSendPacket(7u, 6u);
+        xSendPacket << stMegaPhone;
+        xSendPacket.XParse << psLinkItemInfo.byItemLinkCount;
+        for (std::uint8_t i = 0; i < psLinkItemInfo.byItemLinkCount; ++i) {
+            PS_CHAT_ITEM_LINK psInfo = psLinkItemInfo.psItemLinkInfo[i];
+            xSendPacket << psInfo;
+        }
+        ThreadLocalData::GetInstance()->SendBroadcast(xSendPacket);
+    });
     return true;
 }
 
@@ -830,17 +874,27 @@ bool CGameControlSocket::RecvUserTradePasswordState(XPacket* xPacket) {
     }
 
     // Per IDA: 检查用户Area是否存在
-    // if (!pUser->GetArea()) {
-    //     return false;
-    // }
+    if (!pUser->GetArea()) {
+        return false;
+    }
 
     // Per IDA: 增加任务计数
-    // pUser->IncrementJobCount();
+    pUser->IncrementJobCount();
 
-    // Per IDA: 通过CLogicThreadManager分发任务
-    // TODO: 完整实现需要CLogicThreadManager::DoJob
-    GreenDamTan_log(__FILE__, __FUNCTION__, "RecvUserTradePasswordState - ucid=%u, state=%u, need CLogicThreadManager::DoJob",
-                    dwUCID, byState);
+    // Per IDA: lambda37 设置交易密码状态后分发到逻辑线程
+    CLogicThreadManager::Instance().DoJob(pUser->GetMapInsID().nMapID,
+        [pUser, byState]() {
+            if (pUser && pUser->IsLive()) {
+                CGocInventory* pInven = pUser->GetGOC<CGocInventory>();
+                if (pInven) {
+                    pInven->SetTradePasswordState(byState);
+                }
+            }
+        });
+
+    // Per IDA: 递减任务计数
+    CLogicThreadManager::Instance().DoJob(pUser->GetMapInsID().nMapID,
+        [pUser]() { if (pUser) pUser->DecrementJobCount(); });
     return true;
 }
 
@@ -864,17 +918,24 @@ bool CGameControlSocket::RecvUserWhisperRes(XPacket* xPacket) {
     }
 
     // Per IDA: 检查用户Area是否存在
-    // if (!pUser->GetArea()) {
-    //     return false;
-    // }
+    if (!pUser->GetArea()) {
+        return false;
+    }
 
     // Per IDA: 增加任务计数
-    // pUser->IncrementJobCount();
+    pUser->IncrementJobCount();
 
-    // Per IDA: 通过CLogicThreadManager分发任务
-    // TODO: 完整实现需要CLogicThreadManager::DoJob
-    GreenDamTan_log(__FILE__, __FUNCTION__, "RecvUserWhisperRes - uid=%u, result=%u, need CLogicThreadManager::DoJob",
-                    dwUID, byResult);
+    // Per IDA: lambda39 失败时发送错误消息后分发到逻辑线程
+    CLogicThreadManager::Instance().DoJob(pUser->GetMapInsID().nMapID,
+        [pUser, byResult]() {
+            if (pUser && pUser->IsLive() && byResult) {
+                CGocNetwork::SendErrorMessage(pUser, 7u, 2u, 0xD994u);
+            }
+        });
+
+    // Per IDA: 递减任务计数
+    CLogicThreadManager::Instance().DoJob(pUser->GetMapInsID().nMapID,
+        [pUser]() { if (pUser) pUser->DecrementJobCount(); });
     return true;
 }
 // Per IDA 0x1401d37e0: RecvCachingComplete
@@ -943,25 +1004,40 @@ bool CGameControlSocket::RecvUserKickout(XPacket* xPacket) {
     }
 
     // Per IDA: 检查用户Area是否存在
-    // if (!pUser->GetArea()) {
-    //     return false;
-    // }
+    if (!pUser->GetArea()) {
+        return false;
+    }
 
-    // Per IDA: 增加任务计数并分发到逻辑线程
-    // pUser->IncrementJobCount();
-    // TODO: 完整实现需要CLogicThreadManager::DoJob
-    GreenDamTan_log(__FILE__, __FUNCTION__, "RecvUserKickout - need CLogicThreadManager::DoJob");
+    // Per IDA: 增加任务计数
+    pUser->IncrementJobCount();
+
+    // Per IDA: lambda21 记录日志并踢出用户后分发到逻辑线程
+    CLogicThreadManager::Instance().DoJob(pUser->GetMapInsID().nMapID,
+        [pUser, psKick]() {
+            if (pUser && pUser->IsLive()) {
+                PS_KICK_USER_INFO stKick = psKick;
+                LogHelper::LogInfo("game.contents", "<RecvUserKickout> UAID : [%d], TYPE : [%d]",
+                    stKick.dwUAID, stKick.byKickType);
+                pUser->Kickout(&stKick, false);
+            }
+        });
+
+    // Per IDA: 递减任务计数
+    CLogicThreadManager::Instance().DoJob(pUser->GetMapInsID().nMapID,
+        [pUser]() { if (pUser) pUser->DecrementJobCount(); });
     return true;
 }
 // Per IDA 0x1401cf690: RecvUpdateChannelAll
 bool CGameControlSocket::RecvUpdateChannelAll(XPacket* xPacket) {
-    // Per IDA: 更新所有频道信息
+    // Per IDA: 解析频道信息
     PS_CHANNEL_INFO stChannel = {};
     *xPacket >> stChannel;
 
-    // Per IDA: 通过CLogicThreadManager分发到所有线程
-    // TODO: 完整实现需要CLogicThreadManager::DoJobAllThread
-    GreenDamTan_log(__FILE__, __FUNCTION__, "RecvUpdateChannelAll - need CLogicThreadManager::DoJobAllThread");
+    // Per IDA: lambda23 更新频道信息后分发到所有线程
+    CLogicThreadManager::Instance().DoJobAllThread([stChannel]() {
+        PS_CHANNEL_INFO stCopy = stChannel;
+        ThreadLocalData::GetInstance()->UpdateChannelAll(stCopy);
+    });
     return true;
 }
 
@@ -974,9 +1050,11 @@ bool CGameControlSocket::RecvUpdateChannel(XPacket* xPacket) {
     xPacket->XParse >> wMapID;
     *xPacket >> stChannel;
 
-    // Per IDA: 通过CLogicThreadManager分发到所有线程
-    // TODO: 完整实现需要CLogicThreadManager::DoJobAllThread
-    GreenDamTan_log(__FILE__, __FUNCTION__, "RecvUpdateChannel - mapID=%u, need CLogicThreadManager::DoJobAllThread", wMapID);
+    // Per IDA: lambda24 更新频道信息后分发到所有线程
+    CLogicThreadManager::Instance().DoJobAllThread([wMapID, stChannel]() {
+        ST_CHANNEL_INFO stCopy = stChannel;
+        ThreadLocalData::GetInstance()->UpdateChannel(wMapID, stCopy);
+    });
     return true;
 }
 
@@ -1050,29 +1128,27 @@ bool CGameControlSocket::RecvTimeEvent(XPacket* xPacket) {
 
     // Per IDA: 添加时间事件
     XGameServer* pServer = XGameServer::Instance();
-    if (pServer) {
-        // CTimeEventMgr::AddTimeEvent(&pServer->m_TimeEventMgr, &stInfo);
-    }
+    pServer->GetTimeEventMgr().AddTimeEvent(stInfo);
 
-    // Per IDA: 如果不使用，分发到所有线程
+    // Per IDA: 如果未标记为停用，则通过 lambda43 分发到所有线程广播
     if (!stInfo.byteUse) {
-        // TODO: 完整实现需要 CLogicThreadManager::DoJobAllThread
-        GreenDamTan_log(__FILE__, __FUNCTION__, "RecvTimeEvent - need CLogicThreadManager::DoJobAllThread");
+        CLogicThreadManager::Instance().DoJobAllThread([stInfo]() {
+            ST_GM_TIME_EVENT_INFO stEvent = stInfo;
+            ThreadLocalData::GetInstance()->SendTimeEvent(stEvent);
+        });
     }
     return true;
 }
 
 // Per IDA 0x1401d2da0: RecvValueEvent
 bool CGameControlSocket::RecvValueEvent(XPacket* xPacket) {
-    // Per IDA: 数值事件处理
+    // Per IDA: 解析数值事件列表
     PS_GM_VALUE_EVENT_LIST psList = {};
     *xPacket >> psList;
 
     // Per IDA: 添加数值事件
     XGameServer* pServer = XGameServer::Instance();
-    if (pServer) {
-        // CTimeEventMgr::AddValueEvent(&pServer->m_TimeEventMgr, &psList);
-    }
+    pServer->GetTimeEventMgr().AddValueEvent(psList);
     return true;
 }
 
@@ -1356,7 +1432,7 @@ bool CGameControlSocket::RecvServerCreateModeMazeReq(XPacket* xPacket) {
 
 // Per IDA 0x1401d5310: RecvServerRouletteEvent
 bool CGameControlSocket::RecvServerRouletteEvent(XPacket* xPacket) {
-    // Per IDA: 轮盘事件处理
+    // Per IDA: 解析轮盘活动信息与是否广播标志
     PS_GM_ROULETTE_EVENT psInfo = {};
     bool bSend = false;
 
@@ -1365,13 +1441,34 @@ bool CGameControlSocket::RecvServerRouletteEvent(XPacket* xPacket) {
 
     // Per IDA: 设置轮盘事件
     XGameServer* pServer = XGameServer::Instance();
-    if (pServer) {
-        // CTimeEventMgr::SetRouletteEvent(&pServer->m_TimeEventMgr, &psInfo);
-    }
+    pServer->GetTimeEventMgr().SetRouletteEvent(psInfo);
 
-    // Per IDA: 通过CLogicThreadManager分发到所有线程
-    // TODO: 完整实现需要CLogicThreadManager::DoJobAllThread
-    GreenDamTan_log(__FILE__, __FUNCTION__, "RecvServerRouletteEvent - need CLogicThreadManager::DoJobAllThread");
+    // Per IDA: lambda64 捕获轮盘信息，经 DoJobAllThread 广播到所有线程
+    CLogicThreadManager::Instance().DoJobAllThread([psInfo, bSend]() {
+        LogHelper::LogError("game.contents", "Complete Roulette Event Load[ID:%d]", psInfo.nEventID);
+        if (bSend) {
+            PS_ROULETTE_EVENT psEventInfo = {};
+            std::wcscpy(psEventInfo.szTitle, psInfo.szTitle);
+            psEventInfo.nEventID = psInfo.nEventID;
+            psEventInfo.byUseType = psInfo.byUseType;
+            psEventInfo.nDayLimit = psInfo.nUseCount;
+            psEventInfo.biStartDate = psInfo.biStartDate;
+            psEventInfo.biEndDate = psInfo.biEndDate;
+            psEventInfo.byCostType = psInfo.byCostType;
+            psEventInfo.nCostID = psInfo.nCostID;
+            psEventInfo.nCostCount = psInfo.nCostCount;
+            for (const ST_GM_ROULETTE_EVENT_ITEM& stReward : psInfo.psRewardList.vecInfo) {
+                ST_ROULETTE_EVENT_ITEM stItem;
+                stItem.nRewardID = stReward.nRewradIndex;
+                stItem.nItemID = stReward.nItemID;
+                stItem.nCount = stReward.nCount;
+                psEventInfo.psRewardItemList.vecInfo.push_back(stItem);
+            }
+            XSendPacket xSendPacket(0x2A, 0x27);
+            xSendPacket << psEventInfo;
+            ThreadLocalData::GetInstance()->SendBroadcast(xSendPacket);
+        }
+    });
     return true;
 }
 
@@ -1852,31 +1949,1007 @@ bool CCommunitySocket::RecvPartyInfo(XPacket* xPacket) {
 
 // Remaining stub implementations for CCommunitySocket packet handlers
 bool CCommunitySocket::RecvPartyEnterServer(XPacket*) { return true; }
-bool CCommunitySocket::RecvPartyInvite(XPacket*) { return true; }
-bool CCommunitySocket::RecvPartyAccept(XPacket*) { return true; }
-bool CCommunitySocket::RecvPartyReject(XPacket*) { return true; }
+
+// ============================================================================
+// RecvPartyInvite - 处理队伍邀请 (IDA 0x1401FE250)
+// 解析 PS_REQ_PARTY_INVITE + dwUAID + byLevel[24] + dwPartyID
+// nResult<=0: 发送 (0x12,1) 邀请给被邀请者（含匹配日期/交易/世界类型/安全区检查，失败发拒绝）
+// nResult>0: 发送 (0x12,1) 邀请确认给请求者
+// ============================================================================
+bool CCommunitySocket::RecvPartyInvite(XPacket* xPacket)
+{
+    PS_REQ_PARTY_INVITE stInvite;
+    std::uint32_t dwUAID = 0;
+    std::uint8_t byLevel[24] = {};
+    std::uint32_t dwPartyID = 0;
+
+    *xPacket >> stInvite;
+    xPacket->XParse >> dwUAID;
+    for (int i = 0; i < 24; ++i) {
+        xPacket->XParse >> byLevel[i];
+    }
+    xPacket->XParse >> dwPartyID;
+
+    if (stInvite.nResult <= 0) {
+        CUser* pInviteActorID = TXSingleton<XGameServer>::Instance()->FindActorIDToUser(stInvite.dwInviteActorID);
+        if (!pInviteActorID)
+            return false;
+        if (!pInviteActorID->GetArea())
+            return false;
+
+        pInviteActorID->IncrementJobCount();
+        CLogicThreadManager::Instance().DoJob(pInviteActorID->GetMapInsID().nMapID,
+            [pInviteActorID, stInvite, dwUAID, byLevel, dwPartyID]() {
+                if (!pInviteActorID || !pInviteActorID->IsLive())
+                    return;
+                auto pPartyPtr = pInviteActorID->GetGOC_Party(false);
+                auto pInvenPtr = pInviteActorID->GetGOC_Inventory(false);
+                if (pPartyPtr && pPartyPtr->IsMatchingDate() ||
+                    pInvenPtr && pInvenPtr->GetTradeState() != E_TRADE_STATE_NONE) {
+                    // 匹配中或交易中 - 发送拒绝 (0xF4, 0x13)
+                    PS_PARTY_REJECT stReject;
+                    stReject.dwRejectID = pInviteActorID->GetActorID().dwActorID;
+                    stReject.dwReqActor = stInvite.dwReqActorID;
+                    std::wstring strName = pInviteActorID->GetName();
+                    std::wcsncpy(stReject.strRejectName, strName.c_str(), 20);
+                    stReject.strRejectName[20] = L'\0';
+                    stReject.dwErrorID = 53028;
+                    XSendPacket xSendPacket(0xF4u, 0x13u);
+                    xSendPacket << stReject;
+                    TXSingleton<XGameServer>::Instance()->GetCommunitySocket().SendCheck(&xSendPacket);
+                } else if (pInviteActorID->GetArea()) {
+                    XArea* pArea = pInviteActorID->GetArea();
+                    if (pArea->GetWorldType() != 2) {
+                        // 不在战场 - 发送邀请 (0x12, 1)
+                        PS_REQ_PARTY_INVITE stNewInvite = stInvite;
+                        XSendPacket xSendPacket(0x12u, 1u);
+                        xSendPacket << stNewInvite;
+                        CGocNetwork::Send(pInviteActorID, xSendPacket);
+
+                        ST_LOG_GAME stLog;
+                        stLog._sMainType = 22;
+                        stLog._sSubType = 6;
+                        stLog._nUAID = static_cast<int>(dwUAID);
+                        stLog._nUCID = stNewInvite.dwReqActorID;
+                        stLog.nParam0 = byLevel[0];
+                        stLog.nParam1 = pInviteActorID->GetActorID().dwActorID;
+                        stLog.nParam2 = pInviteActorID->GetLevel();
+                        stLog.nParam6 = dwPartyID;
+                        TXSingleton<XGameServer>::Instance()->SendDBLog(stLog);
+
+                        ST_LOG_GAME stLogRecv;
+                        stLogRecv._sMainType = 22;
+                        stLogRecv._sSubType = 12;
+                        stLogRecv._nUAID = static_cast<int>(pInviteActorID->GetUAID());
+                        stLogRecv._nUCID = pInviteActorID->GetActorID().dwActorID;
+                        stLogRecv.nParam0 = pInviteActorID->GetLevel();
+                        stLogRecv.nParam1 = stNewInvite.dwReqActorID;
+                        stLogRecv.nParam6 = dwPartyID;
+                        TXSingleton<XGameServer>::Instance()->SendDBLog(stLogRecv);
+                    } else {
+                        // 战场中 - 先构建拒绝 (0xF4, 0x13) 53031
+                        PS_PARTY_REJECT stReject;
+                        stReject.dwRejectID = pInviteActorID->GetActorID().dwActorID;
+                        stReject.dwReqActor = stInvite.dwReqActorID;
+                        std::wstring strName = pInviteActorID->GetName();
+                        std::wcsncpy(stReject.strRejectName, strName.c_str(), 20);
+                        stReject.strRejectName[20] = L'\0';
+                        stReject.dwErrorID = 53031;
+                        CBattleZone* pBattleZone = dynamic_cast<CBattleZone*>(pArea);
+                        if (!pBattleZone) {
+                            // 战场类型转换失败 - 发送拒绝 53031
+                            XSendPacket xSendPacket(0xF4u, 0x13u);
+                            xSendPacket << stReject;
+                            TXSingleton<XGameServer>::Instance()->GetCommunitySocket().SendCheck(&xSendPacket);
+                            return;
+                        }
+                        if (pBattleZone->IsInSafetyZone(pInviteActorID)) {
+                            // 安全区内 - 发送邀请
+                            PS_REQ_PARTY_INVITE stNewInvite = stInvite;
+                            XSendPacket xSendPacket(0x12u, 1u);
+                            xSendPacket << stNewInvite;
+                            CGocNetwork::Send(pInviteActorID, xSendPacket);
+
+                            ST_LOG_GAME stLog;
+                            stLog._sMainType = 22;
+                            stLog._sSubType = 6;
+                            stLog._nUAID = static_cast<int>(dwUAID);
+                            stLog._nUCID = stNewInvite.dwReqActorID;
+                            stLog.nParam0 = byLevel[0];
+                            stLog.nParam1 = pInviteActorID->GetActorID().dwActorID;
+                            stLog.nParam2 = pInviteActorID->GetLevel();
+                            stLog.nParam6 = dwPartyID;
+                            TXSingleton<XGameServer>::Instance()->SendDBLog(stLog);
+
+                            ST_LOG_GAME stLogRecv;
+                            stLogRecv._sMainType = 22;
+                            stLogRecv._sSubType = 12;
+                            stLogRecv._nUAID = static_cast<int>(pInviteActorID->GetUAID());
+                            stLogRecv._nUCID = pInviteActorID->GetActorID().dwActorID;
+                            stLogRecv.nParam0 = pInviteActorID->GetLevel();
+                            stLogRecv.nParam1 = stNewInvite.dwReqActorID;
+                            stLogRecv.nParam6 = dwPartyID;
+                            TXSingleton<XGameServer>::Instance()->SendDBLog(stLogRecv);
+                        } else {
+                            // 非安全区 - 发送拒绝 53031
+                            XSendPacket xSendPacket(0xF4u, 0x13u);
+                            xSendPacket << stReject;
+                            TXSingleton<XGameServer>::Instance()->GetCommunitySocket().SendCheck(&xSendPacket);
+                        }
+                    }
+                } else {
+                    // 无 Area - 发送拒绝 (0xF4, 0x13)
+                    PS_PARTY_REJECT stReject;
+                    stReject.dwRejectID = pInviteActorID->GetActorID().dwActorID;
+                    stReject.dwReqActor = stInvite.dwReqActorID;
+                    std::wstring strName = pInviteActorID->GetName();
+                    std::wcsncpy(stReject.strRejectName, strName.c_str(), 20);
+                    stReject.strRejectName[20] = L'\0';
+                    stReject.dwErrorID = 53011;
+                    XSendPacket xSendPacket(0xF4u, 0x13u);
+                    xSendPacket << stReject;
+                    TXSingleton<XGameServer>::Instance()->GetCommunitySocket().SendCheck(&xSendPacket);
+                }
+            });
+
+        CLogicThreadManager::Instance().DoJob(pInviteActorID->GetMapInsID().nMapID,
+            [pInviteActorID]() {
+                if (pInviteActorID)
+                    pInviteActorID->DecrementJobCount();
+            });
+    } else {
+        CUser* pReqUser = TXSingleton<XGameServer>::Instance()->FindActorIDToUser(stInvite.dwReqActorID);
+        if (!pReqUser)
+            return false;
+        if (!pReqUser->GetArea())
+            return false;
+
+        pReqUser->IncrementJobCount();
+        CLogicThreadManager::Instance().DoJob(pReqUser->GetMapInsID().nMapID,
+            [pReqUser, stInvite]() {
+                if (!pReqUser || !pReqUser->IsLive())
+                    return;
+                PS_REQ_PARTY_INVITE stNewInvite = stInvite;
+                XSendPacket xSendPacket(0x12u, 1u);
+                xSendPacket << stNewInvite;
+                CGocNetwork::Send(pReqUser, xSendPacket);
+            });
+
+        CLogicThreadManager::Instance().DoJob(pReqUser->GetMapInsID().nMapID,
+            [pReqUser]() {
+                if (pReqUser)
+                    pReqUser->DecrementJobCount();
+            });
+    }
+
+    return false;
+}
+
+// ============================================================================
+// RecvPartyAccept - 处理队伍邀请接受 (IDA 0x1401FF380)
+// 解析 PS_RES_PARTY_ACCEPT -> 发送 (0x12,2) 给请求者
+// ============================================================================
+bool CCommunitySocket::RecvPartyAccept(XPacket* xPacket)
+{
+    PS_RES_PARTY_ACCEPT stPartyAccept;
+    xPacket->XParse >> stPartyAccept.dwAcceptID;
+    xPacket->XParse >> stPartyAccept.nResult;
+
+    CUser* pReqUser = TXSingleton<XGameServer>::Instance()->FindActorIDToUser(stPartyAccept.dwAcceptID);
+    if (!pReqUser)
+        return false;
+    if (!pReqUser->GetArea())
+        return false;
+
+    pReqUser->IncrementJobCount();
+    CLogicThreadManager::Instance().DoJob(pReqUser->GetMapInsID().nMapID,
+        [pReqUser, stPartyAccept]() {
+            if (!pReqUser || !pReqUser->IsLive())
+                return;
+            PS_RES_PARTY_ACCEPT stNewPartyAccept = stPartyAccept;
+            XSendPacket xSendPacket(0x12u, 2u);
+            xSendPacket << stNewPartyAccept;
+            CGocNetwork::Send(pReqUser, xSendPacket);
+        });
+
+    CLogicThreadManager::Instance().DoJob(pReqUser->GetMapInsID().nMapID,
+        [pReqUser]() {
+            if (pReqUser)
+                pReqUser->DecrementJobCount();
+        });
+
+    return true;
+}
+
+// ============================================================================
+// RecvPartyReject - 处理队伍邀请拒绝 (IDA 0x1401FF6C0)
+// 解析 PS_PARTY_REJECT -> 发送 (0x12,8) 给请求者
+// ============================================================================
+bool CCommunitySocket::RecvPartyReject(XPacket* xPacket)
+{
+    PS_PARTY_REJECT stReject;
+    *xPacket >> stReject;
+
+    CUser* pReqUser = TXSingleton<XGameServer>::Instance()->FindActorIDToUser(stReject.dwReqActor);
+    if (!pReqUser)
+        return false;
+    if (!pReqUser->GetArea())
+        return false;
+
+    pReqUser->IncrementJobCount();
+    CLogicThreadManager::Instance().DoJob(pReqUser->GetMapInsID().nMapID,
+        [pReqUser, stReject]() {
+            if (!pReqUser || !pReqUser->IsLive())
+                return;
+            PS_PARTY_REJECT stNewReject = stReject;
+            XSendPacket xSendPacket(0x12u, 8u);
+            xSendPacket << stNewReject;
+            CGocNetwork::Send(pReqUser, xSendPacket);
+        });
+
+    CLogicThreadManager::Instance().DoJob(pReqUser->GetMapInsID().nMapID,
+        [pReqUser]() {
+            if (pReqUser)
+                pReqUser->DecrementJobCount();
+        });
+
+    return true;
+}
 bool CCommunitySocket::RecvPartyMessage(XPacket*) { return true; }
-bool CCommunitySocket::RecvPartyMatchingEnter(XPacket*) { return true; }
-bool CCommunitySocket::RecvPartyMatchingExit(XPacket*) { return true; }
-bool CCommunitySocket::RecvPartyMatchingCheck(XPacket*) { return true; }
-bool CCommunitySocket::RecvPartyMatchingReset(XPacket*) { return true; }
-bool CCommunitySocket::RecvPartyMatchingWait(XPacket*) { return true; }
-bool CCommunitySocket::RecvPartyRecruitAdd(XPacket*) { return true; }
-bool CCommunitySocket::RecvPartyRecruitDel(XPacket*) { return true; }
-bool CCommunitySocket::RecvPartyRecruitApply(XPacket*) { return true; }
-bool CCommunitySocket::RecvPartyRecruitApplyAccept(XPacket*) { return true; }
-bool CCommunitySocket::RecvPartyRecruitApplyReject(XPacket*) { return true; }
-bool CCommunitySocket::RecvPartyRecruitApplyUpdate(XPacket*) { return true; }
-bool CCommunitySocket::RecvPartyRecruitList(XPacket*) { return true; }
-bool CCommunitySocket::RecvPartyRecruitMyApplyList(XPacket*) { return true; }
-bool CCommunitySocket::RecvPartyRecruitApplyList(XPacket*) { return true; }
-bool CCommunitySocket::RecvPartyRecruitInfo(XPacket*) { return true; }
-bool CCommunitySocket::RecvPartyRecruitApplyDel(XPacket*) { return true; }
-bool CCommunitySocket::RecvPartyRecruitApplyInfo(XPacket*) { return true; }
-bool CCommunitySocket::RecvPartyRecruitApplyNotice(XPacket*) { return true; }
+
+// ============================================================================
+// RecvPartyMatchingEnter - 处理队伍匹配进入 (IDA 0x1402033C0)
+// 解析 dwActorID + byResult + dwEnterActorID + ST_MATCHING_INFO
+// byResult 分派：100=错误53035, 0=错误53028, 其他=匹配确认+发送 (0x12,0x30)
+// ============================================================================
+bool CCommunitySocket::RecvPartyMatchingEnter(XPacket* xPacket)
+{
+    std::uint32_t dwActorID = 0;
+    std::uint8_t byResult = 0;
+    std::uint32_t dwEnterActorID = 0;
+    ST_MATCHING_INFO stMatchingInfo;
+
+    xPacket->XParse >> dwActorID;
+    xPacket->XParse >> byResult;
+    xPacket->XParse >> dwEnterActorID;
+    *xPacket >> stMatchingInfo;
+
+    CUser* pUser = TXSingleton<XGameServer>::Instance()->FindActorIDToUser(dwActorID);
+    if (!pUser)
+        return true;
+    if (!pUser->GetArea())
+        return false;
+
+    pUser->IncrementJobCount();
+    CLogicThreadManager::Instance().DoJob(pUser->GetMapInsID().nMapID,
+        [pUser, byResult, dwEnterActorID, stMatchingInfo]() {
+            if (!pUser || !pUser->IsLive())
+                return;
+            if (byResult) {
+                if (byResult == 100) {
+                    pUser->SendErrorMessage(0x12u, 0x30u, 53035);
+                } else {
+                    if (pUser->GetActorID().dwActorID == dwEnterActorID) {
+                        auto pPartyPtr = pUser->GetGOC_Party(false);
+                        if (pPartyPtr) {
+                            pPartyPtr->SetMatchingDate(TXSingleton<XGameServer>::Instance()->GetCurDate());
+                        }
+                    }
+                    ST_MATCHING_INFO st = stMatchingInfo;
+                    XSendPacket xSendPacket(0x12u, 0x30u);
+                    xSendPacket << st;
+                    CGocNetwork::Send(pUser, xSendPacket);
+                }
+            } else {
+                pUser->SendErrorMessage(0x12u, 0x30u, 53028);
+            }
+        });
+
+    CLogicThreadManager::Instance().DoJob(pUser->GetMapInsID().nMapID,
+        [pUser]() {
+            if (pUser)
+                pUser->DecrementJobCount();
+        });
+
+    return true;
+}
+
+// ============================================================================
+// RecvPartyMatchingExit - 处理队伍匹配退出 (IDA 0x1402039B0)
+// 解析 dwActorID + dwExitActorID + byReason
+// 若 ActorID==dwExitActorID 或 byReason==0 则重置匹配时间；发送 (0x12,0x31)
+// ============================================================================
+bool CCommunitySocket::RecvPartyMatchingExit(XPacket* xPacket)
+{
+    std::uint32_t dwActorID = 0;
+    std::uint32_t dwExitActorID = 0;
+    std::uint8_t byReason = 0;
+
+    xPacket->XParse >> dwActorID;
+    xPacket->XParse >> dwExitActorID;
+    xPacket->XParse >> byReason;
+
+    CUser* pUser = TXSingleton<XGameServer>::Instance()->FindActorIDToUser(dwActorID);
+    if (!pUser)
+        return true;
+    if (!pUser->GetArea())
+        return false;
+
+    pUser->IncrementJobCount();
+    CLogicThreadManager::Instance().DoJob(pUser->GetMapInsID().nMapID,
+        [pUser, dwExitActorID, byReason]() {
+            if (!pUser || !pUser->IsLive())
+                return;
+            if (pUser->GetActorID().dwActorID == dwExitActorID || byReason == 0) {
+                auto pPartyPtr = pUser->GetGOC_Party(false);
+                if (pPartyPtr) {
+                    pPartyPtr->SetMatchingDate(0);
+                }
+            }
+            XSendPacket xSendPacket(0x12u, 0x31u);
+            xSendPacket.XParse << dwExitActorID;
+            xSendPacket.XParse << byReason;
+            CGocNetwork::Send(pUser, xSendPacket);
+        });
+
+    CLogicThreadManager::Instance().DoJob(pUser->GetMapInsID().nMapID,
+        [pUser]() {
+            if (pUser)
+                pUser->DecrementJobCount();
+        });
+
+    return true;
+}
+// ============================================================================
+// RecvPartyMatchingCheck - 处理队伍匹配检查 (IDA 0x140203E10)
+// 解析 dwActorID -> 发送 (0x12,0x32) 空包给用户
+// ============================================================================
+bool CCommunitySocket::RecvPartyMatchingCheck(XPacket* xPacket)
+{
+    std::uint32_t dwActorID = 0;
+    xPacket->XParse >> dwActorID;
+
+    CUser* pUser = TXSingleton<XGameServer>::Instance()->FindActorIDToUser(dwActorID);
+    if (!pUser)
+        return true;
+    if (!pUser->GetArea())
+        return false;
+
+    pUser->IncrementJobCount();
+    CLogicThreadManager::Instance().DoJob(pUser->GetMapInsID().nMapID,
+        [pUser]() {
+            if (!pUser || !pUser->IsLive())
+                return;
+            XSendPacket xSendPacket(0x12u, 0x32u);
+            CGocNetwork::Send(pUser, xSendPacket);
+        });
+
+    CLogicThreadManager::Instance().DoJob(pUser->GetMapInsID().nMapID,
+        [pUser]() {
+            if (pUser)
+                pUser->DecrementJobCount();
+        });
+
+    return true;
+}
+// ============================================================================
+// RecvPartyMatchingReset - 处理队伍匹配重置 (IDA 0x140204100)
+// 解析 dwActorID -> 发送 (0x12,0x33) 空包给用户
+// ============================================================================
+bool CCommunitySocket::RecvPartyMatchingReset(XPacket* xPacket)
+{
+    std::uint32_t dwActorID = 0;
+    xPacket->XParse >> dwActorID;
+
+    CUser* pUser = TXSingleton<XGameServer>::Instance()->FindActorIDToUser(dwActorID);
+    if (!pUser)
+        return true;
+    if (!pUser->GetArea())
+        return false;
+
+    pUser->IncrementJobCount();
+    CLogicThreadManager::Instance().DoJob(pUser->GetMapInsID().nMapID,
+        [pUser]() {
+            if (!pUser || !pUser->IsLive())
+                return;
+            XSendPacket xSendPacket(0x12u, 0x33u);
+            CGocNetwork::Send(pUser, xSendPacket);
+        });
+
+    CLogicThreadManager::Instance().DoJob(pUser->GetMapInsID().nMapID,
+        [pUser]() {
+            if (pUser)
+                pUser->DecrementJobCount();
+        });
+
+    return true;
+}
+// ============================================================================
+// RecvPartyMatchingWait - 处理队伍匹配等待 (IDA 0x1402043F0)
+// 解析 dwActorID + dwLeaderID -> 发送 (0x12,0x34) + dwLeaderID 给用户
+// ============================================================================
+bool CCommunitySocket::RecvPartyMatchingWait(XPacket* xPacket)
+{
+    std::uint32_t dwActorID = 0;
+    std::uint32_t dwLeaderID = 0;
+    xPacket->XParse >> dwActorID;
+    xPacket->XParse >> dwLeaderID;
+
+    CUser* pUser = TXSingleton<XGameServer>::Instance()->FindActorIDToUser(dwActorID);
+    if (!pUser)
+        return true;
+    if (!pUser->GetArea())
+        return false;
+
+    pUser->IncrementJobCount();
+    CLogicThreadManager::Instance().DoJob(pUser->GetMapInsID().nMapID,
+        [pUser, dwLeaderID]() {
+            if (!pUser || !pUser->IsLive())
+                return;
+            XSendPacket xSendPacket(0x12u, 0x34u);
+            xSendPacket.XParse << dwLeaderID;
+            CGocNetwork::Send(pUser, xSendPacket);
+        });
+
+    CLogicThreadManager::Instance().DoJob(pUser->GetMapInsID().nMapID,
+        [pUser]() {
+            if (pUser)
+                pUser->DecrementJobCount();
+        });
+
+    return true;
+}
+// ============================================================================
+// RecvPartyRecruitAdd - 处理队伍招募添加结果 (IDA 0x140205470)
+// 解析 PS_SERVER_PARTY_RECRUIT_ADD_RES -> DoJob x2
+// lambda112: nResult==1 发送 (0x12,0x38) 成功招募包，否则发错误
+// ============================================================================
+bool CCommunitySocket::RecvPartyRecruitAdd(XPacket* xPacket)
+{
+    PS_SERVER_PARTY_RECRUIT_ADD_RES psRecruitRes;
+    *xPacket >> psRecruitRes;
+
+    CUser* pUser = TXSingleton<XGameServer>::Instance()->FindActorIDToUser(psRecruitRes.dwUCID);
+    if (!pUser)
+        return true;
+    if (!pUser->GetArea())
+        return false;
+
+    pUser->IncrementJobCount();
+    CLogicThreadManager::Instance().DoJob(pUser->GetMapInsID().nMapID,
+        [pUser, psRecruitRes]() {
+            if (!pUser || !pUser->IsLive())
+                return;
+            if (psRecruitRes.nResult == 1) {
+                ST_PARTY_RECRUIT st = psRecruitRes.stRecruitInfo.stRecruit;
+                XSendPacket xSendPacket(0x12u, 0x38u);
+                xSendPacket.XParse << static_cast<std::uint8_t>(psRecruitRes.nRemainSec);
+                xSendPacket.XParse << psRecruitRes.dwRecruitID;
+                xSendPacket << st;
+                CGocNetwork::Send(pUser, xSendPacket);
+            } else {
+                pUser->SendErrorMessage(0x12u, 0x38u, static_cast<std::uint16_t>(psRecruitRes.nResult));
+            }
+        });
+
+    CLogicThreadManager::Instance().DoJob(pUser->GetMapInsID().nMapID,
+        [pUser]() {
+            if (pUser)
+                pUser->DecrementJobCount();
+        });
+
+    return true;
+}
+// ============================================================================
+// RecvPartyRecruitDel - 处理队伍招募删除 (IDA 0x140205AC0)
+// 解析 ST_PARTY_RECRUIT_DEL_LIST，遍历每个 ST_PARTY_RECRUIT_DEL
+// 对每个 dwMasterID 查找用户 -> DoJob x2（lambda114 发送 (0x12,0x3D) + dwRecruitID）
+// ============================================================================
+bool CCommunitySocket::RecvPartyRecruitDel(XPacket* xPacket)
+{
+    ST_PARTY_RECRUIT_DEL_LIST stDelRecruitList;
+    *xPacket >> stDelRecruitList;
+
+    for (const auto& stInfo : stDelRecruitList.vecInfo) {
+        CUser* pUser = TXSingleton<XGameServer>::Instance()->FindActorIDToUser(stInfo.dwMasterID);
+        if (!pUser)
+            continue;
+        if (!pUser->GetArea())
+            return false;
+
+        pUser->IncrementJobCount();
+        std::uint32_t dwRecruitID = stInfo.dwRecruitID;
+        CLogicThreadManager::Instance().DoJob(pUser->GetMapInsID().nMapID,
+            [pUser, dwRecruitID]() {
+                if (!pUser || !pUser->IsLive())
+                    return;
+                XSendPacket xSendPacket(0x12u, 0x3Du);
+                xSendPacket.XParse << dwRecruitID;
+                CGocNetwork::Send(pUser, xSendPacket);
+            });
+
+        CLogicThreadManager::Instance().DoJob(pUser->GetMapInsID().nMapID,
+            [pUser]() {
+                if (pUser)
+                    pUser->DecrementJobCount();
+            });
+    }
+
+    return true;
+}
+// ============================================================================
+// RecvPartyRecruitApply - 处理队伍招募申请 (IDA 0x140205E90)
+// 解析 dwActorID + byResult + dwRecruitID + byCount -> DoJob x2
+// lambda116: byResult 非零发 (0x12,0x39)+0+byResult，否则发 (0x12,0x39)+dwRecruitID+byCount
+// ============================================================================
+bool CCommunitySocket::RecvPartyRecruitApply(XPacket* xPacket)
+{
+    std::uint32_t dwActorID = 0;
+    std::uint8_t byResult = 0;
+    std::uint32_t dwRecruitID = 0;
+    std::uint8_t byCount = 0;
+
+    xPacket->XParse >> dwActorID;
+    xPacket->XParse >> byResult;
+    xPacket->XParse >> dwRecruitID;
+    xPacket->XParse >> byCount;
+
+    CUser* pUser = TXSingleton<XGameServer>::Instance()->FindActorIDToUser(dwActorID);
+    if (!pUser)
+        return true;
+    if (!pUser->GetArea())
+        return false;
+
+    pUser->IncrementJobCount();
+    CLogicThreadManager::Instance().DoJob(pUser->GetMapInsID().nMapID,
+        [pUser, byResult, dwRecruitID, byCount]() {
+            if (!pUser || !pUser->IsLive())
+                return;
+            if (byResult) {
+                XSendPacket packet(0x12u, 0x39u);
+                packet.XParse << static_cast<std::uint32_t>(0);
+                packet.XParse << byResult;
+                CGocNetwork::Send(pUser, packet);
+            } else {
+                XSendPacket xSendPacket(0x12u, 0x39u);
+                xSendPacket.XParse << dwRecruitID;
+                xSendPacket.XParse << byCount;
+                CGocNetwork::Send(pUser, xSendPacket);
+            }
+        });
+
+    CLogicThreadManager::Instance().DoJob(pUser->GetMapInsID().nMapID,
+        [pUser]() {
+            if (pUser)
+                pUser->DecrementJobCount();
+        });
+
+    return true;
+}
+// ============================================================================
+// RecvPartyRecruitApplyAccept - 处理招募申请接受结果 (IDA 0x140206360)
+// 解析 dwActorID + nErrorCode -> DoJob x2（lambda118 发送 (0x12,0x3A) 错误消息）
+// ============================================================================
+bool CCommunitySocket::RecvPartyRecruitApplyAccept(XPacket* xPacket)
+{
+    std::uint32_t dwActorID = 0;
+    int nErrorCode = 0;
+    xPacket->XParse >> dwActorID;
+    xPacket->XParse >> nErrorCode;
+
+    CUser* pUser = TXSingleton<XGameServer>::Instance()->FindActorIDToUser(dwActorID);
+    if (!pUser)
+        return true;
+    if (!pUser->GetArea())
+        return false;
+
+    pUser->IncrementJobCount();
+    CLogicThreadManager::Instance().DoJob(pUser->GetMapInsID().nMapID,
+        [pUser, nErrorCode]() {
+            if (pUser && pUser->IsLive()) {
+                pUser->SendErrorMessage(0x12u, 0x3Au, static_cast<std::uint16_t>(nErrorCode));
+            }
+        });
+
+    CLogicThreadManager::Instance().DoJob(pUser->GetMapInsID().nMapID,
+        [pUser]() {
+            if (pUser)
+                pUser->DecrementJobCount();
+        });
+
+    return true;
+}
+// ============================================================================
+// RecvPartyRecruitApplyReject - 处理招募申请拒绝结果 (IDA 0x140206600)
+// 解析 dwActorID + dwRejectID -> DoJob x2
+// lambda120: dwRejectID 非零发 (0x12,0x3B)+dwRejectID，否则错误 53027
+// ============================================================================
+bool CCommunitySocket::RecvPartyRecruitApplyReject(XPacket* xPacket)
+{
+    std::uint32_t dwActorID = 0;
+    std::uint32_t dwRejectID = 0;
+    xPacket->XParse >> dwActorID;
+    xPacket->XParse >> dwRejectID;
+
+    CUser* pUser = TXSingleton<XGameServer>::Instance()->FindActorIDToUser(dwActorID);
+    if (!pUser)
+        return true;
+    if (!pUser->GetArea())
+        return false;
+
+    pUser->IncrementJobCount();
+    CLogicThreadManager::Instance().DoJob(pUser->GetMapInsID().nMapID,
+        [pUser, dwRejectID]() {
+            if (!pUser || !pUser->IsLive())
+                return;
+            if (dwRejectID) {
+                XSendPacket xSendPacket(0x12u, 0x3Bu);
+                xSendPacket.XParse << dwRejectID;
+                CGocNetwork::Send(pUser, xSendPacket);
+            } else {
+                pUser->SendErrorMessage(0x12u, 0x3Bu, 53027);
+            }
+        });
+
+    CLogicThreadManager::Instance().DoJob(pUser->GetMapInsID().nMapID,
+        [pUser]() {
+            if (pUser)
+                pUser->DecrementJobCount();
+        });
+
+    return true;
+}
+// ============================================================================
+// RecvPartyRecruitApplyUpdate - 处理招募申请更新 (IDA 0x140207F60)
+// 解析 dwActorID + ST_PARTY_RECRUIT_UPDATE -> DoJob x2
+// lambda133: 发送 (0x12,0x3C) + ST_PARTY_RECRUIT_UPDATE
+// ============================================================================
+bool CCommunitySocket::RecvPartyRecruitApplyUpdate(XPacket* xPacket)
+{
+    std::uint32_t dwActorID = 0;
+    ST_PARTY_RECRUIT_UPDATE stUpdate;
+    xPacket->XParse >> dwActorID;
+    *xPacket >> stUpdate;
+
+    CUser* pUser = TXSingleton<XGameServer>::Instance()->FindActorIDToUser(dwActorID);
+    if (!pUser)
+        return true;
+    if (!pUser->GetArea())
+        return false;
+
+    pUser->IncrementJobCount();
+    CLogicThreadManager::Instance().DoJob(pUser->GetMapInsID().nMapID,
+        [pUser, stUpdate]() {
+            if (!pUser || !pUser->IsLive())
+                return;
+            ST_PARTY_RECRUIT_UPDATE st = stUpdate;
+            XSendPacket xSendPacket(0x12u, 0x3Cu);
+            xSendPacket << st;
+            CGocNetwork::Send(pUser, xSendPacket);
+        });
+
+    CLogicThreadManager::Instance().DoJob(pUser->GetMapInsID().nMapID,
+        [pUser]() {
+            if (pUser)
+                pUser->DecrementJobCount();
+        });
+
+    return true;
+}
+// ============================================================================
+// RecvPartyRecruitList - 处理队伍招募列表 (IDA 0x140206970)
+// 解析 dwActorID + ST_PARTY_RECRUIT_LIST -> DoJob x2
+// lambda122: 发送 (0x12,0x36) + ST_PARTY_RECRUIT_LIST
+// ============================================================================
+bool CCommunitySocket::RecvPartyRecruitList(XPacket* xPacket)
+{
+    std::uint32_t dwActorID = 0;
+    ST_PARTY_RECRUIT_LIST stRecruitList;
+    xPacket->XParse >> dwActorID;
+    *xPacket >> stRecruitList;
+
+    CUser* pUser = TXSingleton<XGameServer>::Instance()->FindActorIDToUser(dwActorID);
+    if (!pUser)
+        return true;
+    if (!pUser->GetArea())
+        return false;
+
+    pUser->IncrementJobCount();
+    CLogicThreadManager::Instance().DoJob(pUser->GetMapInsID().nMapID,
+        [pUser, stRecruitList]() {
+            if (!pUser || !pUser->IsLive())
+                return;
+            XSendPacket xSendPacket(0x12u, 0x36u);
+            xSendPacket << stRecruitList;
+            CGocNetwork::Send(pUser, xSendPacket);
+        });
+
+    CLogicThreadManager::Instance().DoJob(pUser->GetMapInsID().nMapID,
+        [pUser]() {
+            if (pUser)
+                pUser->DecrementJobCount();
+        });
+
+    return true;
+}
+// ============================================================================
+// RecvPartyRecruitMyApplyList - 处理我的招募申请列表 (IDA 0x140206E70)
+// 解析 dwActorID + ST_PARTY_RECRUIT_LIST -> DoJob x2
+// lambda124: 发送 (0x12,0x37) + ST_PARTY_RECRUIT_LIST
+// ============================================================================
+bool CCommunitySocket::RecvPartyRecruitMyApplyList(XPacket* xPacket)
+{
+    std::uint32_t dwActorID = 0;
+    ST_PARTY_RECRUIT_LIST stApplyList;
+    xPacket->XParse >> dwActorID;
+    *xPacket >> stApplyList;
+
+    CUser* pUser = TXSingleton<XGameServer>::Instance()->FindActorIDToUser(dwActorID);
+    if (!pUser)
+        return true;
+    if (!pUser->GetArea())
+        return false;
+
+    pUser->IncrementJobCount();
+    CLogicThreadManager::Instance().DoJob(pUser->GetMapInsID().nMapID,
+        [pUser, stApplyList]() {
+            if (!pUser || !pUser->IsLive())
+                return;
+            XSendPacket xSendPacket(0x12u, 0x37u);
+            xSendPacket << stApplyList;
+            CGocNetwork::Send(pUser, xSendPacket);
+        });
+
+    CLogicThreadManager::Instance().DoJob(pUser->GetMapInsID().nMapID,
+        [pUser]() {
+            if (pUser)
+                pUser->DecrementJobCount();
+        });
+
+    return true;
+}
+// ============================================================================
+// RecvPartyRecruitApplyList - 处理队伍招募申请列表 (IDA 0x140207250)
+// 解析 dwActorID + ST_APPLY_MEMBER_LIST -> DoJob x2
+// lambda126: 发送 (0x12,0x3E) + ST_APPLY_MEMBER_LIST
+// ============================================================================
+bool CCommunitySocket::RecvPartyRecruitApplyList(XPacket* xPacket)
+{
+    std::uint32_t dwActorID = 0;
+    ST_APPLY_MEMBER_LIST stApplyList;
+    xPacket->XParse >> dwActorID;
+    *xPacket >> stApplyList;
+
+    CUser* pUser = TXSingleton<XGameServer>::Instance()->FindActorIDToUser(dwActorID);
+    if (!pUser)
+        return true;
+    if (!pUser->GetArea())
+        return false;
+
+    pUser->IncrementJobCount();
+    CLogicThreadManager::Instance().DoJob(pUser->GetMapInsID().nMapID,
+        [pUser, stApplyList]() {
+            if (!pUser || !pUser->IsLive())
+                return;
+            XSendPacket xSendPacket(0x12u, 0x3Eu);
+            xSendPacket << stApplyList;
+            CGocNetwork::Send(pUser, xSendPacket);
+        });
+
+    CLogicThreadManager::Instance().DoJob(pUser->GetMapInsID().nMapID,
+        [pUser]() {
+            if (pUser)
+                pUser->DecrementJobCount();
+        });
+
+    return true;
+}
+// ============================================================================
+// RecvPartyRecruitInfo - 处理队伍招募信息 (IDA 0x140207770)
+// 解析 dwActorID + ST_PARTY_RECRUIT -> DoJob x2
+// lambda129: 发送 (0x12,0x3F) + ST_PARTY_RECRUIT
+// ============================================================================
+bool CCommunitySocket::RecvPartyRecruitInfo(XPacket* xPacket)
+{
+    std::uint32_t dwActorID = 0;
+    ST_PARTY_RECRUIT stRecruit;
+    xPacket->XParse >> dwActorID;
+    *xPacket >> stRecruit;
+
+    CUser* pUser = TXSingleton<XGameServer>::Instance()->FindActorIDToUser(dwActorID);
+    if (!pUser)
+        return true;
+    if (!pUser->GetArea())
+        return false;
+
+    pUser->IncrementJobCount();
+    CLogicThreadManager::Instance().DoJob(pUser->GetMapInsID().nMapID,
+        [pUser, stRecruit]() {
+            if (!pUser || !pUser->IsLive())
+                return;
+            XSendPacket xSendPacket(0x12u, 0x3Fu);
+            xSendPacket << stRecruit;
+            CGocNetwork::Send(pUser, xSendPacket);
+        });
+
+    CLogicThreadManager::Instance().DoJob(pUser->GetMapInsID().nMapID,
+        [pUser]() {
+            if (pUser)
+                pUser->DecrementJobCount();
+        });
+
+    return true;
+}
+// ============================================================================
+// RecvPartyRecruitApplyDel - 处理队伍招募申请删除 (IDA 0x140207BD0)
+// 解析 dwActorID + dwSendActorID + dwRecruit -> DoJob x2
+// lambda131: 发送 (0x12,0x40) + dwSendActorID + dwRecruit
+// ============================================================================
+bool CCommunitySocket::RecvPartyRecruitApplyDel(XPacket* xPacket)
+{
+    std::uint32_t dwActorID = 0;
+    std::uint32_t dwSendActorID = 0;
+    std::uint32_t dwRecruit = 0;
+    xPacket->XParse >> dwActorID;
+    xPacket->XParse >> dwSendActorID;
+    xPacket->XParse >> dwRecruit;
+
+    CUser* pUser = TXSingleton<XGameServer>::Instance()->FindActorIDToUser(dwActorID);
+    if (!pUser)
+        return true;
+    if (!pUser->GetArea())
+        return false;
+
+    pUser->IncrementJobCount();
+    CLogicThreadManager::Instance().DoJob(pUser->GetMapInsID().nMapID,
+        [pUser, dwSendActorID, dwRecruit]() {
+            if (!pUser || !pUser->IsLive())
+                return;
+            XSendPacket xSendPacket(0x12u, 0x40u);
+            xSendPacket.XParse << dwSendActorID;
+            xSendPacket.XParse << dwRecruit;
+            CGocNetwork::Send(pUser, xSendPacket);
+        });
+
+    CLogicThreadManager::Instance().DoJob(pUser->GetMapInsID().nMapID,
+        [pUser]() {
+            if (pUser)
+                pUser->DecrementJobCount();
+        });
+
+    return true;
+}
+// ============================================================================
+// RecvPartyRecruitApplyInfo - 处理队伍招募申请信息 (IDA 0x1402082E0)
+// 解析 ST_PARTY_RECRUIT_APPLY_INFO -> DoJob x2
+// lambda135: 发送 (0x12,0x41) + ST_PARTY_RECRUIT_APPLY_INFO
+// ============================================================================
+bool CCommunitySocket::RecvPartyRecruitApplyInfo(XPacket* xPacket)
+{
+    ST_PARTY_RECRUIT_APPLY_INFO stInfo;
+    *xPacket >> stInfo;
+
+    CUser* pUser = TXSingleton<XGameServer>::Instance()->FindActorIDToUser(stInfo.dwActorID);
+    if (!pUser)
+        return true;
+    if (!pUser->GetArea())
+        return false;
+
+    pUser->IncrementJobCount();
+    CLogicThreadManager::Instance().DoJob(pUser->GetMapInsID().nMapID,
+        [pUser, stInfo]() {
+            if (!pUser || !pUser->IsLive())
+                return;
+            XSendPacket xSendPacket(0x12u, 0x41u);
+            xSendPacket << stInfo;
+            CGocNetwork::Send(pUser, xSendPacket);
+        });
+
+    CLogicThreadManager::Instance().DoJob(pUser->GetMapInsID().nMapID,
+        [pUser]() {
+            if (pUser)
+                pUser->DecrementJobCount();
+        });
+
+    return true;
+}
+// ============================================================================
+// RecvPartyRecruitApplyNotice - 处理队伍招募申请通知 (IDA 0x140208840)
+// 解析 dwActorID + ST_APPLY_MEMBER -> DoJob x2
+// lambda137: 发送 (0x12,0x42) + ST_APPLY_MEMBER
+// ============================================================================
+bool CCommunitySocket::RecvPartyRecruitApplyNotice(XPacket* xPacket)
+{
+    std::uint32_t dwActorID = 0;
+    ST_APPLY_MEMBER stApply;
+    xPacket->XParse >> dwActorID;
+    *xPacket >> stApply;
+
+    CUser* pUser = TXSingleton<XGameServer>::Instance()->FindActorIDToUser(dwActorID);
+    if (!pUser)
+        return true;
+    if (!pUser->GetArea())
+        return false;
+
+    pUser->IncrementJobCount();
+    CLogicThreadManager::Instance().DoJob(pUser->GetMapInsID().nMapID,
+        [pUser, stApply]() {
+            if (!pUser || !pUser->IsLive())
+                return;
+            XSendPacket xSendPacket(0x12u, 0x42u);
+            xSendPacket << stApply;
+            CGocNetwork::Send(pUser, xSendPacket);
+        });
+
+    CLogicThreadManager::Instance().DoJob(pUser->GetMapInsID().nMapID,
+        [pUser]() {
+            if (pUser)
+                pUser->DecrementJobCount();
+        });
+
+    return true;
+}
+// ============================================================================
+// RecvPartyRecruitApplyAcceptCheck - 队伍招募申请接受校验 (IDA 0x14020F030)
+// TODO: 阻塞 - lambda179 (0x14020F390) 为巨型校验函数，依赖
+// CGocParty::IsParty/CGocForce 状态、CBattleZone::IsInSafetyZone、
+// XArea::GetWorldType/GetTBMapID、XResourceMgr::GetTB_DISTRICT 校验链，
+// 待对应依赖完整后单独还原。
+// ============================================================================
 bool CCommunitySocket::RecvPartyRecruitApplyAcceptCheck(XPacket*) { return true; }
-bool CCommunitySocket::RecvPartyNameChange(XPacket*) { return true; }
+// ============================================================================
+// RecvPartyNameChange - 处理队伍名称变更 (IDA 0x14020B930)
+// 解析 dwUCID + PS_CHANGE_NAME -> DoJob x2
+// lambda157: 队伍存在则 ChangePartyMemberName + 发送 (8,0x53) + PS_CHANGE_NAME
+// ============================================================================
+bool CCommunitySocket::RecvPartyNameChange(XPacket* xPacket)
+{
+    std::uint32_t dwUCID = 0;
+    PS_CHANGE_NAME stInfo;
+    xPacket->XParse >> dwUCID;
+    *xPacket >> stInfo;
+
+    CUser* pUser = TXSingleton<XGameServer>::Instance()->FindActorIDToUser(dwUCID);
+    if (!pUser)
+        return false;
+    if (!pUser->GetArea())
+        return false;
+
+    pUser->IncrementJobCount();
+    CLogicThreadManager::Instance().DoJob(pUser->GetMapInsID().nMapID,
+        [pUser, stInfo]() {
+            if (!pUser || !pUser->IsLive())
+                return;
+            auto pPartyPtr = pUser->GetGOC<CGocParty>();
+            if (pPartyPtr) {
+                PS_CHANGE_NAME stChangeName = stInfo;
+                pPartyPtr->ChangePartyMemberName(stChangeName);
+                XSendPacket xSendPacket(8u, 0x53u);
+                xSendPacket << stChangeName;
+                CGocNetwork::Send(pUser, xSendPacket);
+            }
+        });
+
+    CLogicThreadManager::Instance().DoJob(pUser->GetMapInsID().nMapID,
+        [pUser]() {
+            if (pUser)
+                pUser->DecrementJobCount();
+        });
+
+    return true;
+}
+// ============================================================================
+// RecvPartyMatchingMaze - 队伍匹配进入迷宫 (IDA 0x140204730)
+// TODO: 阻塞 - lambda109 (0x140204A90) 为巨型迷宫进入函数，依赖
+// XPartyManager::GetParty/AddParty（ThreadLocalData m_xPartyMgr 未还原）、
+// XWorldResMgr::GetPortalPos（stub）等，待依赖完整后单独还原。
+// ============================================================================
 bool CCommunitySocket::RecvPartyMatchingMaze(XPacket*) { return true; }
+// ============================================================================
+// RecvPartyMazeClear - 队伍迷宫清除 (IDA 0x1402076C0)
+// TODO: 阻塞 - lambda128 调用 XPartyManager::RecvPartyMazeClear
+// （ThreadLocalData m_xPartyMgr 未还原），待管理器还原后落地。
+// ============================================================================
 bool CCommunitySocket::RecvPartyMazeClear(XPacket*) { return true; }
 
 // ============================================================================
@@ -2067,9 +3140,172 @@ bool CCommunitySocket::RecvLeagueInfoChange(XPacket* xPacket) {
     return true;
 }
 
-bool CCommunitySocket::RecvLeagueInvite(XPacket*) { return true; }
-bool CCommunitySocket::RecvLeagueInviteAccept(XPacket*) { return true; }
-bool CCommunitySocket::RecvLeagueInviteReject(XPacket*) { return true; }
+// ============================================================================
+// RecvLeagueInvite - 处理公会邀请 (IDA 0x1401FA5E0)
+// 解析 ST_REQ_LEAGUE_INVITE；nResult<=0 时给请求者日志+发结果，nResult>0 时给邀请目标发结果
+// lambda37: nResult==57042/57043 发错误消息 (0x22,0x13,0xDED2/0xDED3)，否则发 (0x22,0x37)+ST_REQ_LEAGUE_INVITE
+// ============================================================================
+bool CCommunitySocket::RecvLeagueInvite(XPacket* xPacket)
+{
+    ST_REQ_LEAGUE_INVITE stInvite;
+    *xPacket >> stInvite;
+
+    if (stInvite.nResult <= 0) {
+        CUser* pUser = TXSingleton<XGameServer>::Instance()->FindActorIDToUser(stInvite.dwActorID);
+        CUser* pTargetUser = TXSingleton<XGameServer>::Instance()->FindActorIDToUser(stInvite.dwTargetActorID);
+        std::uint8_t byTargetLevel = 0;
+        if (pTargetUser)
+            byTargetLevel = static_cast<std::uint8_t>(pTargetUser->GetLevel());
+        if (pUser) {
+            ST_LOG_GAME stLog;
+            stLog._nUAID = static_cast<int>(pUser->GetUAID());
+            stLog._nUCID = pUser->GetActorID().dwActorID;
+            stLog._sMainType = 15;
+            stLog._sSubType = 3;
+            stLog.nParam0 = stInvite.nLeagueID;
+            stLog.nParam1 = stInvite.dwTargetActorID;
+            stLog.nParam2 = byTargetLevel;
+            wcscpy_s(stLog.szComment, L"\uB9AC\uADF8 \uCD08\uB300");
+            TXSingleton<XGameServer>::Instance()->SendDBLog(stLog);
+        }
+        if (pTargetUser) {
+            if (!pTargetUser->GetArea())
+                return false;
+            pTargetUser->IncrementJobCount();
+            CLogicThreadManager::Instance().DoJob(pTargetUser->GetMapInsID().nMapID,
+                [pTargetUser, stInvite]() {
+                    if (!pTargetUser || !pTargetUser->IsLive() || !pTargetUser->GetArea())
+                        return;
+                    if (stInvite.nResult == 57042) {
+                        CGocNetwork::SendErrorMessage(static_cast<CMover*>(pTargetUser), 0x22u, 0x13u, 0xDED2u);
+                    } else if (stInvite.nResult == 57043) {
+                        CGocNetwork::SendErrorMessage(static_cast<CMover*>(pTargetUser), 0x22u, 0x13u, 0xDED3u);
+                    } else {
+                        XSendPacket xSendPacket(0x22u, 0x37u);
+                        xSendPacket << stInvite;
+                        CGocNetwork::Send(pTargetUser, xSendPacket);
+                    }
+                });
+            CLogicThreadManager::Instance().DoJob(pTargetUser->GetMapInsID().nMapID,
+                [pTargetUser]() {
+                    if (pTargetUser)
+                        pTargetUser->DecrementJobCount();
+                });
+        }
+    } else {
+        CUser* pReqUser = TXSingleton<XGameServer>::Instance()->FindActorIDToUser(stInvite.dwActorID);
+        if (pReqUser) {
+            if (!pReqUser->GetArea())
+                return false;
+            pReqUser->IncrementJobCount();
+            CLogicThreadManager::Instance().DoJob(pReqUser->GetMapInsID().nMapID,
+                [pReqUser, stInvite]() {
+                    if (!pReqUser || !pReqUser->IsLive() || !pReqUser->GetArea())
+                        return;
+                    if (stInvite.nResult == 57042) {
+                        CGocNetwork::SendErrorMessage(static_cast<CMover*>(pReqUser), 0x22u, 0x13u, 0xDED2u);
+                    } else if (stInvite.nResult == 57043) {
+                        CGocNetwork::SendErrorMessage(static_cast<CMover*>(pReqUser), 0x22u, 0x13u, 0xDED3u);
+                    } else {
+                        XSendPacket xSendPacket(0x22u, 0x37u);
+                        xSendPacket << stInvite;
+                        CGocNetwork::Send(pReqUser, xSendPacket);
+                    }
+                });
+            CLogicThreadManager::Instance().DoJob(pReqUser->GetMapInsID().nMapID,
+                [pReqUser]() {
+                    if (pReqUser)
+                        pReqUser->DecrementJobCount();
+                });
+        }
+    }
+
+    return true;
+}
+// ============================================================================
+// RecvLeagueInviteAccept - 处理公会邀请接受 (IDA 0x14020BD70)
+// 解析 ST_REQ_LEAGUE_INVITE_ACCEPT -> DoJob x2
+// lambda159: 发送 (0x22,0x14)+ST_REQ_LEAGUE_INVITE_ACCEPT
+// ============================================================================
+bool CCommunitySocket::RecvLeagueInviteAccept(XPacket* xPacket)
+{
+    ST_REQ_LEAGUE_INVITE_ACCEPT stInviteAccept;
+    *xPacket >> stInviteAccept;
+
+    CUser* pUser = TXSingleton<XGameServer>::Instance()->FindActorIDToUser(stInviteAccept.dwTargetUCID);
+    if (!pUser)
+        return true;
+    if (!pUser->GetArea())
+        return false;
+
+    pUser->IncrementJobCount();
+    CLogicThreadManager::Instance().DoJob(pUser->GetMapInsID().nMapID,
+        [pUser, stInviteAccept]() {
+            if (!pUser || !pUser->IsLive() || !pUser->GetArea())
+                return;
+            XSendPacket xSendPacket(0x22u, 0x14u);
+            xSendPacket << stInviteAccept;
+            CGocNetwork::Send(pUser, xSendPacket);
+        });
+
+    CLogicThreadManager::Instance().DoJob(pUser->GetMapInsID().nMapID,
+        [pUser]() {
+            if (pUser)
+                pUser->DecrementJobCount();
+        });
+
+    return true;
+}
+// ============================================================================
+// RecvLeagueInviteReject - 处理公会邀请拒绝 (IDA 0x1401FA020)
+// 解析 ST_REQ_LEAGUE_INVITE_REJECT + nLeagueID -> DoJob x2
+// lambda35: 发送 (0x22,0x15)+ST_REQ_LEAGUE_INVITE_REJECT + ST_LOG_GAME(15,5) "길드 접속 서절"
+// ============================================================================
+bool CCommunitySocket::RecvLeagueInviteReject(XPacket* xPacket)
+{
+    ST_REQ_LEAGUE_INVITE_REJECT stReject;
+    *xPacket >> stReject;
+    int nLeagueID = 0;
+    xPacket->XParse >> nLeagueID;
+
+    CUser* pReqUser = TXSingleton<XGameServer>::Instance()->FindActorIDToUser(stReject.dwReqUCID);
+    if (!pReqUser)
+        return true;
+    if (!pReqUser->GetArea())
+        return false;
+
+    pReqUser->IncrementJobCount();
+    CLogicThreadManager::Instance().DoJob(pReqUser->GetMapInsID().nMapID,
+        [pReqUser, stReject, nLeagueID]() {
+            if (!pReqUser || !pReqUser->IsLive() || !pReqUser->GetArea())
+                return;
+            XSendPacket xSendPacket(0x22u, 0x15u);
+            xSendPacket << stReject;
+            CGocNetwork::Send(pReqUser, xSendPacket);
+
+            CUser* pLogUser = TXSingleton<XGameServer>::Instance()->FindActorIDToUser(stReject.dwTargetUCID);
+            if (pLogUser) {
+                ST_LOG_GAME stLog;
+                stLog._nUAID = static_cast<int>(pLogUser->GetUAID());
+                stLog._nUCID = pLogUser->GetActorID().dwActorID;
+                stLog._sMainType = 15;
+                stLog._sSubType = 5;
+                stLog.nParam0 = nLeagueID;
+                stLog.nParam1 = stReject.dwReqUCID;
+                stLog.nParam5 = pLogUser->GetLevel();
+                wcscpy_s(stLog.szComment, L"\uB9AC\uADF8 \uCD08\uB300 \uAC70\uC808");
+                TXSingleton<XGameServer>::Instance()->SendDBLog(stLog);
+            }
+        });
+
+    CLogicThreadManager::Instance().DoJob(pReqUser->GetMapInsID().nMapID,
+        [pReqUser]() {
+            if (pReqUser)
+                pReqUser->DecrementJobCount();
+        });
+
+    return true;
+}
 
 // IDA: 0x1401F6050 - RecvLeagueBoard
 bool CCommunitySocket::RecvLeagueBoard(XPacket* xPacket) {
@@ -2094,35 +3330,217 @@ bool CCommunitySocket::RecvLeagueBoard(XPacket* xPacket) {
     return true;
 }
 
-bool CCommunitySocket::RecvLeagueApplicantAcceptRes(XPacket*) { return true; }
+// ============================================================================
+// RecvLeagueApplicantAcceptRes - 处理公会申请者接受结果 (IDA 0x140211900)
+// 解析 PS_RES_LEAGUE_ACCEPT_ACCPLICANT -> DoJob x2
+// lambda188: 发送 (0x22,0x18)+nResult
+// ============================================================================
+bool CCommunitySocket::RecvLeagueApplicantAcceptRes(XPacket* xPacket)
+{
+    PS_RES_LEAGUE_ACCEPT_ACCPLICANT psResAcceptInfo;
+    *xPacket >> psResAcceptInfo;
 
-// IDA: 0x1401F66C0 - RecvLeagueSearch
-bool CCommunitySocket::RecvLeagueSearch(XPacket* xPacket) {
-    PS_LEAGUE_SUMMARY_LIST psLeagueSummaryList;
-    ST_LEAGUE_APPLICANT_CHECK_LIST stApplyList;
-    std::uint32_t dwActorID = 0;
+    CUser* pUser = TXSingleton<XGameServer>::Instance()->FindActorIDToUser(psResAcceptInfo.dwUCID);
+    if (!pUser)
+        return false;
+    if (!pUser->GetArea())
+        return false;
 
-    xPacket->XParse >> dwActorID;
-    *xPacket >> psLeagueSummaryList;
-    *xPacket >> stApplyList;
+    pUser->IncrementJobCount();
+    CLogicThreadManager::Instance().DoJob(pUser->GetMapInsID().nMapID,
+        [pUser, psResAcceptInfo]() {
+            if (!pUser || !pUser->IsLive() || !pUser->GetArea())
+                return;
+            XSendPacket xSendPacket(0x22u, 0x18u);
+            xSendPacket.XParse << psResAcceptInfo.nResult;
+            CGocNetwork::Send(pUser, xSendPacket);
+        });
 
-    XGameServer* pServer = XGameServer::Instance();
-    CUser* pUser = pServer ? pServer->FindActorIDToUser(dwActorID) : nullptr;
-
-    if (pUser) {
-        pUser->IncrementJobCount();
-        // TODO: 完整实现需要CLogicThreadManager::DoJob
-        GreenDamTan_log(__FILE__, __FUNCTION__, "RecvLeagueSearch - need CLogicThreadManager::DoJob");
-    }
+    CLogicThreadManager::Instance().DoJob(pUser->GetMapInsID().nMapID,
+        [pUser]() {
+            if (pUser)
+                pUser->DecrementJobCount();
+        });
 
     return true;
 }
 
-bool CCommunitySocket::RecvLeagueApplicantRes(XPacket*) { return true; }
+// ============================================================================
+// RecvLeagueSearch - 处理公会搜索 (IDA 0x1401F66C0)
+// 解析 dwActorID + PS_LEAGUE_SUMMARY_LIST + ST_LEAGUE_APPLICANT_CHECK_LIST -> DoJob x2
+// lambda139: 发送 (0x22,3)+PS_LEAGUE_SUMMARY_LIST+ST_LEAGUE_APPLICANT_CHECK_LIST
+// ============================================================================
+bool CCommunitySocket::RecvLeagueSearch(XPacket* xPacket)
+{
+    std::uint32_t dwActorID = 0;
+    PS_LEAGUE_SUMMARY_LIST psLeagueSummaryList;
+    ST_LEAGUE_APPLICANT_CHECK_LIST stApplyList;
+    xPacket->XParse >> dwActorID;
+    *xPacket >> psLeagueSummaryList;
+    *xPacket >> stApplyList;
+
+    CUser* pUser = TXSingleton<XGameServer>::Instance()->FindActorIDToUser(dwActorID);
+    if (!pUser)
+        return true;
+    if (!pUser->GetArea())
+        return false;
+
+    pUser->IncrementJobCount();
+    CLogicThreadManager::Instance().DoJob(pUser->GetMapInsID().nMapID,
+        [pUser, psLeagueSummaryList, stApplyList]() {
+            if (!pUser || !pUser->IsLive() || !pUser->GetArea())
+                return;
+            XSendPacket xSendPacket(0x22u, 3u);
+            xSendPacket << psLeagueSummaryList;
+            xSendPacket << stApplyList;
+            CGocNetwork::Send(pUser, xSendPacket);
+        });
+
+    CLogicThreadManager::Instance().DoJob(pUser->GetMapInsID().nMapID,
+        [pUser]() {
+            if (pUser)
+                pUser->DecrementJobCount();
+        });
+
+    return true;
+}
+
+// ============================================================================
+// RecvLeagueApplicantRes - 处理公会申请者响应 (IDA 0x1401F4B30)
+// 解析 ST_LEAGUE_APPLICANT -> DoJob x2
+// lambda5: 发送 (0x22,0x23)+ST_LEAGUE_APPLICANT+biRemainTime(0) + ST_LOG_GAME(15,6) "길드 지원"
+// ============================================================================
+bool CCommunitySocket::RecvLeagueApplicantRes(XPacket* xPacket)
+{
+    ST_LEAGUE_APPLICANT stApplicant;
+    *xPacket >> stApplicant;
+
+    CUser* pUser = TXSingleton<XGameServer>::Instance()->FindActorIDToUser(stApplicant.dwActorID);
+    if (!pUser)
+        return true;
+    if (!pUser->GetArea())
+        return false;
+
+    pUser->IncrementJobCount();
+    CLogicThreadManager::Instance().DoJob(pUser->GetMapInsID().nMapID,
+        [pUser, stApplicant]() {
+            if (!pUser || !pUser->IsLive() || !pUser->GetArea())
+                return;
+            std::int64_t biRemainTime = 0;
+            XSendPacket xSendPacket(0x22u, 0x23u);
+            xSendPacket << stApplicant;
+            xSendPacket.XParse << biRemainTime;
+            CGocNetwork::Send(pUser, xSendPacket);
+
+            ST_LOG_GAME stLog;
+            stLog._nUAID = static_cast<int>(pUser->GetUAID());
+            stLog._nUCID = pUser->GetActorID().dwActorID;
+            stLog._sMainType = 15;
+            stLog._sSubType = 6;
+            stLog.nParam0 = stApplicant.nLeagueID;
+            wcscpy_s(stLog.szComment, L"\uB9AC\uADF8 \uC9C0\uC6D0");
+            TXSingleton<XGameServer>::Instance()->SendDBLog(stLog);
+        });
+
+    CLogicThreadManager::Instance().DoJob(pUser->GetMapInsID().nMapID,
+        [pUser]() {
+            if (pUser)
+                pUser->DecrementJobCount();
+        });
+
+    return true;
+}
+// ============================================================================
+// RecvLeagueApplicantAdd - 处理公会申请者添加 (IDA 0x1401F5070)
+// TODO: 阻塞 - lambda7 (0x1401F5160) 调用 ThreadLocalData::SendLeagueApply
+// （ThreadLocalData 管理器未还原），待任务 #87 后落地。
+// ============================================================================
 bool CCommunitySocket::RecvLeagueApplicantAdd(XPacket*) { return true; }
-bool CCommunitySocket::RecvLeagueApplicantReject(XPacket*) { return true; }
+// ============================================================================
+// RecvLeagueApplicantReject - 处理公会申请者拒绝 (IDA 0x1401F8550)
+// 解析 ST_REQ_LEAGUE_APPLICANT_REJECT -> DoJob x2
+// lambda24: 发送 (0x22,0x25)+ST_REQ_LEAGUE_APPLICANT_REJECT + ST_LOG_GAME(15,8) "길드 지원 서절"
+// ============================================================================
+bool CCommunitySocket::RecvLeagueApplicantReject(XPacket* xPacket)
+{
+    ST_REQ_LEAGUE_APPLICANT_REJECT stReject;
+    *xPacket >> stReject;
+
+    CUser* pUser = TXSingleton<XGameServer>::Instance()->FindActorIDToUser(stReject.dwUCID);
+    if (!pUser)
+        return true;
+    if (!pUser->GetArea())
+        return false;
+
+    pUser->IncrementJobCount();
+    CLogicThreadManager::Instance().DoJob(pUser->GetMapInsID().nMapID,
+        [pUser, stReject]() {
+            if (!pUser || !pUser->IsLive() || !pUser->GetArea())
+                return;
+            XSendPacket xSendPacket(0x22u, 0x25u);
+            xSendPacket << stReject;
+            CGocNetwork::Send(pUser, xSendPacket);
+
+            ST_LOG_GAME stLog;
+            stLog._nUAID = static_cast<int>(pUser->GetUAID());
+            stLog._nUCID = pUser->GetActorID().dwActorID;
+            stLog._sMainType = 15;
+            stLog._sSubType = 8;
+            stLog.nParam0 = stReject.nLeagueID;
+            stLog.nParam1 = stReject.dwTargetUCID;
+            stLog.nParam5 = pUser->GetLevel();
+            wcscpy_s(stLog.szComment, L"\uB9AC\uADF8 \uC9C0\uC6D0 \uAC70\uC808");
+            TXSingleton<XGameServer>::Instance()->SendDBLog(stLog);
+        });
+
+    CLogicThreadManager::Instance().DoJob(pUser->GetMapInsID().nMapID,
+        [pUser]() {
+            if (pUser)
+                pUser->DecrementJobCount();
+        });
+
+    return true;
+}
 bool CCommunitySocket::RecvLeagueApplicantDelete(XPacket*) { return true; }
-bool CCommunitySocket::RecvLeagueList(XPacket*) { return true; }
+// ============================================================================
+// RecvLeagueList - 处理公会列表 (IDA 0x140208CA0)
+// 解析 dwUCID + PS_LEAGUE_SUMMARY_LIST + ST_LEAGUE_APPLICANT_CHECK_LIST -> DoJob x2
+// lambda139: 发送 (0x22,3)+PS_LEAGUE_SUMMARY_LIST+ST_LEAGUE_APPLICANT_CHECK_LIST
+// ============================================================================
+bool CCommunitySocket::RecvLeagueList(XPacket* xPacket)
+{
+    std::uint32_t dwUCID = 0;
+    PS_LEAGUE_SUMMARY_LIST psLeagueSummaryList;
+    ST_LEAGUE_APPLICANT_CHECK_LIST stApplyList;
+    xPacket->XParse >> dwUCID;
+    *xPacket >> psLeagueSummaryList;
+    *xPacket >> stApplyList;
+
+    CUser* pUser = TXSingleton<XGameServer>::Instance()->FindActorIDToUser(dwUCID);
+    if (!pUser)
+        return true;
+    if (!pUser->GetArea())
+        return false;
+
+    pUser->IncrementJobCount();
+    CLogicThreadManager::Instance().DoJob(pUser->GetMapInsID().nMapID,
+        [pUser, psLeagueSummaryList, stApplyList]() {
+            if (!pUser || !pUser->IsLive() || !pUser->GetArea())
+                return;
+            XSendPacket xSendPacket(0x22u, 3u);
+            xSendPacket << psLeagueSummaryList;
+            xSendPacket << stApplyList;
+            CGocNetwork::Send(pUser, xSendPacket);
+        });
+
+    CLogicThreadManager::Instance().DoJob(pUser->GetMapInsID().nMapID,
+        [pUser]() {
+            if (pUser)
+                pUser->DecrementJobCount();
+        });
+
+    return true;
+}
 bool CCommunitySocket::RecvLeagueNameChange(XPacket*) { return true; }
 bool CCommunitySocket::RecvLeagueCardChange(XPacket*) { return true; }
 bool CCommunitySocket::RecvLeaguePositionNameChange(XPacket*) { return true; }
@@ -2133,8 +3551,51 @@ bool CCommunitySocket::RecvLeagueApplicantUpdate(XPacket*) { return true; }
 bool CCommunitySocket::RecvLeagueMemberLogOut(XPacket*) { return true; }
 bool CCommunitySocket::RecvLeagueApplicantJoinUser(XPacket*) { return true; }
 bool CCommunitySocket::RecvLeagueInviteJoinUser(XPacket*) { return true; }
-bool CCommunitySocket::RecvLeagueOpenOrNot(XPacket*) { return true; }
+// ============================================================================
+// RecvLeagueOpenOrNot - 处理公会开启/关闭 (IDA 0x14020C1A0)
+// 解析 ST_LEAGUE_OPEN + dwUCID -> DoJob x2
+// lambda161: 发送 (0x22,0x46)+ST_LEAGUE_OPEN
+// ============================================================================
+bool CCommunitySocket::RecvLeagueOpenOrNot(XPacket* xPacket)
+{
+    ST_LEAGUE_OPEN stOpen;
+    *xPacket >> stOpen;
+    std::uint32_t dwUCID = 0;
+    xPacket->XParse >> dwUCID;
+
+    CUser* pUser = TXSingleton<XGameServer>::Instance()->FindActorIDToUser(dwUCID);
+    if (!pUser)
+        return true;
+    if (!pUser->GetArea())
+        return false;
+
+    pUser->IncrementJobCount();
+    CLogicThreadManager::Instance().DoJob(pUser->GetMapInsID().nMapID,
+        [pUser, stOpen]() {
+            XSendPacket xSendPacket(0x22u, 0x46u);
+            xSendPacket << stOpen;
+            CGocNetwork::Send(pUser, xSendPacket);
+        });
+
+    CLogicThreadManager::Instance().DoJob(pUser->GetMapInsID().nMapID,
+        [pUser]() {
+            if (pUser)
+                pUser->DecrementJobCount();
+        });
+
+    return true;
+}
+// ============================================================================
+// RecvLeagueRecruitNotice - 处理公会招募公告 (IDA 0x14020C4C0)
+// TODO: 阻塞 - lambda165 (0x14020CA80) 调用 ThreadLocalData::SendLeagueRecruitNoticeToMember
+// （ThreadLocalData 管理器未还原），待任务 #87 后落地。
+// ============================================================================
 bool CCommunitySocket::RecvLeagueRecruitNotice(XPacket*) { return true; }
+// ============================================================================
+// RecvLeagueRecordUpdate - 处理公会战绩更新 (IDA 0x14020CBC0)
+// TODO: 阻塞 - lambda166 (0x14020CCB0) 调用 ThreadLocalData::SendLeagueRecordUpdate
+// （ThreadLocalData 管理器未还原），待任务 #87 后落地。
+// ============================================================================
 bool CCommunitySocket::RecvLeagueRecordUpdate(XPacket*) { return true; }
 bool CCommunitySocket::RecvLeagueCardChangeRes(XPacket*) { return true; }
 bool CCommunitySocket::RecvLeagueLevelup(XPacket*) { return true; }

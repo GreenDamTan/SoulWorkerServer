@@ -16,6 +16,7 @@
 #endif
 
 #include <cstdint>
+#include <cwchar>
 #include <map>
 
 #include "Soulworker/Common/XNet/XCommon/PSServer.h"
@@ -27,13 +28,17 @@ class XControlServer;
 struct PS_DB_ROULETTE_REWARD_INFO;
 
 // PS_GM_ROULETTE_EVENT_ITEM - 轮盘奖励项
-// 对齐 IDA ControlServer.exe
+// 对齐 IDA ControlServer/GameServer PDB (UDT 0x4c4b / 0x2f4bf, Size 24)
 struct ST_GM_ROULETTE_EVENT_ITEM {
     int nRewradIndex = 0;     // 奖励索引 (注意: IDA 拼写错误 "Rewrad")
+    int nItemID = 0;          // 物品编号
+    int nCount = 0;           // 数量
+    int nRate = 0;            // 概率
+    int nLimitCount = 0;      // 上限计数
     int nCurCount = 0;        // 当前计数
-    int nMaxCount = 0;        // 最大计数
-    int nItemNo = 0;          // 物品编号
 };
+
+static_assert(sizeof(ST_GM_ROULETTE_EVENT_ITEM) == 24, "ST_GM_ROULETTE_EVENT_ITEM size must match PDB");
 
 // PS_GM_ROULETTE_EVENT_ITEM_LIST - 奖励项列表容器
 // 对齐 IDA: PS_GM_ROULETETE_EVENT_ITEM_LIST
@@ -50,13 +55,12 @@ struct PS_GM_ROULETETE_EVENT_ITEM_LIST {
 };
 
 // PS_GM_ROULETTE_EVENT - 轮盘活动信息
-// 对齐 IDA ControlServer.exe 0x14003A720
-// 字段顺序从 IDA 复制构造函数提取:
-// nEventID, szTitle, biStartDate, biEndDate, byUseType, nUseCount,
-// byCostType, nCostID, nCostCount, nVer, psRewardList
+// 对齐 IDA ControlServer/GameServer PDB (UDT 0x4c53 / 0xea31, Size 200)
+// 布局: nEventID+0, szTitle[60]+4, biStartDate+128, biEndDate+136, byUseType+144,
+// nUseCount+148, byCostType+152, nCostID+156, nCostCount+160, nVer+164, psRewardList+168
 struct PS_GM_ROULETTE_EVENT {
     int nEventID = 0;                      // 活动ID
-    wchar_t szTitle[256] = {};            // 标题
+    wchar_t szTitle[60] = {};             // 标题 (60 宽字符)
     std::int64_t biStartDate = 0;         // 开始日期
     std::int64_t biEndDate = 0;           // 结束日期
     std::uint8_t byUseType = 0;           // 使用类型
@@ -101,6 +105,8 @@ struct PS_GM_ROULETTE_EVENT {
     }
 };
 
+static_assert(sizeof(PS_GM_ROULETTE_EVENT) == 200, "PS_GM_ROULETTE_EVENT size must match PDB");
+
 // PS_ROULETTE_EVENT_UPDATE_SERVER - 轮盘更新包
 // 对齐 IDA (已在 PSServer.h 中定义)
 
@@ -108,12 +114,15 @@ struct PS_GM_ROULETTE_EVENT {
 
 // PS_GM_ROULETTE_EVENT 序列化操作符
 // 对齐 IDA SendRouletteEvent (0xF2, 0x74)
+// 布局: nEventID, 标题(WORD 字节长度 + wchar 字节), biStartDate, biEndDate, byUseType,
+// nUseCount, byCostType, nCostID, nCostCount, nVer, 奖励列表(int 计数 + 6 字段 item)
 inline XPacket& operator<<(XPacket& packet, const PS_GM_ROULETTE_EVENT& value) {
     packet.XParse << value.nEventID;
-    // 标题 (固定长度) - 写入字节长度和宽字符数据
-    const std::uint16_t titleByteLen = 256 * 2;
+    // 标题 - 写入 WORD 字节长度和宽字符字节 (XParse::GetWString 对称)
+    const std::uint16_t titleByteLen =
+        static_cast<std::uint16_t>(std::wcslen(value.szTitle) * 2);
     packet.XParse << titleByteLen;
-    for (int i = 0; i < 256; ++i) {
+    for (int i = 0; i < static_cast<int>(titleByteLen / 2); ++i) {
         const std::uint16_t ch = static_cast<std::uint16_t>(value.szTitle[i]);
         packet.XParse << ch;
     }
@@ -129,24 +138,22 @@ inline XPacket& operator<<(XPacket& packet, const PS_GM_ROULETTE_EVENT& value) {
     packet.XParse << static_cast<int>(value.psRewardList.vecInfo.size());
     for (const auto& item : value.psRewardList.vecInfo) {
         packet.XParse << item.nRewradIndex;
+        packet.XParse << item.nItemID;
+        packet.XParse << item.nCount;
+        packet.XParse << item.nRate;
+        packet.XParse << item.nLimitCount;
         packet.XParse << item.nCurCount;
-        packet.XParse << item.nMaxCount;
-        packet.XParse << item.nItemNo;
     }
     return packet;
 }
 
 // PS_GM_ROULETTE_EVENT 反序列化操作符
+// 对齐 IDA @ 0x140750A20
 inline void operator>>(XPacket& packet, PS_GM_ROULETTE_EVENT& value) {
     packet.XParse >> value.nEventID;
-    // 标题 (固定长度) - 读取字节长度和宽字符数据
-    std::uint16_t titleByteLen = 0;
-    packet.XParse >> titleByteLen;
-    for (int i = 0; i < 256; ++i) {
-        std::uint16_t ch = 0;
-        packet.XParse >> ch;
-        value.szTitle[i] = static_cast<wchar_t>(ch);
-    }
+    // 标题 - XParse::GetWString(60) 读取 WORD 字节长度 + 宽字符字节
+    short outLen = 0;
+    packet.XParse.GetWString(value.szTitle, 60, outLen);
     packet.XParse >> value.biStartDate;
     packet.XParse >> value.biEndDate;
     packet.XParse >> value.byUseType;
@@ -163,11 +170,80 @@ inline void operator>>(XPacket& packet, PS_GM_ROULETTE_EVENT& value) {
     for (int i = 0; i < nCount; ++i) {
         ST_GM_ROULETTE_EVENT_ITEM item{};
         packet.XParse >> item.nRewradIndex;
+        packet.XParse >> item.nItemID;
+        packet.XParse >> item.nCount;
+        packet.XParse >> item.nRate;
+        packet.XParse >> item.nLimitCount;
         packet.XParse >> item.nCurCount;
-        packet.XParse >> item.nMaxCount;
-        packet.XParse >> item.nItemNo;
         value.psRewardList.vecInfo.push_back(item);
     }
+}
+
+// ============================================================================
+// 客户端轮盘事件包类型 (GameServer -> Client)
+// PS_ROULETTE_EVENT: PDB UDT 0x1ced9, Size 200
+// ST_ROULETTE_EVENT_ITEM: PDB UDT 0x1cedb, Size 12
+// ============================================================================
+
+// ST_ROULETTE_EVENT_ITEM - 客户端轮盘奖励项
+struct ST_ROULETTE_EVENT_ITEM {
+    int nRewardID = 0;
+    int nItemID = 0;
+    int nCount = 0;
+};
+
+static_assert(sizeof(ST_ROULETTE_EVENT_ITEM) == 12, "ST_ROULETTE_EVENT_ITEM size must match PDB");
+
+// PS_ROULETTE_EVENT_ITEM_LIST - 客户端奖励项列表
+struct PS_ROULETTE_EVENT_ITEM_LIST {
+    std::vector<ST_ROULETTE_EVENT_ITEM> vecInfo;
+};
+
+static_assert(sizeof(PS_ROULETTE_EVENT_ITEM_LIST) == 32, "PS_ROULETTE_EVENT_ITEM_LIST size must match PDB");
+
+// PS_ROULETTE_EVENT - 客户端轮盘活动信息
+// 布局: szTitle[60]+0, nEventID+120, byUseType+124, nDayLimit+128, biStartDate+136,
+// biEndDate+144, byCostType+152, nCostID+156, nCostCount+160, psRewardItemList+168
+struct PS_ROULETTE_EVENT {
+    wchar_t szTitle[60] = {};
+    int nEventID = 0;
+    std::uint8_t byUseType = 0;
+    int nDayLimit = 0;
+    std::int64_t biStartDate = 0;
+    std::int64_t biEndDate = 0;
+    std::uint8_t byCostType = 0;
+    int nCostID = 0;
+    int nCostCount = 0;
+    PS_ROULETTE_EVENT_ITEM_LIST psRewardItemList;
+};
+
+static_assert(sizeof(PS_ROULETTE_EVENT) == 200, "PS_ROULETTE_EVENT size must match PDB");
+
+// PS_ROULETTE_EVENT 序列化 (对齐 IDA 0x140751060, 客户端包 0x2A/0x27)
+inline XPacket& operator<<(XPacket& packet, PS_ROULETTE_EVENT& value) {
+    // 标题 - WORD 字节长度 + 宽字符字节
+    const std::uint16_t titleByteLen =
+        static_cast<std::uint16_t>(std::wcslen(value.szTitle) * 2);
+    packet.XParse << titleByteLen;
+    for (int i = 0; i < static_cast<int>(titleByteLen / 2); ++i) {
+        packet.XParse << static_cast<std::uint16_t>(value.szTitle[i]);
+    }
+    packet.XParse << value.nEventID;
+    packet.XParse << value.byUseType;
+    packet.XParse << value.nDayLimit;
+    packet.XParse << value.biStartDate;
+    packet.XParse << value.biEndDate;
+    packet.XParse << value.byCostType;
+    packet.XParse << value.nCostID;
+    packet.XParse << value.nCostCount;
+    // 奖励列表
+    packet.XParse << static_cast<int>(value.psRewardItemList.vecInfo.size());
+    for (const auto& item : value.psRewardItemList.vecInfo) {
+        packet.XParse << item.nRewardID;
+        packet.XParse << item.nItemID;
+        packet.XParse << item.nCount;
+    }
+    return packet;
 }
 
 // 对齐 IDA CRouletteEventMgr

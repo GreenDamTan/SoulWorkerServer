@@ -17,6 +17,7 @@
 #include "Soulworker/GameServer/XCore/XServer/GreenDamTan_TimeCompat.h"
 #include "Soulworker/GameServer/XGameServer/VaccumCube.h"
 #include "Soulworker/GameServer/XGameServer/ThreadLocalData.h"
+#include "Soulworker/Common/XNet/XCommon/PSServer/PSServerGM.h"
 #include "Soulworker/GameServer/XCore/XArea/XArea.h"
 #include "Soulworker/GameServer/XGameServer/Monster.h"
 #include "Soulworker/GameServer/XGameServer/Npc.h"
@@ -263,6 +264,57 @@ void ThreadLocalData::SendWorldEventBooster(
         XArea* pArea = pair.second;
         if (pArea) {
             pArea->SendWorldEventBooster(dwBuffID, biEndDate);
+        }
+    }
+}
+
+// ============================================================================
+// SendBroadcast - IDA @ 0x1406D6100
+// ============================================================================
+void ThreadLocalData::SendBroadcast(XSendPacket& xSendPacket) {
+    for (auto& pair : m_mapArea) {
+        XArea* pArea = pair.second;
+        if (pArea) {
+            pArea->SendBroadCast(xSendPacket, nullptr, E_BROADCAST_TYPE::eNearby);
+        }
+    }
+}
+
+// ============================================================================
+// SendTimeEvent - IDA @ 0x1406D85A0
+// ============================================================================
+void ThreadLocalData::SendTimeEvent(ST_GM_TIME_EVENT_INFO& stInfo) {
+    for (auto& pair : m_mapArea) {
+        XArea* pArea = pair.second;
+        if (pArea) {
+            pArea->SendTimeEvent(stInfo);
+        }
+    }
+}
+
+// ============================================================================
+// UpdateChannelAll - IDA @ 0x1406D67D0
+// ============================================================================
+void ThreadLocalData::UpdateChannelAll(PS_CHANNEL_INFO& stChannel) {
+    auto it = m_mapChannelInfo.find(stChannel.wMapID);
+    if (it != m_mapChannelInfo.end()) {
+        m_mapChannelInfo.erase(it);
+    }
+    m_mapChannelInfo.insert(std::make_pair(stChannel.wMapID, stChannel));
+}
+
+// ============================================================================
+// UpdateChannel - IDA @ 0x1406D6920
+// ============================================================================
+void ThreadLocalData::UpdateChannel(std::uint16_t wMapID, ST_CHANNEL_INFO& stChannel) {
+    auto it = m_mapChannelInfo.find(wMapID);
+    if (it == m_mapChannelInfo.end()) {
+        return;
+    }
+    for (std::size_t i = 0; i < it->second.vecChannel.size(); ++i) {
+        if (it->second.vecChannel[i].wChannel == stChannel.wChannel) {
+            it->second.vecChannel[i].byChannelState = stChannel.byChannelState;
+            return;
         }
     }
 }

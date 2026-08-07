@@ -5371,3 +5371,11 @@ void CMover::SetAnimInfoString(std::map<std::uint32_t, class VString>* mapInfo) 
 // End of file - CMoverEx functions are in MoverEx.cpp
 // Collision functions are in MoverCollision.cpp
 
+
+// ============================================================================
+// GetBuffStatus(int) - 按索引获取 buff 状态 (IDA 0x14070AB00)
+// ============================================================================
+tagBUFF_STATE* CMover::GetBuffStatus(int nVal) {
+    return &m_stBuffState[nVal];
+}
+

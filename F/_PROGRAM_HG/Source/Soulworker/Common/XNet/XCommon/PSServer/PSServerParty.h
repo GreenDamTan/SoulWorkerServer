@@ -427,6 +427,16 @@ inline XPacket& operator<<(XPacket& packet, const ST_MATCHING_INFO& value) {
     return packet;
 }
 
+inline void operator>>(XPacket& packet, ST_MATCHING_INFO& value) {
+    packet.XParse >> value.dwMatchingID;
+    std::uint32_t pad0 = 0;
+    packet.XParse >> pad0;
+    for (int i = 0; i < 4; ++i) {
+        packet >> value.stMemberInfo[i];
+    }
+    packet.XParse >> value.nRemainTick;
+}
+
 // PS_PARTY_INFO 序列化
 inline XPacket& operator<<(XPacket& packet, const PS_PARTY_INFO& value) {
     packet.XParse << value.dwPartyID;

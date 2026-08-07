@@ -82,7 +82,7 @@ struct PS_CREATE_MAP {
     UXMapID uxMapID{};
     int nMaxUserCount = 0;
     int nCurUserCount = 0;
-    std::uint8_t _pad0[8] = {};
+    int nResult = 0;
 };
 
 /**
@@ -289,6 +289,7 @@ inline void operator>>(XPacket& packet, PS_CREATE_MAP& value) {
     packet.XParse >> value.uxMapID.nMapID;
     packet.XParse >> value.nMaxUserCount;
     packet.XParse >> value.nCurUserCount;
+    packet.XParse >> value.nResult;
 }
 
 // PS_CREATE_MAP_LIST 反序列化
@@ -743,3 +744,49 @@ static_assert(sizeof(ST_USER_CHARACTER_COUNT_FOR_SERVER_VEC) == 0x28,
               "ST_USER_CHARACTER_COUNT_FOR_SERVER_VEC size must match PDB");
 static_assert(offsetof(ST_USER_CHARACTER_COUNT_FOR_SERVER_VEC, vecInfo) == 0x8,
               "ST_USER_CHARACTER_COUNT_FOR_SERVER_VEC.vecInfo offset mismatch");
+
+// ============================================================================
+// PS_RES_REVIVE - 复活响应广播 (main=3, sub=0x44)
+// PDB: UDT 0x6e248, size 28 bytes
+// ============================================================================
+struct PS_RES_REVIVE {
+    std::uint32_t dwActorID = 0;   // offset 0: 复活者 ActorID
+    std::uint32_t dwOwnerID = 0;   // offset 4: 复活来源 OwnerID
+    std::uint8_t byType = 0;       // offset 8: 复活类型
+    XVec3 vPos{};                  // offset 12: 复活位置
+    float fRot = 0.0f;             // offset 24: 朝向
+};
+
+static_assert(sizeof(PS_RES_REVIVE) == 0x1C, "PS_RES_REVIVE size must match PDB");
+static_assert(offsetof(PS_RES_REVIVE, dwActorID) == 0x0, "PS_RES_REVIVE.dwActorID offset mismatch");
+static_assert(offsetof(PS_RES_REVIVE, dwOwnerID) == 0x4, "PS_RES_REVIVE.dwOwnerID offset mismatch");
+static_assert(offsetof(PS_RES_REVIVE, byType) == 0x8, "PS_RES_REVIVE.byType offset mismatch");
+static_assert(offsetof(PS_RES_REVIVE, vPos) == 0xC, "PS_RES_REVIVE.vPos offset mismatch");
+static_assert(offsetof(PS_RES_REVIVE, fRot) == 0x18, "PS_RES_REVIVE.fRot offset mismatch");
+
+inline XPacket& operator<<(XPacket& packet, const PS_RES_REVIVE& value) {
+    packet.XParse << value.dwActorID;
+    packet.XParse << value.dwOwnerID;
+    packet.XParse << value.byType;
+    packet << value.vPos;
+    packet.XParse << value.fRot;
+    return packet;
+}
+
+inline XPacket& operator>>(XPacket& packet, PS_RES_REVIVE& value) {
+    packet.XParse >> value.dwActorID;
+    packet.XParse >> value.dwOwnerID;
+    packet.XParse >> value.byType;
+    packet >> value.vPos;
+    packet.XParse >> value.fRot;
+    return packet;
+}
+
+inline XSendDBPacket& operator<<(XSendDBPacket& packet, const PS_RES_REVIVE& value) {
+    packet.XParse << value.dwActorID;
+    packet.XParse << value.dwOwnerID;
+    packet.XParse << value.byType;
+    packet << value.vPos;
+    packet.XParse << value.fRot;
+    return packet;
+}

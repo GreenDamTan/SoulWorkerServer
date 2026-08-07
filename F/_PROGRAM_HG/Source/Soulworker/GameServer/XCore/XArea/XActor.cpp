@@ -71,6 +71,16 @@ void XActor::ClearStatus(std::uint32_t dwStatusFlag) {
 }
 
 /**
+ * @brief Reset all status flags
+ *
+ * PDB: 0x140280C20
+ * Sets m_dwStatus to 0.
+ */
+void XActor::ResetStatus() {
+    m_dwStatus = 0;
+}
+
+/**
  * @brief Check if actor is in die status
  *
  * IDA: 0x140364500

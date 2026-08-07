@@ -17,6 +17,7 @@ constexpr std::uint32_t STATUS_HIT = 0x00000020u;      // 受击状态
 class XArea;
 class XSendPacket;
 struct STPosInfo;
+struct ST_GM_TIME_EVENT_INFO;
 // UXActorID is defined as union in PSCommon.h
 
 // E_ACTOR_TYPE - Actor 类型枚举 (完整定义)
@@ -87,6 +88,8 @@ public:
 
     // IDA: ?SendWorldEventBooster@XActor@@UEAAXK_J@Z (0x140188CF0)
     virtual void SendWorldEventBooster(unsigned long dwBuffID, std::int64_t biEndDate);
+    // IDA: ?SendTimeEvent@XActor@@UEAAXAEAUST_GM_TIME_EVENT_INFO@@@Z
+    virtual void SendTimeEvent(ST_GM_TIME_EVENT_INFO& stInfo) {}
 
     // 区域
     // IDA: ?GetArea@XActor@@UEAAPEAVXArea@@XZ (0x140188D20)
@@ -99,6 +102,7 @@ public:
     bool IsStatus(std::uint32_t dwStatusFlag) const;  // PDB: 0x140048FD0 - Check flag
     void SetStatus(std::uint32_t dwStatusFlag);       // PDB: 0x140276490 - Set flag (OR)
     void ClearStatus(std::uint32_t dwStatusFlag);     // PDB: 0x1402764B0 - Clear flag (AND NOT)
+    void ResetStatus();                               // PDB: 0x140280C20 - Clear all status (m_dwStatus = 0)
     bool IsDieStatus() const;  // IDA: 0x140364500 - Check if actor is in die status (status 2 or 4)
 
     // 位置信息

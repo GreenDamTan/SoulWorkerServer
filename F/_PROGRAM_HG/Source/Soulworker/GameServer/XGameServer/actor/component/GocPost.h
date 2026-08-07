@@ -109,6 +109,10 @@ public:
     // Post info
     void RecvPostInfo(ST_POST_DATA& stPostData, std::uint16_t wPostCount);
 
+    // IDA: ?SetConditionValue@CDailyMissionInfo@@QEAAXF@Z (0x140075190)
+    // PDB 符号归属 CDailyMissionInfo，实际操作 CGocPost 的 m_wNewPostCount
+    void SetConditionValue(std::uint16_t wCount);
+
     // GMT operations
     bool CheckGMTSystemPostSendCondition(ST_GMT_POST_CONDITION& stCondition);
     bool DBReqGMTSendPostList(int nRefreshPostType);

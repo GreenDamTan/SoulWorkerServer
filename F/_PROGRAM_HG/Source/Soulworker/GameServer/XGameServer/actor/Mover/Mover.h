@@ -1000,6 +1000,8 @@ public:
 
     // IDA: ?GetBuffStatus@CMover@@QEAAPEAUtagBUFF_STATE@@XZ (0x140529C0)
     tagBUFF_STATE* GetBuffStatus();
+    // IDA: ?GetBuffStatus@CMover@@QEAAPEAUtagBUFF_STATE@@H@Z (0x14070AB00)
+    tagBUFF_STATE* GetBuffStatus(int nVal);
 
 protected:
     // IDA: offset 976, size 4

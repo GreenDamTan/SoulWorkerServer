@@ -109,6 +109,13 @@ void CGocPost::AddSendPost(const ST_POST_DATA& stSendData)
     m_mpSendList[stSendData.biSerial] = stSendData;
 }
 
+// SetConditionValue (IDA: 0x140075190)
+// PDB 符号归属 CDailyMissionInfo，实际操作 CGocPost 的 m_wNewPostCount
+void CGocPost::SetConditionValue(std::uint16_t wCount)
+{
+    m_wNewPostCount = wCount;
+}
+
 // AddSavePost (IDA: 0x1405640F0)
 void CGocPost::AddSavePost(const ST_POST_DATA& stSaveData)
 {

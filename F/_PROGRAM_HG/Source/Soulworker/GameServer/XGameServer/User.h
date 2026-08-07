@@ -25,6 +25,7 @@ struct STPosInfo;
 struct hkvVec3;
 class XVec3;
 struct PS_KICK_USER_INFO;  // IDA: 0x140001680
+struct ST_GM_TIME_EVENT_INFO;
 
 // GOC 组件前置声明 (forward declarations for component types)
 class CGocSkill;
@@ -325,6 +326,15 @@ public:
     void Respawn();
     // Revive - Revive player with HP percent
     void Revive(int nHPPercent);
+    // IDA: ?Revive@CUser@@UEAAXKHHK_N@Z @ 0x1406F4F10
+    // 5 参版复活：按类型处理（1=技能,2=复活点,3=免费,4=现金,5=迷宫），恢复状态并广播 (3,0x44)
+    virtual void Revive(std::uint32_t dwOwnerID, int nType, int bBroadcast, std::uint32_t dwItemID, bool bByForce);
+    // IDA: ?InitSuperArmorGage@CUser@@QEAAXXZ @ 0x140700B80
+    // 根据 OriginStat(10) 与 Check_Stat_SA 初始化超级护甲槽
+    void InitSuperArmorGage();
+    // IDA: ?GetRevivePoint@CUser@@QEAAHXZ @ 0x1401E81C0
+    // 返回当前复活点
+    int GetRevivePoint() const { return m_nRevivePoint; }
     // Warp - Teleport player to position (IDA decompilation shows this is called)
     void Warp(XVec3* pPos);
     // Exit - Exit current area/maze (IDA decompilation shows this is called)
@@ -461,6 +471,9 @@ public:
 
     // IDA: ?SendWorldEventBooster@CUser@@UEAAXK_J@Z (0x1406E9740)
     virtual void SendWorldEventBooster(unsigned long dwBuffID, std::int64_t biEndDate);
+
+    // IDA: ?SendTimeEvent@CUser@@UEAAXAEAUST_GM_TIME_EVENT_INFO@@@Z (0x1406E8F80)
+    virtual void SendTimeEvent(ST_GM_TIME_EVENT_INFO& stInfo);
 
     // IDA 0x1406E9E60: writes this user's STCharInfoEx portion into an info packet.
     virtual void SetInfoPacket(XSendPacket& xSendPacket);
@@ -664,6 +677,10 @@ private:
 
     // === IDA 0x1400F72E0 CUser::GetSocialUseID 使用 ===
     std::uint32_t m_dwSocialUseID;
+
+    // === IDA 0x1401E81C0 CUser::GetRevivePoint / Revive(0x1406F4F10) 使用 ===
+    // PDB: CUser m_nRevivePoint (T_INT4 @ 191904)
+    int m_nRevivePoint;
 
     // === IDA 0x140049600 CUser::GetFirstEnter 使用 ===
     bool m_bFirstEnter;

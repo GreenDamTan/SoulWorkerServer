@@ -8,8 +8,10 @@
 #include <map>
 #include <string>
 #include <memory>
+#include "Soulworker/Common/XNet/XCommon/PSCommon.h"
 
 // Forward declarations
+struct ST_GM_TIME_EVENT_INFO;
 class CAi;
 class CMonster;
 class CUser;
@@ -260,9 +262,15 @@ public:
     // IDA @ 0x1406D6100 - Send broadcast
     void SendBroadcast(XSendPacket& xSendPacket);
 
+    // IDA @ 0x1406D85A0 - Send time event to all areas
+    void SendTimeEvent(ST_GM_TIME_EVENT_INFO& stInfo);
+
     // Channel management
     // IDA @ 0x1406D67D0 - Update all channels
-    void UpdateChannelAll(ST_CHANNEL_INFO& stChannelInfo);
+    void UpdateChannelAll(PS_CHANNEL_INFO& stChannelInfo);
+
+    // IDA @ 0x1406D6920 - Update a single channel entry
+    void UpdateChannel(std::uint16_t wMapID, ST_CHANNEL_INFO& stChannel);
 
     // IDA @ 0x1406D6A50 - Send channel info
     void SendChannelInfo(CUser* pUser, std::uint16_t wChannelID);
@@ -417,7 +425,7 @@ private:
     // Maps
     std::map<std::string, CAi*> m_mapAi;
     std::map<int, XArea*> m_mapArea;
-    std::map<std::string, void*> m_mapChannelInfo;
+    std::map<std::uint16_t, PS_CHANNEL_INFO> m_mapChannelInfo;
     std::map<unsigned int, void*> m_mapLeagueMember;  // CLeagueMember* - forward declaration placeholder
 
     // Report pool info

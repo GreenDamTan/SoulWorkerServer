@@ -363,6 +363,12 @@ struct PS_RES_LEAGUE_NAME_CHANGE {
     std::int32_t nResult = 0;
 };
 
+// League applicant accept response (8 bytes) - PDB UDT 0x24460
+struct PS_RES_LEAGUE_ACCEPT_ACCPLICANT {
+    std::uint32_t dwUCID = 0;
+    std::int32_t nResult = 0;
+};
+
 // 联赛成员更新结构（72字节）
 struct ST_LEAGUE_MEMBER_UPDATE {
     std::int32_t nLeagueID = 0;
@@ -588,6 +594,19 @@ inline void operator>>(XPacket& packet, PS_RES_LEAGUE_SKILL& value) {
     packet.XParse >> value.bySkillLevel;
     packet.XParse >> value.bySkillPoint;
     packet.XParse >> value.biGold;
+    packet.XParse >> value.nResult;
+}
+
+// PS_RES_LEAGUE_ACCEPT_ACCPLICANT 输出序列化
+inline XPacket& operator<<(XPacket& packet, const PS_RES_LEAGUE_ACCEPT_ACCPLICANT& value) {
+    packet.XParse << value.dwUCID;
+    packet.XParse << value.nResult;
+    return packet;
+}
+
+// PS_RES_LEAGUE_ACCEPT_ACCPLICANT 输入序列化
+inline void operator>>(XPacket& packet, PS_RES_LEAGUE_ACCEPT_ACCPLICANT& value) {
+    packet.XParse >> value.dwUCID;
     packet.XParse >> value.nResult;
 }
 

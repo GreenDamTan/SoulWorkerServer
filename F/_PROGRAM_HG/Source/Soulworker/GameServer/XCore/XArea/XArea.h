@@ -13,6 +13,7 @@ class XActor;
 class CFSRWLock;
 struct ST_WORLD_MODE_INFO;
 struct ST_WORLD_MODE_INFO_VEC;
+struct ST_GM_TIME_EVENT_INFO;
 
 // UXMapID 结构
 // IDA: 访问 m_uxMapID.nMapID 作为 64 位值，然后 << 16 >> 48 获取高 16 位
@@ -94,6 +95,9 @@ public:
 
     // IDA: ?SendWorldEventBooster@XArea@@QEAAXK_J@Z (0x1408F0250)
     void SendWorldEventBooster(unsigned long dwBuffID, std::int64_t biEndDate);
+
+    // IDA: ?SendTimeEvent@XArea@@QEAAXAEAUST_GM_TIME_EVENT_INFO@@@Z (0x1408EFAE0)
+    void SendTimeEvent(ST_GM_TIME_EVENT_INFO& stInfo);
 
     // 访问器
     TUXMapID GetMapID() const { return m_uxMapID; }

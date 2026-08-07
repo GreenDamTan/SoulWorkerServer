@@ -78,6 +78,21 @@ struct PS_GM_VALUE_EVENT_LIST {
     std::vector<ST_GM_VALUE_EVENT_INFO> vecEvent;
 };
 
+// 对齐 IDA: 系统事件同步结构 (UDT 0x71b57, Size 8)
+struct PS_SYNC_SYSTEM_EVENT {
+    std::int32_t nEventType = 0;
+    std::int32_t nEventValue = 0;
+};
+
+static_assert(sizeof(PS_SYNC_SYSTEM_EVENT) == 8, "PS_SYNC_SYSTEM_EVENT size must match IDA");
+
+// 对齐 IDA: PS_SYNC_SYSTEM_EVENT 序列化（用于 (1,9) 系统事件同步包）
+inline XPacket& operator<<(XPacket& packet, const PS_SYNC_SYSTEM_EVENT& value) {
+    packet.XParse << value.nEventType;
+    packet.XParse << value.nEventValue;
+    return packet;
+}
+
 // 对齐 IDA: Banner信息结构
 struct ST_BANNER_INFO {
     char szUrl[500] = {};
@@ -148,12 +163,13 @@ inline void operator>>(XPacket& packet, ST_GM_VALUE_EVENT_INFO& value) {
 }
 
 // 对齐 IDA: PS_GM_VALUE_EVENT_LIST 反序列化
+// IDA @ 0x14076D660: 计数为 2 字节 short (__int16 shCount)
 inline void operator>>(XPacket& packet, PS_GM_VALUE_EVENT_LIST& value) {
-    std::uint8_t count = 0;
-    packet.XParse >> count;
+    std::int16_t shCount = 0;
+    packet.XParse >> shCount;
     value.vecEvent.clear();
-    value.vecEvent.reserve(static_cast<std::size_t>(count));
-    for (std::uint8_t index = 0; index < count; ++index) {
+    value.vecEvent.reserve(static_cast<std::size_t>(shCount));
+    for (std::int16_t index = 0; index < shCount; ++index) {
         ST_GM_VALUE_EVENT_INFO item{};
         packet >> item;
         value.vecEvent.push_back(item);
@@ -213,9 +229,9 @@ inline XPacket& operator<<(XPacket& packet, const ST_GM_VALUE_EVENT_INFO& value)
     return packet;
 }
 
-// 对齐 IDA: PS_GM_VALUE_EVENT_LIST 序列化
+// 对齐 IDA: PS_GM_VALUE_EVENT_LIST 序列化 (计数为 2 字节 short)
 inline XPacket& operator<<(XPacket& packet, const PS_GM_VALUE_EVENT_LIST& value) {
-    packet.XParse << static_cast<std::uint8_t>(value.vecEvent.size());
+    packet.XParse << static_cast<std::int16_t>(value.vecEvent.size());
     for (const auto& item : value.vecEvent) {
         packet << item;
     }

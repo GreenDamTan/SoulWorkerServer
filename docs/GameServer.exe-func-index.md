@@ -2033,7 +2033,7 @@
 | - | - | ??0PS_EXCHANGE_MY_LIST_RES@@QEAA@XZ | 0x140075000 | blocked | IDA ??0PS_EXCHANGE_MY_LIST_RES@@QEAA@XZ | yes | - |
 | - | - | ??0PS_EXCHANGE_PRICE_HISTORY_UPDATE@@QEAA@XZ | 0x140075040 | blocked | IDA ??0PS_EXCHANGE_PRICE_HISTORY_UPDATE@@QEAA@XZ | yes | - |
 | CGocPost | GocPost.cpp | ?AddRecvPost@CGocPost@@QEAAXUST_POST_DATA@@@Z | 0x1400750d0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
-| - | - | ?SetConditionValue@CDailyMissionInfo@@QEAAXF@Z | 0x140075190 | implemented | IDA ?SetConditionValue@CDailyMissionInfo@@QEAAXF@Z | yes | - |
+| XGameServer | actor/component/GocPost.cpp | ?SetConditionValue@CDailyMissionInfo@@QEAAXF@Z | 0x140075190 | implemented | PDB public + IDA decompile | yes | PDB 符号归属 CDailyMissionInfo，IDA 显示实际操作 CGocPost 的 m_wNewPostCount；源码以 CGocPost::SetConditionValue(uint16_t) 落地，设置 m_wNewPostCount。 |
 | CGocExchange | GocExchange.cpp | ??0CGocExchange@@QEAA@XZ | 0x1400751b0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
 | - | - | ??_ECGocExchange@@UEAAPEAXI@Z | 0x140075220 | blocked | IDA ??_ECGocExchange@@UEAAPEAXI@Z | yes | - |
 | - | - | ??1?$map@_JUST_MY_EXCHANGE_ITEM@@U?$less@_J@std@@V?$allocator@U?$pair@$$CB_JUST_MY_EXCHANGE_ITEM@@@std@@@3@@std@@QEAA@XZ | 0x140075260 | blocked | IDA ??1?$map@_JUST_MY_EXCHANGE_ITEM@@U?$less@_J@std@@V?$allocator@U?$pair@$$CB_JUST_MY_EXCHANGE_ITEM@@@std@@@3@@std@@QEAA@XZ | yes | - |
@@ -6945,7 +6945,7 @@
 | XGameServer | GameSockets.cpp | ??1CGameControlSocket@@UEAA@XZ | 0x1401ca300 | implemented | IDA decompile | yes | CGameControlSocket�������� |
 | XGameServer | GameSockets.cpp | ?SetMyInfo@CGameControlSocket@@UEAAXPEAVXOption@@@Z | 0x1401ca350 | implemented | IDA decompile | yes | ���÷�������Ϣ |
 | XGameServer | GameSockets.cpp | ?ServerProcessEx@CGameControlSocket@@UEAA_NAEAVXPacket@@@Z | 0x1401ca500 | implemented | IDA decompile | yes | ������������ |
-| XGameServer | GameSockets.cpp | ?RecvFindUser@CGameControlSocket@@QEAA_NAEAVXPacket@@@Z | 0x1401ca880 | implemented | IDA decompile | yes | �����û� |
+| XGameServer | GameSockets.cpp | ?RecvFindUser@CGameControlSocket@@QEAA_NAEAVXPacket@@@Z | 0x1401ca880 | blocked | IDA decompile | yes | �����û� |
 | - | - | ??0_lambda0_@?A0xa4fe1a90@@QEAA@AEBQEAVCUser@@AEBHAEBUSTPosInfo@@AEBK@Z | 0x1401cae10 | blocked | IDA ??0_lambda0_@?A0xa4fe1a90@@QEAA@AEBQEAVCUser@@AEBHAEBUSTPosInfo@@AEBK@Z | yes | - |
 | - | - | ??R_lambda0_@?A0xa4fe1a90@@QEBAXXZ | 0x1401cae90 | blocked | IDA ??R_lambda0_@?A0xa4fe1a90@@QEBAXXZ | yes | - |
 | - | - | ??0_lambda2_@?A0xa4fe1a90@@QEAA@AEBQEAVCUser@@0AEBHAEBUSTPosInfo@@AEBK@Z | 0x1401caff0 | blocked | IDA ??0_lambda2_@?A0xa4fe1a90@@QEAA@AEBQEAVCUser@@0AEBHAEBUSTPosInfo@@AEBK@Z | yes | - |
@@ -6953,69 +6953,69 @@
 | XGameServer | GameSockets.cpp | ?PartyProcess@CGameControlSocket@@UEAA_NAEAVXPacket@@@Z | 0x1401cb1e0 | implemented | IDA decompile | yes | ��Ӱ�����?|
 | XGameServer | GameSockets.cpp | ?WorldModeProcess@CGameControlSocket@@UEAA_NAEAVXPacket@@@Z | 0x1401cb230 | implemented | IDA decompile | yes | ����ģʽ������ |
 | XGameServer | GameSockets.cpp | ?ForceProcess@CGameControlSocket@@UEAA_NAEAVXPacket@@@Z | 0x1401cb320 | implemented | IDA decompile | yes | ���Ű����� |
-| XGameServer | GameSockets.cpp | ?RecvCreateMazeReq@CGameControlSocket@@QEAA_NAEAVXPacket@@@Z | 0x1401cb370 | implemented | IDA decompile | yes | �����Թ����� |
+| XGameServer | GameSockets.cpp | ?RecvCreateMazeReq@CGameControlSocket@@QEAA_NAEAVXPacket@@@Z | 0x1401cb370 | blocked | IDA decompile | yes | �����Թ����� |
 | - | - | ??0_lambda4_@?A0xa4fe1a90@@QEAA@AEBUST_CREATE_MAZE@@@Z | 0x1401cb4b0 | blocked | IDA ??0_lambda4_@?A0xa4fe1a90@@QEAA@AEBUST_CREATE_MAZE@@@Z | yes | - |
 | - | - | ??R_lambda4_@?A0xa4fe1a90@@QEBAXXZ | 0x1401cb4e0 | blocked | IDA ??R_lambda4_@?A0xa4fe1a90@@QEBAXXZ | yes | - |
 | - | - | ??1_lambda4_@?A0xa4fe1a90@@QEAA@XZ | 0x1401cb530 | blocked | IDA ??1_lambda4_@?A0xa4fe1a90@@QEAA@XZ | yes | - |
 | - | - | ??0ST_CREATE_MAZE@@QEAA@AEBU0@@Z | 0x1401cb550 | blocked | IDA ??0ST_CREATE_MAZE@@QEAA@AEBU0@@Z | yes | - |
-| XGameServer | GameSockets.cpp | ?RecvRemoveMaze@CGameControlSocket@@QEAA_NAEAVXPacket@@@Z | 0x1401cb6a0 | implemented | IDA decompile | yes | �Ƴ��Թ� |
+| XGameServer | GameSockets.cpp | ?RecvRemoveMaze@CGameControlSocket@@QEAA_NAEAVXPacket@@@Z | 0x1401cb6a0 | blocked | IDA decompile | yes | �Ƴ��Թ� |
 | - | - | ??0_lambda5_@?A0xa4fe1a90@@QEAA@AEBTUXMapID@@AEBH@Z | 0x1401cb7a0 | blocked | IDA ??0_lambda5_@?A0xa4fe1a90@@QEAA@AEBTUXMapID@@AEBH@Z | yes | - |
 | - | - | ??R_lambda5_@?A0xa4fe1a90@@QEBAXXZ | 0x1401cb7e0 | blocked | IDA ??R_lambda5_@?A0xa4fe1a90@@QEBAXXZ | yes | - |
-| XGameServer | GameSockets.cpp | ?RecvUserEnterServer@CGameControlSocket@@UEAA_NAEAVXPacket@@@Z | 0x1401cb830 | implemented | IDA decompile | yes | �û����������?|
+| XGameServer | GameSockets.cpp | ?RecvUserEnterServer@CGameControlSocket@@UEAA_NAEAVXPacket@@@Z | 0x1401cb830 | blocked | IDA decompile | yes | �û����������?|
 | - | - | ??0_lambda6_@?A0xa4fe1a90@@QEAA@AEBKAEBTUXMapID@@AEBUST_PARTY_INFO@@@Z | 0x1401cb950 | blocked | IDA ??0_lambda6_@?A0xa4fe1a90@@QEAA@AEBKAEBTUXMapID@@AEBUST_PARTY_INFO@@@Z | yes | - |
 | XGameServer | GameSockets.cpp | ?RecvCreateMap@CGameControlSocket@@QEAA_NAEAVXPacket@@@Z | 0x1401cb9a0 | implemented | IDA decompile | yes | ������ͼ |
-| - | - | ??R_lambda7_@?A0xa4fe1a90@@QEBAXXZ | 0x1401cba80 | blocked | IDA ??R_lambda7_@?A0xa4fe1a90@@QEBAXXZ | yes | - |
-| XGameServer | GameSockets.cpp | ?RecvEnterMapToOther@CGameControlSocket@@QEAA_NAEAVXPacket@@@Z | 0x1401cbb00 | implemented | IDA decompile | yes | ����������ͼ |
+| - | - | ??R_lambda7_@?A0xa4fe1a90@@QEBAXXZ | 0x1401cba80 | implemented | IDA ??R_lambda7_@?A0xa4fe1a90@@QEBAXXZ | yes | - |
+| XGameServer | GameSockets.cpp | ?RecvEnterMapToOther@CGameControlSocket@@QEAA_NAEAVXPacket@@@Z | 0x1401cbb00 | blocked | IDA decompile | yes | ����������ͼ |
 | - | - | ??0_lambda8_@?A0xa4fe1a90@@QEAA@AEBQEAVCUser@@AEBUPS_ENTER_MAP_RES@@AEBUSTPosInfo@@@Z | 0x1401cbdd0 | blocked | IDA ??0_lambda8_@?A0xa4fe1a90@@QEAA@AEBQEAVCUser@@AEBUPS_ENTER_MAP_RES@@AEBUSTPosInfo@@@Z | yes | - |
 | - | - | ??R_lambda8_@?A0xa4fe1a90@@QEBAXXZ | 0x1401cbe80 | blocked | IDA ??R_lambda8_@?A0xa4fe1a90@@QEBAXXZ | yes | - |
-| XGameServer | GameSockets.cpp | ?RecvEnterMap@CGameControlSocket@@QEAA_NAEAVXPacket@@@Z | 0x1401cc340 | implemented | IDA decompile | yes | ������?|
+| XGameServer | GameSockets.cpp | ?RecvEnterMap@CGameControlSocket@@QEAA_NAEAVXPacket@@@Z | 0x1401cc340 | blocked | IDA decompile | yes | ������?|
 | - | - | ??0_lambda19_@?A0xa4fe1a90@@QEAA@AEBQEAVCUser@@AEBUPS_ENTER_MAP_RES@@@Z | 0x1401cc5c0 | blocked | IDA ??0_lambda19_@?A0xa4fe1a90@@QEAA@AEBQEAVCUser@@AEBUPS_ENTER_MAP_RES@@@Z | yes | - |
 | - | - | ??R_lambda10_@?A0xa4fe1a90@@QEBAXXZ | 0x1401cc630 | blocked | IDA ??R_lambda10_@?A0xa4fe1a90@@QEBAXXZ | yes | - |
-| XGameServer | GameSockets.cpp | ?RecvCheckPartyInMaze@CGameControlSocket@@QEAA_NAEAVXPacket@@@Z | 0x1401ccda0 | implemented | IDA decompile | yes | ����Թ��ж���?|
+| XGameServer | GameSockets.cpp | ?RecvCheckPartyInMaze@CGameControlSocket@@QEAA_NAEAVXPacket@@@Z | 0x1401ccda0 | blocked | IDA decompile | yes | ����Թ��ж���?|
 | - | - | ??0_lambda12_@?A0xa4fe1a90@@QEAA@AEBQEAVCUser@@AEBTUXMapID@@AEBUPS_ENTER_MAP_REQ@@AEBH@Z | 0x1401cd050 | blocked | IDA ??0_lambda12_@?A0xa4fe1a90@@QEAA@AEBQEAVCUser@@AEBTUXMapID@@AEBUPS_ENTER_MAP_REQ@@AEBH@Z | yes | - |
 | - | - | ??R_lambda12_@?A0xa4fe1a90@@QEBAXXZ | 0x1401cd0f0 | blocked | IDA ??R_lambda12_@?A0xa4fe1a90@@QEBAXXZ | yes | - |
-| XGameServer | GameSockets.cpp | ?RecvUserChangeServer@CGameControlSocket@@UEAA_NAEAVXPacket@@@Z | 0x1401cd4b0 | implemented | IDA decompile | yes | �û��л������� |
+| XGameServer | GameSockets.cpp | ?RecvUserChangeServer@CGameControlSocket@@UEAA_NAEAVXPacket@@@Z | 0x1401cd4b0 | blocked | IDA decompile | yes | �û��л������� |
 | - | - | ??0_lambda14_@?A0xa4fe1a90@@QEAA@AEBQEAVCUser@@AEBUPS_RES_CHANGE_SERVER@@@Z | 0x1401cd730 | blocked | IDA ??0_lambda14_@?A0xa4fe1a90@@QEAA@AEBQEAVCUser@@AEBUPS_RES_CHANGE_SERVER@@@Z | yes | - |
 | - | - | ??R_lambda14_@?A0xa4fe1a90@@QEBAXXZ | 0x1401cd7a0 | blocked | IDA ??R_lambda14_@?A0xa4fe1a90@@QEBAXXZ | yes | - |
-| - | - | ?RecvChangeChannelRes@CGameControlSocket@@UEAA_NAEAVXPacket@@@Z | 0x1401cd920 | implemented | IDA decompile | yes | ����Ƶ����Ӧ |
+| - | - | ?RecvChangeChannelRes@CGameControlSocket@@UEAA_NAEAVXPacket@@@Z | 0x1401cd920 | blocked | IDA decompile | yes | ����Ƶ����Ӧ |
 | - | - | ??R_lambda16_@?A0xa4fe1a90@@QEBAXXZ | 0x1401cdba0 | blocked | IDA ??R_lambda16_@?A0xa4fe1a90@@QEBAXXZ | yes | - |
-| - | - | ?RecvGoBackMazeRes@CGameControlSocket@@QEAA_NAEAVXPacket@@@Z | 0x1401ce150 | implemented | IDA decompile | yes | �����Թ���Ӧ |
+| - | - | ?RecvGoBackMazeRes@CGameControlSocket@@QEAA_NAEAVXPacket@@@Z | 0x1401ce150 | blocked | IDA decompile | yes | �����Թ���Ӧ |
 | - | - | ??0_lambda18_@?A0xa4fe1a90@@QEAA@AEBTUXMapID@@AEBUST_GO_BACK_MAZE@@@Z | 0x1401ce2c0 | blocked | IDA ??0_lambda18_@?A0xa4fe1a90@@QEAA@AEBTUXMapID@@AEBUST_GO_BACK_MAZE@@@Z | yes | - |
 | - | - | ??R_lambda18_@?A0xa4fe1a90@@QEBAXXZ | 0x1401ce330 | blocked | IDA ??R_lambda18_@?A0xa4fe1a90@@QEBAXXZ | yes | - |
 | - | - | ??0ST_GO_BACK_MAZE@@QEAA@XZ | 0x1401ce7e0 | blocked | IDA ??0ST_GO_BACK_MAZE@@QEAA@XZ | yes | - |
-| - | - | ?RecvCreateMazeRes@CGameControlSocket@@QEAA_NAEAVXPacket@@@Z | 0x1401ce810 | implemented | IDA decompile | yes | �����Թ���Ӧ |
+| - | - | ?RecvCreateMazeRes@CGameControlSocket@@QEAA_NAEAVXPacket@@@Z | 0x1401ce810 | blocked | IDA decompile | yes | �����Թ���Ӧ |
 | - | - | ??R_lambda19_@?A0xa4fe1a90@@QEBAXXZ | 0x1401cea90 | blocked | IDA ??R_lambda19_@?A0xa4fe1a90@@QEBAXXZ | yes | - |
 | XGameServer | GameSockets.cpp | ?RecvUserKickout@CGameControlSocket@@UEAA_NAEAVXPacket@@@Z | 0x1401cf2e0 | implemented | IDA decompile | yes | �߳��û� |
 | - | - | ??0_lambda89_@?A0x93366633@@QEAA@AEBQEAVCUser@@AEBUPS_KICK_USER_INFO_UCID@@@Z | 0x1401cf520 | blocked | IDA ??0_lambda89_@?A0x93366633@@QEAA@AEBQEAVCUser@@AEBUPS_KICK_USER_INFO_UCID@@@Z | yes | - |
-| - | - | ??R_lambda21_@?A0xa4fe1a90@@QEBAXXZ | 0x1401cf590 | blocked | IDA ??R_lambda21_@?A0xa4fe1a90@@QEBAXXZ | yes | - |
+| - | - | ??R_lambda21_@?A0xa4fe1a90@@QEBAXXZ | 0x1401cf590 | implemented | IDA ??R_lambda21_@?A0xa4fe1a90@@QEBAXXZ | yes | - |
 | XGameServer | GameSockets.cpp | ?RecvUpdateChannelAll@CGameControlSocket@@UEAA_NAEAVXPacket@@@Z | 0x1401cf690 | implemented | IDA decompile | yes | ��������Ƶ�� |
 | - | - | ??0_lambda23_@?A0xa4fe1a90@@QEAA@AEBV01@@Z | 0x1401cf790 | blocked | IDA ??0_lambda23_@?A0xa4fe1a90@@QEAA@AEBV01@@Z | yes | - |
-| - | - | ??R_lambda23_@?A0xa4fe1a90@@QEBAXXZ | 0x1401cf7c0 | blocked | IDA ??R_lambda23_@?A0xa4fe1a90@@QEBAXXZ | yes | - |
+| - | - | ??R_lambda23_@?A0xa4fe1a90@@QEBAXXZ | 0x1401cf7c0 | implemented | IDA ??R_lambda23_@?A0xa4fe1a90@@QEBAXXZ | yes | - |
 | - | - | ??0PS_CHANNEL_INFO@@QEAA@AEBU0@@Z | 0x1401cf820 | blocked | IDA ??0PS_CHANNEL_INFO@@QEAA@AEBU0@@Z | yes | - |
 | - | - | ??1_lambda23_@?A0xa4fe1a90@@QEAA@XZ | 0x1401cf870 | blocked | IDA ??1_lambda23_@?A0xa4fe1a90@@QEAA@XZ | yes | - |
 | XGameServer | GameSockets.cpp | ?RecvUpdateChannel@CGameControlSocket@@UEAA_NAEAVXPacket@@@Z | 0x1401cf890 | implemented | IDA decompile | yes | ���µ���Ƶ�� |
 | - | - | ??0_lambda24_@?A0xa4fe1a90@@QEAA@AEBGAEBUST_CHANNEL_INFO@@@Z | 0x1401cf960 | blocked | IDA ??0_lambda24_@?A0xa4fe1a90@@QEAA@AEBGAEBUST_CHANNEL_INFO@@@Z | yes | - |
-| - | - | ??R_lambda24_@?A0xa4fe1a90@@QEBAXXZ | 0x1401cf9a0 | blocked | IDA ??R_lambda24_@?A0xa4fe1a90@@QEBAXXZ | yes | - |
+| - | - | ??R_lambda24_@?A0xa4fe1a90@@QEBAXXZ | 0x1401cf9a0 | implemented | IDA ??R_lambda24_@?A0xa4fe1a90@@QEBAXXZ | yes | - |
 | - | - | ?RecvUsersInfo@CGameControlSocket@@QEAA_NAEAVXPacket@@@Z | 0x1401cf9e0 | implemented | IDA decompile | yes | ͬ���û���Ϣ |
-| XGameServer | GameSockets.cpp | ?RecvPartyEnterMaze@CGameControlSocket@@QEAA_NAEAVXPacket@@@Z | 0x1401cfa20 | implemented | IDA decompile | yes | ��ӽ����Թ�?|
+| XGameServer | GameSockets.cpp | ?RecvPartyEnterMaze@CGameControlSocket@@QEAA_NAEAVXPacket@@@Z | 0x1401cfa20 | blocked | IDA decompile | yes | ��ӽ����Թ�?|
 | - | - | ??R_lambda25_@?A0xa4fe1a90@@QEBAXXZ | 0x1401cfcc0 | blocked | IDA ??R_lambda25_@?A0xa4fe1a90@@QEBAXXZ | yes | - |
-| - | - | ?RecvPartyMatching@CGameControlSocket@@QEAA_NAEAVXPacket@@@Z | 0x1401cfe20 | implemented | IDA decompile | yes | ���ƥ��?|
+| - | - | ?RecvPartyMatching@CGameControlSocket@@QEAA_NAEAVXPacket@@@Z | 0x1401cfe20 | blocked | IDA decompile | yes | ���ƥ��?|
 | - | - | ??0PS_PARTY_INFO@@QEAA@AEBU0@@Z | 0x1401cffb0 | blocked | IDA ??0PS_PARTY_INFO@@QEAA@AEBU0@@Z | yes | - |
-| - | - | ?RecvForceMatching@CGameControlSocket@@QEAA_NAEAVXPacket@@@Z | 0x1401d0040 | implemented | IDA decompile | yes | Forceƥ�� |
-| - | - | ?RecvForceEnterMaze@CGameControlSocket@@QEAA_NAEAVXPacket@@@Z | 0x1401d01d0 | implemented | IDA decompile | yes | Force�����Թ� |
+| - | - | ?RecvForceMatching@CGameControlSocket@@QEAA_NAEAVXPacket@@@Z | 0x1401d0040 | blocked | IDA decompile | yes | Forceƥ�� |
+| - | - | ?RecvForceEnterMaze@CGameControlSocket@@QEAA_NAEAVXPacket@@@Z | 0x1401d01d0 | blocked | IDA decompile | yes | Force�����Թ� |
 | - | - | ??R_lambda29_@?A0xa4fe1a90@@QEBAXXZ | 0x1401d0480 | blocked | IDA ??R_lambda29_@?A0xa4fe1a90@@QEBAXXZ | yes | - |
 | XGameServer | GameSockets.cpp | ?RecvServerShutdown@CGameControlSocket@@QEAA_NAEAVXPacket@@@Z | 0x1401d05f0 | implemented | IDA decompile | yes | �������ر� |
-| - | - | ?RecvMyRoomCreate@CGameControlSocket@@QEAA_NAEAVXPacket@@@Z | 0x1401d0630 | implemented | IDA decompile | yes | �����ҵķ��� |
+| - | - | ?RecvMyRoomCreate@CGameControlSocket@@QEAA_NAEAVXPacket@@@Z | 0x1401d0630 | blocked | IDA decompile | yes | �����ҵķ��� |
 | - | - | ??0_lambda31_@?A0xa4fe1a90@@QEAA@AEBUST_MYROOM_USER@@AEBUST_MYROOM_OWNER_INFO@@AEB_JAEBK@Z | 0x1401d0790 | blocked | IDA ??0_lambda31_@?A0xa4fe1a90@@QEAA@AEBUST_MYROOM_USER@@AEBUST_MYROOM_OWNER_INFO@@AEB_JAEBK@Z | yes | - |
 | - | - | ??R_lambda31_@?A0xa4fe1a90@@QEBAXXZ | 0x1401d0850 | blocked | IDA ??R_lambda31_@?A0xa4fe1a90@@QEBAXXZ | yes | - |
-| - | - | ?RecvMyRoomEnterReq@CGameControlSocket@@QEAA_NAEAVXPacket@@@Z | 0x1401d0900 | implemented | IDA decompile | yes | �����ҵķ������� |
+| - | - | ?RecvMyRoomEnterReq@CGameControlSocket@@QEAA_NAEAVXPacket@@@Z | 0x1401d0900 | blocked | IDA decompile | yes | �����ҵķ������� |
 | - | - | ??0_lambda32_@?A0xa4fe1a90@@QEAA@AEBUST_MYROOM_USER@@AEB_JAEBK@Z | 0x1401d0a10 | blocked | IDA ??0_lambda32_@?A0xa4fe1a90@@QEAA@AEBUST_MYROOM_USER@@AEB_JAEBK@Z | yes | - |
 | - | - | ??R_lambda32_@?A0xa4fe1a90@@QEBAXXZ | 0x1401d0a80 | blocked | IDA ??R_lambda32_@?A0xa4fe1a90@@QEBAXXZ | yes | - |
-| - | - | ?RecvMyRoomEnter@CGameControlSocket@@QEAA_NAEAVXPacket@@@Z | 0x1401d0b00 | implemented | IDA decompile | yes | �����ҵķ��� |
+| - | - | ?RecvMyRoomEnter@CGameControlSocket@@QEAA_NAEAVXPacket@@@Z | 0x1401d0b00 | blocked | IDA decompile | yes | �����ҵķ��� |
 | - | - | ??0_lambda33_@?A0xa4fe1a90@@QEAA@AEBQEAVCUser@@AEBHAEBUPS_ENTER_MAP_RES@@AEBUST_MYROOM_OWNER_INFO@@AEBK@Z | 0x1401d0e20 | blocked | IDA ??0_lambda33_@?A0xa4fe1a90@@QEAA@AEBQEAVCUser@@AEBHAEBUPS_ENTER_MAP_RES@@AEBUST_MYROOM_OWNER_INFO@@AEBK@Z | yes | - |
 | - | - | ??R_lambda33_@?A0xa4fe1a90@@QEBAXXZ | 0x1401d0f00 | blocked | IDA ??R_lambda33_@?A0xa4fe1a90@@QEBAXXZ | yes | - |
 | XGameServer | GameSockets.cpp | ?RecvUserNotice@CGameControlSocket@@UEAA_NAEAVXPacket@@@Z | 0x1401d14c0 | implemented | IDA decompile | yes | �û�����֪ͨ���� |
-| - | - | ??R_lambda35_@?A0xa4fe1a90@@QEBAXXZ | 0x1401d15b0 | blocked | IDA ??R_lambda35_@?A0xa4fe1a90@@QEBAXXZ | yes | - |
+| - | - | ??R_lambda35_@?A0xa4fe1a90@@QEBAXXZ | 0x1401d15b0 | implemented | IDA ??R_lambda35_@?A0xa4fe1a90@@QEBAXXZ | yes | - |
 | XGameServer | GameSockets.cpp | ?RecvUserMegaPhone@CGameControlSocket@@UEAA_NAEAVXPacket@@@Z | 0x1401d1680 | implemented | IDA decompile | yes | ������Ϣ���� |
 | - | - | ??1PS_CHAT_ITEM_LINK_FOR_SERVER@@QEAA@XZ | 0x1401d17e0 | blocked | IDA ??1PS_CHAT_ITEM_LINK_FOR_SERVER@@QEAA@XZ | yes | - |
 | - | - | ??0PS_CHAT_ITEM_LINK@@QEAA@AEBU0@@Z | 0x1401d1820 | blocked | IDA ??0PS_CHAT_ITEM_LINK@@QEAA@AEBU0@@Z | yes | - |
@@ -7023,76 +7023,76 @@
 | - | - | ??0_lambda36_@?A0xa4fe1a90@@QEAA@AEBV01@@Z | 0x1401d19c0 | blocked | IDA ??0_lambda36_@?A0xa4fe1a90@@QEAA@AEBV01@@Z | yes | - |
 | - | - | ??0PS_CHAT_ITEM_LINK_FOR_SERVER@@QEAA@AEBU0@@Z | 0x1401d1a40 | blocked | IDA ??0PS_CHAT_ITEM_LINK_FOR_SERVER@@QEAA@AEBU0@@Z | yes | - |
 | XGameServer | GameSockets.cpp | ?RecvUserTradePasswordState@CGameControlSocket@@UEAA_NAEAVXPacket@@@Z | 0x1401d1ab0 | implemented | IDA decompile | yes | ��������״̬���� |
-| - | - | ??R_lambda37_@?A0xa4fe1a90@@QEBAXXZ | 0x1401d1d00 | blocked | IDA ??R_lambda37_@?A0xa4fe1a90@@QEBAXXZ | yes | - |
+| - | - | ??R_lambda37_@?A0xa4fe1a90@@QEBAXXZ | 0x1401d1d00 | implemented | IDA ??R_lambda37_@?A0xa4fe1a90@@QEBAXXZ | yes | - |
 | XGameServer | GameSockets.cpp | ?RecvUserWhisperRes@CGameControlSocket@@UEAA_NAEAVXPacket@@@Z | 0x1401d1da0 | implemented | IDA decompile | yes | ˽����Ӧ���� |
 | - | - | ??0_lambda39_@?A0xa4fe1a90@@QEAA@AEBQEAVCUser@@AEBEAEBUPS_CHAT_WHISPER@@@Z | 0x1401d2060 | blocked | IDA ??0_lambda39_@?A0xa4fe1a90@@QEAA@AEBQEAVCUser@@AEBEAEBUPS_CHAT_WHISPER@@@Z | yes | - |
-| - | - | ??R_lambda39_@?A0xa4fe1a90@@QEBAXXZ | 0x1401d20f0 | blocked | IDA ??R_lambda39_@?A0xa4fe1a90@@QEBAXXZ | yes | - |
+| - | - | ??R_lambda39_@?A0xa4fe1a90@@QEBAXXZ | 0x1401d20f0 | implemented | IDA ??R_lambda39_@?A0xa4fe1a90@@QEBAXXZ | yes | - |
 | XGameServer | GameSockets.cpp | ?OnStartThread@CGameControlSocket@@UEAAXXZ | 0x1401d2180 | implemented | IDA decompile | yes | �߳������ص� |
 | XGameServer | GameSockets.cpp | ?OnFinishThread@CGameControlSocket@@UEAAXXZ | 0x1401d2280 | implemented | IDA decompile | yes | �߳̽����ص� |
 | XGameServer | GameSockets.cpp | ?OnDisConnect@CGameControlSocket@@UEAAXXZ | 0x1401d22f0 | implemented | IDA decompile | yes | �Ͽ����ӻص� |
 | XGameServer | GameSockets.cpp | ?OnConnect@CGameControlSocket@@UEAAXXZ | 0x1401d2320 | implemented | IDA decompile | yes | ���ӻص� |
-| - | - | ?RecvPostSend@CGameControlSocket@@QEAA_NAEAVXPacket@@@Z | 0x1401d2350 | implemented | IDA decompile | yes | �ʼ����� |
+| XGameServer | GameSockets.cpp | ?RecvPostSend@CGameControlSocket@@QEAA_NAEAVXPacket@@@Z | 0x1401d2350 | implemented | IDA decompile | yes | �ʼ����� |
 | - | - | ??0_lambda41_@?A0xa4fe1a90@@QEAA@AEBQEAVCUser@@AEBGAEBUST_POST_DATA@@AEBUST_POST_CHAR@@AEBE@Z | 0x1401d26c0 | blocked | IDA ??0_lambda41_@?A0xa4fe1a90@@QEAA@AEBQEAVCUser@@AEBGAEBUST_POST_DATA@@AEBUST_POST_CHAR@@AEBE@Z | yes | - |
-| - | - | ??R_lambda41_@?A0xa4fe1a90@@QEBAXXZ | 0x1401d2780 | blocked | IDA ??R_lambda41_@?A0xa4fe1a90@@QEBAXXZ | yes | - |
+| - | - | ??R_lambda41_@?A0xa4fe1a90@@QEBAXXZ | 0x1401d2780 | implemented | IDA ??R_lambda41_@?A0xa4fe1a90@@QEBAXXZ | yes | - |
 | - | - | ??1_lambda41_@?A0xa4fe1a90@@QEAA@XZ | 0x1401d2b60 | blocked | IDA ??1_lambda41_@?A0xa4fe1a90@@QEAA@XZ | yes | - |
 | - | - | ??0_lambda41_@?A0xa4fe1a90@@QEAA@AEBV01@@Z | 0x1401d2b80 | blocked | IDA ??0_lambda41_@?A0xa4fe1a90@@QEAA@AEBV01@@Z | yes | - |
-| XGameServer | GameSockets.cpp | ?RecvTimeEvent@CGameControlSocket@@QEAA_NAEAVXPacket@@@Z | 0x1401d2c50 | implemented | IDA decompile | yes | ʱ���¼����� |
-| - | - | ??R_lambda43_@?A0xa4fe1a90@@QEBAXXZ | 0x1401d2d40 | blocked | IDA ??R_lambda43_@?A0xa4fe1a90@@QEBAXXZ | yes | - |
-| XGameServer | GameSockets.cpp | ?RecvValueEvent@CGameControlSocket@@QEAA_NAEAVXPacket@@@Z | 0x1401d2da0 | implemented | IDA decompile | yes | ��ֵ�¼����� |
+| XGameServer | GameSockets.cpp | ?RecvTimeEvent@CGameControlSocket@@QEAA_NAEAVXPacket@@@Z | 0x1401d2c50 | implemented | IDA decompile + active build | yes | Restored: parse ST_GM_TIME_EVENT_INFO, CTimeEventMgr::AddTimeEvent, and on byteUse==0 DoJobAllThread lambda43 broadcasting via ThreadLocalData::SendTimeEvent. |
+| XGameServer | GameSockets.cpp | ??R_lambda43_@?A0xa4fe1a90@@QEBAXXZ | 0x1401d2d40 | implemented | IDA decompile + active build | yes | Restored: operator() copies captured ST_GM_TIME_EVENT_INFO and calls ThreadLocalData::SendTimeEvent. |
+| XGameServer | GameSockets.cpp | ?RecvValueEvent@CGameControlSocket@@QEAA_NAEAVXPacket@@@Z | 0x1401d2da0 | implemented | IDA decompile + active build | yes | Restored: parse PS_GM_VALUE_EVENT_LIST, XGameServer::GetTimeEventMgr().AddValueEvent, return true. |
 | - | - | ??1PS_GM_VALUE_EVENT_LIST@@QEAA@XZ | 0x1401d2e10 | blocked | IDA ??1PS_GM_VALUE_EVENT_LIST@@QEAA@XZ | yes | - |
-| XGameServer | GameSockets.cpp | ?RecvCashShopBanner@CGameControlSocket@@QEAA_NAEAVXPacket@@@Z | 0x1401d2e30 | implemented | IDA decompile | yes | �̳Ǻ������?|
+| XGameServer | GameSockets.cpp | ?RecvCashShopBanner@CGameControlSocket@@QEAA_NAEAVXPacket@@@Z | 0x1401d2e30 | blocked | IDA decompile | yes | �̳Ǻ������?|
 | - | - | ??R_lambda44_@?A0xa4fe1a90@@QEBAXXZ | 0x1401d3190 | blocked | IDA ??R_lambda44_@?A0xa4fe1a90@@QEBAXXZ | yes | - |
 | - | - | ??1ST_BANNER_LIST@@QEAA@XZ | 0x1401d31b0 | blocked | IDA ??1ST_BANNER_LIST@@QEAA@XZ | yes | - |
-| - | - | ?RecvMyRoomDeleteReq@CGameControlSocket@@QEAA_NAEAVXPacket@@@Z | 0x1401d31d0 | implemented | IDA decompile | yes | ɾ���ҵķ������� |
+| - | - | ?RecvMyRoomDeleteReq@CGameControlSocket@@QEAA_NAEAVXPacket@@@Z | 0x1401d31d0 | blocked | IDA decompile | yes | ɾ���ҵķ������� |
 | - | - | ??R_lambda45_@?A0xa4fe1a90@@QEBAXXZ | 0x1401d32b0 | blocked | IDA ??R_lambda45_@?A0xa4fe1a90@@QEBAXXZ | yes | - |
-| - | - | ?RecvMyRoomDeleteRes@CGameControlSocket@@QEAA_NAEAVXPacket@@@Z | 0x1401d3300 | implemented | IDA decompile | yes | ɾ���ҵķ�����Ӧ |
+| - | - | ?RecvMyRoomDeleteRes@CGameControlSocket@@QEAA_NAEAVXPacket@@@Z | 0x1401d3300 | blocked | IDA decompile | yes | ɾ���ҵķ�����Ӧ |
 | - | - | ??R_lambda46_@?A0xa4fe1a90@@QEBAXXZ | 0x1401d3390 | blocked | IDA ??R_lambda46_@?A0xa4fe1a90@@QEBAXXZ | yes | - |
-| - | - | ?RecvEnterUserInfo@CGameControlSocket@@QEAA_NAEAVXPacket@@@Z | 0x1401d33e0 | implemented | IDA decompile | yes | �����û���Ϣ |
+| - | - | ?RecvEnterUserInfo@CGameControlSocket@@QEAA_NAEAVXPacket@@@Z | 0x1401d33e0 | blocked | IDA decompile | yes | �����û���Ϣ |
 | - | - | ??R_lambda47_@?A0xa4fe1a90@@QEBAXXZ | 0x1401d3610 | blocked | IDA ??R_lambda47_@?A0xa4fe1a90@@QEBAXXZ | yes | - |
-| XGameServer | GameSockets.cpp | ?RecvServerOptionUpdate@CGameControlSocket@@QEAA_NAEAVXPacket@@@Z | 0x1401d3670 | implemented | IDA decompile | yes | ������ѡ����´���?|
+| XGameServer | GameSockets.cpp | ?RecvServerOptionUpdate@CGameControlSocket@@QEAA_NAEAVXPacket@@@Z | 0x1401d3670 | blocked | IDA decompile | yes | ������ѡ����´���?|
 | - | - | ?RecvCachingComplete@CGameControlSocket@@QEAA_NAEAVXPacket@@@Z | 0x1401d37e0 | implemented | IDA decompile | yes | ����������֪ͨ |
 | XGameServer | GameSockets.cpp | ?SendCheck@CGameControlSocket@@QEAAXAEAVXSendPacket@@@Z | 0x1401d3890 | implemented | IDA decompile | yes | ���ͼ�����Control |
 | XGameServer | GameSockets.cpp | ?SendCmd@CGameControlSocket@@QEAA_NAEAVXSendPacket@@PEAVCUser@@EE@Z | 0x1401d3900 | implemented | IDA decompile | yes | �����������Control |
 | - | - | ?IsCanSend@CGameControlSocket@@QEAA_NXZ | 0x1401d39d0 | implemented | IDA decompile | yes | ����Ƿ���Է��� |
-| XGameServer | GameSockets.cpp | ?RecvWorldModeStart@CGameControlSocket@@QEAA_NAEAVXPacket@@@Z | 0x1401d3a10 | implemented | IDA decompile | yes | WorldMode��ʼ���� |
+| XGameServer | GameSockets.cpp | ?RecvWorldModeStart@CGameControlSocket@@QEAA_NAEAVXPacket@@@Z | 0x1401d3a10 | blocked | IDA decompile | yes | WorldMode��ʼ���� |
 | - | - | ??R_lambda50_@?A0xa4fe1a90@@QEBAXXZ | 0x1401d3be0 | blocked | IDA ??R_lambda50_@?A0xa4fe1a90@@QEBAXXZ | yes | - |
-| XGameServer | GameSockets.cpp | ?RecvWorldModeUpdate@CGameControlSocket@@QEAA_NAEAVXPacket@@@Z | 0x1401d3c00 | implemented | IDA decompile | yes | WorldMode���´��� |
+| XGameServer | GameSockets.cpp | ?RecvWorldModeUpdate@CGameControlSocket@@QEAA_NAEAVXPacket@@@Z | 0x1401d3c00 | blocked | IDA decompile | yes | WorldMode���´��� |
 | - | - | ??R_lambda52_@?A0xa4fe1a90@@QEBAXXZ | 0x1401d3ce0 | blocked | IDA ??R_lambda52_@?A0xa4fe1a90@@QEBAXXZ | yes | - |
-| XGameServer | GameSockets.cpp | ?RecvWorldModeFinish@CGameControlSocket@@QEAA_NAEAVXPacket@@@Z | 0x1401d3d00 | implemented | IDA decompile | yes | WorldMode�������� |
+| XGameServer | GameSockets.cpp | ?RecvWorldModeFinish@CGameControlSocket@@QEAA_NAEAVXPacket@@@Z | 0x1401d3d00 | blocked | IDA decompile | yes | WorldMode�������� |
 | - | - | ??R_lambda53_@?A0xa4fe1a90@@QEBAXXZ | 0x1401d3f30 | blocked | IDA ??R_lambda53_@?A0xa4fe1a90@@QEBAXXZ | yes | - |
 | - | - | ??R_lambda56_@?A0xa4fe1a90@@QEBAXXZ | 0x1401d3f50 | blocked | IDA ??R_lambda56_@?A0xa4fe1a90@@QEBAXXZ | yes | - |
-| XGameServer | GameSockets.cpp | ?RecvWorldModeSync@CGameControlSocket@@QEAA_NAEAVXPacket@@@Z | 0x1401d3fc0 | implemented | IDA decompile | yes | WorldModeͬ������ |
+| XGameServer | GameSockets.cpp | ?RecvWorldModeSync@CGameControlSocket@@QEAA_NAEAVXPacket@@@Z | 0x1401d3fc0 | blocked | IDA decompile | yes | WorldModeͬ������ |
 | - | - | ??R_lambda55_@?A0xa4fe1a90@@QEBAXXZ | 0x1401d4220 | blocked | IDA ??R_lambda55_@?A0xa4fe1a90@@QEBAXXZ | yes | - |
 | - | - | ??1_lambda55_@?A0xa4fe1a90@@QEAA@XZ | 0x1401d4240 | blocked | IDA ??1_lambda55_@?A0xa4fe1a90@@QEAA@XZ | yes | - |
 | - | - | ??0_lambda55_@?A0xa4fe1a90@@QEAA@AEBV01@@Z | 0x1401d4260 | blocked | IDA ??0_lambda55_@?A0xa4fe1a90@@QEAA@AEBV01@@Z | yes | - |
 | - | - | ??0PS_ITEM_SOCKET_LIST@@QEAA@AEBU0@@Z | 0x1401d4290 | blocked | IDA ??0PS_ITEM_SOCKET_LIST@@QEAA@AEBU0@@Z | yes | - |
-| XGameServer | GameSockets.cpp | ?RecvWorldModeCommand@CGameControlSocket@@QEAA_NAEAVXPacket@@@Z | 0x1401d42c0 | implemented | IDA decompile | yes | WorldMode����� |
+| XGameServer | GameSockets.cpp | ?RecvWorldModeCommand@CGameControlSocket@@QEAA_NAEAVXPacket@@@Z | 0x1401d42c0 | blocked | IDA decompile | yes | WorldMode����� |
 | - | - | ??R_lambda57_@?A0xa4fe1a90@@QEBAXXZ | 0x1401d4560 | blocked | IDA ??R_lambda57_@?A0xa4fe1a90@@QEBAXXZ | yes | - |
 | - | - | ??1_lambda66_@?A0x9b200487@@QEAA@XZ | 0x1401d4900 | blocked | IDA ??1_lambda66_@?A0x9b200487@@QEAA@XZ | yes | - |
-| XGameServer | GameSockets.cpp | ?RecvWorldModeClear@CGameControlSocket@@QEAA_NAEAVXPacket@@@Z | 0x1401d4920 | implemented | IDA decompile | yes | WorldMode�������?|
+| XGameServer | GameSockets.cpp | ?RecvWorldModeClear@CGameControlSocket@@QEAA_NAEAVXPacket@@@Z | 0x1401d4920 | blocked | IDA decompile | yes | WorldMode�������?|
 | - | - | ??R_lambda59_@?A0xa4fe1a90@@QEBAXXZ | 0x1401d49f0 | blocked | IDA ??R_lambda59_@?A0xa4fe1a90@@QEBAXXZ | yes | - |
-| XGameServer | GameSockets.cpp | ?RecvServerDayEventBoosterList@CGameControlSocket@@QEAA_NAEAVXPacket@@@Z | 0x1401d4a10 | implemented | IDA decompile | yes | ÿ�ջ�����б����� |
+| XGameServer | GameSockets.cpp | ?RecvServerDayEventBoosterList@CGameControlSocket@@QEAA_NAEAVXPacket@@@Z | 0x1401d4a10 | blocked | IDA decompile | yes | ÿ�ջ�����б����� |
 | - | - | ??R_lambda60_@?A0xa4fe1a90@@QEBAXXZ | 0x1401d4b20 | blocked | IDA ??R_lambda60_@?A0xa4fe1a90@@QEBAXXZ | yes | - |
 | - | - | ??1_lambda60_@?A0xa4fe1a90@@QEAA@XZ | 0x1401d4b40 | blocked | IDA ??1_lambda60_@?A0xa4fe1a90@@QEAA@XZ | yes | - |
 | - | - | ??0_lambda60_@?A0xa4fe1a90@@QEAA@AEBV01@@Z | 0x1401d4b60 | blocked | IDA ??0_lambda60_@?A0xa4fe1a90@@QEAA@AEBV01@@Z | yes | - |
 | - | - | ??0PS_DAY_EVENT_LIST@@QEAA@AEBU0@@Z | 0x1401d4b90 | blocked | IDA ??0PS_DAY_EVENT_LIST@@QEAA@AEBU0@@Z | yes | - |
-| XGameServer | GameSockets.cpp | ?RecvServerCreateModeMazeReq@CGameControlSocket@@QEAA_NAEAVXPacket@@@Z | 0x1401d4bc0 | implemented | IDA decompile | yes | ����ģʽ�Թ����� |
+| XGameServer | GameSockets.cpp | ?RecvServerCreateModeMazeReq@CGameControlSocket@@QEAA_NAEAVXPacket@@@Z | 0x1401d4bc0 | blocked | IDA decompile | yes | ����ģʽ�Թ����� |
 | - | - | ??0_lambda61_@?A0xa4fe1a90@@QEAA@AEBV01@@Z | 0x1401d4d00 | blocked | IDA ??0_lambda61_@?A0xa4fe1a90@@QEAA@AEBV01@@Z | yes | - |
 | - | - | ??R_lambda61_@?A0xa4fe1a90@@QEBAXXZ | 0x1401d4d30 | blocked | IDA ??R_lambda61_@?A0xa4fe1a90@@QEBAXXZ | yes | - |
 | - | - | ??1ST_CREATE_MODE_MAZE@@QEAA@XZ | 0x1401d4d50 | blocked | IDA ??1ST_CREATE_MODE_MAZE@@QEAA@XZ | yes | - |
 | - | - | ??1_lambda61_@?A0xa4fe1a90@@QEAA@XZ | 0x1401d4d80 | blocked | IDA ??1_lambda61_@?A0xa4fe1a90@@QEAA@XZ | yes | - |
 | - | - | ??0ST_CREATE_MODE_MAZE@@QEAA@AEBU0@@Z | 0x1401d4da0 | blocked | IDA ??0ST_CREATE_MODE_MAZE@@QEAA@AEBU0@@Z | yes | - |
-| XGameServer | GameSockets.cpp | ?ResCheckEnterMaze@CGameControlSocket@@QEAA_NAEAVXPacket@@@Z | 0x1401d4f20 | implemented | IDA decompile | yes | �������Թ���Ӧ |
+| XGameServer | GameSockets.cpp | ?ResCheckEnterMaze@CGameControlSocket@@QEAA_NAEAVXPacket@@@Z | 0x1401d4f20 | blocked | IDA decompile | yes | �������Թ���Ӧ |
 | - | - | ??R_lambda62_@?A0xa4fe1a90@@QEBAXXZ | 0x1401d5150 | blocked | IDA ??R_lambda62_@?A0xa4fe1a90@@QEBAXXZ | yes | - |
-| XGameServer | GameSockets.cpp | ?RecvServerRouletteEvent@CGameControlSocket@@QEAA_NAEAVXPacket@@@Z | 0x1401d5310 | implemented | IDA decompile | yes | �����¼����� |
-| - | - | ??0_lambda64_@?A0xa4fe1a90@@QEAA@AEBUPS_GM_ROULETTE_EVENT@@AEB_N@Z | 0x1401d5480 | blocked | IDA ??0_lambda64_@?A0xa4fe1a90@@QEAA@AEBUPS_GM_ROULETTE_EVENT@@AEB_N@Z | yes | - |
-| - | - | ??R_lambda64_@?A0xa4fe1a90@@QEBAXXZ | 0x1401d54c0 | blocked | IDA ??R_lambda64_@?A0xa4fe1a90@@QEBAXXZ | yes | - |
+| XGameServer | GameSockets.cpp | ?RecvServerRouletteEvent@CGameControlSocket@@QEAA_NAEAVXPacket@@@Z | 0x1401d5310 | implemented | IDA decompile + active build | yes | Restored: parse PS_GM_ROULETTE_EVENT + bSend, CTimeEventMgr::SetRouletteEvent, lambda64 DoJobAllThread broadcasting (0x2A,0x27) PS_ROULETTE_EVENT when bSend. |
+| XGameServer | GameSockets.cpp | ??0_lambda64_@?A0xa4fe1a90@@QEAA@AEBUPS_GM_ROULETTE_EVENT@@AEB_N@Z | 0x1401d5480 | implemented | IDA decompile + active build | yes | Restored: lambda64 captures PS_GM_ROULETTE_EVENT copy + bool bSend (bSend at +200). |
+| XGameServer | GameSockets.cpp | ??R_lambda64_@?A0xa4fe1a90@@QEBAXXZ | 0x1401d54c0 | implemented | IDA decompile + active build | yes | Restored: operator() builds PS_ROULETTE_EVENT from captured roulette info and SendBroadcast (0x2A,0x27) when bSend; LogError Complete Roulette Event Load. |
 | - | - | ??1PS_ROULETTE_EVENT@@QEAA@XZ | 0x1401d5790 | blocked | IDA ??1PS_ROULETTE_EVENT@@QEAA@XZ | yes | - |
 | - | - | ??0PS_ROULETTE_EVENT@@QEAA@AEBU0@@Z | 0x1401d57c0 | blocked | IDA ??0PS_ROULETTE_EVENT@@QEAA@AEBU0@@Z | yes | - |
 | - | - | ??1_lambda64_@?A0xa4fe1a90@@QEAA@XZ | 0x1401d58c0 | blocked | IDA ??1_lambda64_@?A0xa4fe1a90@@QEAA@XZ | yes | - |
 | - | - | ??0_lambda64_@?A0xa4fe1a90@@QEAA@AEBV01@@Z | 0x1401d58e0 | blocked | IDA ??0_lambda64_@?A0xa4fe1a90@@QEAA@AEBV01@@Z | yes | - |
 | - | - | ??0PS_GM_ROULETTE_EVENT@@QEAA@AEBU0@@Z | 0x1401d5920 | blocked | IDA ??0PS_GM_ROULETTE_EVENT@@QEAA@AEBU0@@Z | yes | - |
-| XGameServer | GameSockets.cpp | ?RecvWorldModeComplete@CGameControlSocket@@QEAA_NAEAVXPacket@@@Z | 0x1401d5a40 | implemented | IDA decompile | yes | WorldMode��ɴ���?|
+| XGameServer | GameSockets.cpp | ?RecvWorldModeComplete@CGameControlSocket@@QEAA_NAEAVXPacket@@@Z | 0x1401d5a40 | blocked | IDA decompile | yes | WorldMode��ɴ���?|
 | - | - | ??0_lambda65_@?A0xa4fe1a90@@QEAA@AEBUPS_WORLD_MODE_COMPLETE@@AEBK@Z | 0x1401d5b70 | blocked | IDA ??0_lambda65_@?A0xa4fe1a90@@QEAA@AEBUPS_WORLD_MODE_COMPLETE@@AEBK@Z | yes | - |
 | - | - | ??R_lambda65_@?A0xa4fe1a90@@QEBAXXZ | 0x1401d5bd0 | blocked | IDA ??R_lambda65_@?A0xa4fe1a90@@QEBAXXZ | yes | - |
 | - | - | ??1?$vector@UST_BANNER_INFO@@V?$allocator@UST_BANNER_INFO@@@std@@@std@@QEAA@XZ | 0x1401d5c00 | blocked | IDA ??1?$vector@UST_BANNER_INFO@@V?$allocator@UST_BANNER_INFO@@@std@@@std@@QEAA@XZ | yes | - |
@@ -8158,21 +8158,21 @@
 | - | - | ?PartyProcess@CCommunitySocket@@UEAA_NAEAVXPacket@@@Z | 0x1401f39c0 | implemented | IDA ?PartyProcess@CCommunitySocket@@UEAA_NAEAVXPacket@@@Z | yes | - |
 | - | - | ?LeagueProcess@CCommunitySocket@@UEAA_NAEAVXPacket@@@Z | 0x1401f3dc0 | implemented | IDA ?LeagueProcess@CCommunitySocket@@UEAA_NAEAVXPacket@@@Z | yes | - |
 | - | - | ?ModeMazeProcess@CCommunitySocket@@UEAA_NAEAVXPacket@@@Z | 0x1401f4270 | implemented | IDA ?ModeMazeProcess@CCommunitySocket@@UEAA_NAEAVXPacket@@@Z | yes | - |
-| - | - | ?RecvLeagueMemberUpdate@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x1401f4320 | implemented | IDA ?RecvLeagueMemberUpdate@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | - |
+| - | - | ?RecvLeagueMemberUpdate@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x1401f4320 | blocked | IDA ?RecvLeagueMemberUpdate@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | Blocked: lambda152 calls ThreadLocalData::UpdateLeagueMember (manager pending) |
 | - | - | ??0_lambda152_@?A0x93366633@@QEAA@AEBUST_LEAGUE_MEMBER_UPDATE@@@Z | 0x1401f4410 | blocked | IDA ??0_lambda152_@?A0x93366633@@QEAA@AEBUST_LEAGUE_MEMBER_UPDATE@@@Z | yes | - |
 | - | - | ??R_lambda152_@?A0x93366633@@QEBAXXZ | 0x1401f4460 | blocked | IDA ??R_lambda152_@?A0x93366633@@QEBAXXZ | yes | - |
-| - | - | ?RecvLeagueNoticeChange@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x1401f44a0 | implemented | IDA ?RecvLeagueNoticeChange@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | - |
+| - | - | ?RecvLeagueNoticeChange@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x1401f44a0 | blocked | IDA ?RecvLeagueNoticeChange@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | Blocked: lambda3 calls ThreadLocalData::SendLeagueNoticeChangeToMember (manager pending) |
 | - | - | ??R_lambda1_@?A0x93366633@@QEBAXXZ | 0x1401f47b0 | blocked | IDA ??R_lambda1_@?A0x93366633@@QEBAXXZ | yes | - |
 | - | - | ??0_lambda3_@?A0x93366633@@QEAA@AEBUST_LEAGUE_NOTICE@@AEBK@Z | 0x1401f4920 | blocked | IDA ??0_lambda3_@?A0x93366633@@QEAA@AEBUST_LEAGUE_NOTICE@@AEBK@Z | yes | - |
 | - | - | ??R_lambda3_@?A0x93366633@@QEBAXXZ | 0x1401f4990 | blocked | IDA ??R_lambda3_@?A0x93366633@@QEBAXXZ | yes | - |
-| - | - | ?RecvLeagueInfoChange@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x1401f49e0 | implemented | IDA ?RecvLeagueInfoChange@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | - |
+| - | - | ?RecvLeagueInfoChange@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x1401f49e0 | blocked | IDA ?RecvLeagueInfoChange@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | Blocked: lambda4 calls ThreadLocalData::LeagueInfoChange (manager pending) |
 | - | - | ??R_lambda4_@?A0x93366633@@QEBAXXZ | 0x1401f4ae0 | blocked | IDA ??R_lambda4_@?A0x93366633@@QEBAXXZ | yes | - |
 | - | - | ?RecvLeagueApplicantRes@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x1401f4b30 | implemented | IDA ?RecvLeagueApplicantRes@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | - |
 | - | - | ??0_lambda5_@?A0x93366633@@QEAA@AEBQEAVCUser@@AEBUST_LEAGUE_APPLICANT@@@Z | 0x1401f4db0 | blocked | IDA ??0_lambda5_@?A0x93366633@@QEAA@AEBQEAVCUser@@AEBUST_LEAGUE_APPLICANT@@@Z | yes | - |
-| - | - | ??R_lambda5_@?A0x93366633@@QEBAXXZ | 0x1401f4e10 | blocked | IDA ??R_lambda5_@?A0x93366633@@QEBAXXZ | yes | - |
-| - | - | ?RecvLeagueApplicantAdd@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x1401f5070 | implemented | IDA ?RecvLeagueApplicantAdd@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | - |
+| - | - | ??R_lambda5_@?A0x93366633@@QEBAXXZ | 0x1401f4e10 | implemented | IDA decompile | yes | Inlined into RecvLeague handler (see verified handler row) |
+| - | - | ?RecvLeagueApplicantAdd@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x1401f5070 | blocked | IDA ?RecvLeagueApplicantAdd@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | Blocked: lambda7 calls ThreadLocalData::SendLeagueApply (manager pending) |
 | - | - | ??R_lambda7_@?A0x93366633@@QEBAXXZ | 0x1401f5160 | blocked | IDA ??R_lambda7_@?A0x93366633@@QEBAXXZ | yes | - |
-| - | - | ?RecvLeagueLogin@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x1401f51a0 | implemented | IDA ?RecvLeagueLogin@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | - |
+| - | - | ?RecvLeagueLogin@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x1401f51a0 | blocked | IDA ?RecvLeagueLogin@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | Blocked: source placeholder; complex multi-struct parse + DoJobAllThread tail awaiting decompile + ThreadLocalData manager |
 | - | - | ??0_lambda8_@?A0x93366633@@QEAA@AEBQEAVCUser@@AEBUST_LEAGUE_INFO@@AEBUST_LEAGUE_MEMBER_LIST@@AEBUST_LEAGUE_APPLICANT_LIST@@AEBUST_LEAGUE_BOARD_LIST@@AEBEAEBUST_LEAGUE_INFO_EX@@AEBUST_LEAGUE_RECORD_LIST@@AEBUST_LEAGUE_INFO_FOR_GAME@@AEBH@Z | 0x1401f5780 | blocked | IDA ??0_lambda8_@?A0x93366633@@QEAA@AEBQEAVCUser@@AEBUST_LEAGUE_INFO@@AEBUST_LEAGUE_MEMBER_LIST@@AEBUST_LEAGUE_APPLICANT_LIST@@AEBUST_LEAGUE_BOARD_LIST@@AEBEAEBUST_LEAGUE_INFO_EX@@AEBUST_LEAGUE_RECORD_LIST@@AEBUST_LEAGUE_INFO_FOR_GAME@@AEBH@Z | yes | - |
 | - | - | ??R_lambda8_@?A0x93366633@@QEBAXXZ | 0x1401f5920 | blocked | IDA ??R_lambda8_@?A0x93366633@@QEBAXXZ | yes | - |
 | - | - | ??R_lambda10_@?A0x93366633@@QEBAXXZ | 0x1401f5d50 | blocked | IDA ??R_lambda10_@?A0x93366633@@QEBAXXZ | yes | - |
@@ -8181,7 +8181,7 @@
 | - | - | ??0ST_LEAGUE_BOARD_LIST@@QEAA@AEBU0@@Z | 0x1401f5de0 | blocked | IDA ??0ST_LEAGUE_BOARD_LIST@@QEAA@AEBU0@@Z | yes | - |
 | - | - | ??1_lambda8_@?A0x93366633@@QEAA@XZ | 0x1401f5e10 | blocked | IDA ??1_lambda8_@?A0x93366633@@QEAA@XZ | yes | - |
 | - | - | ??0_lambda8_@?A0x93366633@@QEAA@AEBV01@@Z | 0x1401f5e80 | blocked | IDA ??0_lambda8_@?A0x93366633@@QEAA@AEBV01@@Z | yes | - |
-| - | - | ?RecvLeagueBoard@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x1401f6050 | implemented | IDA ?RecvLeagueBoard@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | - |
+| - | - | ?RecvLeagueBoard@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x1401f6050 | blocked | IDA ?RecvLeagueBoard@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | Blocked: lambda13 calls ThreadLocalData::SendLeagueBoard (manager pending) |
 | - | - | ??0_lambda11_@?A0x93366633@@QEAA@AEBQEAVCUser@@AEBUST_LEAGUE_BOARD@@AEB_J@Z | 0x1401f63d0 | blocked | IDA ??0_lambda11_@?A0x93366633@@QEAA@AEBQEAVCUser@@AEBUST_LEAGUE_BOARD@@AEB_J@Z | yes | - |
 | - | - | ??R_lambda11_@?A0x93366633@@QEBAXXZ | 0x1401f6460 | blocked | IDA ??R_lambda11_@?A0x93366633@@QEBAXXZ | yes | - |
 | - | - | ??0_lambda13_@?A0x93366633@@QEAA@AEBUST_LEAGUE_BOARD@@AEBKAEBH@Z | 0x1401f65d0 | blocked | IDA ??0_lambda13_@?A0x93366633@@QEAA@AEBUST_LEAGUE_BOARD@@AEBKAEBH@Z | yes | - |
@@ -8192,45 +8192,45 @@
 | - | - | ??0PS_LEAGUE_SUMMARY_LIST@@QEAA@AEBU0@@Z | 0x1401f6b60 | blocked | IDA ??0PS_LEAGUE_SUMMARY_LIST@@QEAA@AEBU0@@Z | yes | - |
 | - | - | ??1_lambda14_@?A0x93366633@@QEAA@XZ | 0x1401f6b90 | blocked | IDA ??1_lambda14_@?A0x93366633@@QEAA@XZ | yes | - |
 | - | - | ??0_lambda14_@?A0x93366633@@QEAA@AEBV01@@Z | 0x1401f6bd0 | blocked | IDA ??0_lambda14_@?A0x93366633@@QEAA@AEBV01@@Z | yes | - |
-| - | - | ?RecvLeagueApplicantJoinUser@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x1401f6c40 | implemented | IDA ?RecvLeagueApplicantJoinUser@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | - |
+| - | - | ?RecvLeagueApplicantJoinUser@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x1401f6c40 | blocked | IDA ?RecvLeagueApplicantJoinUser@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | Blocked: lambda17 calls ThreadLocalData::AddLeagueMember + CUser::UpdateLeagueSyncCount/SetLeagueInfo (not implemented) |
 | - | - | ??0_lambda16_@?A0x93366633@@QEAA@AEBUST_LEAGUE_MEMBER_EX@@AEBUST_LEAGUE_INFO_UPDATE@@AEBH@Z | 0x1401f7260 | blocked | IDA ??0_lambda16_@?A0x93366633@@QEAA@AEBUST_LEAGUE_MEMBER_EX@@AEBUST_LEAGUE_INFO_UPDATE@@AEBH@Z | yes | - |
 | - | - | ??R_lambda16_@?A0x93366633@@QEBAXXZ | 0x1401f7310 | blocked | IDA ??R_lambda16_@?A0x93366633@@QEBAXXZ | yes | - |
 | - | - | ??0_lambda17_@?A0x93366633@@QEAA@AEBQEAVCUser@@AEBUST_LEAGUE_MEMBER_EX@@AEBUST_LEAGUE_INFO_EX@@AEBUST_LEAGUE_INFO_UPDATE@@AEBUST_LEAGUE_INFO_FOR_GAME@@AEBKAEBH@Z | 0x1401f7390 | blocked | IDA ??0_lambda17_@?A0x93366633@@QEAA@AEBQEAVCUser@@AEBUST_LEAGUE_MEMBER_EX@@AEBUST_LEAGUE_INFO_EX@@AEBUST_LEAGUE_INFO_UPDATE@@AEBUST_LEAGUE_INFO_FOR_GAME@@AEBKAEBH@Z | yes | - |
 | - | - | ??R_lambda17_@?A0x93366633@@QEBAXXZ | 0x1401f74e0 | blocked | IDA ??R_lambda17_@?A0x93366633@@QEBAXXZ | yes | - |
 | - | - | ??0_lambda30_@?A0x492caa09@@QEAA@AEBQEAVCUser@@AEBUPS_DB_CHECK_LOCATION@@@Z | 0x1401f79d0 | blocked | IDA ??0_lambda30_@?A0x492caa09@@QEAA@AEBQEAVCUser@@AEBUPS_DB_CHECK_LOCATION@@@Z | yes | - |
 | - | - | ??R_lambda19_@?A0x93366633@@QEBAXXZ | 0x1401f7a40 | blocked | IDA ??R_lambda19_@?A0x93366633@@QEBAXXZ | yes | - |
-| - | - | ?RecvLeagueInviteJoinUser@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x1401f7b10 | implemented | IDA ?RecvLeagueInviteJoinUser@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | - |
+| - | - | ?RecvLeagueInviteJoinUser@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x1401f7b10 | blocked | IDA ?RecvLeagueInviteJoinUser@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | Blocked: source placeholder; complex multi-struct parse + DoJobAllThread tail awaiting decompile + ThreadLocalData manager |
 | - | - | ??0_lambda21_@?A0x93366633@@QEAA@AEBUST_LEAGUE_MEMBER_EX@@AEBUST_LEAGUE_INFO_UPDATE@@AEBKAEBEAEBH@Z | 0x1401f7f30 | blocked | IDA ??0_lambda21_@?A0x93366633@@QEAA@AEBUST_LEAGUE_MEMBER_EX@@AEBUST_LEAGUE_INFO_UPDATE@@AEBKAEBEAEBH@Z | yes | - |
 | - | - | ??R_lambda21_@?A0x93366633@@QEBAXXZ | 0x1401f8010 | blocked | IDA ??R_lambda21_@?A0x93366633@@QEBAXXZ | yes | - |
 | - | - | ??0_lambda22_@?A0x93366633@@QEAA@AEBQEAVCUser@@AEBUST_LEAGUE_MEMBER_EX@@AEBEAEBUST_LEAGUE_INFO_EX@@AEBUST_LEAGUE_INFO_UPDATE@@AEBKAEBUST_LEAGUE_INFO_FOR_GAME@@AEBH@Z | 0x1401f80a0 | blocked | IDA ??0_lambda22_@?A0x93366633@@QEAA@AEBQEAVCUser@@AEBUST_LEAGUE_MEMBER_EX@@AEBEAEBUST_LEAGUE_INFO_EX@@AEBUST_LEAGUE_INFO_UPDATE@@AEBKAEBUST_LEAGUE_INFO_FOR_GAME@@AEBH@Z | yes | - |
 | - | - | ??R_lambda22_@?A0x93366633@@QEBAXXZ | 0x1401f8200 | blocked | IDA ??R_lambda22_@?A0x93366633@@QEBAXXZ | yes | - |
 | - | - | ?RecvLeagueApplicantReject@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x1401f8550 | implemented | IDA ?RecvLeagueApplicantReject@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | - |
-| - | - | ??R_lambda24_@?A0x93366633@@QEBAXXZ | 0x1401f8780 | blocked | IDA ??R_lambda24_@?A0x93366633@@QEBAXXZ | yes | - |
-| - | - | ?RecvLeagueApplicantDelete@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x1401f89e0 | implemented | IDA ?RecvLeagueApplicantDelete@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | - |
+| - | - | ??R_lambda24_@?A0x93366633@@QEBAXXZ | 0x1401f8780 | implemented | IDA decompile | yes | Inlined into RecvLeague handler (see verified handler row) |
+| - | - | ?RecvLeagueApplicantDelete@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x1401f89e0 | blocked | IDA ?RecvLeagueApplicantDelete@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | Blocked: lambda26 calls ThreadLocalData::SendDeleteLeagueApplicant (manager pending) |
 | - | - | ??0_lambda26_@?A0x93366633@@QEAA@AEBHAEBK0@Z | 0x1401f8ae0 | blocked | IDA ??0_lambda26_@?A0x93366633@@QEAA@AEBHAEBK0@Z | yes | - |
 | - | - | ??R_lambda26_@?A0x93366633@@QEBAXXZ | 0x1401f8b30 | blocked | IDA ??R_lambda26_@?A0x93366633@@QEBAXXZ | yes | - |
-| - | - | ?RecvLeagueMemberKick@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x1401f8b70 | implemented | IDA ?RecvLeagueMemberKick@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | - |
+| - | - | ?RecvLeagueMemberKick@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x1401f8b70 | blocked | IDA ?RecvLeagueMemberKick@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | Blocked: lambda27 calls CUser::UpdateLeagueSyncCount/GetLeagueInfo (not implemented in User.cpp) |
 | - | - | ??0_lambda27_@?A0x93366633@@QEAA@AEBQEAVCUser@@AEBKAEBUST_LEAGUE_INFO_UPDATE@@AEBFAEBH@Z | 0x1401f9110 | blocked | IDA ??0_lambda27_@?A0x93366633@@QEAA@AEBQEAVCUser@@AEBKAEBUST_LEAGUE_INFO_UPDATE@@AEBFAEBH@Z | yes | - |
 | - | - | ??R_lambda27_@?A0x93366633@@QEBAXXZ | 0x1401f91a0 | blocked | IDA ??R_lambda27_@?A0x93366633@@QEBAXXZ | yes | - |
 | - | - | ??R_lambda29_@?A0x93366633@@QEBAXXZ | 0x1401f94c0 | blocked | IDA ??R_lambda29_@?A0x93366633@@QEBAXXZ | yes | - |
 | - | - | ??0_lambda31_@?A0x93366633@@QEAA@AEBHAEBK1AEBUST_LEAGUE_INFO_UPDATE@@0@Z | 0x1401f9710 | blocked | IDA ??0_lambda31_@?A0x93366633@@QEAA@AEBHAEBK1AEBUST_LEAGUE_INFO_UPDATE@@0@Z | yes | - |
 | - | - | ??R_lambda31_@?A0x93366633@@QEBAXXZ | 0x1401f97a0 | blocked | IDA ??R_lambda31_@?A0x93366633@@QEBAXXZ | yes | - |
-| - | - | ?RecvLeagueWithDraw@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x1401f9810 | implemented | IDA ?RecvLeagueWithDraw@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | - |
+| - | - | ?RecvLeagueWithDraw@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x1401f9810 | blocked | IDA ?RecvLeagueWithDraw@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | Blocked: lambda32 calls CUser::SetLeagueInventorySend/UpdateLeagueSyncCount/ClearLeagueInfo/GetLeagueInfo/SetLeagueWithdrawPenalty (not implemented) |
 | - | - | ??0_lambda32_@?A0x93366633@@QEAA@AEBQEAVCUser@@AEB_JAEBH2@Z | 0x1401f9b50 | blocked | IDA ??0_lambda32_@?A0x93366633@@QEAA@AEBQEAVCUser@@AEB_JAEBH2@Z | yes | - |
 | - | - | ??R_lambda32_@?A0x93366633@@QEBAXXZ | 0x1401f9bb0 | blocked | IDA ??R_lambda32_@?A0x93366633@@QEBAXXZ | yes | - |
 | - | - | ??0_lambda34_@?A0x93366633@@QEAA@AEBKAEBHAEBUST_LEAGUE_INFO_UPDATE@@1@Z | 0x1401f9f40 | blocked | IDA ??0_lambda34_@?A0x93366633@@QEAA@AEBKAEBHAEBUST_LEAGUE_INFO_UPDATE@@1@Z | yes | - |
 | - | - | ??R_lambda34_@?A0x93366633@@QEBAXXZ | 0x1401f9fc0 | blocked | IDA ??R_lambda34_@?A0x93366633@@QEBAXXZ | yes | - |
 | - | - | ?RecvLeagueInviteReject@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x1401fa020 | implemented | IDA ?RecvLeagueInviteReject@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | - |
 | - | - | ??0_lambda35_@?A0x93366633@@QEAA@AEBQEAVCUser@@AEBUST_REQ_LEAGUE_INVITE_REJECT@@AEBH@Z | 0x1401fa2a0 | blocked | IDA ??0_lambda35_@?A0x93366633@@QEAA@AEBQEAVCUser@@AEBUST_REQ_LEAGUE_INVITE_REJECT@@AEBH@Z | yes | - |
-| - | - | ??R_lambda35_@?A0x93366633@@QEBAXXZ | 0x1401fa310 | blocked | IDA ??R_lambda35_@?A0x93366633@@QEBAXXZ | yes | - |
+| - | - | ??R_lambda35_@?A0x93366633@@QEBAXXZ | 0x1401fa310 | implemented | IDA decompile | yes | Inlined into RecvLeague handler (see verified handler row) |
 | - | - | ?RecvLeagueInvite@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x1401fa5e0 | implemented | IDA ?RecvLeagueInvite@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | - |
-| - | - | ??R_lambda37_@?A0x93366633@@QEBAXXZ | 0x1401fac10 | blocked | IDA ??R_lambda37_@?A0x93366633@@QEBAXXZ | yes | - |
+| - | - | ??R_lambda37_@?A0x93366633@@QEBAXXZ | 0x1401fac10 | implemented | IDA decompile | yes | Inlined into RecvLeague handler (see verified handler row) |
 | - | - | ??R_lambda39_@?A0x93366633@@QEBAXXZ | 0x1401fae40 | blocked | IDA ??R_lambda39_@?A0x93366633@@QEBAXXZ | yes | - |
-| - | - | ?RecvLeagueDelete@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x1401fafb0 | implemented | IDA ?RecvLeagueDelete@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | - |
+| - | - | ?RecvLeagueDelete@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x1401fafb0 | blocked | IDA ?RecvLeagueDelete@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | Blocked: lambda43 calls ThreadLocalData::DeleteLeague + CUser::SetLeagueInventorySend/SetLeagueDeletePenalty/GetLeagueInfo/ClearLeagueInfo (not implemented) |
 | - | - | ??R_lambda41_@?A0x93366633@@QEBAXXZ | 0x1401fb410 | blocked | IDA ??R_lambda41_@?A0x93366633@@QEBAXXZ | yes | - |
 | - | - | ??0_lambda43_@?A0x93366633@@QEAA@AEBQEAVCUser@@AEBKAEBHAEB_J2@Z | 0x1401fb540 | blocked | IDA ??0_lambda43_@?A0x93366633@@QEAA@AEBQEAVCUser@@AEBKAEBHAEB_J2@Z | yes | - |
 | - | - | ??R_lambda43_@?A0x93366633@@QEBAXXZ | 0x1401fb5b0 | blocked | IDA ??R_lambda43_@?A0x93366633@@QEBAXXZ | yes | - |
-| - | - | ?RecvLeagueInfo@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x1401fb930 | implemented | IDA ?RecvLeagueInfo@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | - |
+| - | - | ?RecvLeagueInfo@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x1401fb930 | blocked | IDA ?RecvLeagueInfo@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | Blocked: source placeholder; complex multi-struct parse + DoJobAllThread tail awaiting decompile + ThreadLocalData manager |
 | - | - | ??0_lambda45_@?A0x93366633@@QEAA@AEBQEAVCUser@@AEBUST_LEAGUE_INFO@@AEBUST_LEAGUE_MEMBER_LIST@@AEBUST_LEAGUE_APPLICANT_LIST@@AEBUST_LEAGUE_BOARD_LIST@@AEBEAEBUST_LEAGUE_RECORD_LIST@@AEBUST_LEAGUE_INFO_FOR_GAME@@@Z | 0x1401fbde0 | blocked | IDA ??0_lambda45_@?A0x93366633@@QEAA@AEBQEAVCUser@@AEBUST_LEAGUE_INFO@@AEBUST_LEAGUE_MEMBER_LIST@@AEBUST_LEAGUE_APPLICANT_LIST@@AEBUST_LEAGUE_BOARD_LIST@@AEBEAEBUST_LEAGUE_RECORD_LIST@@AEBUST_LEAGUE_INFO_FOR_GAME@@@Z | yes | - |
 | - | - | ??R_lambda45_@?A0x93366633@@QEBAXXZ | 0x1401fbf30 | blocked | IDA ??R_lambda45_@?A0x93366633@@QEBAXXZ | yes | - |
 | - | - | ??1_lambda45_@?A0x93366633@@QEAA@XZ | 0x1401fc2e0 | blocked | IDA ??1_lambda45_@?A0x93366633@@QEAA@XZ | yes | - |
@@ -8298,28 +8298,28 @@
 | - | - | ?RecvUserNotice@CCommunitySocket@@UEAA_NAEAVXPacket@@@Z | 0x1402027c0 | implemented | IDA ?RecvUserNotice@CCommunitySocket@@UEAA_NAEAVXPacket@@@Z | yes | - |
 | - | - | ?RecvUserMegaPhone@CCommunitySocket@@UEAA_NAEAVXPacket@@@Z | 0x1402028b0 | implemented | IDA ?RecvUserMegaPhone@CCommunitySocket@@UEAA_NAEAVXPacket@@@Z | yes | - |
 | - | - | ??0_lambda94_@?A0x93366633@@QEAA@AEBUPS_CHAT_MEGAPHONE@@AEBUPS_CHAT_ITEM_LINK_FOR_SERVER@@@Z | 0x140202a10 | blocked | IDA ??0_lambda94_@?A0x93366633@@QEAA@AEBUPS_CHAT_MEGAPHONE@@AEBUPS_CHAT_ITEM_LINK_FOR_SERVER@@@Z | yes | - |
-| - | - | ??R_lambda36_@?A0xa4fe1a90@@QEBAXXZ | 0x140202a90 | blocked | IDA ??R_lambda36_@?A0xa4fe1a90@@QEBAXXZ | yes | - |
+| - | - | ??R_lambda36_@?A0xa4fe1a90@@QEBAXXZ | 0x140202a90 | implemented | IDA ??R_lambda36_@?A0xa4fe1a90@@QEBAXXZ | yes | - |
 | - | - | ?RecvUserTradePasswordState@CCommunitySocket@@UEAA_NAEAVXPacket@@@Z | 0x140202c00 | implemented | IDA ?RecvUserTradePasswordState@CCommunitySocket@@UEAA_NAEAVXPacket@@@Z | yes | - |
 | - | - | ?SendPartyUpdateMemberInfo@CCommunitySocket@@QEAAXAEAUST_UPDATE_PARTY_MEMBER@@@Z | 0x140202e50 | implemented | IDA ?SendPartyUpdateMemberInfo@CCommunitySocket@@QEAAXAEAUST_UPDATE_PARTY_MEMBER@@@Z | yes | - |
 | - | - | ?RecvPartyMatching@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x140202ee0 | implemented | IDA ?RecvPartyMatching@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | - |
 | - | - | ??0_lambda28_@?A0xa4fe1a90@@QEAA@AEBUST_CREATE_MAZE@@AEBUPS_FORCE_INFO@@AEBK@Z | 0x140203070 | blocked | IDA ??0_lambda28_@?A0xa4fe1a90@@QEAA@AEBUST_CREATE_MAZE@@AEBUPS_FORCE_INFO@@AEBK@Z | yes | - |
 | - | - | ??R_lambda27_@?A0xa4fe1a90@@QEBAXXZ | 0x1402030e0 | blocked | IDA ??R_lambda27_@?A0xa4fe1a90@@QEBAXXZ | yes | - |
-| - | - | ?RecvForceMatching@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x140203130 | implemented | IDA ?RecvForceMatching@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | - |
+| - | - | ?RecvForceMatching@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x140203130 | blocked | IDA ?RecvForceMatching@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | Blocked: source function missing (no declaration/definition in GameSockets.cpp); force subsystem reconstruction pending
 | - | - | ??R_lambda98_@?A0x93366633@@QEBAXXZ | 0x1402032c0 | blocked | IDA ??R_lambda98_@?A0x93366633@@QEBAXXZ | yes | - |
 | - | - | ??1_lambda97_@?A0x93366633@@QEAA@XZ | 0x140203310 | blocked | IDA ??1_lambda97_@?A0x93366633@@QEAA@XZ | yes | - |
 | - | - | ??0_lambda27_@?A0xa4fe1a90@@QEAA@AEBV01@@Z | 0x140203350 | blocked | IDA ??0_lambda27_@?A0xa4fe1a90@@QEAA@AEBV01@@Z | yes | - |
 | - | - | ?RecvPartyMatchingEnter@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x1402033c0 | implemented | IDA ?RecvPartyMatchingEnter@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | - |
 | - | - | ??0_lambda99_@?A0x93366633@@QEAA@AEBQEAVCUser@@AEBEAEBKAEBUST_MATCHING_INFO@@@Z | 0x140203680 | blocked | IDA ??0_lambda99_@?A0x93366633@@QEAA@AEBQEAVCUser@@AEBEAEBKAEBUST_MATCHING_INFO@@@Z | yes | - |
-| - | - | ??R_lambda99_@?A0x93366633@@QEBAXXZ | 0x140203720 | blocked | IDA ??R_lambda99_@?A0x93366633@@QEBAXXZ | yes | - |
+| - | - | ??R_lambda99_@?A0x93366633@@QEBAXXZ | 0x140203720 | implemented | IDA decompile | yes | Inlined into RecvParty handler (see verified handler row) |
 | - | - | ?RecvPartyMatchingExit@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x1402039b0 | implemented | IDA ?RecvPartyMatchingExit@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | - |
-| - | - | ??R_lambda101_@?A0x93366633@@QEBAXXZ | 0x140203c10 | blocked | IDA ??R_lambda101_@?A0x93366633@@QEBAXXZ | yes | - |
+| - | - | ??R_lambda101_@?A0x93366633@@QEBAXXZ | 0x140203c10 | implemented | IDA decompile | yes | Inlined into RecvParty handler (see verified handler row) |
 | - | - | ?RecvPartyMatchingCheck@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x140203e10 | implemented | IDA ?RecvPartyMatchingCheck@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | - |
-| - | - | ??R_lambda103_@?A0x93366633@@QEBAXXZ | 0x140204010 | blocked | IDA ??R_lambda103_@?A0x93366633@@QEBAXXZ | yes | - |
+| - | - | ??R_lambda103_@?A0x93366633@@QEBAXXZ | 0x140204010 | implemented | IDA decompile | yes | Inlined into RecvParty handler (see verified handler row) |
 | - | - | ?RecvPartyMatchingReset@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x140204100 | implemented | IDA ?RecvPartyMatchingReset@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | - |
-| - | - | ??R_lambda105_@?A0x93366633@@QEBAXXZ | 0x140204300 | blocked | IDA ??R_lambda105_@?A0x93366633@@QEBAXXZ | yes | - |
+| - | - | ??R_lambda105_@?A0x93366633@@QEBAXXZ | 0x140204300 | implemented | IDA decompile | yes | Inlined into RecvParty handler (see verified handler row) |
 | - | - | ?RecvPartyMatchingWait@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x1402043f0 | implemented | IDA ?RecvPartyMatchingWait@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | - |
-| - | - | ??R_lambda107_@?A0x93366633@@QEBAXXZ | 0x140204630 | blocked | IDA ??R_lambda107_@?A0x93366633@@QEBAXXZ | yes | - |
-| - | - | ?RecvPartyMatchingMaze@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x140204730 | implemented | IDA ?RecvPartyMatchingMaze@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | - |
+| - | - | ??R_lambda107_@?A0x93366633@@QEBAXXZ | 0x140204630 | implemented | IDA decompile | yes | Inlined into RecvParty handler (see verified handler row) |
+| - | - | ?RecvPartyMatchingMaze@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x140204730 | blocked | IDA ?RecvPartyMatchingMaze@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | Blocked: stub, manager dependency pending |
 | - | - | ??0_lambda237_@?A0x93366633@@QEAA@AEBQEAVCUser@@AEBUST_CREATE_MAZE@@AEBUPS_FORCE_INFO@@@Z | 0x140204a20 | blocked | IDA ??0_lambda237_@?A0x93366633@@QEAA@AEBQEAVCUser@@AEBUST_CREATE_MAZE@@AEBUPS_FORCE_INFO@@@Z | yes | - |
 | - | - | ??R_lambda109_@?A0x93366633@@QEBAXXZ | 0x140204a90 | blocked | IDA ??R_lambda109_@?A0x93366633@@QEBAXXZ | yes | - |
 | - | - | ??0_lambda239_@?A0x93366633@@QEAA@AEBUPS_FORCE_INFO@@@Z | 0x1402052f0 | blocked | IDA ??0_lambda239_@?A0x93366633@@QEAA@AEBUPS_FORCE_INFO@@@Z | yes | - |
@@ -8330,46 +8330,46 @@
 | - | - | ?RecvUsersInfo@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x140205440 | implemented | IDA ?RecvUsersInfo@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | - |
 | - | - | ?RecvPartyRecruitAdd@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x140205470 | implemented | IDA ?RecvPartyRecruitAdd@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | - |
 | - | - | ??0_lambda112_@?A0x93366633@@QEAA@AEBQEAVCUser@@AEBUPS_SERVER_PARTY_RECRUIT_ADD_RES@@@Z | 0x140205750 | blocked | IDA ??0_lambda112_@?A0x93366633@@QEAA@AEBQEAVCUser@@AEBUPS_SERVER_PARTY_RECRUIT_ADD_RES@@@Z | yes | - |
-| - | - | ??R_lambda112_@?A0x93366633@@QEBAXXZ | 0x1402057a0 | blocked | IDA ??R_lambda112_@?A0x93366633@@QEBAXXZ | yes | - |
+| - | - | ??R_lambda112_@?A0x93366633@@QEBAXXZ | 0x1402057a0 | implemented | IDA decompile | yes | Inlined into RecvParty handler (see verified handler row) |
 | - | - | ??1PS_SERVER_PARTY_RECRUIT_ADD_RES@@QEAA@XZ | 0x140205930 | blocked | IDA ??1PS_SERVER_PARTY_RECRUIT_ADD_RES@@QEAA@XZ | yes | - |
 | - | - | ??1_lambda112_@?A0x93366633@@QEAA@XZ | 0x140205950 | blocked | IDA ??1_lambda112_@?A0x93366633@@QEAA@XZ | yes | - |
 | - | - | ??0_lambda112_@?A0x93366633@@QEAA@AEBV01@@Z | 0x140205970 | blocked | IDA ??0_lambda112_@?A0x93366633@@QEAA@AEBV01@@Z | yes | - |
 | - | - | ??0PS_SERVER_PARTY_RECRUIT_ADD_RES@@QEAA@AEBU0@@Z | 0x1402059c0 | blocked | IDA ??0PS_SERVER_PARTY_RECRUIT_ADD_RES@@QEAA@AEBU0@@Z | yes | - |
 | - | - | ??0ST_PARTY_RECRUIT_INFO@@QEAA@AEBU0@@Z | 0x140205a40 | blocked | IDA ??0ST_PARTY_RECRUIT_INFO@@QEAA@AEBU0@@Z | yes | - |
 | - | - | ?RecvPartyRecruitDel@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x140205ac0 | implemented | IDA ?RecvPartyRecruitDel@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | - |
-| - | - | ??R_lambda114_@?A0x93366633@@QEBAXXZ | 0x140205d90 | blocked | IDA ??R_lambda114_@?A0x93366633@@QEBAXXZ | yes | - |
+| - | - | ??R_lambda114_@?A0x93366633@@QEBAXXZ | 0x140205d90 | implemented | IDA decompile | yes | Inlined into RecvParty handler (see verified handler row) |
 | - | - | ?RecvPartyRecruitApply@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x140205e90 | implemented | IDA ?RecvPartyRecruitApply@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | - |
 | - | - | ??0_lambda116_@?A0x93366633@@QEAA@AEBQEAVCUser@@AEBEAEBK1@Z | 0x140206130 | blocked | IDA ??0_lambda116_@?A0x93366633@@QEAA@AEBQEAVCUser@@AEBEAEBK1@Z | yes | - |
-| - | - | ??R_lambda116_@?A0x93366633@@QEBAXXZ | 0x140206190 | blocked | IDA ??R_lambda116_@?A0x93366633@@QEBAXXZ | yes | - |
+| - | - | ??R_lambda116_@?A0x93366633@@QEBAXXZ | 0x140206190 | implemented | IDA decompile | yes | Inlined into RecvParty handler (see verified handler row) |
 | - | - | ?RecvPartyRecruitApplyAccept@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x140206360 | implemented | IDA ?RecvPartyRecruitApplyAccept@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | - |
-| - | - | ??R_lambda118_@?A0x93366633@@QEBAXXZ | 0x1402065a0 | blocked | IDA ??R_lambda118_@?A0x93366633@@QEBAXXZ | yes | - |
+| - | - | ??R_lambda118_@?A0x93366633@@QEBAXXZ | 0x1402065a0 | implemented | IDA decompile | yes | Inlined into RecvParty handler (see verified handler row) |
 | - | - | ?RecvPartyRecruitApplyReject@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x140206600 | implemented | IDA ?RecvPartyRecruitApplyReject@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | - |
-| - | - | ??R_lambda120_@?A0x93366633@@QEBAXXZ | 0x140206840 | blocked | IDA ??R_lambda120_@?A0x93366633@@QEBAXXZ | yes | - |
+| - | - | ??R_lambda120_@?A0x93366633@@QEBAXXZ | 0x140206840 | implemented | IDA decompile | yes | Inlined into RecvParty handler (see verified handler row) |
 | - | - | ?RecvPartyRecruitList@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x140206970 | implemented | IDA ?RecvPartyRecruitList@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | - |
 | - | - | ??0_lambda122_@?A0x93366633@@QEAA@AEBQEAVCUser@@AEBUST_PARTY_RECRUIT_LIST@@@Z | 0x140206c20 | blocked | IDA ??0_lambda122_@?A0x93366633@@QEAA@AEBQEAVCUser@@AEBUST_PARTY_RECRUIT_LIST@@@Z | yes | - |
-| - | - | ??R_lambda122_@?A0x93366633@@QEBAXXZ | 0x140206c70 | blocked | IDA ??R_lambda122_@?A0x93366633@@QEBAXXZ | yes | - |
+| - | - | ??R_lambda122_@?A0x93366633@@QEBAXXZ | 0x140206c70 | implemented | IDA decompile | yes | Inlined into RecvParty handler (see verified handler row) |
 | - | - | ??1ST_PARTY_RECRUIT_LIST@@QEAA@XZ | 0x140206da0 | blocked | IDA ??1ST_PARTY_RECRUIT_LIST@@QEAA@XZ | yes | - |
 | - | - | ??0ST_PARTY_RECRUIT_LIST@@QEAA@AEBU0@@Z | 0x140206dc0 | blocked | IDA ??0ST_PARTY_RECRUIT_LIST@@QEAA@AEBU0@@Z | yes | - |
 | - | - | ??1_lambda122_@?A0x93366633@@QEAA@XZ | 0x140206e00 | blocked | IDA ??1_lambda122_@?A0x93366633@@QEAA@XZ | yes | - |
 | - | - | ??0_lambda122_@?A0x93366633@@QEAA@AEBV01@@Z | 0x140206e20 | blocked | IDA ??0_lambda122_@?A0x93366633@@QEAA@AEBV01@@Z | yes | - |
 | - | - | ?RecvPartyRecruitMyApplyList@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x140206e70 | implemented | IDA ?RecvPartyRecruitMyApplyList@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | - |
-| - | - | ??R_lambda124_@?A0x93366633@@QEBAXXZ | 0x140207120 | blocked | IDA ??R_lambda124_@?A0x93366633@@QEBAXXZ | yes | - |
+| - | - | ??R_lambda124_@?A0x93366633@@QEBAXXZ | 0x140207120 | implemented | IDA decompile | yes | Inlined into RecvParty handler (see verified handler row) |
 | - | - | ?RecvPartyRecruitApplyList@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x140207250 | implemented | IDA ?RecvPartyRecruitApplyList@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | - |
 | - | - | ??0_lambda126_@?A0x93366633@@QEAA@AEBQEAVCUser@@AEBUST_APPLY_MEMBER_LIST@@@Z | 0x1402074d0 | blocked | IDA ??0_lambda126_@?A0x93366633@@QEAA@AEBQEAVCUser@@AEBUST_APPLY_MEMBER_LIST@@@Z | yes | - |
-| - | - | ??R_lambda126_@?A0x93366633@@QEBAXXZ | 0x140207540 | blocked | IDA ??R_lambda126_@?A0x93366633@@QEBAXXZ | yes | - |
+| - | - | ??R_lambda126_@?A0x93366633@@QEBAXXZ | 0x140207540 | implemented | IDA decompile | yes | Inlined into RecvParty handler (see verified handler row) |
 | - | - | ??0ST_APPLY_MEMBER_LIST@@QEAA@XZ | 0x140207690 | blocked | IDA ??0ST_APPLY_MEMBER_LIST@@QEAA@XZ | yes | - |
-| - | - | ?RecvPartyMazeClear@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x1402076c0 | implemented | IDA ?RecvPartyMazeClear@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | - |
+| - | - | ?RecvPartyMazeClear@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x1402076c0 | blocked | IDA ?RecvPartyMazeClear@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | Blocked: stub, manager dependency pending |
 | - | - | ??R_lambda128_@?A0x93366633@@QEBAXXZ | 0x140207740 | blocked | IDA ??R_lambda128_@?A0x93366633@@QEBAXXZ | yes | - |
 | - | - | ?RecvPartyRecruitInfo@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x140207770 | implemented | IDA ?RecvPartyRecruitInfo@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | - |
 | - | - | ??0_lambda129_@?A0x93366633@@QEAA@AEBQEAVCUser@@AEBUST_PARTY_RECRUIT@@@Z | 0x140207a10 | blocked | IDA ??0_lambda129_@?A0x93366633@@QEAA@AEBQEAVCUser@@AEBUST_PARTY_RECRUIT@@@Z | yes | - |
-| - | - | ??R_lambda129_@?A0x93366633@@QEBAXXZ | 0x140207a80 | blocked | IDA ??R_lambda129_@?A0x93366633@@QEBAXXZ | yes | - |
+| - | - | ??R_lambda129_@?A0x93366633@@QEBAXXZ | 0x140207a80 | implemented | IDA decompile | yes | Inlined into RecvParty handler (see verified handler row) |
 | - | - | ?RecvPartyRecruitApplyDel@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x140207bd0 | implemented | IDA ?RecvPartyRecruitApplyDel@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | - |
-| - | - | ??R_lambda131_@?A0x93366633@@QEBAXXZ | 0x140207e40 | blocked | IDA ??R_lambda131_@?A0x93366633@@QEBAXXZ | yes | - |
+| - | - | ??R_lambda131_@?A0x93366633@@QEBAXXZ | 0x140207e40 | implemented | IDA decompile | yes | Inlined into RecvParty handler (see verified handler row) |
 | - | - | ?RecvPartyRecruitApplyUpdate@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x140207f60 | implemented | IDA ?RecvPartyRecruitApplyUpdate@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | - |
-| - | - | ??R_lambda133_@?A0x93366633@@QEBAXXZ | 0x1402081a0 | blocked | IDA ??R_lambda133_@?A0x93366633@@QEBAXXZ | yes | - |
+| - | - | ??R_lambda133_@?A0x93366633@@QEBAXXZ | 0x1402081a0 | implemented | IDA decompile | yes | Inlined into RecvParty handler (see verified handler row) |
 | - | - | ?RecvPartyRecruitApplyInfo@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x1402082e0 | implemented | IDA ?RecvPartyRecruitApplyInfo@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | - |
 | - | - | ??0_lambda135_@?A0x93366633@@QEAA@AEBQEAVCUser@@AEBUST_PARTY_RECRUIT_APPLY_INFO@@@Z | 0x140208570 | blocked | IDA ??0_lambda135_@?A0x93366633@@QEAA@AEBQEAVCUser@@AEBUST_PARTY_RECRUIT_APPLY_INFO@@@Z | yes | - |
-| - | - | ??R_lambda135_@?A0x93366633@@QEBAXXZ | 0x1402085c0 | blocked | IDA ??R_lambda135_@?A0x93366633@@QEBAXXZ | yes | - |
+| - | - | ??R_lambda135_@?A0x93366633@@QEBAXXZ | 0x1402085c0 | implemented | IDA decompile | yes | Inlined into RecvParty handler (see verified handler row) |
 | - | - | ??1ST_PARTY_RECRUIT_APPLY_INFO@@QEAA@XZ | 0x1402086f0 | blocked | IDA ??1ST_PARTY_RECRUIT_APPLY_INFO@@QEAA@XZ | yes | - |
 | - | - | ??0ST_PARTY_RECRUIT_APPLY_INFO@@QEAA@AEBU0@@Z | 0x140208710 | blocked | IDA ??0ST_PARTY_RECRUIT_APPLY_INFO@@QEAA@AEBU0@@Z | yes | - |
 | - | - | ??1_lambda135_@?A0x93366633@@QEAA@XZ | 0x1402087a0 | blocked | IDA ??1_lambda135_@?A0x93366633@@QEAA@XZ | yes | - |
@@ -8377,33 +8377,33 @@
 | - | - | ??0ST_PARTY_MEMBER_LIST@@QEAA@AEBU0@@Z | 0x140208810 | blocked | IDA ??0ST_PARTY_MEMBER_LIST@@QEAA@AEBU0@@Z | yes | - |
 | - | - | ?RecvPartyRecruitApplyNotice@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x140208840 | implemented | IDA ?RecvPartyRecruitApplyNotice@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | - |
 | - | - | ??0_lambda137_@?A0x93366633@@QEAA@AEBQEAVCUser@@AEBUST_APPLY_MEMBER@@@Z | 0x140208ae0 | blocked | IDA ??0_lambda137_@?A0x93366633@@QEAA@AEBQEAVCUser@@AEBUST_APPLY_MEMBER@@@Z | yes | - |
-| - | - | ??R_lambda137_@?A0x93366633@@QEBAXXZ | 0x140208b50 | blocked | IDA ??R_lambda137_@?A0x93366633@@QEBAXXZ | yes | - |
+| - | - | ??R_lambda137_@?A0x93366633@@QEBAXXZ | 0x140208b50 | implemented | IDA decompile | yes | Inlined into RecvParty handler (see verified handler row) |
 | - | - | ?RecvLeagueList@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x140208ca0 | implemented | IDA ?RecvLeagueList@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | - |
 | - | - | ??0_lambda139_@?A0x93366633@@QEAA@AEBQEAVCUser@@AEBUPS_LEAGUE_SUMMARY_LIST@@AEBUST_LEAGUE_APPLICANT_CHECK_LIST@@@Z | 0x140208f80 | blocked | IDA ??0_lambda139_@?A0x93366633@@QEAA@AEBQEAVCUser@@AEBUPS_LEAGUE_SUMMARY_LIST@@AEBUST_LEAGUE_APPLICANT_CHECK_LIST@@@Z | yes | - |
-| - | - | ??R_lambda139_@?A0x93366633@@QEBAXXZ | 0x140208ff0 | blocked | IDA ??R_lambda139_@?A0x93366633@@QEBAXXZ | yes | - |
-| - | - | ?RecvLeagueAuthChange@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x140209190 | implemented | IDA ?RecvLeagueAuthChange@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | - |
+| - | - | ??R_lambda139_@?A0x93366633@@QEBAXXZ | 0x140208ff0 | implemented | IDA decompile | yes | Inlined into RecvLeague handler (see verified handler row) |
+| - | - | ?RecvLeagueAuthChange@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x140209190 | blocked | IDA ?RecvLeagueAuthChange@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | Blocked: source placeholder; DoJob x2 + 8x log loop + DoJobAllThread lambda143 tail awaiting ThreadLocalData manager |
 | - | - | ??R_lambda141_@?A0x93366633@@QEBAXXZ | 0x140209600 | blocked | IDA ??R_lambda141_@?A0x93366633@@QEBAXXZ | yes | - |
 | - | - | ??0_lambda143_@?A0x93366633@@QEAA@AEBUST_LEAGUE_AUTH_CHANGE@@AEBH1@Z | 0x140209770 | blocked | IDA ??0_lambda143_@?A0x93366633@@QEAA@AEBUST_LEAGUE_AUTH_CHANGE@@AEBH1@Z | yes | - |
 | - | - | ??R_lambda143_@?A0x93366633@@QEBAXXZ | 0x1402097e0 | blocked | IDA ??R_lambda143_@?A0x93366633@@QEBAXXZ | yes | - |
-| - | - | ?RecvLeaguePositionNameChange@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x140209840 | implemented | IDA ?RecvLeaguePositionNameChange@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | - |
+| - | - | ?RecvLeaguePositionNameChange@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x140209840 | blocked | IDA ?RecvLeaguePositionNameChange@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | Blocked: lambda146 calls ThreadLocalData::ChangePositionName (manager pending) |
 | - | - | ??R_lambda144_@?A0x93366633@@QEBAXXZ | 0x140209b60 | blocked | IDA ??R_lambda144_@?A0x93366633@@QEBAXXZ | yes | - |
 | - | - | ??0_lambda146_@?A0x93366633@@QEAA@AEBUST_LEAGUE_POSITION_NAME_CHANGE@@AEBH@Z | 0x140209da0 | blocked | IDA ??0_lambda146_@?A0x93366633@@QEAA@AEBUST_LEAGUE_POSITION_NAME_CHANGE@@AEBH@Z | yes | - |
 | - | - | ??R_lambda146_@?A0x93366633@@QEBAXXZ | 0x140209e00 | blocked | IDA ??R_lambda146_@?A0x93366633@@QEBAXXZ | yes | - |
-| - | - | ?RecvLeagueMessage@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x140209e50 | implemented | IDA ?RecvLeagueMessage@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | - |
+| - | - | ?RecvLeagueMessage@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x140209e50 | blocked | IDA ?RecvLeagueMessage@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | Blocked: lambda147 calls ThreadLocalData::SendLeagueMsg (manager pending) |
 | - | - | ??0_lambda147_@?A0x93366633@@QEAA@AEBUPS_CHAT_LEAGUE@@AEBUPS_CHAT_ITEM_LINK_FOR_SERVER@@@Z | 0x140209fa0 | blocked | IDA ??0_lambda147_@?A0x93366633@@QEAA@AEBUPS_CHAT_LEAGUE@@AEBUPS_CHAT_ITEM_LINK_FOR_SERVER@@@Z | yes | - |
 | - | - | ??R_lambda147_@?A0x93366633@@QEBAXXZ | 0x14020a020 | blocked | IDA ??R_lambda147_@?A0x93366633@@QEBAXXZ | yes | - |
 | - | - | ??1_lambda147_@?A0x93366633@@QEAA@XZ | 0x14020a0b0 | blocked | IDA ??1_lambda147_@?A0x93366633@@QEAA@XZ | yes | - |
 | - | - | ??0_lambda147_@?A0x93366633@@QEAA@AEBV01@@Z | 0x14020a0e0 | blocked | IDA ??0_lambda147_@?A0x93366633@@QEAA@AEBV01@@Z | yes | - |
-| - | - | ?RecvLeagueMemberPositionChange@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x14020a160 | implemented | IDA ?RecvLeagueMemberPositionChange@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | - |
+| - | - | ?RecvLeagueMemberPositionChange@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x14020a160 | blocked | IDA ?RecvLeagueMemberPositionChange@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | Blocked: DoJobAllThread lambda150 calls ThreadLocalData::UpdateMemberPosition (manager pending) |
 | - | - | ??0_lambda148_@?A0x93366633@@QEAA@AEBQEAVCUser@@AEBUST_LEAGUE_MEMBER_POSITION@@AEBH@Z | 0x14020a540 | blocked | IDA ??0_lambda148_@?A0x93366633@@QEAA@AEBQEAVCUser@@AEBUST_LEAGUE_MEMBER_POSITION@@AEBH@Z | yes | - |
 | - | - | ??R_lambda148_@?A0x93366633@@QEBAXXZ | 0x14020a5b0 | blocked | IDA ??R_lambda148_@?A0x93366633@@QEBAXXZ | yes | - |
 | - | - | ??0_lambda150_@?A0x93366633@@QEAA@AEBUST_LEAGUE_MEMBER_POSITION@@AEBHAEBK1@Z | 0x14020a720 | blocked | IDA ??0_lambda150_@?A0x93366633@@QEAA@AEBUST_LEAGUE_MEMBER_POSITION@@AEBHAEBK1@Z | yes | - |
 | - | - | ??R_lambda150_@?A0x93366633@@QEBAXXZ | 0x14020a7a0 | blocked | IDA ??R_lambda150_@?A0x93366633@@QEBAXXZ | yes | - |
-| - | - | ?RecvLeagueApplicantUpdate@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x14020a800 | implemented | IDA ?RecvLeagueApplicantUpdate@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | - |
+| - | - | ?RecvLeagueApplicantUpdate@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x14020a800 | blocked | IDA ?RecvLeagueApplicantUpdate@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | Blocked: lambda151 calls ThreadLocalData::LeagueApplicantUpdate (manager pending) |
 | - | - | ??0_lambda151_@?A0x93366633@@QEAA@AEBKAEBUST_LEAGUE_APPLICANT_CHECK_LIST@@@Z | 0x14020a910 | blocked | IDA ??0_lambda151_@?A0x93366633@@QEAA@AEBKAEBUST_LEAGUE_APPLICANT_CHECK_LIST@@@Z | yes | - |
 | - | - | ??R_lambda151_@?A0x93366633@@QEBAXXZ | 0x14020a960 | blocked | IDA ??R_lambda151_@?A0x93366633@@QEBAXXZ | yes | - |
 | - | - | ??0_lambda151_@?A0x93366633@@QEAA@AEBV01@@Z | 0x14020a9a0 | blocked | IDA ??0_lambda151_@?A0x93366633@@QEAA@AEBV01@@Z | yes | - |
-| - | - | ?RecvLeagueMemberLogOut@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x14020a9e0 | implemented | IDA ?RecvLeagueMemberLogOut@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | - |
+| - | - | ?RecvLeagueMemberLogOut@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x14020a9e0 | blocked | IDA ?RecvLeagueMemberLogOut@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | Blocked: lambda152 calls ThreadLocalData::UpdateLeagueMember (manager pending) |
 | - | - | ?RecvExchangePriceHistory@CCommunitySocket@@UEAA_NAEAVXPacket@@@Z | 0x14020aad0 | implemented | IDA ?RecvExchangePriceHistory@CCommunitySocket@@UEAA_NAEAVXPacket@@@Z | yes | - |
 | - | - | ??0_lambda153_@?A0x93366633@@QEAA@AEBQEAVCUser@@AEBUPS_EXCHANGE_PRICE_HISTORY_RES@@@Z | 0x14020ada0 | blocked | IDA ??0_lambda153_@?A0x93366633@@QEAA@AEBQEAVCUser@@AEBUPS_EXCHANGE_PRICE_HISTORY_RES@@@Z | yes | - |
 | - | - | ??R_lambda153_@?A0x93366633@@QEBAXXZ | 0x14020adf0 | blocked | IDA ??R_lambda153_@?A0x93366633@@QEBAXXZ | yes | - |
@@ -8421,59 +8421,59 @@
 | - | - | ?OnDisConnect@CCommunitySocket@@UEAAXXZ | 0x14020b8d0 | implemented | IDA ?OnDisConnect@CCommunitySocket@@UEAAXXZ | yes | - |
 | - | - | ?OnConnect@CCommunitySocket@@UEAAXXZ | 0x14020b900 | implemented | IDA ?OnConnect@CCommunitySocket@@UEAAXXZ | yes | - |
 | - | - | ?RecvPartyNameChange@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x14020b930 | implemented | IDA ?RecvPartyNameChange@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | - |
-| - | - | ??R_lambda157_@?A0x93366633@@QEBAXXZ | 0x14020bbb0 | blocked | IDA ??R_lambda157_@?A0x93366633@@QEBAXXZ | yes | - |
+| - | - | ??R_lambda157_@?A0x93366633@@QEBAXXZ | 0x14020bbb0 | implemented | IDA decompile | yes | Inlined into RecvParty handler (see verified handler row) |
 | - | - | ?RecvLeagueInviteAccept@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x14020bd70 | implemented | IDA ?RecvLeagueInviteAccept@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | - |
 | - | - | ??0_lambda159_@?A0x93366633@@QEAA@AEBQEAVCUser@@AEBUST_REQ_LEAGUE_INVITE_ACCEPT@@@Z | 0x14020bfd0 | blocked | IDA ??0_lambda159_@?A0x93366633@@QEAA@AEBQEAVCUser@@AEBUST_REQ_LEAGUE_INVITE_ACCEPT@@@Z | yes | - |
-| - | - | ??R_lambda159_@?A0x93366633@@QEBAXXZ | 0x14020c030 | blocked | IDA ??R_lambda159_@?A0x93366633@@QEBAXXZ | yes | - |
+| - | - | ??R_lambda159_@?A0x93366633@@QEBAXXZ | 0x14020c030 | implemented | IDA decompile | yes | Inlined into RecvLeague handler (see verified handler row) |
 | - | - | ?RecvLeagueOpenOrNot@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x14020c1a0 | implemented | IDA ?RecvLeagueOpenOrNot@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | - |
-| - | - | ??R_lambda161_@?A0x93366633@@QEBAXXZ | 0x14020c3f0 | blocked | IDA ??R_lambda161_@?A0x93366633@@QEBAXXZ | yes | - |
-| - | - | ?RecvLeagueRecruitNotice@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x14020c4c0 | implemented | IDA ?RecvLeagueRecruitNotice@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | - |
+| - | - | ??R_lambda161_@?A0x93366633@@QEBAXXZ | 0x14020c3f0 | implemented | IDA decompile | yes | Inlined into RecvLeague handler (see verified handler row) |
+| - | - | ?RecvLeagueRecruitNotice@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x14020c4c0 | blocked | IDA ?RecvLeagueRecruitNotice@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | Blocked: DoJobAllThread lambda165 calls ThreadLocalData::SendLeagueRecruitNoticeToMember (manager pending) |
 | - | - | ??0_lambda163_@?A0x93366633@@QEAA@AEBQEAVCUser@@AEB_JAEBUST_LEAGUE_RECRUIT_NOTICE@@@Z | 0x14020c820 | blocked | IDA ??0_lambda163_@?A0x93366633@@QEAA@AEBQEAVCUser@@AEB_JAEBUST_LEAGUE_RECRUIT_NOTICE@@@Z | yes | - |
 | - | - | ??R_lambda163_@?A0x93366633@@QEBAXXZ | 0x14020c8b0 | blocked | IDA ??R_lambda163_@?A0x93366633@@QEBAXXZ | yes | - |
 | - | - | ??0_lambda165_@?A0x93366633@@QEAA@AEBUST_LEAGUE_RECRUIT_NOTICE@@AEB_J@Z | 0x14020ca10 | blocked | IDA ??0_lambda165_@?A0x93366633@@QEAA@AEBUST_LEAGUE_RECRUIT_NOTICE@@AEB_J@Z | yes | - |
 | - | - | ??R_lambda165_@?A0x93366633@@QEBAXXZ | 0x14020ca80 | blocked | IDA ??R_lambda165_@?A0x93366633@@QEBAXXZ | yes | - |
 | - | - | ?RecvCachingComplete@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x14020cad0 | implemented | IDA ?RecvCachingComplete@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | - |
 | - | - | ?IsCanSend@CCommunitySocket@@QEAA_NXZ | 0x14020cb80 | implemented | IDA ?IsCanSend@CCommunitySocket@@QEAA_NXZ | yes | - |
-| - | - | ?RecvLeagueRecordUpdate@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x14020cbc0 | implemented | IDA ?RecvLeagueRecordUpdate@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | - |
+| - | - | ?RecvLeagueRecordUpdate@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x14020cbc0 | blocked | IDA ?RecvLeagueRecordUpdate@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | Blocked: lambda166 calls ThreadLocalData::SendLeagueRecordUpdate (manager pending) |
 | - | - | ??R_lambda166_@?A0x93366633@@QEBAXXZ | 0x14020ccb0 | blocked | IDA ??R_lambda166_@?A0x93366633@@QEBAXXZ | yes | - |
-| - | - | ?RecvLeagueDelegate@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x14020cd00 | implemented | IDA ?RecvLeagueDelegate@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | - |
+| - | - | ?RecvLeagueDelegate@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x14020cd00 | blocked | IDA ?RecvLeagueDelegate@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | Blocked: DoJobAllThread lambda169 calls ThreadLocalData::SendLeagueDelegate (manager pending) |
 | - | - | ??0_lambda167_@?A0x93366633@@QEAA@AEBQEAVCUser@@AEBUPS_RES_LEAGUE_DELEGATE@@@Z | 0x14020d080 | blocked | IDA ??0_lambda167_@?A0x93366633@@QEAA@AEBQEAVCUser@@AEBUPS_RES_LEAGUE_DELEGATE@@@Z | yes | - |
 | - | - | ??R_lambda167_@?A0x93366633@@QEBAXXZ | 0x14020d0f0 | blocked | IDA ??R_lambda167_@?A0x93366633@@QEBAXXZ | yes | - |
 | - | - | ??0_lambda169_@?A0x93366633@@QEAA@AEBUPS_RES_LEAGUE_DELEGATE@@AEBKAEBH@Z | 0x14020d260 | blocked | IDA ??0_lambda169_@?A0x93366633@@QEAA@AEBUPS_RES_LEAGUE_DELEGATE@@AEBKAEBH@Z | yes | - |
 | - | - | ??R_lambda169_@?A0x93366633@@QEBAXXZ | 0x14020d2e0 | blocked | IDA ??R_lambda169_@?A0x93366633@@QEBAXXZ | yes | - |
-| - | - | ?RecvLeagueCardChange@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x14020d340 | implemented | IDA ?RecvLeagueCardChange@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | - |
+| - | - | ?RecvLeagueCardChange@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x14020d340 | blocked | IDA ?RecvLeagueCardChange@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | Blocked: lambda170 calls ThreadLocalData::SendLeagueCardChange (manager pending) |
 | - | - | ??0_lambda170_@?A0x93366633@@QEAA@AEBUPS_REQ_LEAGUE_CARD@@AEBH@Z | 0x14020d420 | blocked | IDA ??0_lambda170_@?A0x93366633@@QEAA@AEBUPS_REQ_LEAGUE_CARD@@AEBH@Z | yes | - |
 | - | - | ??R_lambda170_@?A0x93366633@@QEBAXXZ | 0x14020d480 | blocked | IDA ??R_lambda170_@?A0x93366633@@QEBAXXZ | yes | - |
-| - | - | ?RecvLeagueCardChangeRes@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x14020d4d0 | implemented | IDA ?RecvLeagueCardChangeRes@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | - |
+| - | - | ?RecvLeagueCardChangeRes@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x14020d4d0 | blocked | IDA ?RecvLeagueCardChangeRes@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | Blocked: lambda171 calls CGocInventory::UnLockList/SendUpdateItem + CUser::UpdateLeagueSyncCount/GetLeagueInfo/SetLeagueInfo (not implemented) |
 | - | - | ??0_lambda171_@?A0x93366633@@QEAA@AEBQEAVCUser@@AEBUPS_REQ_LEAGUE_CARD@@AEBUPS_RES_STORAGE_INFO@@AEBH3@Z | 0x14020d820 | blocked | IDA ??0_lambda171_@?A0x93366633@@QEAA@AEBQEAVCUser@@AEBUPS_REQ_LEAGUE_CARD@@AEBUPS_RES_STORAGE_INFO@@AEBH3@Z | yes | - |
 | - | - | ??R_lambda171_@?A0x93366633@@QEBAXXZ | 0x14020d8c0 | blocked | IDA ??R_lambda171_@?A0x93366633@@QEBAXXZ | yes | - |
 | - | - | ??1_lambda171_@?A0x93366633@@QEAA@XZ | 0x14020dd10 | blocked | IDA ??1_lambda171_@?A0x93366633@@QEAA@XZ | yes | - |
 | - | - | ??0_lambda171_@?A0x93366633@@QEAA@AEBV01@@Z | 0x14020dd30 | blocked | IDA ??0_lambda171_@?A0x93366633@@QEAA@AEBV01@@Z | yes | - |
-| - | - | ?RecvLeagueWealth@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x14020ddd0 | implemented | IDA ?RecvLeagueWealth@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | - |
+| - | - | ?RecvLeagueWealth@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x14020ddd0 | blocked | IDA ?RecvLeagueWealth@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | Blocked: lambda173 calls ThreadLocalData::SendLeagueWealth (manager pending) |
 | - | - | ??R_lambda173_@?A0x93366633@@QEBAXXZ | 0x14020dec0 | blocked | IDA ??R_lambda173_@?A0x93366633@@QEBAXXZ | yes | - |
-| - | - | ?RecvLeagueLevelup@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x14020df00 | implemented | IDA ?RecvLeagueLevelup@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | - |
+| - | - | ?RecvLeagueLevelup@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x14020df00 | blocked | IDA ?RecvLeagueLevelup@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | Blocked: lambda174 calls ThreadLocalData::SendLeagueLevelUp (manager pending) |
 | - | - | ??0_lambda174_@?A0x93366633@@QEAA@AEBHAEBE1AEBUPS_AUTO_SKILL@@0@Z | 0x14020e080 | blocked | IDA ??0_lambda174_@?A0x93366633@@QEAA@AEBHAEBE1AEBUPS_AUTO_SKILL@@0@Z | yes | - |
 | - | - | ??R_lambda174_@?A0x93366633@@QEBAXXZ | 0x14020e0f0 | blocked | IDA ??R_lambda174_@?A0x93366633@@QEBAXXZ | yes | - |
-| - | - | ?RecvLeagueSkillLearn@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x14020e140 | implemented | IDA ?RecvLeagueSkillLearn@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | - |
+| - | - | ?RecvLeagueSkillLearn@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x14020e140 | blocked | IDA ?RecvLeagueSkillLearn@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | Blocked: lambda175 calls ThreadLocalData::SendLeagueSkillLearn (manager pending) |
 | - | - | ??0_lambda175_@?A0x93366633@@QEAA@AEBUPS_RES_LEAGUE_SKILL@@AEBH@Z | 0x14020e220 | blocked | IDA ??0_lambda175_@?A0x93366633@@QEAA@AEBUPS_RES_LEAGUE_SKILL@@AEBH@Z | yes | - |
 | - | - | ??R_lambda175_@?A0x93366633@@QEBAXXZ | 0x14020e280 | blocked | IDA ??R_lambda175_@?A0x93366633@@QEBAXXZ | yes | - |
-| - | - | ?RecvLeagueSyncInfo@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x14020e2d0 | implemented | IDA ?RecvLeagueSyncInfo@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | - |
+| - | - | ?RecvLeagueSyncInfo@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x14020e2d0 | blocked | IDA ?RecvLeagueSyncInfo@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | Blocked: lambda176 calls CUser::UpdateLeagueSyncFlag/UpdateLeagueSyncCount/SetLeagueInfo (not implemented) |
 | - | - | ??0_lambda176_@?A0x93366633@@QEAA@AEBQEAVCUser@@AEBUST_LEAGUE_INFO@@AEBUST_LEAGUE_MEMBER_LIST@@AEBUST_LEAGUE_APPLICANT_LIST@@AEBUST_LEAGUE_BOARD_LIST@@AEBUST_LEAGUE_RECORD_LIST@@AEBUST_LEAGUE_INFO_FOR_GAME@@AEBUPS_SYNC_LEAGUE_INFO@@AEBE@Z | 0x14020e790 | blocked | IDA ??0_lambda176_@?A0x93366633@@QEAA@AEBQEAVCUser@@AEBUST_LEAGUE_INFO@@AEBUST_LEAGUE_MEMBER_LIST@@AEBUST_LEAGUE_APPLICANT_LIST@@AEBUST_LEAGUE_BOARD_LIST@@AEBUST_LEAGUE_RECORD_LIST@@AEBUST_LEAGUE_INFO_FOR_GAME@@AEBUPS_SYNC_LEAGUE_INFO@@AEBE@Z | yes | - |
 | - | - | ??R_lambda176_@?A0x93366633@@QEBAXXZ | 0x14020e920 | blocked | IDA ??R_lambda176_@?A0x93366633@@QEBAXXZ | yes | - |
 | - | - | ??1_lambda176_@?A0x93366633@@QEAA@XZ | 0x14020ed30 | blocked | IDA ??1_lambda176_@?A0x93366633@@QEAA@XZ | yes | - |
 | - | - | ??0_lambda176_@?A0x93366633@@QEAA@AEBV01@@Z | 0x14020eda0 | blocked | IDA ??0_lambda176_@?A0x93366633@@QEAA@AEBV01@@Z | yes | - |
-| - | - | ?RecvLeagueSyncLoad@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x14020ef50 | implemented | IDA ?RecvLeagueSyncLoad@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | - |
+| - | - | ?RecvLeagueSyncLoad@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x14020ef50 | blocked | IDA ?RecvLeagueSyncLoad@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | Blocked: lambda178 calls ThreadLocalData::UpdateSyncLeagueLoad (manager pending) |
 | - | - | ??0_lambda128_@?A0x93366633@@QEAA@AEBK@Z | 0x14020efe0 | blocked | IDA ??0_lambda128_@?A0x93366633@@QEAA@AEBK@Z | yes | - |
 | - | - | ??R_lambda178_@?A0x93366633@@QEBAXXZ | 0x14020f000 | blocked | IDA ??R_lambda178_@?A0x93366633@@QEBAXXZ | yes | - |
-| - | - | ?RecvPartyRecruitApplyAcceptCheck@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x14020f030 | implemented | IDA ?RecvPartyRecruitApplyAcceptCheck@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | - |
+| - | - | ?RecvPartyRecruitApplyAcceptCheck@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x14020f030 | blocked | IDA ?RecvPartyRecruitApplyAcceptCheck@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | Blocked: stub, manager dependency pending |
 | - | - | ??0_lambda37_@?A0x93366633@@QEAA@AEBQEAVCUser@@AEBUST_REQ_LEAGUE_INVITE@@@Z | 0x14020f320 | blocked | IDA ??0_lambda37_@?A0x93366633@@QEAA@AEBQEAVCUser@@AEBUST_REQ_LEAGUE_INVITE@@@Z | yes | - |
 | - | - | ??R_lambda179_@?A0x93366633@@QEBAXXZ | 0x14020f390 | blocked | IDA ??R_lambda179_@?A0x93366633@@QEBAXXZ | yes | - |
-| - | - | ?RecvLeagueInventoryInfo@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x140210170 | implemented | IDA ?RecvLeagueInventoryInfo@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | - |
+| - | - | ?RecvLeagueInventoryInfo@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x140210170 | blocked | IDA ?RecvLeagueInventoryInfo@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | Blocked: lambda181 calls CUser::SetLeagueInventoryTime/UpdateLeagueInventorySyncCount (not implemented) |
 | - | - | ??0_lambda181_@?A0x93366633@@QEAA@AEBQEAVCUser@@AEBUPS_RES_STORAGE_INFO@@AEBUPS_ITEM_BROACH_LIST@@AEBUPS_ITEM_SOCKET_LIST@@AEBUPS_ITEM_PACKAGE_LIST@@AEBH@Z | 0x140210590 | blocked | IDA ??0_lambda181_@?A0x93366633@@QEAA@AEBQEAVCUser@@AEBUPS_RES_STORAGE_INFO@@AEBUPS_ITEM_BROACH_LIST@@AEBUPS_ITEM_SOCKET_LIST@@AEBUPS_ITEM_PACKAGE_LIST@@AEBH@Z | yes | - |
 | - | - | ??R_lambda181_@?A0x93366633@@QEBAXXZ | 0x140210640 | blocked | IDA ??R_lambda181_@?A0x93366633@@QEBAXXZ | yes | - |
 | - | - | ??1_lambda181_@?A0x93366633@@QEAA@XZ | 0x1402108b0 | blocked | IDA ??1_lambda181_@?A0x93366633@@QEAA@XZ | yes | - |
 | - | - | ??0_lambda181_@?A0x93366633@@QEAA@AEBV01@@Z | 0x140210910 | blocked | IDA ??0_lambda181_@?A0x93366633@@QEAA@AEBV01@@Z | yes | - |
-| - | - | ?RecvLeagueInventoryMove@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x1402109d0 | implemented | IDA ?RecvLeagueInventoryMove@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | - |
+| - | - | ?RecvLeagueInventoryMove@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x1402109d0 | blocked | IDA ?RecvLeagueInventoryMove@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | Blocked: lambda185 calls ThreadLocalData::SendLeagueInventoryMove (manager pending); lambda183 depends CGocInventory::MoveItemToLeagueInven (void* placeholder) |
 | - | - | ??0_lambda183_@?A0x93366633@@QEAA@AEBQEAVCUser@@AEBUPS_ITEM_MOVE_LEAGUE_INVEN_FOR_GAME@@@Z | 0x140210d90 | blocked | IDA ??0_lambda183_@?A0x93366633@@QEAA@AEBQEAVCUser@@AEBUPS_ITEM_MOVE_LEAGUE_INVEN_FOR_GAME@@@Z | yes | - |
 | - | - | ??R_lambda183_@?A0x93366633@@QEBAXXZ | 0x140210de0 | blocked | IDA ??R_lambda183_@?A0x93366633@@QEBAXXZ | yes | - |
 | - | - | ??0_lambda185_@?A0x93366633@@QEAA@AEBKAEBUPS_ITEM_MOVE_LEAGUE_INVEN_FOR_GAME@@@Z | 0x140211040 | blocked | IDA ??0_lambda185_@?A0x93366633@@QEAA@AEBKAEBUPS_ITEM_MOVE_LEAGUE_INVEN_FOR_GAME@@@Z | yes | - |
@@ -8487,33 +8487,33 @@
 | - | - | ??0_lambda186_@?A0x93366633@@QEAA@AEBQEAVCUser@@AEBHAEBUPS_MYROOM_POLLEN_HELP_USER@@AEB_J@Z | 0x140211750 | blocked | IDA ??0_lambda186_@?A0x93366633@@QEAA@AEBQEAVCUser@@AEBHAEBUPS_MYROOM_POLLEN_HELP_USER@@AEB_J@Z | yes | - |
 | - | - | ??R_lambda186_@?A0x93366633@@QEBAXXZ | 0x1402117e0 | blocked | IDA ??R_lambda186_@?A0x93366633@@QEBAXXZ | yes | - |
 | - | - | ?RecvLeagueApplicantAcceptRes@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x140211900 | implemented | IDA ?RecvLeagueApplicantAcceptRes@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | - |
-| - | - | ??R_lambda188_@?A0x93366633@@QEBAXXZ | 0x140211b20 | blocked | IDA ??R_lambda188_@?A0x93366633@@QEBAXXZ | yes | - |
-| - | - | ?RecvForceCreate@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x140211c50 | implemented | IDA ?RecvForceCreate@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | - |
+| - | - | ??R_lambda188_@?A0x93366633@@QEBAXXZ | 0x140211b20 | implemented | IDA decompile | yes | Inlined into RecvLeague handler (see verified handler row) |
+| - | - | ?RecvForceCreate@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x140211c50 | blocked | IDA ?RecvForceCreate@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | Blocked: source function missing (no declaration/definition in GameSockets.cpp); force subsystem reconstruction pending |
 | - | - | ??R_lambda190_@?A0x93366633@@QEBAXXZ | 0x140212160 | blocked | IDA ??R_lambda190_@?A0x93366633@@QEBAXXZ | yes | - |
 | - | - | ??R_lambda191_@?A0x93366633@@QEBAXXZ | 0x140212190 | blocked | IDA ??R_lambda191_@?A0x93366633@@QEBAXXZ | yes | - |
-| - | - | ?RecvForceJoinMember@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x140212200 | implemented | IDA ?RecvForceJoinMember@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | - |
+| - | - | ?RecvForceJoinMember@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x140212200 | blocked | IDA ?RecvForceJoinMember@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | Blocked: source function missing (no declaration/definition in GameSockets.cpp); force subsystem reconstruction pending |
 | - | - | ??R_lambda195_@?A0x93366633@@QEBAXXZ | 0x140212560 | blocked | IDA ??R_lambda195_@?A0x93366633@@QEBAXXZ | yes | - |
 | - | - | ??R_lambda197_@?A0x93366633@@QEBAXXZ | 0x1402127e0 | blocked | IDA ??R_lambda197_@?A0x93366633@@QEBAXXZ | yes | - |
 | - | - | ??0_lambda195_@?A0x93366633@@QEAA@AEBV01@@Z | 0x140212870 | blocked | IDA ??0_lambda195_@?A0x93366633@@QEAA@AEBV01@@Z | yes | - |
-| - | - | ?RecvForceLeaveMember@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x140212910 | implemented | IDA ?RecvForceLeaveMember@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | - |
+| - | - | ?RecvForceLeaveMember@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x140212910 | blocked | IDA ?RecvForceLeaveMember@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | Blocked: source function missing (no declaration/definition in GameSockets.cpp); force subsystem reconstruction pending |
 | - | - | ??R_lambda198_@?A0x93366633@@QEBAXXZ | 0x140213040 | blocked | IDA ??R_lambda198_@?A0x93366633@@QEBAXXZ | yes | - |
 | - | - | ??R_lambda200_@?A0x93366633@@QEBAXXZ | 0x1402130d0 | blocked | IDA ??R_lambda200_@?A0x93366633@@QEBAXXZ | yes | - |
 | - | - | ??R_lambda201_@?A0x93366633@@QEBAXXZ | 0x140213100 | blocked | IDA ??R_lambda201_@?A0x93366633@@QEBAXXZ | yes | - |
 | - | - | ??R_lambda203_@?A0x93366633@@QEBAXXZ | 0x1402132e0 | blocked | IDA ??R_lambda203_@?A0x93366633@@QEBAXXZ | yes | - |
-| - | - | ?RecvForceChangeMaster@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x140213410 | implemented | IDA ?RecvForceChangeMaster@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | - |
+| - | - | ?RecvForceChangeMaster@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x140213410 | blocked | IDA ?RecvForceChangeMaster@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | Blocked: source function missing (no declaration/definition in GameSockets.cpp); force subsystem reconstruction pending |
 | - | - | ??R_lambda205_@?A0x93366633@@QEBAXXZ | 0x140213510 | blocked | IDA ??R_lambda205_@?A0x93366633@@QEBAXXZ | yes | - |
 | - | - | ?RecvUpdateForceMember@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x140213570 | implemented | IDA ?RecvUpdateForceMember@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | - |
 | - | - | ??R_lambda206_@?A0x93366633@@QEBAXXZ | 0x140213660 | blocked | IDA ??R_lambda206_@?A0x93366633@@QEBAXXZ | yes | - |
-| - | - | ?RecvForceDelete@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x140213690 | implemented | IDA ?RecvForceDelete@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | - |
+| - | - | ?RecvForceDelete@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x140213690 | blocked | IDA ?RecvForceDelete@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | Blocked: source function missing (no declaration/definition in GameSockets.cpp); force subsystem reconstruction pending |
 | - | - | ??R_lambda207_@?A0x93366633@@QEBAXXZ | 0x140213950 | blocked | IDA ??R_lambda207_@?A0x93366633@@QEBAXXZ | yes | - |
 | - | - | ??R_lambda209_@?A0x93366633@@QEBAXXZ | 0x140213c70 | blocked | IDA ??R_lambda209_@?A0x93366633@@QEBAXXZ | yes | - |
 | - | - | ??0_lambda210_@?A0x93366633@@QEAA@AEBQEAVCUser@@AEBUPS_FORCE_INFO@@@Z | 0x140213cf0 | blocked | IDA ??0_lambda210_@?A0x93366633@@QEAA@AEBQEAVCUser@@AEBUPS_FORCE_INFO@@@Z | yes | - |
 | - | - | ??0_lambda86_@?A0x93366633@@QEAA@AEBV01@@Z | 0x140213d40 | blocked | IDA ??0_lambda86_@?A0x93366633@@QEAA@AEBV01@@Z | yes | - |
-| - | - | ?RecvForceEnterMaze@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x140213d90 | implemented | IDA ?RecvForceEnterMaze@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | - |
+| - | - | ?RecvForceEnterMaze@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x140213d90 | blocked | IDA ?RecvForceEnterMaze@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | Blocked: source function missing (no declaration/definition in GameSockets.cpp); force subsystem reconstruction pending |
 | - | - | ??R_lambda212_@?A0x93366633@@QEBAXXZ | 0x140214040 | blocked | IDA ??R_lambda212_@?A0x93366633@@QEBAXXZ | yes | - |
-| - | - | ?RecvForceUpdateInfo@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x140214120 | implemented | IDA ?RecvForceUpdateInfo@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | - |
+| - | - | ?RecvForceUpdateInfo@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x140214120 | blocked | IDA ?RecvForceUpdateInfo@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | Blocked: source function missing (no declaration/definition in GameSockets.cpp); force subsystem reconstruction pending |
 | - | - | ??R_lambda214_@?A0x93366633@@QEBAXXZ | 0x140214210 | blocked | IDA ??R_lambda214_@?A0x93366633@@QEBAXXZ | yes | - |
-| - | - | ?RecvForceEnterServer@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x140214250 | implemented | IDA ?RecvForceEnterServer@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | - |
+| - | - | ?RecvForceEnterServer@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x140214250 | blocked | IDA ?RecvForceEnterServer@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | Blocked: source function missing (no declaration/definition in GameSockets.cpp); force subsystem reconstruction pending |
 | - | - | ??R_lambda215_@?A0x93366633@@QEBAXXZ | 0x1402145a0 | blocked | IDA ??R_lambda215_@?A0x93366633@@QEBAXXZ | yes | - |
 | - | - | ??0_lambda0_@?A0x649438cf@@QEAA@AEBHAEB_J@Z | 0x140214610 | blocked | IDA ??0_lambda0_@?A0x649438cf@@QEAA@AEBHAEB_J@Z | yes | - |
 | - | - | ??R_lambda216_@?A0x93366633@@QEBAXXZ | 0x140214650 | blocked | IDA ??R_lambda216_@?A0x93366633@@QEBAXXZ | yes | - |
@@ -8521,39 +8521,39 @@
 | - | - | ??1_lambda70_@?A0x93366633@@QEAA@XZ | 0x1402146f0 | blocked | IDA ??1_lambda70_@?A0x93366633@@QEAA@XZ | yes | - |
 | - | - | ??0_lambda215_@?A0x93366633@@QEAA@AEBUPS_RES_FORCE_ENTER_SERVER@@@Z | 0x140214710 | blocked | IDA ??0_lambda215_@?A0x93366633@@QEAA@AEBUPS_RES_FORCE_ENTER_SERVER@@@Z | yes | - |
 | - | - | ??0PS_RES_PARTY_ENTER_SERVER@@QEAA@AEBU0@@Z | 0x140214740 | blocked | IDA ??0PS_RES_PARTY_ENTER_SERVER@@QEAA@AEBU0@@Z | yes | - |
-| - | - | ?RecvForceInvite@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x1402147d0 | implemented | IDA ?RecvForceInvite@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | - |
+| - | - | ?RecvForceInvite@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x1402147d0 | blocked | IDA ?RecvForceInvite@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | Blocked: source function missing (no declaration/definition in GameSockets.cpp); force subsystem reconstruction pending |
 | - | - | ??0_lambda59_@?A0x93366633@@QEAA@AEBQEAVCUser@@AEBUPS_REQ_PARTY_INVITE@@@Z | 0x140214ce0 | blocked | IDA ??0_lambda59_@?A0x93366633@@QEAA@AEBQEAVCUser@@AEBUPS_REQ_PARTY_INVITE@@@Z | yes | - |
 | - | - | ??R_lambda218_@?A0x93366633@@QEBAXXZ | 0x140214d50 | blocked | IDA ??R_lambda218_@?A0x93366633@@QEBAXXZ | yes | - |
 | - | - | ??R_lambda220_@?A0x93366633@@QEBAXXZ | 0x140214ea0 | blocked | IDA ??R_lambda220_@?A0x93366633@@QEBAXXZ | yes | - |
-| - | - | ?RecvForceAccept@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x1402157d0 | implemented | IDA ?RecvForceAccept@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | - |
+| - | - | ?RecvForceAccept@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x1402157d0 | blocked | IDA ?RecvForceAccept@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | Blocked: source function missing (no declaration/definition in GameSockets.cpp); force subsystem reconstruction pending |
 | - | - | ??R_lambda222_@?A0x93366633@@QEBAXXZ | 0x1402159f0 | blocked | IDA ??R_lambda222_@?A0x93366633@@QEBAXXZ | yes | - |
-| - | - | ?RecvForceReject@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x140215b00 | implemented | IDA ?RecvForceReject@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | - |
+| - | - | ?RecvForceReject@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x140215b00 | blocked | IDA ?RecvForceReject@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | Blocked: source function missing (no declaration/definition in GameSockets.cpp); force subsystem reconstruction pending |
 | - | - | ??R_lambda224_@?A0x93366633@@QEBAXXZ | 0x140215d60 | blocked | IDA ??R_lambda224_@?A0x93366633@@QEBAXXZ | yes | - |
-| - | - | ?RecvForceMessage@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x140215ea0 | implemented | IDA ?RecvForceMessage@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | - |
+| - | - | ?RecvForceMessage@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x140215ea0 | blocked | IDA ?RecvForceMessage@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | Blocked: source function missing (no declaration/definition in GameSockets.cpp); force subsystem reconstruction pending |
 | - | - | ??R_lambda226_@?A0x93366633@@QEBAXXZ | 0x140215ff0 | blocked | IDA ??R_lambda226_@?A0x93366633@@QEBAXXZ | yes | - |
 | - | - | ??0_lambda88_@?A0x93366633@@QEAA@AEBV01@@Z | 0x1402161c0 | blocked | IDA ??0_lambda88_@?A0x93366633@@QEAA@AEBV01@@Z | yes | - |
-| - | - | ?RecvForceMatchingEnter@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x140216240 | implemented | IDA ?RecvForceMatchingEnter@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | - |
+| - | - | ?RecvForceMatchingEnter@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x140216240 | blocked | IDA ?RecvForceMatchingEnter@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | Blocked: source function missing (no declaration/definition in GameSockets.cpp); force subsystem reconstruction pending |
 | - | - | ??0_lambda227_@?A0x93366633@@QEAA@AEBQEAVCUser@@AEBEAEBKAEBUST_FORCE_MATCHING_INFO@@@Z | 0x140216500 | blocked | IDA ??0_lambda227_@?A0x93366633@@QEAA@AEBQEAVCUser@@AEBEAEBKAEBUST_FORCE_MATCHING_INFO@@@Z | yes | - |
 | - | - | ??R_lambda227_@?A0x93366633@@QEBAXXZ | 0x1402165a0 | blocked | IDA ??R_lambda227_@?A0x93366633@@QEBAXXZ | yes | - |
-| - | - | ?RecvForceMatchingExit@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x140216850 | implemented | IDA ?RecvForceMatchingExit@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | - |
+| - | - | ?RecvForceMatchingExit@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x140216850 | blocked | IDA ?RecvForceMatchingExit@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | Blocked: source function missing (no declaration/definition in GameSockets.cpp); force subsystem reconstruction pending |
 | - | - | ??R_lambda229_@?A0x93366633@@QEBAXXZ | 0x140216ab0 | blocked | IDA ??R_lambda229_@?A0x93366633@@QEBAXXZ | yes | - |
-| - | - | ?RecvForceMatchingCheck@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x140216cc0 | implemented | IDA ?RecvForceMatchingCheck@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | - |
+| - | - | ?RecvForceMatchingCheck@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x140216cc0 | blocked | IDA ?RecvForceMatchingCheck@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | Blocked: source function missing (no declaration/definition in GameSockets.cpp); force subsystem reconstruction pending |
 | - | - | ??R_lambda231_@?A0x93366633@@QEBAXXZ | 0x140216f10 | blocked | IDA ??R_lambda231_@?A0x93366633@@QEBAXXZ | yes | - |
-| - | - | ?RecvForceMatchingReset@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x1402172a0 | implemented | IDA ?RecvForceMatchingReset@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | - |
+| - | - | ?RecvForceMatchingReset@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x1402172a0 | blocked | IDA ?RecvForceMatchingReset@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | Blocked: source function missing (no declaration/definition in GameSockets.cpp); force subsystem reconstruction pending |
 | - | - | ??0_lambda233_@?A0x93366633@@QEAA@AEBQEAVCUser@@AEBHAEBE1@Z | 0x140217540 | blocked | IDA ??0_lambda233_@?A0x93366633@@QEAA@AEBQEAVCUser@@AEBHAEBE1@Z | yes | - |
 | - | - | ??R_lambda233_@?A0x93366633@@QEBAXXZ | 0x1402175a0 | blocked | IDA ??R_lambda233_@?A0x93366633@@QEBAXXZ | yes | - |
-| - | - | ?RecvForceMatchingWait@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x1402177d0 | implemented | IDA ?RecvForceMatchingWait@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | - |
+| - | - | ?RecvForceMatchingWait@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x1402177d0 | blocked | IDA ?RecvForceMatchingWait@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | Blocked: source function missing (no declaration/definition in GameSockets.cpp); force subsystem reconstruction pending |
 | - | - | ??R_lambda235_@?A0x93366633@@QEBAXXZ | 0x140217a10 | blocked | IDA ??R_lambda235_@?A0x93366633@@QEBAXXZ | yes | - |
-| - | - | ?RecvForceMatchingMaze@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x140217b70 | implemented | IDA ?RecvForceMatchingMaze@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | - |
+| - | - | ?RecvForceMatchingMaze@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x140217b70 | blocked | IDA ?RecvForceMatchingMaze@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | Blocked: source function missing (no declaration/definition in GameSockets.cpp); force subsystem reconstruction pending |
 | - | - | ??R_lambda237_@?A0x93366633@@QEBAXXZ | 0x140217e60 | blocked | IDA ??R_lambda237_@?A0x93366633@@QEBAXXZ | yes | - |
 | - | - | ??R_lambda239_@?A0x93366633@@QEBAXXZ | 0x1402186b0 | blocked | IDA ??R_lambda239_@?A0x93366633@@QEBAXXZ | yes | - |
-| - | - | ?RecvForceMazeClear@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x140218700 | implemented | IDA ?RecvForceMazeClear@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | - |
+| - | - | ?RecvForceMazeClear@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x140218700 | blocked | IDA ?RecvForceMazeClear@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | Blocked: source function missing (no declaration/definition in GameSockets.cpp); force subsystem reconstruction pending |
 | - | - | ??R_lambda240_@?A0x93366633@@QEBAXXZ | 0x140218780 | blocked | IDA ??R_lambda240_@?A0x93366633@@QEBAXXZ | yes | - |
-| - | - | ?RecvForceInfo@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x1402187b0 | implemented | IDA ?RecvForceInfo@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | - |
+| - | - | ?RecvForceInfo@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x1402187b0 | blocked | IDA ?RecvForceInfo@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | Blocked: source function missing (no declaration/definition in GameSockets.cpp); force subsystem reconstruction pending |
 | - | - | ??R_lambda241_@?A0x93366633@@QEBAXXZ | 0x1402188d0 | blocked | IDA ??R_lambda241_@?A0x93366633@@QEBAXXZ | yes | - |
 | - | - | ??1_lambda241_@?A0x93366633@@QEAA@XZ | 0x140218940 | blocked | IDA ??1_lambda241_@?A0x93366633@@QEAA@XZ | yes | - |
 | - | - | ??0_lambda49_@?A0x93366633@@QEAA@AEBV01@@Z | 0x140218960 | blocked | IDA ??0_lambda49_@?A0x93366633@@QEAA@AEBV01@@Z | yes | - |
-| - | - | ?RecvForceNameChange@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x1402189a0 | implemented | IDA ?RecvForceNameChange@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | - |
+| - | - | ?RecvForceNameChange@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x1402189a0 | blocked | IDA ?RecvForceNameChange@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | Blocked: source function missing (no declaration/definition in GameSockets.cpp); force subsystem reconstruction pending |
 | - | - | ??R_lambda242_@?A0x93366633@@QEBAXXZ | 0x140218c20 | blocked | IDA ??R_lambda242_@?A0x93366633@@QEBAXXZ | yes | - |
 | - | - | ?SendForceUpdateMemberInfo@CCommunitySocket@@QEAAXAEAUST_UPDATE_FORCE_MEMBER@@@Z | 0x140218de0 | implemented | IDA ?SendForceUpdateMemberInfo@CCommunitySocket@@QEAAXAEAUST_UPDATE_FORCE_MEMBER@@@Z | yes | - |
 | - | - | ?RecvModeMazeMatchingEnter@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x140218e70 | implemented | IDA ?RecvModeMazeMatchingEnter@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | - |
@@ -8575,7 +8575,7 @@
 | - | - | ?RecvModeMazeMatchingTime_Cheat@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x14021a450 | implemented | IDA ?RecvModeMazeMatchingTime_Cheat@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | - |
 | - | - | ??0_lambda252_@?A0x93366633@@QEAA@AEBUPS_SERVER_MODE_MAZE_MATCHING_TIME_INFO@@@Z | 0x14021a5b0 | blocked | IDA ??0_lambda252_@?A0x93366633@@QEAA@AEBUPS_SERVER_MODE_MAZE_MATCHING_TIME_INFO@@@Z | yes | - |
 | - | - | ??R_lambda252_@?A0x93366633@@QEBAXXZ | 0x14021a600 | blocked | IDA ??R_lambda252_@?A0x93366633@@QEBAXXZ | yes | - |
-| - | - | ?RecvLeagueNameChange@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x14021a620 | implemented | IDA ?RecvLeagueNameChange@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | - |
+| - | - | ?RecvLeagueNameChange@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x14021a620 | blocked | IDA ?RecvLeagueNameChange@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | Blocked: DoJobAllThread lambda255 calls ThreadLocalData::SendLeagueChangeName (manager pending) |
 | - | - | ??0_lambda253_@?A0x93366633@@QEAA@AEBQEAVCUser@@AEBUPS_LEAGUE_NAME_CHANGE_SERVER@@@Z | 0x14021a990 | blocked | IDA ??0_lambda253_@?A0x93366633@@QEAA@AEBQEAVCUser@@AEBUPS_LEAGUE_NAME_CHANGE_SERVER@@@Z | yes | - |
 | - | - | ??R_lambda253_@?A0x93366633@@QEBAXXZ | 0x14021a9e0 | blocked | IDA ??R_lambda253_@?A0x93366633@@QEBAXXZ | yes | - |
 | - | - | ??R_lambda255_@?A0x93366633@@QEBAXXZ | 0x14021b0a0 | blocked | IDA ??R_lambda255_@?A0x93366633@@QEBAXXZ | yes | - |
@@ -34280,7 +34280,7 @@ yes | ?????????? |
 | XGameServer | ThreadLocalData.cpp | ?DeleteMyRoomReq@ThreadLocalData@@QEAAXKTUXMapID@@@Z | 0x1406d8190 | implemented | IDA decompile | yes | ��ȷ��ԭ-����ɾ�����˷��� |
 | XGameServer | ThreadLocalData.cpp | ?DeleteMyRoomRes@ThreadLocalData@@QEAAXTUXMapID@@@Z | 0x1406d8250 | implemented | IDA decompile | yes | ��ȷ��ԭ-��Ӧɾ�����˷��� |
 | XGameServer | ThreadLocalData.cpp | ?MyRoomLoad@ThreadLocalData@@QEAAXHKTUXMapID@@UST_MYROOM_USER@@UST_MYROOM_ITEM_LIST@@K@Z | 0x1406d8390 | implemented | IDA decompile | yes | ��ȷ��ԭ-���ظ��˷��� |
-| XGameServer | ThreadLocalData.cpp | ?SendTimeEvent@ThreadLocalData@@QEAAXAEAUST_GM_TIME_EVENT_INFO@@@Z | 0x1406d85a0 | implemented | IDA decompile | yes | ��ȷ��ԭ-����ʱ���¼����������� |
+| XGameServer | ThreadLocalData.cpp | ?SendTimeEvent@ThreadLocalData@@QEAAXAEAUST_GM_TIME_EVENT_INFO@@@Z | 0x1406d85a0 | implemented | IDA decompile + active build | yes | Restored: ThreadLocalData active stub SendTimeEvent iterates m_mapArea and calls XArea::SendTimeEvent (PDB owner ThreadLocalData.cpp). |
 | XGameServer | ThreadLocalData.cpp | ?SendServerOption@ThreadLocalData@@QEAAXAEAUPS_CONTENTS_INFO@@@Z | 0x1406d8640 | implemented | IDA decompile | yes | ��ȷ��ԭ-���ͷ�����ѡ��������� |
 | XGameServer | ThreadLocalData.cpp | ?SendCashShopBanner@ThreadLocalData@@QEAAXXZ | 0x1406d86e0 | implemented | IDA decompile | yes | ��ȷ��ԭ-�����̳Ǻ������������?|
 | XGameServer | ThreadLocalData.cpp | ?SendCashShopItem@ThreadLocalData@@QEAAXAEAUSTCashItemList@@@Z | 0x1406d8770 | implemented | IDA decompile | yes | ��ȷ��ԭ-�����̳���Ʒ���������� |
@@ -34513,23 +34513,23 @@ yes | ?????????? |
 | - | - | ??0VDefaultTimer@@QEAA@_N@Z | 0x1406e0750 | blocked | IDA ??0VDefaultTimer@@QEAA@_N@Z | yes | - |
 | - | - | ??0CTimeEventMgr@@QEAA@XZ | 0x1406e0790 | blocked | IDA ??0CTimeEventMgr@@QEAA@XZ | yes | - |
 | - | - | ??1CTimeEventMgr@@QEAA@XZ | 0x1406e0830 | blocked | IDA ??1CTimeEventMgr@@QEAA@XZ | yes | - |
-| - | - | ?Clear@CTimeEventMgr@@QEAAXXZ | 0x1406e0880 | implemented | IDA ?Clear@CTimeEventMgr@@QEAAXXZ | yes | - |
-| - | - | ?Update@CTimeEventMgr@@QEAAXXZ | 0x1406e09b0 | implemented | IDA ?Update@CTimeEventMgr@@QEAAXXZ | yes | - |
-| - | - | ?AddTimeEvent@CTimeEventMgr@@QEAA_NAEAUST_GM_TIME_EVENT_INFO@@@Z | 0x1406e0a80 | implemented | IDA ?AddTimeEvent@CTimeEventMgr@@QEAA_NAEAUST_GM_TIME_EVENT_INFO@@@Z | yes | - |
+| - | - | ?Clear@CTimeEventMgr@@QEAAXXZ | 0x1406e0880 | blocked | IDA ?Clear@CTimeEventMgr@@QEAAXXZ | yes | - |
+| - | - | ?Update@CTimeEventMgr@@QEAAXXZ | 0x1406e09b0 | blocked | IDA ?Update@CTimeEventMgr@@QEAAXXZ | yes | - |
+| XGameServer | ManagerStubs.h | ?AddTimeEvent@CTimeEventMgr@@QEAA_NAEAUST_GM_TIME_EVENT_INFO@@@Z | 0x1406e0a80 | implemented | IDA decompile + active build | yes | Restored: find/insert/erase m_mapTimeEvent by dwNo with byteFlag delete semantics, returns true. |
 | XGameServer | ManagerStubs.h | ?CheckTimeEvent@CTimeEventMgr@@QEAAXAEAV?$vector@UST_GM_TIME_EVENT_INFO@@V?$allocator@UST_GM_TIME_EVENT_INFO@@@std@@@std@@@Z | 0x1406e0be0 | blocked | IDA decompile | no | Added IDA-backed active/expired time event scan over m_mapTimeEvent with write-lock protection, output vector clearing, active event push, expired key collection, and removal pass. |
-| - | - | ?AddValueEvent@CTimeEventMgr@@QEAAXAEAUPS_GM_VALUE_EVENT_LIST@@@Z | 0x1406e0e70 | implemented | IDA ?AddValueEvent@CTimeEventMgr@@QEAAXAEAUPS_GM_VALUE_EVENT_LIST@@@Z | yes | - |
-| - | - | ?CheckValueEvent@CTimeEventMgr@@QEAA_NW4ENUM_GM_VALUE_EVENT_TYPE@@AEAUST_GM_VALUE_EVENT_INFO@@@Z | 0x1406e1100 | implemented | IDA ?CheckValueEvent@CTimeEventMgr@@QEAA_NW4ENUM_GM_VALUE_EVENT_TYPE@@AEAUST_GM_VALUE_EVENT_INFO@@@Z | yes | - |
-| - | - | ?CheckDecreaseFatigue@CTimeEventMgr@@QEAAXAEAF@Z | 0x1406e1240 | implemented | IDA ?CheckDecreaseFatigue@CTimeEventMgr@@QEAAXAEAF@Z | yes | - |
-| - | - | ?ChangeEventValue@CTimeEventMgr@@QEAAXAEAUST_GM_VALUE_EVENT_INFO@@@Z | 0x1406e1300 | implemented | IDA ?ChangeEventValue@CTimeEventMgr@@QEAAXAEAUST_GM_VALUE_EVENT_INFO@@@Z | yes | - |
-| - | - | ??R_lambda1_@?A0x284df17e@@QEBAXXZ | 0x1406e13c0 | blocked | IDA ??R_lambda1_@?A0x284df17e@@QEBAXXZ | yes | - |
-| - | - | ?DeleteEventValue@CTimeEventMgr@@QEAAXH@Z | 0x1406e1460 | implemented | IDA ?DeleteEventValue@CTimeEventMgr@@QEAAXH@Z | yes | - |
-| - | - | ?SendValueEvent@CTimeEventMgr@@QEAAXPEAVCUser@@H@Z | 0x1406e1520 | implemented | IDA ?SendValueEvent@CTimeEventMgr@@QEAAXPEAVCUser@@H@Z | yes | - |
-| - | - | ?GetEventValue@CTimeEventMgr@@QEAAHH@Z | 0x1406e1630 | implemented | IDA ?GetEventValue@CTimeEventMgr@@QEAAHH@Z | yes | - |
-| - | - | ?SendEventInfo@CTimeEventMgr@@QEAAXPEAVCUser@@@Z | 0x1406e1670 | implemented | IDA ?SendEventInfo@CTimeEventMgr@@QEAAXPEAVCUser@@@Z | yes | - |
-| - | - | ?SetRouletteEvent@CTimeEventMgr@@QEAAXAEAUPS_GM_ROULETTE_EVENT@@@Z | 0x1406e17b0 | implemented | IDA ?SetRouletteEvent@CTimeEventMgr@@QEAAXAEAUPS_GM_ROULETTE_EVENT@@@Z | yes | - |
+| XGameServer | ManagerStubs.h | ?AddValueEvent@CTimeEventMgr@@QEAAXAEAUPS_GM_VALUE_EVENT_LIST@@@Z | 0x1406e0e70 | implemented | IDA decompile + active build | yes | Restored: zero m_nEventState, compare/overwrite m_ValueEvent per byEventType, then ChangeEventValue/DeleteEventValue by state. |
+| XGameServer | ManagerStubs.h | ?CheckValueEvent@CTimeEventMgr@@QEAA_NW4ENUM_GM_VALUE_EVENT_TYPE@@AEAUST_GM_VALUE_EVENT_INFO@@@Z | 0x1406e1100 | implemented | IDA decompile + active build | yes | Restored: validates type 1..3, checks m_ValueEvent registered and in [nStartDate,nEndDate), copies to output. |
+| - | - | ?CheckDecreaseFatigue@CTimeEventMgr@@QEAAXAEAF@Z | 0x1406e1240 | blocked | IDA ?CheckDecreaseFatigue@CTimeEventMgr@@QEAAXAEAF@Z | yes | - |
+| XGameServer | ManagerStubs.h | ?ChangeEventValue@CTimeEventMgr@@QEAAXAEAUST_GM_VALUE_EVENT_INFO@@@Z | 0x1406e1300 | implemented | IDA decompile + active build | yes | Restored: on byEventType==2 DoJobAllThread broadcasts (1,9) PS_SYNC_SYSTEM_EVENT via GreenDamTan_BroadcastSystemEvent; LogDebug. |
+| XGameServer | ManagerStubs.h | ??R_lambda1_@?A0x284df17e@@QEBAXXZ | 0x1406e13c0 | implemented | IDA decompile + active build | yes | Restored: SYSTEM_EVENT broadcast lambda body (1,9) packet + PS_SYNC_SYSTEM_EVENT + SendBroadcast, landed inline in DeleteEventValue/ChangeEventValue lambdas. |
+| XGameServer | ManagerStubs.h | ?DeleteEventValue@CTimeEventMgr@@QEAAXH@Z | 0x1406e1460 | implemented | IDA decompile + active build | yes | Restored: on nEventType==2 DoJobAllThread broadcasts (1,9) zeroed PS_SYNC_SYSTEM_EVENT, clears m_ValueEvent[type].byEventType, LogDebug. |
+| - | - | ?SendValueEvent@CTimeEventMgr@@QEAAXPEAVCUser@@H@Z | 0x1406e1520 | blocked | IDA ?SendValueEvent@CTimeEventMgr@@QEAAXPEAVCUser@@H@Z | yes | - |
+| XGameServer | ManagerStubs.h | ?GetEventValue@CTimeEventMgr@@QEAAHH@Z | 0x1406e1630 | implemented | IDA decompile + active build | yes | Restored: delegates to CheckValueEvent and returns dwEvent_Val; uses PDB m_ValueEvent[4] array (replaced stale m_mapValueEvent). |
+| - | - | ?SendEventInfo@CTimeEventMgr@@QEAAXPEAVCUser@@@Z | 0x1406e1670 | blocked | IDA ?SendEventInfo@CTimeEventMgr@@QEAAXPEAVCUser@@@Z | yes | - |
+| XGameServer | ManagerStubs.h | ?SetRouletteEvent@CTimeEventMgr@@QEAAXAEAUPS_GM_ROULETTE_EVENT@@@Z | 0x1406e17b0 | implemented | IDA decompile + active build | yes | Restored: write-locked m_psRouletteEventInfo = psInfo. |
 | - | - | ??4PS_GM_ROULETTE_EVENT@@QEAAAEAU0@AEBU0@@Z | 0x1406e1810 | blocked | IDA ??4PS_GM_ROULETTE_EVENT@@QEAAAEAU0@AEBU0@@Z | yes | - |
-| - | - | ?GetRouletteEventInfo@CTimeEventMgr@@QEAA_NAEAUPS_ROULETTE_EVENT@@@Z | 0x1406e1950 | implemented | IDA ?GetRouletteEventInfo@CTimeEventMgr@@QEAA_NAEAUPS_ROULETTE_EVENT@@@Z | yes | - |
-| - | - | ?GetRouletteEventReward@CTimeEventMgr@@QEAA_NAEAUPS_GM_ROULETTE_EVENT@@@Z | 0x1406e1b40 | implemented | IDA ?GetRouletteEventReward@CTimeEventMgr@@QEAA_NAEAUPS_GM_ROULETTE_EVENT@@@Z | yes | - |
+| XGameServer | ManagerStubs.h | ?GetRouletteEventInfo@CTimeEventMgr@@QEAA_NAEAUPS_ROULETTE_EVENT@@@Z | 0x1406e1950 | implemented | IDA decompile + active build | yes | Restored: returns false outside date window, else fills client PS_ROULETTE_EVENT (nDayLimit=nUseCount, reward items nRewardID/nItemID/nCount) and returns true. |
+| XGameServer | ManagerStubs.h | ?GetRouletteEventReward@CTimeEventMgr@@QEAA_NAEAUPS_GM_ROULETTE_EVENT@@@Z | 0x1406e1b40 | implemented | IDA decompile + active build | yes | Restored: returns false if no event or outside window, else copies m_psRouletteEventInfo to output and returns true. |
 | - | - | ?find@?$_Tree@V?$_Tmap_traits@KUST_NETCAFE_MISSION_INFO@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUST_NETCAFE_MISSION_INFO@@@std@@@3@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@KUST_NETCAFE_MISSION_INFO@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUST_NETCAFE_MISSION_INFO@@@std@@@3@$0A@@std@@@std@@@2@AEBK@Z | 0x1406e1bc0 | blocked | IDA ?find@?$_Tree@V?$_Tmap_traits@KUST_NETCAFE_MISSION_INFO@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUST_NETCAFE_MISSION_INFO@@@std@@@3@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@KUST_NETCAFE_MISSION_INFO@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUST_NETCAFE_MISSION_INFO@@@std@@@3@$0A@@std@@@std@@@2@AEBK@Z | yes | - |
 | - | - | ?_Reserve@?$vector@UST_GM_VALUE_EVENT_INFO@@V?$allocator@UST_GM_VALUE_EVENT_INFO@@@std@@@std@@IEAAX_K@Z | 0x1406e1c80 | blocked | IDA ?_Reserve@?$vector@UST_GM_VALUE_EVENT_INFO@@V?$allocator@UST_GM_VALUE_EVENT_INFO@@@std@@@std@@IEAAX_K@Z | yes | - |
 | - | - | ?lower_bound@?$_Tree@V?$_Tmap_traits@KUTB_CHECK_ACCESS_REWARD@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_CHECK_ACCESS_REWARD@@@std@@@3@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@KUTB_CHECK_ACCESS_REWARD@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_CHECK_ACCESS_REWARD@@@std@@@3@$0A@@std@@@std@@@2@AEBK@Z | 0x1406e1d10 | blocked | IDA ?lower_bound@?$_Tree@V?$_Tmap_traits@KUTB_CHECK_ACCESS_REWARD@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_CHECK_ACCESS_REWARD@@@std@@@3@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@KUTB_CHECK_ACCESS_REWARD@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_CHECK_ACCESS_REWARD@@@std@@@3@$0A@@std@@@std@@@2@AEBK@Z | yes | - |
@@ -34604,7 +34604,7 @@ yes | ?????????? |
 | - | - | ?BridgeSend@CUser@@UEAA_NAEAVXSendPacket@@@Z | 0x1406e8b50 | implemented | IDA ?BridgeSend@CUser@@UEAA_NAEAVXSendPacket@@@Z | yes | - |
 | - | - | ?BridgeSend_AfterLoading@CUser@@UEAA_NAEAVXSendPacket@@@Z | 0x1406e8d00 | implemented | IDA ?BridgeSend_AfterLoading@CUser@@UEAA_NAEAVXSendPacket@@@Z | yes | - |
 | - | - | ?SendAll@CUser@@QEAAXXZ | 0x1406e8ee0 | implemented | IDA ?SendAll@CUser@@QEAAXXZ | yes | - |
-| - | - | ?SendTimeEvent@CUser@@UEAAXAEAUST_GM_TIME_EVENT_INFO@@@Z | 0x1406e8f80 | blocked | IDA ?SendTimeEvent@CUser@@UEAAXAEAUST_GM_TIME_EVENT_INFO@@@Z | yes | - |
+| XGameServer | User.cpp | ?SendTimeEvent@CUser@@UEAAXAEAUST_GM_TIME_EVENT_INFO@@@Z | 0x1406e8f80 | implemented | IDA decompile + active build | yes | Restored: applies event booster via GetGOC_Booster + ChangeBooster when byteClass matches CUser::GetClass. |
 | - | - | ?SendServerOption@CUser@@UEAAXAEAUPS_CONTENTS_INFO@@@Z | 0x1406e9050 | implemented | IDA ?SendServerOption@CUser@@UEAAXAEAUPS_CONTENTS_INFO@@@Z | yes | - |
 | - | - | ?SendOperationTime@CUser@@UEAAXXZ | 0x1406e9120 | blocked | IDA ?SendOperationTime@CUser@@UEAAXXZ | yes | - |
 | XGameServer | User.cpp | ?SendWorldEventBooster@CUser@@UEAAXK_J@Z | 0x1406E9740 | verified | IDA decompile + PDB type record + active GameServer build + K_J symbol check | yes | Sends the event booster through the user's CGocBooster component; generated ABI is the PDB-required K_J form. |
@@ -43873,7 +43873,7 @@ yes | ?????????? |
 | - | - | ?SendBroadCast@XArea@@UEAAXAEAVXSendPacket@@PEAVXActor@@W4E_BROADCAST_TYPE@IXArea@@@Z | 0x1408ef660 | implemented | IDA ?SendBroadCast@XArea@@UEAAXAEAVXSendPacket@@PEAVXActor@@W4E_BROADCAST_TYPE@IXArea@@@Z | yes | - |
 | - | - | ?SendBroadCastAfterLoading@XArea@@UEAAXAEAVXSendPacket@@PEAVXActor@@W4E_BROADCAST_TYPE@IXArea@@@Z | 0x1408ef800 | implemented | IDA ?SendBroadCastAfterLoading@XArea@@UEAAXAEAVXSendPacket@@PEAVXActor@@W4E_BROADCAST_TYPE@IXArea@@@Z | yes | - |
 | - | - | ?SendInInfo@XArea@@UEAAXAEAVXSendPacket@@PEAVXActor@@@Z | 0x1408ef9a0 | implemented | IDA ?SendInInfo@XArea@@UEAAXAEAVXSendPacket@@PEAVXActor@@@Z | yes | - |
-| - | - | ?SendTimeEvent@XArea@@QEAAXAEAUST_GM_TIME_EVENT_INFO@@@Z | 0x1408efae0 | implemented | IDA ?SendTimeEvent@XArea@@QEAAXAEAUST_GM_TIME_EVENT_INFO@@@Z | yes | - |
+| XCore | XArea/XArea.cpp | ?SendTimeEvent@XArea@@QEAAXAEAUST_GM_TIME_EVENT_INFO@@@Z | 0x1408efae0 | implemented | IDA decompile + active build | yes | Restored: iterates m_mapActor and calls SendTimeEvent on live eActorUser actors. |
 | - | - | ?SendServerOption@XArea@@QEAAXAEAUPS_CONTENTS_INFO@@@Z | 0x1408efc10 | implemented | IDA ?SendServerOption@XArea@@QEAAXAEAUPS_CONTENTS_INFO@@@Z | yes | - |
 | - | - | ?SendCashShopBanner@XArea@@QEAAXXZ | 0x1408efd20 | implemented | IDA ?SendCashShopBanner@XArea@@QEAAXXZ | yes | - |
 | - | - | ?SendCashShopItem@XArea@@QEAAXAEAUSTCashItemList@@@Z | 0x1408efe20 | implemented | IDA ?SendCashShopItem@XArea@@QEAAXAEAUSTCashItemList@@@Z | yes | - |
@@ -57056,14 +57056,9 @@ yes | ?????????? |
 | XGameServer | GameSockets.cpp | ?RecvPartyJoinMember@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x1401FD480 | blocked | IDA decompile | no | stub(awaiting CLogicThreadManager/lambda dependencies) |
 | XGameServer | GameSockets.cpp | ?RecvPartyLeaveMember@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x140200820 | blocked | IDA decompile | no | stub(awaiting CLogicThreadManager/lambda dependencies) |
 | XGameServer | GameSockets.cpp | ?RecvPartyDelete@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x140201370 | blocked | IDA decompile | no | stub(awaiting CLogicThreadManager/lambda dependencies) |
-| XGameServer | GameSockets.cpp | ?RecvLeagueInvite@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x1401FA5E0 | blocked | IDA decompile | no | stub(awaiting CLogicThreadManager/lambda dependencies) |
-| XGameServer | GameSockets.cpp | ?RecvLeagueInviteAccept@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x14020BD70 | blocked | IDA decompile | no | stub(awaiting CLogicThreadManager/lambda dependencies) |
 | XGameServer | GameSockets.cpp | ?RecvCreateLeague@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x1401FC4C0 | blocked | IDA decompile | no | stub(awaiting CLogicThreadManager/lambda dependencies) |
-| XGameServer | GameSockets.cpp | ?RecvLeagueDelete@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x1401FAFB0 | blocked | IDA decompile | no | stub(awaiting CLogicThreadManager/lambda dependencies) |
 | XGameServer | GameSockets.cpp | ?RecvExchangePost@CCommunitySocket@@UEAA_NAEAVXPacket@@@Z | 0x14020AFE0 | blocked | IDA decompile | no | stub(awaiting CLogicThreadManager/lambda dependencies) |
 | XGameServer | GameSockets.cpp | ?RecvExchangePriceHistory@CCommunitySocket@@UEAA_NAEAVXPacket@@@Z | 0x14020AAD0 | blocked | IDA decompile | no | stub(awaiting CLogicThreadManager/lambda dependencies) |
-| XGameServer | GameSockets.cpp | ?RecvForceInvite@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x1402147D0 | blocked | IDA decompile | no | stub(awaiting CLogicThreadManager/lambda dependencies) |
-| XGameServer | GameSockets.cpp | ?RecvForceAccept@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x1402157D0 | blocked | IDA decompile | no | stub(awaiting CLogicThreadManager/lambda dependencies) |
 | XGameServer | MoverEx.cpp | ?GetAkashicTriggerTime@CMoverEx@@UEAAMXZ | 0x140189260 | implemented | IDA decompile | yes | IDA confirmed fixed return 0.0; duplicate rows merged into this MoverEx.cpp entry |
 | XGameServer | MoverEx.cpp | ?GetMaxHP@CMoverEx@@UEAAHXZ | 0x140189410 | implemented | IDA decompile | yes | 精确还原-返回(int)m_fAbility[10] | |
 | XGameServer | MoverEx.cpp | ?SetBattlePose@CMoverEx@@QEAAX_N@Z | 0x140199E50 | implemented | IDA decompile | yes | Set battle pose |
@@ -57971,7 +57966,6 @@ yes | ?????????? |
 | XGameServer | GocAttendance.cpp | CGocAttendance::Cheat_AttendancePlayTimeUpdate | 0x140036740 | implemented | IDA decompile | yes | GM: Update play time |
 | XGameServer | ChatProcess.cpp | ?ReqChatWhisper@CChatProcess@@IEAA_NAEAVXPacket@@@Z | 0x1403E2C30 | implemented | IDA decompile | yes | Whisper message request handler |
 | XGameServer | ChatProcess.cpp | ?SendChatWhisper@CChatProcess@@QEAAXPEAVCUser@@AEAUPS_CHAT_WHISPER@@UPS_CHAT_ITEM_LINK_FOR_SERVER@@@Z | 0x1403E7A70 | implemented | IDA decompile | yes | Send whisper message to target user |
-| XGameServer | GameSockets.cpp | ?RecvUserWhisperRes@CGameControlSocket@@UEAA_NAEAVXPacket@@@Z | 0x1401D1DA0 | implemented | IDA decompile | yes | Receive whisper response from control socket |
 | XGameServer | GameSockets.cpp | ?RecvUserWhisperRes@CCommunitySocket@@UEAA_NAEAVXPacket@@@Z | 0x140202130 | implemented | IDA decompile | yes | Receive whisper response from community socket |
 | XGameServer | ChatProcess.cpp | ?GetChatLinkItem@CChatProcess@@IEAA_NPEAVCUser@@AEAUPS_CHAT_ITEM_LINK_FOR_SERVER@@@Z | 0x1403E5C50 | implemented | IDA decompile | yes | Get item link information from user inventory |
 | XGameServer | ChatProcess.cpp | ?ProcessNormal@CChatProcess@@KA_NPEAVCUser@@PEA_WUPS_CHAT_ITEM_LINK_FOR_SERVER@@@Z | 0x1403E5F40 | implemented | IDA decompile | yes | Process normal chat message broadcast |

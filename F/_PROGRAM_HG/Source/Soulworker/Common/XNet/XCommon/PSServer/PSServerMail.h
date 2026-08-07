@@ -28,25 +28,27 @@ struct ST_POST_CHAR {
 };
 
 // 对齐 IDA 0x1400E25D0: 邮件数据（含附件物品）
+// PDB UDT 0x15047, Size = 1688
 struct ST_POST_DATA {
-    std::int64_t biSerial = 0;             // 邮件序列号
-    ST_POST_CHAR stCharInfo{};             // 发送者信息
-    wchar_t strTitle[41] = {};             // 邮件标题
-    wchar_t strMsg[401] = {};              // 邮件内容
-    std::int64_t biMoney = 0;              // 附加金钱
-    STItem stItemList[5] = {};             // 附加物品列表
-    std::int64_t nRegTime = 0;             // 注册时间
-    std::uint8_t byFlag = 0;               // 标记
-    std::uint8_t byPostType = 0;           // 邮件类型
-    std::uint8_t byPostSubType = 0;        // 邮件子类型
+    std::int64_t biSerial = 0;             // offset 0, 邮件序列号
+    ST_POST_CHAR stCharInfo{};             // offset 8, 发送者信息
+    wchar_t strTitle[41] = {};             // offset 64, 邮件标题
+    wchar_t strMsg[401] = {};              // offset 146, 邮件内容
+    std::int64_t biMoney = 0;              // offset 952, 附加金钱
+    STItem stItemList[5] = {};             // offset 960, 附加物品列表
+    std::int64_t nRegTime = 0;             // offset 1560, 注册时间
+    std::uint8_t byFlag = 0;               // offset 1568, 标记
+    std::uint8_t byPostType = 0;           // offset 1569, 邮件类型
+    std::uint8_t byPostSubType = 0;        // offset 1570, 邮件子类型
     std::uint8_t _pad1[5] = {};
-    std::int64_t nRemainTime = 0;          // 剩余时间
+    std::int64_t nRemainTime = 0;          // offset 1576, 剩余时间
+    PS_ITEM_SOCKET_LIST vecSocketList{};   // offset 1584, 镶嵌列表
+    PS_ITEM_BROACH_LIST vecBroachList{};   // offset 1616, 镂刻列表
+    PS_ITEM_PACKAGE_LIST vecPackageList{}; // offset 1648, 套装列表
+    // offset 1680: union { dwID1 / dwID2 / biEventID }
     std::int64_t biEventID = 0;            // 活动ID
-    std::int64_t biDelDate = 0;            // 删除日期
-    PS_ITEM_SOCKET_LIST vecSocketList{};   // 镶嵌列表
-    PS_ITEM_BROACH_LIST vecBroachList{};   // 镂刻列表
-    PS_ITEM_PACKAGE_LIST vecPackageList{}; // 套装列表
 };
+static_assert(sizeof(ST_POST_DATA) == 1688, "ST_POST_DATA size must match PDB (UDT 0x15047, 1688)");
 
 // 对齐 IDA 0x1400E2780: 账号邮件数据（用于账号级邮件列表）
 // Size: 1672 bytes (0x688)
@@ -702,10 +704,10 @@ inline void operator>>(XPacket& packet, ST_POST_DATA& value) {
     packet.XParse >> value.byPostType;
     packet.XParse >> value.byPostSubType;
     packet.XParse >> value.nRemainTime;
-    packet.XParse >> value.biEventID;
     packet >> value.vecSocketList;
     packet >> value.vecBroachList;
     packet >> value.vecPackageList;
+    packet.XParse >> value.biEventID;
 }
 
 inline XPacket& operator<<(XPacket& packet, const ST_POST_DATA& value) {
@@ -722,10 +724,10 @@ inline XPacket& operator<<(XPacket& packet, const ST_POST_DATA& value) {
     packet.XParse << value.byPostType;
     packet.XParse << value.byPostSubType;
     packet.XParse << value.nRemainTime;
-    packet.XParse << value.biEventID;
     packet << value.vecSocketList;
     packet << value.vecBroachList;
     packet << value.vecPackageList;
+    packet.XParse << value.biEventID;
     return packet;
 }
 

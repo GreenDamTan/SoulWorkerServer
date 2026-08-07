@@ -2,6 +2,7 @@
 #include "Soulworker/GameServer/XCore/XArea/XActor.h"
 #include "Soulworker/GameServer/XCore/XServer/GreenDamTan_LogHelper.h"
 #include "Soulworker/Common/XNet/XIOCPBase/Packet.h"
+#include "Soulworker/Common/XNet/XCommon/PSServer/PSServerGM.h"
 #include "Soulworker/GameServer/XGameServer/Mover.h"
 
 // IDA 0x1408F0CA0 - XArea constructor
@@ -252,6 +253,17 @@ void XArea::SendWorldEventBooster(unsigned long dwBuffID, std::int64_t biEndDate
         XActor* pActor = pair.second;
         if (pActor && pActor->GetActorType() == eActorUser) {
             pActor->SendWorldEventBooster(dwBuffID, biEndDate);
+        }
+    }
+}
+
+// IDA 0x1408EFAE0 - SendTimeEvent
+// 遍历 m_mapActor，对存活的 eActorUser 玩家调用 SendTimeEvent
+void XArea::SendTimeEvent(ST_GM_TIME_EVENT_INFO& stInfo) {
+    for (auto& pair : m_mapActor) {
+        XActor* pActor = pair.second;
+        if (pActor && pActor->IsLive() && pActor->GetActorType() == eActorUser) {
+            pActor->SendTimeEvent(stInfo);
         }
     }
 }

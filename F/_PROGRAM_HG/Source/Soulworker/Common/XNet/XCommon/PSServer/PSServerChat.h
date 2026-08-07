@@ -95,6 +95,24 @@ struct PS_CHAT_NORMAL {
 };
 
 /**
+ * @brief 聊天通知 (PDB UDT 0x6a026, 8 bytes).
+ *
+ * 用于 CUser::SendChatNotify (0x1406FA5C0) 发送 main 7/sub 5 包。
+ */
+struct PS_CHAT_NOTIFY {
+    int nType = 0;    // offset 0x00
+    int nValue = 0;   // offset 0x04
+};
+
+static_assert(sizeof(PS_CHAT_NOTIFY) == 8, "PS_CHAT_NOTIFY size must match PDB");
+
+inline XPacket& operator<<(XPacket& packet, const PS_CHAT_NOTIFY& value) {
+    packet.XParse << value.nType;
+    packet.XParse << value.nValue;
+    return packet;
+}
+
+/**
  * @brief Trade chat request.
  */
 struct PS_REQ_CHAT_TRADE {

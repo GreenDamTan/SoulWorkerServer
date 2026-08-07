@@ -864,6 +864,18 @@ public:
     // Checks if renovate point item can be used (not busy, inven 13)
     bool CanUseItemIncRenovatePoint(std::shared_ptr<CItem> pItem);
 
+    // CanUseItemQuestAccept - 0x1400DDFE0
+    // Checks if quest accept item can be used (episode valid, not owned, repeat accept ok)
+    bool CanUseItemQuestAccept(std::shared_ptr<CItem> pItem);
+
+    // CanUseItemResealPackage - 0x1400E6610
+    // Checks if reseal package item can be used (count 1, inven 13, package parts match TB)
+    bool CanUseItemResealPackage(std::shared_ptr<CItem> pItem);
+
+    // CanUseCasualItem - 0x1400C3FD0
+    // Checks if casual maze item can be used (level, count, maze enter limits, casual list)
+    bool CanUseCasualItem(std::shared_ptr<CItem> pItem);
+
     // === Broach update functions (IDA verified) ===
 
     // SendBroachUpdate - 0x1400C0910

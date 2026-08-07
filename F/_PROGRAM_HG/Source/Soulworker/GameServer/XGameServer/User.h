@@ -451,6 +451,10 @@ public:
     // Used by CGocNetwork::SendErrorMessage
     void SendErrorMessage(std::uint8_t ucMainCmd, std::uint8_t ucSubCmd, std::uint16_t xErrorCode);
 
+    // SendChatNotify - 0x1406FA5C0
+    // Sends chat notification packet (main 7, sub 5)
+    void SendChatNotify(int nType, int nValue);
+
     // SendBannerInfo - Send banner info to client
     // IDA 0x1406FEFB0
     void SendBannerInfo();

@@ -16421,3 +16421,23 @@ Validate the current GameServer.exe reconstruction worktree before the user-auth
 - Ledger state: func-index upgraded the 0x1400e7ba0 decorated row to verified. path-recovery-index and type-index unchanged.
 - Verification: build passed ([16/16] Linking GameServer.exe). Bounded smoke passed (Complete Server Init + Auto shutdown, exit 0). git diff --check clean.
 - Review status: independent verification pending. Next: ResealPackage (needs PS_ITEM_PACKAGE + TB_REPACKAGECOSTUME array), QuestAccept (needs CUser::SendChatNotify), Casual (needs GetCasualMazeID).
+
+---
+[2026-08-07 12:19:59 +08:00] [deepseek-v4-flash]
+### CGocInventory CanUseItem sub-function batch 10 (CanUseItemQuestAccept + CUser::SendChatNotify)
+- Target: GameServer.exe; IDA MCP port 10004; model deepseek-v4-flash; local offset +08:00.
+- Evidence discovery: decompiled CanUseItemQuestAccept (0x1400DDFE0). Its Contents_Type==2 branch calls CUser::SendChatNotify (0x1406FA5C0); decompiled that too and PDB-resolved PS_CHAT_NOTIFY (UDT 0x6a026, 8 bytes: nType int@0, nValue int@4).
+- Implementation: PSServerChat.h added PS_CHAT_NOTIFY + XPacket serializer. User.h/.cpp added CUser::SendChatNotify (main 7/sub 5). GocInventory.h added shared_ptr<CItem> declaration; GocInventory.cpp restored CanUseItemQuestAccept (effect 22 + count + area/world gates, GetTB_QUEST_EPISODE Contents_Type gate, FindEpisode 0xD2F1, repeat gate via SendChatNotify(2, value) / accept gate via CheckAcceptQuestByItem).
+- Ledger state: func-index upgraded the two decorated rows (0x1400ddfe0, 0x1406fa5c0) to verified; type-index added PS_CHAT_NOTIFY. path-recovery-index unchanged.
+- Verification: build passed ([70/70] Linking GameServer.exe). Bounded smoke passed (Complete Server Init + Auto shutdown, exit 0). git diff --check clean.
+- Review status: independent verification pending. Next: ResealPackage (needs PS_ITEM_PACKAGE parts semantics + TB_REPACKAGECOSTUME array) and Casual (needs GetCasualMazeID) remain.
+
+---
+[2026-08-07 12:26:07 +08:00] [deepseek-v4-flash]
+### CGocInventory CanUseItem cluster completion batch 11 (QuestAccept, ResealPackage, Casual + support)
+- Target: GameServer.exe; IDA MCP port 10004; model deepseek-v4-flash; local offset +08:00.
+- Evidence discovery: decompiled CanUseItemQuestAccept (0x1400DDFE0, needs CUser::SendChatNotify 0x1406FA5C0 + PS_CHAT_NOTIFY PDB UDT 0x6a026), CanUseItemResealPackage (0x1400E6610, needs TB_REPACKAGECOSTUME uniItem[13] matching), CanUseCasualItem (0x1400C3FD0, needs XResourceMgr::GetCasualMazeID 0x1408E7790).
+- Implementation: PSServerChat.h added PS_CHAT_NOTIFY + serializer; User.h/.cpp added CUser::SendChatNotify (7/5); DBLoadTable.h added XResourceMgr::GetCasualMazeID inline (copies m_vecCasualMazeID); GocInventory.h added three shared_ptr<CItem> declarations; GocInventory.cpp restored the three bodies. With this, every CanUseItem (0x1400AB0E0) switch sub-function now exists.
+- Ledger state: func-index upgraded 0x1400ddfe0, 0x1406fa5c0, 0x1400e6610, 0x1400c3fd0, 0x1408e7790 to verified; type-index added PS_CHAT_NOTIFY. path-recovery-index unchanged.
+- Verification: build passed ([21/21] Linking GameServer.exe). Bounded smoke passed (Complete Server Init + Auto shutdown, exit 0). git diff --check clean.
+- Review status: independent verification pending. Next: the CanUseItem main dispatcher (0x1400AB0E0) can now be restored since all sub-functions exist.

@@ -18,6 +18,7 @@
 #include "Soulworker/GameServer/XGameServer/actor/component/GocQuest.h"
 #include "Soulworker/GameServer/XGameServer/actor/component/GocDailyMission.h"
 #include "Soulworker/GameServer/XGameServer/actor/component/GocAkashicRecord.h"
+#include "Soulworker/GameServer/XGameServer/actor/component/GocEntity.h"
 #include "Soulworker/GameServer/XGameServer/User.h"
 #include "Soulworker/Common/XNet/XCommon/PSServer/PSServerDB.h"
 #include "Soulworker/Common/XNet/XCommon/PSServer/PSServerCashShop.h"
@@ -8876,6 +8877,251 @@ bool CGocInventory::CanUseItemIncRenovatePoint(std::shared_ptr<CItem> pItem) {
         LogHelper::LogError("game.item", "CanUseItemIncRenovatePoint - Fault Inven type[UCID:%d, ID:%d]",
                             dwUCID, pItem->GetID());
         return false;
+    }
+
+    return true;
+}
+
+// IDA: 0x1400DDFE0
+// __int64 __fastcall CGocInventory::CanUseItemQuestAccept(CGocInventory *this, std::tr1::shared_ptr<CItem> pItem)
+// Checks if quest accept item can be used (episode valid, not owned, repeat accept ok)
+bool CGocInventory::CanUseItemQuestAccept(std::shared_ptr<CItem> pItem) {
+    CUser* pUser = dynamic_cast<CUser*>(GetOwnerGO());
+    if (!pUser)
+        return false;
+
+    std::shared_ptr<CGocQuest> pQuestPtr = pUser->GetGOC_Quest(false);
+    if (!pQuestPtr)
+        return false;
+
+    std::uint32_t dwUCID = pUser->GetUCID();
+
+    if (!pItem) {
+        LogHelper::LogError("game.item", "CanUseItemQuestAccept error - Item is NULL[UCID:%d]", dwUCID);
+        return false;
+    }
+
+    if (pItem->GetItemTable()->Item_Effect_Type != 22) {
+        CGocNetwork::SendErrorMessage(GetOwnerGO(), 8, 0x11, 0xCB2B);
+        LogHelper::LogError("game.item", "CanUseItemQuestAccept error - Check ITEM_EFFECT_TYPE[UCID:%d, ItemID:%d]",
+                            dwUCID, pItem->GetID());
+        return false;
+    }
+
+    if (pItem->GetCount() < 1) {
+        CGocNetwork::SendErrorMessage(GetOwnerGO(), 8, 0x11, 0xCB2B);
+        LogHelper::LogError("game.item", "CanUseItemQuestAccept error - Shortage Count[UCID:%d, ItemID:%d]",
+                            dwUCID, pItem->GetID());
+        return false;
+    }
+
+    XArea* pArea = pUser->GetArea();
+    if (!pArea) {
+        LogHelper::LogError("game.item", "CanUseItemQuestAccept error - Area is NULL[UCID:%d]", dwUCID);
+        CGocNetwork::SendErrorMessage(GetOwnerGO(), 8, 0x11, 0xCD8A);
+        return false;
+    }
+
+    if (pArea->GetWorldType()) {
+        LogHelper::LogError("game.item", "CanUseItemQuestAccept error - GetWorldType Error[UCID:%d]", dwUCID);
+        CGocNetwork::SendErrorMessage(GetOwnerGO(), 8, 0x11, 0xCD8A);
+        return false;
+    }
+
+    XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+    TB_QUEST_EPISODE* pTB_QUEST_EPISODE = pServer->GetResourceMgr().GetTB_QUEST_EPISODE(pItem->GetItemTable()->Item_Effect_ID);
+    if (!pTB_QUEST_EPISODE) {
+        LogHelper::LogError("game.item",
+                            "CanUseItemQuestAccept error - Quest is NULL[UCID:%d, ItemID:%d, QuestID:%d]",
+                            dwUCID, pItem->GetID(), pItem->GetItemTable()->Item_Effect_ID);
+        CGocNetwork::SendErrorMessage(GetOwnerGO(), 8, 0x11, 0xCD7E);
+        return false;
+    }
+
+    if (!pTB_QUEST_EPISODE->Contents_Type) {
+        LogHelper::LogError("game.item",
+                            "CanUseItemQuestAccept error - Quest is Wrong[UCID:%d, ItemID:%d, QuestID:%d]",
+                            dwUCID, pItem->GetID(), pTB_QUEST_EPISODE->ID);
+        CGocNetwork::SendErrorMessage(GetOwnerGO(), 8, 0x11, 0xCD7E);
+        return false;
+    }
+
+    if (pQuestPtr->FindEpisode(pTB_QUEST_EPISODE->ID)) {
+        CGocNetwork::SendErrorMessage(GetOwnerGO(), 0x15, 3, 0xD2F1);
+        return false;
+    }
+
+    if (pTB_QUEST_EPISODE->Contents_Type == 2) {
+        int nValue = 54023;
+        if (!pQuestPtr->CheckAcceptRepeatQuest(pTB_QUEST_EPISODE->ID, 1, &nValue)) {
+            pUser->SendChatNotify(2, nValue);
+            return false;
+        }
+    } else {
+        int nError = 0;
+        if (!pQuestPtr->CheckAcceptQuestByItem(pTB_QUEST_EPISODE->ID, &nError)) {
+            CGocNetwork::SendErrorMessage(GetOwnerGO(), 0x15, 3, nError);
+            return false;
+        }
+    }
+
+    return true;
+}
+
+// IDA: 0x1400E6610
+// __int64 __fastcall CGocInventory::CanUseItemResealPackage(CGocInventory *this, std::tr1::shared_ptr<CItem> pItem)
+// Checks if reseal package item can be used (count 1, inven 13, package parts match TB)
+bool CGocInventory::CanUseItemResealPackage(std::shared_ptr<CItem> pItem) {
+    std::uint32_t dwUCID = GetOwnerGO()->GetActorID().GetID();
+
+    if (!pItem)
+        return false;
+
+    if (pItem->GetCount() != 1) {
+        LogHelper::LogError("game.item", "CanUseItemResealPackage error - Count[UCID:%d, ItemID:%d]",
+                            dwUCID, pItem->GetID());
+        return false;
+    }
+
+    if (pItem->GetInvenType() != 13) {
+        CGocNetwork::SendErrorMessage(GetOwnerGO(), 8, 0x11, 0xCB21);
+        LogHelper::LogError("game.item",
+                            "CanUseItemResealPackage error - Fault Inventory[UCID:%d, ItemID:%d, InvenType:%d]",
+                            dwUCID, pItem->GetID(), pItem->GetInvenType());
+        return false;
+    }
+
+    PS_ITEM_PACKAGE psInfo;
+    pItem->GetPackageInfo(psInfo);
+
+    std::uint32_t dwIndex = static_cast<std::uint32_t>(pItem->GetID());
+    TB_REPACKAGECOSTUME* pTB_ResealPackage =
+        XGameServer::Instance()->GetResourceMgr().GetTB_REPACKAGECOSTUME(dwIndex);
+    if (!pTB_ResealPackage) {
+        CGocNetwork::SendErrorMessage(GetOwnerGO(), 8, 0x11, 0xCB2B);
+        LogHelper::LogError("game.item",
+                            "CanUseItemResealPackage error - No Table TB_REPACKAGECOSTUME[UCID:%d, ItemID:%d]",
+                            dwUCID, pItem->GetID());
+        return false;
+    }
+
+    int nCheckCount = 0;
+    int nPartsSize = static_cast<int>(psInfo.vecInfo.size());
+    if (nPartsSize) {
+        for (int i = 0; i < nPartsSize; ++i) {
+            for (int k = 0; k < 13 && pTB_ResealPackage->uniItem[k]; ++k) {
+                if (pTB_ResealPackage->uniItem[k] ==
+                    static_cast<std::uint32_t>(psInfo.vecInfo[i].nItemID))
+                    ++nCheckCount;
+            }
+        }
+
+        if (nCheckCount == nPartsSize)
+            return true;
+
+        CGocNetwork::SendErrorMessage(GetOwnerGO(), 8, 0x11, 0xCB2B);
+        LogHelper::LogError(
+            "game.item",
+            "CanUseItemResealPackage error - mismatch package parts count[UCID:%d, ItemID:%d, TBcount:%d, count:%d]",
+            dwUCID, pItem->GetID(), nCheckCount, nPartsSize);
+        return false;
+    }
+
+    CGocNetwork::SendErrorMessage(GetOwnerGO(), 8, 0x11, 0xCB2B);
+    LogHelper::LogError("game.item",
+                        "CanUseItemResealPackage error - empty package parts info[UCID:%d, ItemID:%d]",
+                        dwUCID, pItem->GetID());
+    return false;
+}
+
+// IDA: 0x1400C3FD0
+// __int64 __fastcall CGocInventory::CanUseCasualItem(CGocInventory *this, std::tr1::shared_ptr<CItem> pItem)
+// Checks if casual maze item can be used (level, count, maze enter limits, casual list)
+bool CGocInventory::CanUseCasualItem(std::shared_ptr<CItem> pItem) {
+    if (!pItem) {
+        LogHelper::LogError("game.item", "CanUseCasualItem error - Invalid Item ( %d )", 7560);
+        return false;
+    }
+
+    CUser* pUser = dynamic_cast<CUser*>(GetOwnerGO());
+    if (!pUser) {
+        LogHelper::LogError("game.item", "CanUseCasualItem error - Invalid User[ ItemID:%d ] ( %d )",
+                            pItem->GetID(), 7567);
+        return false;
+    }
+
+    TB_ITEM* pTBItem = pItem->GetItemTable();
+    if (pTBItem->Item_Limit_Lv > pUser->GetLevel()) {
+        LogHelper::LogError("game.item", "CanUseCasualItem error - Not enough level [ UCID:%d, ItemID:%d ] ( %d )",
+                            pUser->GetUCID(), pItem->GetID(), 7573);
+        return false;
+    }
+
+    if (pItem->GetCount() < 1) {
+        LogHelper::LogError("game.item", "CanUseCasualItem error - Fault count [ UCID:%d, ItemID:%d, Count:%d ] ( %d )",
+                            pUser->GetUCID(), pItem->GetID(), pItem->GetCount(), 7579);
+        return false;
+    }
+
+    std::shared_ptr<CGocRecode> pRecode = GetOwnerGO()->GetGOC_Recode(false);
+    if (!pRecode) {
+        LogHelper::LogError("game.item", "CanUseCasualItem error - Invalid pRecode [ UCID:%d, ItemID:%d ] ( %d )",
+                            pUser->GetUCID(), pItem->GetID(), 7586);
+        return false;
+    }
+
+    std::shared_ptr<CGocEntity> pEntity = GetOwnerGO()->GetGOC_Entity(false);
+    if (!pEntity) {
+        LogHelper::LogError("game.item", "CanUseCasualItem error - Invalid pEntity [ UCID:%d, ItemID:%d ] ( %d )",
+                            pUser->GetUCID(), pItem->GetID(), 7593);
+        return false;
+    }
+
+    XGameServer* pServer = TXSingleton<XGameServer>::Instance();
+
+    if (pItem->GetClassifyTable()->Item_Use_Type == 85) {
+        int nMazeID = pTBItem->Item_Effect_ID;
+        TB_MAZE_INFO* pTB_MAZE_INFO = pServer->GetResourceMgr().GetTB_MAZE_INFO(nMazeID);
+        if (!pTB_MAZE_INFO) {
+            LogHelper::LogError("game.item",
+                                "CanUseCasualItem error - Invalid MazeID [ UCID:%d, ItemID:%d, MazeID:%d ] ( %d )",
+                                pUser->GetUCID(), pItem->GetID(), nMazeID, 7604);
+            return false;
+        }
+
+        if (pEntity->GetNetCafe()) {
+            if (pTB_MAZE_INFO->Maze_Enter_Count_PC_Room > pRecode->GetEnterMazeLimitPCBangCount(nMazeID)) {
+                LogHelper::LogError("game.item",
+                                    "CanUseCasualItem error - Left PC Count [ UCID:%d, ItemID:%d ] ( %d )",
+                                    pUser->GetUCID(), pItem->GetID(), 7612);
+                return false;
+            }
+        }
+
+        if (pTB_MAZE_INFO->Maze_Enter_Count > pRecode->GetEnterMazeLimitCount(nMazeID)) {
+            LogHelper::LogError("game.item", "CanUseCasualItem error - Left Count [ UCID:%d, ItemID:%d ] ( %d )",
+                                pUser->GetUCID(), pItem->GetID(), 7619);
+            return false;
+        }
+    } else if (pItem->GetClassifyTable()->Item_Use_Type == 97) {
+        std::vector<std::uint16_t> vecMazeID;
+        pServer->GetResourceMgr().GetCasualMazeID(vecMazeID);
+
+        bool bCheck = false;
+        for (std::uint16_t wMazeID : vecMazeID) {
+            if (pServer->GetResourceMgr().GetTB_MAZE_INFO(wMazeID)) {
+                if (pRecode->GetEnterMazeLimitCount(wMazeID)) {
+                    bCheck = true;
+                    break;
+                }
+            }
+        }
+
+        if (!bCheck) {
+            LogHelper::LogError("game.item", "CanUseCasualItem error - Count Is 0 [ UCID:%d, ItemID:%d ] ( %d )",
+                                pUser->GetUCID(), pItem->GetID(), 7646);
+            return false;
+        }
     }
 
     return true;

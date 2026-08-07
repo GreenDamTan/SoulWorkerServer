@@ -775,6 +775,11 @@ public:
         m_mapQuestCompleteBit.clear();
     }
 
+    /// 对齐 IDA 0x1408E7790 XResourceMgr::GetCasualMazeID: 拷贝休闲迷宫 ID 列表
+    void GetCasualMazeID(std::vector<std::uint16_t>& vecMazeID) {
+        vecMazeID = m_vecCasualMazeID;
+    }
+
     void LoadVersion() {
         m_nMainVersion = 0;
         m_nSubVersion = 0;

@@ -288,6 +288,18 @@ void CUser::SendErrorMessage(std::uint8_t ucMainCmd, std::uint8_t ucSubCmd, std:
     BridgeSend(xSendPacket);
 }
 
+// SendChatNotify - IDA 0x1406FA5C0
+// 精确还原: 发送聊天通知 (main 7, sub 5)
+void CUser::SendChatNotify(int nType, int nValue) {
+    PS_CHAT_NOTIFY stNotify;
+    stNotify.nType = nType;
+    stNotify.nValue = nValue;
+
+    XSendPacket xSendPacket(7, 5);
+    xSendPacket << stNotify;
+    CGocNetwork::Send(this, xSendPacket);
+}
+
 // Kickout IDA 0x1406EAA70
 // 精确还原: 踢出用户
 // 参数: psKick=踢出信息, bDirect=是否直接踢出

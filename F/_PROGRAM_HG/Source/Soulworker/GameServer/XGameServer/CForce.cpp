@@ -4,7 +4,11 @@
 
 #include "CForce.h"
 #include "Soulworker/Common/XNet/XCommon/PSServer/PSServerCore.h"
+#include "Soulworker/Common/XNet/XCommon/PSServer/PSServerMapMaze.h"
+#include "Soulworker/GameServer/XGameServer/actor/component/GocQuest.h"
+#include "Soulworker/GameServer/XCore/XServer/GreenDamTan_LogHelper.h"
 #include "User.h"
+#include "GameServer.h"
 #include "ThreadLocalData.h"
 
 // Forward declarations
@@ -231,4 +235,220 @@ CForceMember* CForce::GetMember(std::uint32_t dwActorID) {
         return iter->second;
     }
     return nullptr;
+}
+
+// ============================================================================
+// SendEnterMaze - IDA: ?SendEnterMaze@CForce@@QEAAXPEAVCUser@@AEAUPS_ENTER_MAP_RES@@@Z @ 0x1401B8F00
+// 单人进迷宫：任务条件同步 -> 传送门定位 -> (3,0x42) DB Game 包 +
+// (0xF0,0x12) 统计包 + ST_LOG_GAME(5,4) 日志；定位失败时清状态并发错误码。
+// ============================================================================
+void CForce::SendEnterMaze(CUser* pUser, PS_ENTER_MAP_RES* stEnterMapRes) {
+    if (!pUser) {
+        LogHelper::LogError("game.contents", "SendEnterMaze error - Invalid User( %d )", 1017);
+        return;
+    }
+
+    // IDA: GetGOC<CGocQuest> 存在则 DBSyncQuestCondition
+    {
+        CGocQuest* pQuest = pUser->GetGOC<CGocQuest>();
+        if (pQuest) {
+            pQuest->DBSyncQuestCondition();
+        }
+    }
+
+    // IDA: byChangeType 置 0，父实例 ID 非零时置 5
+    stEnterMapRes->byChangeType = 0;
+    if (stEnterMapRes->uxParentInstanceID.nMapID > 0) {
+        stEnterMapRes->byChangeType = 5;
+    }
+
+    // IDA: nMapID = (int)(uxMapID.nMapID << 16 >> 48) 后查传送门
+    const int nMapID = static_cast<int>(
+        (stEnterMapRes->uxMapID.nMapID << 16) >> 48);
+    if (!XGameServer::Instance()->GetWorldResMgr().GetPortalPos(
+            nMapID, stEnterMapRes->nJumpID, &stEnterMapRes->stPosInfo)) {
+        // IDA: 定位失败 - 清切换状态 + (0x11,0x41,0xD6DA) 错误 + LogError 1034
+        pUser->ClearState(eStateChangeWorld);
+        pUser->SendErrorMessage(0x11, 0x41, 0xD6DA);
+        LogHelper::LogError("game.contents",
+            "SendEnterMaze error - No World Data[ ActorID:%d, MapID:%d, JumpID:%d ] (%d )",
+            stEnterMapRes->dwUserID,
+            static_cast<int>((static_cast<std::uint64_t>(stEnterMapRes->uxMapID.nMapID) >> 16) >> 16),
+            stEnterMapRes->nJumpID, 1034);
+        return;
+    }
+
+    // IDA: 目标服务器与当前不同则置 bChangeServer
+    if (stEnterMapRes->dwServerID != XGameServer::Instance()->GetOption().GetServerID()) {
+        stEnterMapRes->bChangeServer = true;
+    }
+
+    LogHelper::LogDebug("game.contents",
+        "<RecvCreateMazeRes> User ( %d ) ( %I64d, %d %d ) bChange ( %d ) ",
+        stEnterMapRes->dwUserID,
+        stEnterMapRes->uxMapID.nMapID,
+        static_cast<int>((static_cast<std::uint64_t>(stEnterMapRes->uxMapID.nMapID) >> 16) >> 16),
+        stEnterMapRes->nJumpID, stEnterMapRes->bChangeServer ? 1 : 0);
+
+    // IDA: (3,0x42) DB Game 包 + 前图/复活点补零
+    {
+        XSendDBPacket xSendDBPacket(static_cast<XActor*>(pUser), 3, 0x42);
+        xSendDBPacket << *stEnterMapRes;
+        xSendDBPacket.XParse << 0;  // nPrevMapID
+        xSendDBPacket.XParse << 0;  // nPrevRevivePoint
+        XGameServer::Instance()->SendDBGame(xSendDBPacket);
+    }
+
+    // IDA: (0xF0,0x12) 统计包
+    {
+        ST_STATISTICS_MAP_SAVE stInfo = {};
+        stInfo.dwUCID = stEnterMapRes->dwUserID;
+        stInfo.dwMapID = static_cast<int>(
+            (static_cast<std::uint64_t>(stEnterMapRes->uxMapID.nMapID) >> 16) >> 16);
+        stInfo.dwServerID = XGameServer::Instance()->GetOption().GetServerID();
+        XSendDBPacket xSendDBStatistics(static_cast<XActor*>(pUser), 0xF0, 0x12);
+        xSendDBStatistics << stInfo;
+        XGameServer::Instance()->SendDBStatistics(xSendDBStatistics);
+    }
+
+    // IDA: GetGOC<CGocForce> 存在才写 ST_LOG_GAME(5,4) 日志
+    {
+        CGocForce* pGocForce = pUser->GetGOC<CGocForce>();
+        if (pGocForce) {
+            ST_LOG_GAME stLog = {};
+            stLog._nUAID = static_cast<int>(pUser->GetUAID());
+            stLog._nUCID = static_cast<int>(pUser->GetActorID().dwActorID);
+            stLog._sMainType = 5;
+            stLog._sSubType = 4;
+            stLog.nParam0 = static_cast<int>(
+                (static_cast<std::uint64_t>(stEnterMapRes->uxMapID.nMapID) >> 16) >> 16);
+            stLog.nParam1 = static_cast<int>(m_dwMasterID);
+            stLog.nParam2 = 1;
+            stLog.nParam3 = GetUserCount();
+            stLog.nParam4 = static_cast<int>(m_dwForceID);
+            stLog.nParam5 = static_cast<int>(pUser->GetLevel());
+            stLog.nParam6 = static_cast<int>(stEnterMapRes->uxMapID.nMapID);
+            std::wcscpy(stLog.szComment, L"메이즈 입장");
+            XGameServer::Instance()->SendDBLog(stLog);
+        }
+    }
+}
+
+// ============================================================================
+// SendEnterMaze - IDA: ?SendEnterMaze@CForce@@QEAAXAEAUPS_ENTER_MAP_RES@@@Z @ 0x1401BB420
+// 全员广播进迷宫：先校验 TB_MAZE_INFO 存在，对已准备(IsReadyToMaze)且
+// 本线程的成员逐人执行与单人版相同的同步/DB/日志流程。
+// ============================================================================
+void CForce::SendEnterMaze(PS_ENTER_MAP_RES* stEnterMapRes) {
+    // IDA: 迷宫表查不到直接 LogError 1490 返回
+    const std::uint16_t wMazeID = static_cast<std::uint16_t>(
+        (stEnterMapRes->uxMapID.nMapID << 16) >> 48);
+    if (!XGameServer::Instance()->GetResourceMgr().GetTB_MAZE_INFO(wMazeID)) {
+        LogHelper::LogError("game.contents",
+            "SendEnterMaze error - No have World Data[ ActorID:%d, MapID:%d, JumpID:%d ] ( %d )",
+            stEnterMapRes->dwUserID,
+            static_cast<int>((static_cast<std::uint64_t>(stEnterMapRes->uxMapID.nMapID) >> 16) >> 16),
+            stEnterMapRes->nJumpID, 1490);
+        return;
+    }
+
+    // IDA: m_uxMazeID = stEnterMapRes->uxMapID（记录当前迷宫）
+    SetMazeID(stEnterMapRes->uxMapID);
+
+    // IDA: 遍历 m_mapForceMember
+    for (auto& kv : m_mapForceMember) {
+        CForceMember* pMember = kv.second;
+        if (!pMember) {
+            continue;
+        }
+        if (!pMember->IsReadyToMaze()) {
+            continue;
+        }
+        CUser* pUser = pMember->GetMember();
+        if (!pUser) {
+            continue;
+        }
+        UXMapID uxMapID = pUser->GetMapInsID();
+        if (!pUser || !ThreadLocalData::GetInstance()->IsThreadArea(uxMapID)) {
+            continue;
+        }
+
+        // IDA: 任务条件同步
+        {
+            CGocQuest* pQuest = pUser->GetGOC<CGocQuest>();
+            if (pQuest) {
+                pQuest->DBSyncQuestCondition();
+            }
+        }
+
+        // IDA: byChangeType 门控
+        stEnterMapRes->byChangeType = 0;
+        if (stEnterMapRes->uxParentInstanceID.nMapID > 0) {
+            stEnterMapRes->byChangeType = 5;
+        }
+
+        const int nMapID = static_cast<int>(
+            (stEnterMapRes->uxMapID.nMapID << 16) >> 48);
+        if (!XGameServer::Instance()->GetWorldResMgr().GetPortalPos(
+                nMapID, stEnterMapRes->nJumpID, &stEnterMapRes->stPosInfo)) {
+            // IDA: 定位失败清状态 + LogError 1525，整个函数返回
+            pUser->ClearState(eStateChangeWorld);
+            LogHelper::LogError("game.contents",
+                "SendEnterMaze error - No have World Data[ ActorID:%d, MapID:%d, JumpID:%d ] ( %d )",
+                stEnterMapRes->dwUserID,
+                static_cast<int>((static_cast<std::uint64_t>(stEnterMapRes->uxMapID.nMapID) >> 16) >> 16),
+                stEnterMapRes->nJumpID, 1525);
+            return;
+        }
+
+        if (stEnterMapRes->dwServerID != XGameServer::Instance()->GetOption().GetServerID()) {
+            stEnterMapRes->bChangeServer = true;
+        }
+
+        LogHelper::LogDebug("game.contents",
+            "<RecvCreateMazeRes> User ( %d ) ( %I64d, %d %d ) bChange ( %d ) ",
+            stEnterMapRes->dwUserID,
+            stEnterMapRes->uxMapID.nMapID,
+            static_cast<int>((static_cast<std::uint64_t>(stEnterMapRes->uxMapID.nMapID) >> 16) >> 16),
+            stEnterMapRes->nJumpID, stEnterMapRes->bChangeServer ? 1 : 0);
+
+        // IDA: 广播版把 dwUserID 覆写为当前成员
+        stEnterMapRes->dwUserID = pUser->GetActorID().dwActorID;
+
+        {
+            XSendDBPacket xSendDBPacket(static_cast<XActor*>(pUser), 3, 0x42);
+            xSendDBPacket << *stEnterMapRes;
+            xSendDBPacket.XParse << 0;  // nPrevMapID
+            xSendDBPacket.XParse << 0;  // nPrevRevivePoint
+            XGameServer::Instance()->SendDBGame(xSendDBPacket);
+        }
+
+        {
+            ST_STATISTICS_MAP_SAVE stInfo = {};
+            stInfo.dwUCID = stEnterMapRes->dwUserID;
+            stInfo.dwMapID = static_cast<int>(
+                (static_cast<std::uint64_t>(stEnterMapRes->uxMapID.nMapID) >> 16) >> 16);
+            stInfo.dwServerID = XGameServer::Instance()->GetOption().GetServerID();
+            XSendDBPacket xSendDBStatistics(static_cast<XActor*>(pUser), 0xF0, 0x12);
+            xSendDBStatistics << stInfo;
+            XGameServer::Instance()->SendDBStatistics(xSendDBStatistics);
+        }
+
+        {
+            ST_LOG_GAME stLog = {};
+            stLog._nUAID = static_cast<int>(pUser->GetUAID());
+            stLog._nUCID = static_cast<int>(pUser->GetActorID().dwActorID);
+            stLog._sMainType = 5;
+            stLog._sSubType = 4;
+            stLog.nParam0 = static_cast<int>(
+                (static_cast<std::uint64_t>(stEnterMapRes->uxMapID.nMapID) >> 16) >> 16);
+            stLog.nParam1 = static_cast<int>(m_dwMasterID);
+            stLog.nParam3 = GetUserCount();
+            stLog.nParam4 = static_cast<int>(m_dwForceID);
+            stLog.nParam5 = static_cast<int>(pUser->GetLevel());
+            stLog.nParam6 = static_cast<int>(stEnterMapRes->uxMapID.nMapID);
+            std::wcscpy(stLog.szComment, L"메이즈 입장");
+            XGameServer::Instance()->SendDBLog(stLog);
+        }
+    }
 }

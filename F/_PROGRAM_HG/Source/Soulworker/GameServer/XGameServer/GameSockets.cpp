@@ -28,6 +28,7 @@
 #include "Soulworker/GameServer/XCore/XArea/XActor.h"
 #include "Soulworker/GameServer/XGameServer/actor/component/GocParty.h"
 #include "Soulworker/GameServer/XGameServer/actor/component/GocInventory.h"
+#include "Soulworker/GameServer/XGameServer/actor/component/GocQuest.h"
 #include "Soulworker/GameServer/XGameServer/actor/component/GocNetwork.h"
 #include "Soulworker/GameServer/XGameServer/actor/component/GocPost.h"
 #include "Soulworker/GameServer/XGameServer/BattleZone.h"
@@ -531,26 +532,151 @@ bool CGameControlSocket::RecvServerShutdown(XPacket* xPacket) {
     return true;
 }
 // Per IDA 0x1401ce810: RecvCreateMazeRes
+// 创建迷宫响应：解析 PS_ENTER_MAP_RES -> 按用户 ActorID 找人 -> 构造 lambda19
+// 分发到玩家所在逻辑线程 -> lambda192 递减计数。找不到用户时静默返回 1。
 bool CGameControlSocket::RecvCreateMazeRes(XPacket* xPacket) {
-    // Per IDA: 创建迷宫响应
-    PS_ENTER_MAP_RES stRecvEnterMapRes = {};
+    PS_ENTER_MAP_RES stRecvEnterMapRes;
     *xPacket >> stRecvEnterMapRes;
 
     XGameServer* pServer = XGameServer::Instance();
     CUser* pUser = pServer ? pServer->FindActorIDToUser(stRecvEnterMapRes.dwUserID) : nullptr;
 
     if (pUser) {
-        // Per IDA: 检查用户Area是否存在
-        // if (!pUser->GetArea()) {
-        //     return false;
-        // }
+        if (!pUser->GetArea()) {
+            return true;
+        }
 
-        // Per IDA: 增加任务计数并分发到逻辑线程
-        // pUser->IncrementJobCount();
+        pUser->IncrementJobCount();
 
-        // Per IDA: 通过CLogicThreadManager分发任务
-        // TODO: 完整实现需要CLogicThreadManager::DoJob
-        GreenDamTan_log(__FILE__, __FUNCTION__, "RecvCreateMazeRes - userID=%u, need CLogicThreadManager::DoJob", stRecvEnterMapRes.dwUserID);
+        // Per IDA lambda19 (0x1401CEA90): 在逻辑线程内完成迷宫进入判定与 DB/统计/日志
+        std::function<void()> func = [pUser, stRecvEnterMapRes]() {
+            if (!pUser || !pUser->IsLive()) {
+                return;
+            }
+            PS_ENTER_MAP_RES stEnterMapRes = stRecvEnterMapRes;
+
+            // Per IDA: 队伍迷宫 - byGroupType==1 且 nID 非零
+            if (stEnterMapRes.stPartyInfo.byGroupType == 1 && stEnterMapRes.stPartyInfo.nID != 0) {
+                XPartyManager* pPartyMgr = ThreadLocalData::GetInstance()->GetPartyMgr();
+                if (pPartyMgr) {
+                    std::shared_ptr<CParty> pParty = pPartyMgr->GetParty(pUser->GetActorID());
+                    if (pParty) {
+                        pParty->SendEnterMaze(pUser, &stEnterMapRes);
+                    }
+                }
+            }
+            // Per IDA: Force 迷宫 - byGroupType==2 且 nID 非零
+            else if (stEnterMapRes.stPartyInfo.byGroupType == 2 && stEnterMapRes.stPartyInfo.nID != 0) {
+                XForceManager* pForceMgr = ThreadLocalData::GetInstance()->GetForceMgr();
+                if (pForceMgr) {
+                    std::shared_ptr<CForce> pForce = pForceMgr->GetForce(pUser->GetActorID());
+                    if (pForce) {
+                        pForce->SendEnterMaze(&stEnterMapRes);
+                    }
+                }
+            }
+            // Per IDA: 结果码非零 - 失败回包 + 清状态 + 清除 warp 物品
+            else if (stEnterMapRes.nResult) {
+                pUser->ClearState(eStateChangeWorld);
+                ST_CREATE_MAZE stMaze = {};
+                stMaze.nResult = stEnterMapRes.nResult;
+                stMaze.dwUserID = pUser->GetActorID().dwActorID;
+                XSendPacket xSendPacket(0x11, 0x42);
+                xSendPacket << stMaze;
+                CGocNetwork::Send(pUser, xSendPacket);
+                CGocInventory* pInventory = pUser->GetGOC<CGocInventory>();
+                if (pInventory) {
+                    pInventory->ClearUsedWarpItem(2);
+                }
+            }
+            // Per IDA: 单人进迷宫 - 同步任务、传送门定位、DB 三包
+            else {
+                {
+                    CGocQuest* pQuest = pUser->GetGOC<CGocQuest>();
+                    if (pQuest) {
+                        pQuest->DBSyncQuestCondition();
+                    }
+                }
+
+                stEnterMapRes.byChangeType = 0;
+                if (stEnterMapRes.uxParentInstanceID.nMapID > 0) {
+                    stEnterMapRes.byChangeType = 5;
+                }
+
+                const int nMapID = static_cast<int>(
+                    (stEnterMapRes.uxMapID.nMapID << 16) >> 48);
+                if (XGameServer::Instance()->GetWorldResMgr().GetPortalPos(
+                        nMapID, stEnterMapRes.nJumpID, &stEnterMapRes.stPosInfo)) {
+                    if (stEnterMapRes.dwServerID != XGameServer::Instance()->GetOption().GetServerID()) {
+                        stEnterMapRes.bChangeServer = true;
+                    }
+
+                    {
+                        CGocInventory* pInventory = pUser->GetGOC<CGocInventory>();
+                        if (pInventory) {
+                            pInventory->DeleteUsedWarpItem();
+                        }
+                    }
+
+                    LogHelper::LogDebug("game.contents",
+                        "<RecvCreateMazeRes> User ( %d ) ( %I64d, %d %d ) bChange ( %d ) ",
+                        stEnterMapRes.dwUserID,
+                        stEnterMapRes.uxMapID.nMapID,
+                        static_cast<int>((static_cast<std::uint64_t>(stEnterMapRes.uxMapID.nMapID) >> 16) >> 16),
+                        stEnterMapRes.nJumpID, stEnterMapRes.bChangeServer ? 1 : 0);
+
+                    {
+                        int nPrevMapID = 0;
+                        int nPrevRevivePoint = 0;
+                        XSendDBPacket xSendDBPacket(static_cast<XActor*>(pUser), 3, 0x42);
+                        xSendDBPacket << stEnterMapRes;
+                        xSendDBPacket.XParse << nPrevMapID;
+                        xSendDBPacket.XParse << nPrevRevivePoint;
+                        XGameServer::Instance()->SendDBGame(xSendDBPacket);
+                    }
+
+                    {
+                        ST_STATISTICS_MAP_SAVE stInfo = {};
+                        stInfo.dwUCID = stEnterMapRes.dwUserID;
+                        stInfo.dwMapID = static_cast<int>(
+                            (static_cast<std::uint64_t>(stEnterMapRes.uxMapID.nMapID) >> 16) >> 16);
+                        stInfo.dwServerID = XGameServer::Instance()->GetOption().GetServerID();
+                        XSendDBPacket xSendDBStatistics(static_cast<XActor*>(pUser), 0xF0, 0x12);
+                        xSendDBStatistics << stInfo;
+                        XGameServer::Instance()->SendDBStatistics(xSendDBStatistics);
+                    }
+
+                    {
+                        ST_LOG_GAME stLog = {};
+                        stLog._nUAID = static_cast<int>(pUser->GetUAID());
+                        stLog._nUCID = static_cast<int>(pUser->GetActorID().dwActorID);
+                        stLog._sMainType = 5;
+                        stLog._sSubType = 4;
+                        stLog.nParam0 = static_cast<int>(
+                            (static_cast<std::uint64_t>(stEnterMapRes.uxMapID.nMapID) >> 16) >> 16);
+                        stLog.nParam3 = 1;
+                        stLog.nParam5 = pUser->GetLevel();
+                        stLog.nParam6 = stEnterMapRes.uxMapID.nMapID;
+                        std::wcscpy(stLog.szComment, L"메이즈 입장");
+                        XGameServer::Instance()->SendDBLog(stLog);
+                    }
+                } else {
+                    pUser->ClearState(eStateChangeWorld);
+                    LogHelper::LogError("game.contents",
+                        "RecvCreateMazeRes error - No have World Data[ ActorID:%d, MapID:%d, JumpID:%d ] ( %d )",
+                        stEnterMapRes.dwUserID,
+                        static_cast<int>((static_cast<std::uint64_t>(stEnterMapRes.uxMapID.nMapID) >> 16) >> 16),
+                        stEnterMapRes.nJumpID, 901);
+                }
+            }
+        };
+        CLogicThreadManager::Instance().DoJob(pUser->GetMapInsID().nMapID, func);
+
+        // Per IDA lambda192 (0x140427E60): 任务完成递减计数
+        std::function<void()> funcDec = [pUser]() {
+            pUser->DecrementJobCount();
+        };
+        CLogicThreadManager::Instance().DoJob(pUser->GetMapInsID().nMapID, funcDec);
     }
 
     return true;
@@ -640,10 +766,11 @@ bool CGameControlSocket::RecvForceMatching(XPacket* xPacket) {
     return true;
 }
 // Per IDA 0x1401d01d0: RecvForceEnterMaze
+// Force 进入迷宫响应：解析 dwForceID + PS_ENTER_MAP_RES -> 按用户 ActorID 找人 ->
+// 构造 lambda25 分发到玩家所在逻辑线程 -> lambda192 递减计数。
 bool CGameControlSocket::RecvForceEnterMaze(XPacket* xPacket) {
-    // Per IDA: Force进入迷宫
     unsigned int dwForceID = 0;
-    PS_ENTER_MAP_RES stRecvEnterMap = {};
+    PS_ENTER_MAP_RES stRecvEnterMap;
 
     xPacket->XParse >> dwForceID;
     *xPacket >> stRecvEnterMap;
@@ -652,17 +779,31 @@ bool CGameControlSocket::RecvForceEnterMaze(XPacket* xPacket) {
     CUser* pUser = pServer ? pServer->FindActorIDToUser(stRecvEnterMap.dwUserID) : nullptr;
 
     if (pUser) {
-        // Per IDA: 检查用户Area是否存在
-        // if (!pUser->GetArea()) {
-        //     return false;
-        // }
+        if (!pUser->GetArea()) {
+            return false;
+        }
 
-        // Per IDA: 增加任务计数并分发到逻辑线程
-        // pUser->IncrementJobCount();
+        pUser->IncrementJobCount();
 
-        // Per IDA: 通过CLogicThreadManager分发任务
-        // TODO: 完整实现需要CLogicThreadManager::DoJob
-        GreenDamTan_log(__FILE__, __FUNCTION__, "RecvForceEnterMaze - forceID=%u, userID=%u, need CLogicThreadManager::DoJob", dwForceID, stRecvEnterMap.dwUserID);
+        // Per IDA lambda25 (0x1401CFCC0): 与 RecvPartyEnterMaze 共享同一任务体，
+        // 组内 ID 均透传给 XPartyManager::ResEnterMaze 处理
+        std::function<void()> func = [pUser, dwForceID, stRecvEnterMap]() {
+            if (!pUser || !pUser->IsLive()) {
+                return;
+            }
+            CGocParty* pGocParty = pUser->GetGOC<CGocParty>();
+            if (pGocParty && pGocParty->IsParty()) {
+                PS_ENTER_MAP_RES stEnterMap = stRecvEnterMap;
+                ThreadLocalData::GetInstance()->GetPartyMgr()->ResEnterMaze(pUser, dwForceID, stEnterMap);
+            }
+        };
+        CLogicThreadManager::Instance().DoJob(pUser->GetMapInsID().nMapID, func);
+
+        // Per IDA lambda192 (0x140427E60): 任务完成递减计数
+        std::function<void()> funcDec = [pUser]() {
+            pUser->DecrementJobCount();
+        };
+        CLogicThreadManager::Instance().DoJob(pUser->GetMapInsID().nMapID, funcDec);
     }
 
     return true;
@@ -1019,31 +1160,45 @@ bool CGameControlSocket::RecvCachingComplete(XPacket* xPacket) {
 // RecvServerCreateModeMazeReq moved to proper location below
 // RecvServerRouletteEvent moved to proper location below
 // Per IDA 0x1401cfa20: RecvPartyEnterMaze
+// 组队进入迷宫响应：解析 dwPartyID + PS_ENTER_MAP_RES -> 按用户 ActorID 找人 ->
+// 构造 lambda25 分发到玩家所在逻辑线程 -> lambda192 递减计数。
 bool CGameControlSocket::RecvPartyEnterMaze(XPacket* xPacket) {
-    // Per IDA: 组队进入迷宫
     unsigned int dwPartyID = 0;
-    PS_ENTER_MAP_RES stRecvEnterMap = {};
+    PS_ENTER_MAP_RES stRecvEnterMap;
 
     xPacket->XParse >> dwPartyID;
     *xPacket >> stRecvEnterMap;
 
-    // Per IDA: 查找用户
     XGameServer* pServer = XGameServer::Instance();
     CUser* pUser = pServer ? pServer->FindActorIDToUser(stRecvEnterMap.dwUserID) : nullptr;
 
-    if (!pUser) {
-        return true;
+    if (pUser) {
+        if (!pUser->GetArea()) {
+            return false;
+        }
+
+        pUser->IncrementJobCount();
+
+        // Per IDA lambda25 (0x1401CFCC0): 在逻辑线程内按队伍处理迷宫进入响应
+        std::function<void()> func = [pUser, dwPartyID, stRecvEnterMap]() {
+            if (!pUser || !pUser->IsLive()) {
+                return;
+            }
+            CGocParty* pGocParty = pUser->GetGOC<CGocParty>();
+            if (pGocParty && pGocParty->IsParty()) {
+                PS_ENTER_MAP_RES stEnterMap = stRecvEnterMap;
+                ThreadLocalData::GetInstance()->GetPartyMgr()->ResEnterMaze(pUser, dwPartyID, stEnterMap);
+            }
+        };
+        CLogicThreadManager::Instance().DoJob(pUser->GetMapInsID().nMapID, func);
+
+        // Per IDA lambda192 (0x140427E60): 任务完成递减计数
+        std::function<void()> funcDec = [pUser]() {
+            pUser->DecrementJobCount();
+        };
+        CLogicThreadManager::Instance().DoJob(pUser->GetMapInsID().nMapID, funcDec);
     }
 
-    // Per IDA: 检查用户Area是否存在
-    // if (!pUser->GetArea()) {
-    //     return false;
-    // }
-
-    // Per IDA: 增加任务计数并分发到逻辑线程
-    // pUser->IncrementJobCount();
-    // TODO: 完整实现需要CLogicThreadManager::DoJob
-    GreenDamTan_log(__FILE__, __FUNCTION__, "RecvPartyEnterMaze - partyID=%u, need CLogicThreadManager::DoJob", dwPartyID);
     return true;
 }
 // Per IDA 0x1401cf2e0: RecvUserKickout
@@ -1116,9 +1271,10 @@ bool CGameControlSocket::RecvUpdateChannel(XPacket* xPacket) {
 }
 
 // Per IDA 0x1401cd920: RecvChangeChannelRes
+// 更换频道响应：解析 PS_ENTER_MAP_RES -> 按用户 ActorID 找人 -> 构造 lambda19
+// 分发到玩家所在逻辑线程 -> lambda192 递减计数。所有路径均返回 0（false）。
 bool CGameControlSocket::RecvChangeChannelRes(XPacket* xPacket) {
-    // Per IDA: 更换频道响应
-    PS_ENTER_MAP_RES stEnterRes = {};
+    PS_ENTER_MAP_RES stEnterRes;
     *xPacket >> stEnterRes;
 
     XGameServer* pServer = XGameServer::Instance();
@@ -1131,19 +1287,136 @@ bool CGameControlSocket::RecvChangeChannelRes(XPacket* xPacket) {
         return false;
     }
 
-    // Per IDA: 检查用户Area是否存在
-    // if (!pReqUser->GetArea()) {
-    //     return false;
-    // }
+    if (!pReqUser->GetArea()) {
+        return false;
+    }
 
-    // Per IDA: 增加任务计数并分发到逻辑线程
-    // pReqUser->IncrementJobCount();
+    pReqUser->IncrementJobCount();
 
-    // Per IDA: 通过CLogicThreadManager分发任务
-    // TODO: 完整实现需要CLogicThreadManager::DoJob
-    GreenDamTan_log(__FILE__, __FUNCTION__, "RecvChangeChannelRes - userID=%u, need CLogicThreadManager::DoJob", stEnterRes.dwUserID);
+    // Per IDA lambda19 (0x1401CEA90): 与 RecvCreateMazeRes 共享同一逻辑线程任务体
+    std::function<void()> func = [pReqUser, stEnterRes]() {
+        if (!pReqUser || !pReqUser->IsLive()) {
+            return;
+        }
+        PS_ENTER_MAP_RES stEnterMapRes = stEnterRes;
 
-    return false;  // Per IDA: 返回 false 表示继续处理
+        if (stEnterMapRes.stPartyInfo.byGroupType == 1 && stEnterMapRes.stPartyInfo.nID != 0) {
+            XPartyManager* pPartyMgr = ThreadLocalData::GetInstance()->GetPartyMgr();
+            if (pPartyMgr) {
+                std::shared_ptr<CParty> pParty = pPartyMgr->GetParty(pReqUser->GetActorID());
+                if (pParty) {
+                    pParty->SendEnterMaze(pReqUser, &stEnterMapRes);
+                }
+            }
+        } else if (stEnterMapRes.stPartyInfo.byGroupType == 2 && stEnterMapRes.stPartyInfo.nID != 0) {
+            XForceManager* pForceMgr = ThreadLocalData::GetInstance()->GetForceMgr();
+            if (pForceMgr) {
+                std::shared_ptr<CForce> pForce = pForceMgr->GetForce(pReqUser->GetActorID());
+                if (pForce) {
+                    pForce->SendEnterMaze(&stEnterMapRes);
+                }
+            }
+        } else if (stEnterMapRes.nResult) {
+            pReqUser->ClearState(eStateChangeWorld);
+            ST_CREATE_MAZE stMaze = {};
+            stMaze.nResult = stEnterMapRes.nResult;
+            stMaze.dwUserID = pReqUser->GetActorID().dwActorID;
+            XSendPacket xSendPacket(0x11, 0x42);
+            xSendPacket << stMaze;
+            CGocNetwork::Send(pReqUser, xSendPacket);
+            CGocInventory* pInventory = pReqUser->GetGOC<CGocInventory>();
+            if (pInventory) {
+                pInventory->ClearUsedWarpItem(2);
+            }
+        } else {
+            {
+                CGocQuest* pQuest = pReqUser->GetGOC<CGocQuest>();
+                if (pQuest) {
+                    pQuest->DBSyncQuestCondition();
+                }
+            }
+
+            stEnterMapRes.byChangeType = 0;
+            if (stEnterMapRes.uxParentInstanceID.nMapID > 0) {
+                stEnterMapRes.byChangeType = 5;
+            }
+
+            const int nMapID = static_cast<int>(
+                (stEnterMapRes.uxMapID.nMapID << 16) >> 48);
+            if (XGameServer::Instance()->GetWorldResMgr().GetPortalPos(
+                    nMapID, stEnterMapRes.nJumpID, &stEnterMapRes.stPosInfo)) {
+                if (stEnterMapRes.dwServerID != XGameServer::Instance()->GetOption().GetServerID()) {
+                    stEnterMapRes.bChangeServer = true;
+                }
+
+                {
+                    CGocInventory* pInventory = pReqUser->GetGOC<CGocInventory>();
+                    if (pInventory) {
+                        pInventory->DeleteUsedWarpItem();
+                    }
+                }
+
+                LogHelper::LogDebug("game.contents",
+                    "<RecvCreateMazeRes> User ( %d ) ( %I64d, %d %d ) bChange ( %d ) ",
+                    stEnterMapRes.dwUserID,
+                    stEnterMapRes.uxMapID.nMapID,
+                    static_cast<int>((static_cast<std::uint64_t>(stEnterMapRes.uxMapID.nMapID) >> 16) >> 16),
+                    stEnterMapRes.nJumpID, stEnterMapRes.bChangeServer ? 1 : 0);
+
+                {
+                    int nPrevMapID = 0;
+                    int nPrevRevivePoint = 0;
+                    XSendDBPacket xSendDBPacket(static_cast<XActor*>(pReqUser), 3, 0x42);
+                    xSendDBPacket << stEnterMapRes;
+                    xSendDBPacket.XParse << nPrevMapID;
+                    xSendDBPacket.XParse << nPrevRevivePoint;
+                    XGameServer::Instance()->SendDBGame(xSendDBPacket);
+                }
+
+                {
+                    ST_STATISTICS_MAP_SAVE stInfo = {};
+                    stInfo.dwUCID = stEnterMapRes.dwUserID;
+                    stInfo.dwMapID = static_cast<int>(
+                        (static_cast<std::uint64_t>(stEnterMapRes.uxMapID.nMapID) >> 16) >> 16);
+                    stInfo.dwServerID = XGameServer::Instance()->GetOption().GetServerID();
+                    XSendDBPacket xSendDBStatistics(static_cast<XActor*>(pReqUser), 0xF0, 0x12);
+                    xSendDBStatistics << stInfo;
+                    XGameServer::Instance()->SendDBStatistics(xSendDBStatistics);
+                }
+
+                {
+                    ST_LOG_GAME stLog = {};
+                    stLog._nUAID = static_cast<int>(pReqUser->GetUAID());
+                    stLog._nUCID = static_cast<int>(pReqUser->GetActorID().dwActorID);
+                    stLog._sMainType = 5;
+                    stLog._sSubType = 4;
+                    stLog.nParam0 = static_cast<int>(
+                        (static_cast<std::uint64_t>(stEnterMapRes.uxMapID.nMapID) >> 16) >> 16);
+                    stLog.nParam3 = 1;
+                    stLog.nParam5 = pReqUser->GetLevel();
+                    stLog.nParam6 = stEnterMapRes.uxMapID.nMapID;
+                    std::wcscpy(stLog.szComment, L"메이즈 입장");
+                    XGameServer::Instance()->SendDBLog(stLog);
+                }
+            } else {
+                pReqUser->ClearState(eStateChangeWorld);
+                LogHelper::LogError("game.contents",
+                    "RecvCreateMazeRes error - No have World Data[ ActorID:%d, MapID:%d, JumpID:%d ] ( %d )",
+                    stEnterMapRes.dwUserID,
+                    static_cast<int>((static_cast<std::uint64_t>(stEnterMapRes.uxMapID.nMapID) >> 16) >> 16),
+                    stEnterMapRes.nJumpID, 901);
+            }
+        }
+    };
+    CLogicThreadManager::Instance().DoJob(pReqUser->GetMapInsID().nMapID, func);
+
+    // Per IDA lambda192 (0x140427E60): 任务完成递减计数
+    std::function<void()> funcDec = [pReqUser]() {
+        pReqUser->DecrementJobCount();
+    };
+    CLogicThreadManager::Instance().DoJob(pReqUser->GetMapInsID().nMapID, funcDec);
+
+    return false;  // Per IDA: 所有成功路径均返回 0
 }
 
 // Per IDA 0x1401d2320: OnConnect

@@ -6636,7 +6636,7 @@
 | - | - | ?UserKickOut@CForce@@QEAAHK@Z | 0x1401b8b80 | implemented | IDA ?UserKickOut@CForce@@QEAAHK@Z | yes | - |
 | XGameServer | CParty.cpp | ?Enumerate@CForce@@QEAAXAEAV?$vector@KV?$allocator@K@std@@@std@@@Z | 0x1401b8c80 | implemented | IDA ?Enumerate@CForce@@QEAAXAEAV?$vector@KV?$allocator@K@std@@@std@@@Z | yes | - |
 | - | - | ?ResEnterMaze@CForce@@QEAAXPEAVCUser@@AEAUPS_ENTER_MAP_RES@@@Z | 0x1401b8d00 | implemented | IDA decompile | yes | Force.cpp (handles maze enter response with error codes) |
-| - | - | ?SendEnterMaze@CForce@@QEAAXPEAVCUser@@AEAUPS_ENTER_MAP_RES@@@Z | 0x1401b8f00 | implemented | IDA decompile | yes | Force.cpp (sends enter maze packet with DB sync) |
+| XGameServer | CForce.cpp | ?SendEnterMaze@CForce@@QEAAXPEAVCUser@@AEAUPS_ENTER_MAP_RES@@@Z | 0x1401b8f00 | implemented | IDA decompile + active build | no | Landed in CForce.cpp: DBSyncQuestCondition via GetGOC<CGocQuest>, byChangeType=5 when uxParentInstanceID.nMapID>0, GetPortalPos fail -> ClearState(eStateChangeWorld)+SendErrorMessage(0x11,0x41,0xD6DA)+LogError 1034, bChangeServer vs GetServerID, (3,0x42) DBGame with nPrevMapID/nPrevRevivePoint zeros, (0xF0,0x12) ST_STATISTICS_MAP_SAVE, ST_LOG_GAME(5,4) gated by GetGOC<CGocForce> with L"메이즈 입장". |
 | - | - | ?SendForceUpdateMemberInfo@CForce@@QEAAXPEAVCUser@@@Z | 0x1401b9550 | implemented | IDA decompile | yes | Force.cpp (broadcasts force member info update) |
 | - | - | ?GetPartyInfo@CParty@@QEAAXAEAUPS_PARTY_INFO@@@Z | 0x1401b9740 | implemented | IDA ?GetPartyInfo@CParty@@QEAAXAEAUPS_PARTY_INFO@@@Z | yes | - |
 | - | - | ?EnterMaze@CForce@@QEAA_NPEAVCUser@@TUXMapID@@AEAUPS_ENTER_MAP_REQ@@@Z | 0x1401b9810 | implemented | IDA decompile | yes | Force.cpp (complex maze entry with validation) |
@@ -6645,7 +6645,7 @@
 | - | - | ?CancelEnterMaze@CForce@@QEAAXK@Z | 0x1401bb030 | implemented | IDA decompile | yes | Force.cpp (cancels maze enter and notifies members) |
 | - | - | ?AgreeEnterMaze@CForce@@QEAAXK@Z | 0x1401bb1d0 | implemented | IDA decompile | yes | Force.cpp (agrees to maze enter and notifies members) |
 | - | - | ?SetEnterMazeResponse@CForce@@QEAA_NK@Z | 0x1401bb340 | implemented | IDA ?SetEnterMazeResponse@CForce@@QEAA_NK@Z | yes | - |
-| - | - | ?SendEnterMaze@CForce@@QEAAXAEAUPS_ENTER_MAP_RES@@@Z | 0x1401bb420 | implemented | IDA decompile | yes | Force.cpp (broadcasts enter maze to all members) |
+| XGameServer | CForce.cpp | ?SendEnterMaze@CForce@@QEAAXAEAUPS_ENTER_MAP_RES@@@Z | 0x1401bb420 | implemented | IDA decompile + active build | no | Landed in CForce.cpp: GetTB_MAZE_INFO(wMazeID) gate with LogError 1490, SetMazeID, iterate m_mapForceMember filtered by IsReadyToMaze + ThreadLocalData IsThreadArea, per-member DBSyncQuestCondition/byChangeType/GetPortalPos (fail LogError 1525 return), dwUserID overwrite to member actorID, (3,0x42)+(0xF0,0x12)+ST_LOG_GAME(5,4) L"메이즈 입장" per member. |
 | - | - | ?SendMazeClear@CForce@@QEAAXE@Z | 0x1401bbbd0 | implemented | IDA ?SendMazeClear@CForce@@QEAAXE@Z | yes | - |
 | - | - | ?CreateMazeReq@CForce@@QEAAXXZ | 0x1401bbc90 | implemented | IDA ?CreateMazeReq@CForce@@QEAAXXZ | yes | - |
 | CParty | CParty.cpp | ?CheckPassiveSkill@CParty@@QEAAXPEAVCUser@@EE@Z | 0x1401bbe00 | verified | GameServer PDB + IDA decompile + source build + smoke | yes | Iterates members, checks thread area + distance, delegates to CGocSkill/CGocAkashicRecord CheckPassiveSkill. |
@@ -6977,14 +6977,14 @@
 | XGameServer | GameSockets.cpp | ?RecvUserChangeServer@CGameControlSocket@@UEAA_NAEAVXPacket@@@Z | 0x1401cd4b0 | blocked | IDA decompile | yes | �û��л������� |
 | - | - | ??0_lambda14_@?A0xa4fe1a90@@QEAA@AEBQEAVCUser@@AEBUPS_RES_CHANGE_SERVER@@@Z | 0x1401cd730 | blocked | IDA ??0_lambda14_@?A0xa4fe1a90@@QEAA@AEBQEAVCUser@@AEBUPS_RES_CHANGE_SERVER@@@Z | yes | - |
 | - | - | ??R_lambda14_@?A0xa4fe1a90@@QEBAXXZ | 0x1401cd7a0 | blocked | IDA ??R_lambda14_@?A0xa4fe1a90@@QEBAXXZ | yes | - |
-| - | - | ?RecvChangeChannelRes@CGameControlSocket@@UEAA_NAEAVXPacket@@@Z | 0x1401cd920 | blocked | IDA decompile | yes | ����Ƶ����Ӧ |
+| XGameServer | GameSockets.cpp | ?RecvChangeChannelRes@CGameControlSocket@@UEAA_NAEAVXPacket@@@Z | 0x1401cd920 | implemented | IDA decompile + active build | no | Restored: parse PS_ENTER_MAP_RES, FindActorIDToUser with LogError 672 gate, GetArea check, IncrementJobCount, lambda19 body inlined as std::function (party/force/single/fail quadruple dispatch), DoJob via GetMapInsID, lambda192 DecrementJobCount, returns false on all paths per IDA. |
 | - | - | ??R_lambda16_@?A0xa4fe1a90@@QEBAXXZ | 0x1401cdba0 | blocked | IDA ??R_lambda16_@?A0xa4fe1a90@@QEBAXXZ | yes | - |
 | - | - | ?RecvGoBackMazeRes@CGameControlSocket@@QEAA_NAEAVXPacket@@@Z | 0x1401ce150 | blocked | IDA decompile | yes | �����Թ���Ӧ |
 | - | - | ??0_lambda18_@?A0xa4fe1a90@@QEAA@AEBTUXMapID@@AEBUST_GO_BACK_MAZE@@@Z | 0x1401ce2c0 | blocked | IDA ??0_lambda18_@?A0xa4fe1a90@@QEAA@AEBTUXMapID@@AEBUST_GO_BACK_MAZE@@@Z | yes | - |
 | - | - | ??R_lambda18_@?A0xa4fe1a90@@QEBAXXZ | 0x1401ce330 | blocked | IDA ??R_lambda18_@?A0xa4fe1a90@@QEBAXXZ | yes | - |
 | - | - | ??0ST_GO_BACK_MAZE@@QEAA@XZ | 0x1401ce7e0 | blocked | IDA ??0ST_GO_BACK_MAZE@@QEAA@XZ | yes | - |
-| - | - | ?RecvCreateMazeRes@CGameControlSocket@@QEAA_NAEAVXPacket@@@Z | 0x1401ce810 | blocked | IDA decompile | yes | �����Թ���Ӧ |
-| - | - | ??R_lambda19_@?A0xa4fe1a90@@QEBAXXZ | 0x1401cea90 | blocked | IDA ??R_lambda19_@?A0xa4fe1a90@@QEBAXXZ | yes | - |
+| XGameServer | GameSockets.cpp | ?RecvCreateMazeRes@CGameControlSocket@@QEAA_NAEAVXPacket@@@Z | 0x1401ce810 | implemented | IDA decompile + active build | no | Restored: parse PS_ENTER_MAP_RES, FindActorIDToUser, GetArea check returns true, IncrementJobCount, lambda19 body inlined as std::function (byGroupType 1->CParty::SendEnterMaze(pUser), 2->CForce::SendEnterMaze broadcast, nResult!=0->ClearState+(0x11,0x42) ST_CREATE_MAZE+ClearUsedWarpItem(2), else single-user portal/DB/stat/log chain with LogError 901), DoJob via GetMapInsID, lambda192 DecrementJobCount, returns true. |
+| XGameServer | GameSockets.cpp | ??R_lambda19_@?A0xa4fe1a90@@QEBAXXZ | 0x1401cea90 | implemented | IDA decompile + active build | no | Restored as lambda body inlined in both RecvCreateMazeRes and RecvChangeChannelRes: IsLive gate, byGroupType 1->CParty::SendEnterMaze(pUser), 2->CForce::SendEnterMaze broadcast, nResult!=0 fail path, else single-user DBSyncQuestCondition/portal/DB/stat/ST_LOG_GAME(5,4) chain with LogError 901. |
 | XGameServer | GameSockets.cpp | ?RecvUserKickout@CGameControlSocket@@UEAA_NAEAVXPacket@@@Z | 0x1401cf2e0 | implemented | IDA decompile | yes | �߳��û� |
 | - | - | ??0_lambda89_@?A0x93366633@@QEAA@AEBQEAVCUser@@AEBUPS_KICK_USER_INFO_UCID@@@Z | 0x1401cf520 | blocked | IDA ??0_lambda89_@?A0x93366633@@QEAA@AEBQEAVCUser@@AEBUPS_KICK_USER_INFO_UCID@@@Z | yes | - |
 | - | - | ??R_lambda21_@?A0xa4fe1a90@@QEBAXXZ | 0x1401cf590 | implemented | IDA ??R_lambda21_@?A0xa4fe1a90@@QEBAXXZ | yes | - |
@@ -6997,12 +6997,12 @@
 | - | - | ??0_lambda24_@?A0xa4fe1a90@@QEAA@AEBGAEBUST_CHANNEL_INFO@@@Z | 0x1401cf960 | blocked | IDA ??0_lambda24_@?A0xa4fe1a90@@QEAA@AEBGAEBUST_CHANNEL_INFO@@@Z | yes | - |
 | - | - | ??R_lambda24_@?A0xa4fe1a90@@QEBAXXZ | 0x1401cf9a0 | implemented | IDA ??R_lambda24_@?A0xa4fe1a90@@QEBAXXZ | yes | - |
 | - | - | ?RecvUsersInfo@CGameControlSocket@@QEAA_NAEAVXPacket@@@Z | 0x1401cf9e0 | implemented | IDA decompile | yes | ͬ���û���Ϣ |
-| XGameServer | GameSockets.cpp | ?RecvPartyEnterMaze@CGameControlSocket@@QEAA_NAEAVXPacket@@@Z | 0x1401cfa20 | blocked | IDA decompile | yes | ��ӽ����Թ�?|
-| - | - | ??R_lambda25_@?A0xa4fe1a90@@QEBAXXZ | 0x1401cfcc0 | blocked | IDA ??R_lambda25_@?A0xa4fe1a90@@QEBAXXZ | yes | - |
+| XGameServer | GameSockets.cpp | ?RecvPartyEnterMaze@CGameControlSocket@@QEAA_NAEAVXPacket@@@Z | 0x1401cfa20 | implemented | IDA decompile + active build | no | Restored: parse dwPartyID + PS_ENTER_MAP_RES, FindActorIDToUser, GetArea gate, IncrementJobCount, lambda25 DoJob (GetGOC<CGocParty> IsParty gate then XPartyManager::ResEnterMaze(pUser, dwPartyID, stEnterMap)), lambda192 DecrementJobCount, returns true. |
+| XGameServer | GameSockets.cpp | ??R_lambda25_@?A0xa4fe1a90@@QEBAXXZ | 0x1401cfcc0 | implemented | IDA decompile + active build | no | Restored as lambda body inlined in both RecvPartyEnterMaze and RecvForceEnterMaze: IsLive gate, GetGOC<CGocParty> + IsParty() gate, XPartyManager::ResEnterMaze with captured group ID and PS_ENTER_MAP_RES copy. |
 | - | - | ?RecvPartyMatching@CGameControlSocket@@QEAA_NAEAVXPacket@@@Z | 0x1401cfe20 | blocked | IDA decompile | yes | ���ƥ��?|
 | - | - | ??0PS_PARTY_INFO@@QEAA@AEBU0@@Z | 0x1401cffb0 | blocked | IDA ??0PS_PARTY_INFO@@QEAA@AEBU0@@Z | yes | - |
 | - | - | ?RecvForceMatching@CGameControlSocket@@QEAA_NAEAVXPacket@@@Z | 0x1401d0040 | blocked | IDA decompile | yes | Forceƥ�� |
-| - | - | ?RecvForceEnterMaze@CGameControlSocket@@QEAA_NAEAVXPacket@@@Z | 0x1401d01d0 | blocked | IDA decompile | yes | Force�����Թ� |
+| XGameServer | GameSockets.cpp | ?RecvForceEnterMaze@CGameControlSocket@@QEAA_NAEAVXPacket@@@Z | 0x1401d01d0 | implemented | IDA decompile + active build | no | Restored: parse dwForceID + PS_ENTER_MAP_RES, FindActorIDToUser, GetArea gate, IncrementJobCount, shared lambda25 DoJob (GetGOC<CGocParty> IsParty gate then XPartyManager::ResEnterMaze(pUser, dwForceID, stEnterMap) - same body as party variant per IDA), lambda192 DecrementJobCount, returns true. |
 | - | - | ??R_lambda29_@?A0xa4fe1a90@@QEBAXXZ | 0x1401d0480 | blocked | IDA ??R_lambda29_@?A0xa4fe1a90@@QEBAXXZ | yes | - |
 | XGameServer | GameSockets.cpp | ?RecvServerShutdown@CGameControlSocket@@QEAA_NAEAVXPacket@@@Z | 0x1401d05f0 | implemented | IDA decompile | yes | �������ر� |
 | - | - | ?RecvMyRoomCreate@CGameControlSocket@@QEAA_NAEAVXPacket@@@Z | 0x1401d0630 | blocked | IDA decompile | yes | �����ҵķ��� |
@@ -16608,7 +16608,7 @@ yes | ?????????? |
 | - | - | ??0?$_Pair_base@$$CBKV?$shared_ptr@VCQuestCondition@@@tr1@std@@@std@@QEAA@$$QEBK$$QEAV?$shared_ptr@VCQuestCondition@@@tr1@1@@Z | 0x1403b0010 | blocked | IDA ??0?$_Pair_base@$$CBKV?$shared_ptr@VCQuestCondition@@@tr1@std@@@std@@QEAA@$$QEBK$$QEAV?$shared_ptr@VCQuestCondition@@@tr1@1@@Z | yes | - |
 | - | - | ?ClearParty@XMaze@@QEAAXXZ | 0x1403b0060 | implemented | IDA ?ClearParty@XMaze@@QEAAXXZ | yes | - |
 | - | - | ?Clear@CPartyMember@@QEAAXXZ | 0x1403b00b0 | implemented | IDA ?Clear@CPartyMember@@QEAAXXZ | yes | - |
-| - | - | ?IsReadyToMaze@CForceMember@@QEAA_NXZ | 0x1403b0160 | implemented | IDA ?IsReadyToMaze@CForceMember@@QEAA_NXZ | yes | - |
+| XGameServer | CForce.h | ?IsReadyToMaze@CForceMember@@QEAA_NXZ | 0x1403b0160 | implemented | IDA decompile + PDB | no | Landed inline in CForce.h: GetPartyMemberState() == 2; consumed by CForce::SendEnterMaze broadcast filter. |
 | - | - | ?Login@CPartyMember@@QEAAXXZ | 0x1403b0180 | implemented | IDA ?Login@CPartyMember@@QEAAXXZ | yes | - |
 | - | - | ?SetForceMemeber@CForceMember@@QEAAXAEAUST_FORCE_MEMBER@@@Z | 0x1403b0190 | implemented | IDA ?SetForceMemeber@CForceMember@@QEAAXAEAUST_FORCE_MEMBER@@@Z | yes | - |
 | - | - | ?SetModeState@GameModeBase@@UEAAXH@Z | 0x1403b0220 | implemented | IDA ?SetModeState@GameModeBase@@UEAAXH@Z | yes | - |

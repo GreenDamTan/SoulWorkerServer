@@ -114,6 +114,9 @@ public:
     // IDA 误标为 CFsmTransition::SetOutputState）
     void SetPartyMemberState(int nState) { m_nPartyMemberState = nState; }
 
+    // GetPartyMemberState - 读取成员状态（CForceMember::IsReadyToMaze == 2 判定用）
+    int GetPartyMemberState() const { return m_nPartyMemberState; }
+
 private:
     // === IDA 确认的成员变量 ===
     // offset 0x00: m_partyMemberInfo (88 bytes - ST_PARTY_MEMBER)

@@ -17,6 +17,7 @@
 
 // Forward declarations
 class CUser;
+struct PS_ENTER_MAP_RES;
 class CMover;
 class XSendPacket;
 class XArea;
@@ -49,6 +50,10 @@ public:
     // SetAwaken - Set awaken status
     // IDA: ?SetAwaken@CForceMember@@QEAAXE@Z (via CRespawnManager::SetPause)
     void SetAwaken(std::uint8_t byAwaken);
+
+    // IsReadyToMaze - 是否已准备进迷宫（成员状态 == 2）
+    // IDA: ?IsReadyToMaze@CForceMember@@QEAA_NXZ @ 0x1403B0160
+    bool IsReadyToMaze() { return GetPartyMemberState() == 2; }
 
 protected:
     // Force-specific member data extends CPartyMember
@@ -141,16 +146,29 @@ public:
     // IDA: ?GetMazeRecode@CForce@@QEAAXKPEAH@Z @ 0x1403A6D30
     void GetMazeRecode(std::uint32_t dwActorID, int* pMazeRecode);
 
+    // === Maze Enter (IDA 精确还原，此前 func-index 误归 XRelayServer 的 Force.cpp) ===
+
+    // SendEnterMaze - 单人进迷宫：任务同步、传送门定位、DB Game/统计/日志三包
+    // IDA: ?SendEnterMaze@CForce@@QEAAXPEAVCUser@@AEAUPS_ENTER_MAP_RES@@@Z @ 0x1401B8F00
+    void SendEnterMaze(CUser* pUser, PS_ENTER_MAP_RES* stEnterMapRes);
+
+    // SendEnterMaze - 全员广播进迷宫：对已准备且本线程的成员逐人发送
+    // IDA: ?SendEnterMaze@CForce@@QEAAXAEAUPS_ENTER_MAP_RES@@@Z @ 0x1401BB420
+    void SendEnterMaze(PS_ENTER_MAP_RES* stEnterMapRes);
+
 protected:
     // === IDA confirmed member variables ===
     // Inherited from CParty:
     // - m_dwPartyID
     // - m_dwMasterID
     // - m_mapPartyMember (used as m_mapForceMember)
-    
+
     // Force member map (using inherited m_mapPartyMember)
     std::map<std::uint32_t, CForceMember*> m_mapForceMember;
-    
+
     // Force-specific data
     std::uint8_t m_byForceType = 0;
+
+    // IDA: CForce::m_dwForceID (SendEnterMaze 日志 nParam4 读取)
+    std::uint32_t m_dwForceID = 0;
 };

@@ -4267,19 +4267,114 @@ bool CCommunitySocket::RecvForceMatchingCheck(XPacket* xPacket) {
     return true;
 }
 
-// IDA: ?RecvForceMatchingReset@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z (0x1402172A0)
-// 状态: STUB
-// TODO: 从 IDA 0x1402172A0 反编译还原（lambda233 已知捕获 CUser*/int*/byX2）
+// Per IDA 0x1402172A0: RecvForceMatchingReset
+// Force 匹配重置响应：解析 dwActorID + nRemainTick + byReason + nResetCount ->
+// lambda233 DoJob（(0x2E,0x33) 重置包；byReason==1 加 60 秒并报 53153；
+// ==2 只加 60 秒）+ lambda192 递减。
 bool CCommunitySocket::RecvForceMatchingReset(XPacket* xPacket) {
-    GreenDamTan_log(__FILE__, __FUNCTION__, "RecvForceMatchingReset stub - pending IDA restore");
+    std::uint32_t dwActorID = 0;
+    int nRemainTick = 0;
+    std::uint8_t byReason = 0;
+    int nResetCount = 0;
+
+    xPacket->XParse >> dwActorID;
+    xPacket->XParse >> nRemainTick;
+    xPacket->XParse >> byReason;
+    xPacket->XParse >> nResetCount;
+
+    XGameServer* pServer = XGameServer::Instance();
+    CUser* pUser = pServer ? pServer->FindActorIDToUser(dwActorID) : nullptr;
+
+    if (!pUser) {
+        return true;
+    }
+
+    if (!pUser->GetArea()) {
+        return false;
+    }
+
+    pUser->IncrementJobCount();
+
+    // Per IDA lambda233 (0x1402175A0): 玩家线程处理匹配重置
+    std::function<void()> func = [pUser, nRemainTick, byReason, nResetCount]() {
+        if (!pUser || !pUser->IsLive()) {
+            return;
+        }
+
+        XSendPacket xSendPacket(0x2E, 0x33);
+        xSendPacket.XParse << nRemainTick;
+        xSendPacket.XParse << nResetCount;
+        CGocNetwork::Send(pUser, xSendPacket);
+
+        // Per IDA: byReason==1 加 60 秒并报 53153；==2 只加 60 秒
+        if (byReason == 1) {
+            CGocForce* pGocForce = pUser->GetGOC<CGocForce>();
+            if (pGocForce) {
+                pGocForce->AddMatchingDate(60);
+            }
+            pUser->SendErrorMessage(0x2E, 0x33, 53153);
+        } else if (byReason == 2) {
+            CGocForce* pGocForce = pUser->GetGOC<CGocForce>();
+            if (pGocForce) {
+                pGocForce->AddMatchingDate(60);
+            }
+        }
+    };
+    CLogicThreadManager::Instance().DoJob(pUser->GetMapInsID().nMapID, func);
+
+    std::function<void()> funcDec = [pUser]() {
+        pUser->DecrementJobCount();
+    };
+    CLogicThreadManager::Instance().DoJob(pUser->GetMapInsID().nMapID, funcDec);
+
     return true;
 }
 
-// IDA: ?RecvForceMatchingWait@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z (0x1402177D0)
-// 状态: STUB
-// TODO: 从 IDA 0x1402177D0 反编译还原（lambda235）
+// Per IDA 0x1402177D0: RecvForceMatchingWait
+// Force 匹配等待：解析 dwActorID + dwLeaderID -> lambda235 DoJob
+// （SetMatchingState(1) + (0x2E,0x34) 队长 ID 包）+ lambda192 递减。
 bool CCommunitySocket::RecvForceMatchingWait(XPacket* xPacket) {
-    GreenDamTan_log(__FILE__, __FUNCTION__, "RecvForceMatchingWait stub - pending IDA restore");
+    std::uint32_t dwActorID = 0;
+    std::uint32_t dwLeaderID = 0;
+
+    xPacket->XParse >> dwActorID;
+    xPacket->XParse >> dwLeaderID;
+
+    XGameServer* pServer = XGameServer::Instance();
+    CUser* pUser = pServer ? pServer->FindActorIDToUser(dwActorID) : nullptr;
+
+    if (!pUser) {
+        return true;
+    }
+
+    if (!pUser->GetArea()) {
+        return false;
+    }
+
+    pUser->IncrementJobCount();
+
+    // Per IDA lambda235 (0x140217A10): 玩家线程进入匹配等待
+    std::function<void()> func = [pUser, dwLeaderID]() {
+        if (!pUser || !pUser->IsLive()) {
+            return;
+        }
+
+        CGocForce* pGocForce = pUser->GetGOC<CGocForce>();
+        if (pGocForce) {
+            pGocForce->SetMatchingState(1);
+        }
+
+        XSendPacket xSendPacket(0x2E, 0x34);
+        xSendPacket.XParse << dwLeaderID;
+        CGocNetwork::Send(pUser, xSendPacket);
+    };
+    CLogicThreadManager::Instance().DoJob(pUser->GetMapInsID().nMapID, func);
+
+    std::function<void()> funcDec = [pUser]() {
+        pUser->DecrementJobCount();
+    };
+    CLogicThreadManager::Instance().DoJob(pUser->GetMapInsID().nMapID, funcDec);
+
     return true;
 }
 
@@ -4291,27 +4386,92 @@ bool CCommunitySocket::RecvForceMatchingMaze(XPacket* xPacket) {
     return true;
 }
 
-// IDA: ?RecvForceMazeClear@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z (0x140218700)
-// 状态: STUB
-// TODO: 从 IDA 0x140218700 反编译还原（lambda240 -> XForceManager::RecvForceMazeClear）
+// Per IDA 0x140218700: RecvForceMazeClear
+// Force 迷宫通关：解析 dwForceID -> lambda240 广播到所有线程
+// （XForceManager::RecvForceMazeClear）。
 bool CCommunitySocket::RecvForceMazeClear(XPacket* xPacket) {
-    GreenDamTan_log(__FILE__, __FUNCTION__, "RecvForceMazeClear stub - pending IDA restore");
+    std::uint32_t dwForceID = 0;
+    xPacket->XParse >> dwForceID;
+
+    // Per IDA lambda240 (0x140218780): 所有线程处理迷宫通关
+    std::function<void()> func = [dwForceID]() {
+        ThreadLocalData::GetInstance()->GetForceMgr()->RecvForceMazeClear(dwForceID);
+    };
+    CLogicThreadManager::Instance().DoJobAllThread(func);
+
     return true;
 }
 
-// IDA: ?RecvForceInfo@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z (0x1402187B0)
-// 状态: STUB
-// TODO: 从 IDA 0x1402187B0 反编译还原（lambda241）
+// Per IDA 0x1402187B0: RecvForceInfo
+// Force 信息同步：解析 dwActorID + PS_FORCE_INFO -> lambda241 广播到
+// 所有线程（XForceManager::AddForce）。dwActorID 仅入捕获不参与逻辑。
 bool CCommunitySocket::RecvForceInfo(XPacket* xPacket) {
-    GreenDamTan_log(__FILE__, __FUNCTION__, "RecvForceInfo stub - pending IDA restore");
+    std::uint32_t dwActorID = 0;
+    PS_FORCE_INFO stForceInfo;
+
+    xPacket->XParse >> dwActorID;
+    *xPacket >> stForceInfo;
+
+    // Per IDA lambda241 (0x1402188D0): 所有线程重建 Force 数据
+    std::function<void()> func = [stForceInfo]() {
+        PS_FORCE_INFO stNewInfo = stForceInfo;
+        ThreadLocalData::GetInstance()->GetForceMgr()->AddForce(stNewInfo);
+    };
+    CLogicThreadManager::Instance().DoJobAllThread(func);
+
     return true;
 }
 
-// IDA: ?RecvForceNameChange@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z (0x1402189A0)
-// 状态: STUB
-// TODO: 从 IDA 0x1402189A0 反编译还原（lambda242）
+// Per IDA 0x1402189A0: RecvForceNameChange
+// Force 改名同步：解析 dwUCID + PS_CHANGE_NAME -> 按用户找人 ->
+// lambda242 DoJob（GetGOC<CGocForce> 存在时 ChangePartyMemberName +
+// (8,0x53) 改名包）+ lambda192 递减。找不到人返回 0。
 bool CCommunitySocket::RecvForceNameChange(XPacket* xPacket) {
-    GreenDamTan_log(__FILE__, __FUNCTION__, "RecvForceNameChange stub - pending IDA restore");
+    std::uint32_t dwUCID = 0;
+    PS_CHANGE_NAME stInfo;
+
+    xPacket->XParse >> dwUCID;
+    *xPacket >> stInfo;
+
+    XGameServer* pServer = XGameServer::Instance();
+    CUser* pUser = pServer ? pServer->FindActorIDToUser(dwUCID) : nullptr;
+
+    if (!pUser) {
+        return false;
+    }
+
+    if (!pUser->GetArea()) {
+        return false;
+    }
+
+    pUser->IncrementJobCount();
+
+    // Per IDA lambda242 (0x140218C20): 玩家线程同步改名
+    std::function<void()> func = [pUser, stInfo]() {
+        if (!pUser || !pUser->IsLive()) {
+            return;
+        }
+
+        CGocForce* pGocForce = pUser->GetGOC<CGocForce>();
+        if (!pGocForce) {
+            return;
+        }
+
+        PS_CHANGE_NAME psChangeName = stInfo;
+        pGocForce->ChangePartyMemberName(psChangeName);
+
+        PS_CHANGE_NAME st = stInfo;
+        XSendPacket xSendPacket(8, 0x53);
+        xSendPacket << st;
+        CGocNetwork::Send(pUser, xSendPacket);
+    };
+    CLogicThreadManager::Instance().DoJob(pUser->GetMapInsID().nMapID, func);
+
+    std::function<void()> funcDec = [pUser]() {
+        pUser->DecrementJobCount();
+    };
+    CLogicThreadManager::Instance().DoJob(pUser->GetMapInsID().nMapID, funcDec);
+
     return true;
 }
 

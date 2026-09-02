@@ -1,20 +1,28 @@
 // SHitPartsInfo.h
-// Hit parts info structure for collision detection
-// Reconstructed from IDA
+// Hit parts info structure for CMoverEx::m_sHitParts
+// PDB UDT 0x2B186 (fieldlist 0x2B185), LF_STRUCTURE PACKED, Size = 13:
+//   dwTableID(ulong) +0, byPartsID(uchar) +4, iCurHP(int) +5, iMaxHP(int) +9
+// (此前恢复期臆造的 m_byHitPartType/m_byHitPartIndex/m_fHitPartHeight/
+//  m_fHitPartRadius/m_reserved 布局已按 PDB 删除)
 
 #pragma once
 
 #include <cstdint>
 
-// SHitPartsInfo - Hit parts information
-// Based on IDA: offset 60152, size 26 = 2 * 13 bytes per hit part
+// PDB: PACKED 结构, 禁止编译器填充
+#pragma pack(push, 1)
 struct SHitPartsInfo {
-    std::uint8_t m_byHitPartType = 0;     // Hit part type
-    std::uint8_t m_byHitPartIndex = 0;    // Hit part index
-    float m_fHitPartHeight = 0.0f;        // Hit part height
-    float m_fHitPartRadius = 0.0f;        // Hit part radius
-    std::uint8_t m_reserved[3] = {0};     // Reserved bytes to reach 13 bytes total
-};
+    unsigned int dwTableID = 0;   // +0
+    unsigned char byPartsID = 0;  // +4
+    int iCurHP = 0;               // +5
+    int iMaxHP = 0;               // +9
 
-// Size check disabled for reconstruction - 1 + 1 + 4 + 4 + 3 = 13 bytes
-// static_assert(sizeof(SHitPartsInfo) == 13, "SHitPartsInfo size mismatch");
+    // PDB fieldlist 0x2B185 list[4]: SHitPartsInfo() VANILLA ctor (index 0x2B184)
+    SHitPartsInfo() {}
+};
+#pragma pack(pop)
+
+static_assert(sizeof(SHitPartsInfo) == 13, "SHitPartsInfo size must match PDB (13)");
+static_assert(offsetof(SHitPartsInfo, byPartsID) == 4, "SHitPartsInfo.byPartsID offset mismatch");
+static_assert(offsetof(SHitPartsInfo, iCurHP) == 5, "SHitPartsInfo.iCurHP offset mismatch");
+static_assert(offsetof(SHitPartsInfo, iMaxHP) == 9, "SHitPartsInfo.iMaxHP offset mismatch");

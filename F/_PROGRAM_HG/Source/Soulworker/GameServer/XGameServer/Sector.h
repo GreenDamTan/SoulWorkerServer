@@ -278,6 +278,14 @@ public:
     void SetRogueKey(int nKey) { m_nRogueKey = nKey; }
     void SetRoguelikeLimitTime(unsigned int dwTime) { m_dwRoguelikeLimitTime = dwTime; }
 
+    // === Sector start box accessor ===
+    // IDA 0x14031F9B0 (XMaze::SpawnSectorMonsterForOpt): 经 CSector+0x30
+    // m_pSectorStartBox 读 +444 m_iRelativeSectorID 修正 nEnd。
+    // PDB 修正: CSector+0x30 实际类型为 VSectorBoxInfo* (UDT 0x7426B, 468B)，
+    // 早前落地为 VSectorStartBoxInfo* (UDT 0x4AA64, 168B) 属臆造；
+    // 完整 VSectorBoxInfo 定义待 CSector 布局对齐批次统一还原。
+    VSectorStartBoxInfo* GetSectorStartBox() const { return m_pSectorStartBox; }
+
     // === Getters ===
     XMaze* GetMaze() const { return m_pMaze; }
     XGameMode* GetGameMode() const { return m_pGameMode; }

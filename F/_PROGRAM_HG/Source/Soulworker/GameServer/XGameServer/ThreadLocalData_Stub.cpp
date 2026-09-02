@@ -23,6 +23,9 @@
 #include "Soulworker/GameServer/XGameServer/Npc.h"
 #include "Soulworker/GameServer/XGameServer/XMonsterMgr.h"
 #include "Soulworker/GameServer/XCore/XServer/GreenDamTan_LogHelper.h"
+#include "Soulworker/GameServer/XGameServer/LeagueMember.h"
+#include "Soulworker/GameServer/XGameServer/XPartyManager.h"
+#include "Soulworker/GameServer/XGameServer/User.h"
 
 namespace {
 struct GreenDamTan_ThreadLocalSlots {
@@ -49,7 +52,7 @@ ThreadLocalData::ThreadLocalData()
     , m_nReportSynctime(0)
     , m_nThreadCount(0)
     , m_nOwnerThreadIndex(0)
-    , m_xPartyMgr(nullptr)
+    , m_xPartyMgr(new XPartyManager())
     , m_xForceMgr(nullptr)
     , m_xMonsterMgr(new XMonsterMgr())
     , m_xNpcMgr(nullptr)
@@ -78,6 +81,8 @@ ThreadLocalData::ThreadLocalData()
 }
 
 ThreadLocalData::~ThreadLocalData() {
+    delete m_xPartyMgr;
+    m_xPartyMgr = nullptr;
     delete m_xMonsterMgr;
     m_xMonsterMgr = nullptr;
 }
@@ -258,6 +263,37 @@ void ThreadLocalData::DeleteNpc(CNpc* pNpc) {
     delete pNpc;
 }
 
+// ============================================================================
+// CreateAkashicObject
+// IDA: ?CreateAkashicObject@ThreadLocalData@@QEAAPEAVCAkashicObject@@PEAVXArea@@TUXMapID@@HUXVec3@@MK@Z (0x1406D8FB0)
+// 状态: 部分还原 - 原始逻辑 XAkashicObjectMgr::Create(&m_xAkashicMgr, uxMapID,
+//   nAkashicID, vPos, fRot, dwParentID) -> 非空 vftable SetArea(pArea)
+// TODO: 需人工审查 - XAkashicObjectMgr.h 半成品 (自造 TXObjectMgr 特化与
+//   IXObject.h 主模板冲突), AkashicMgr 批次按 XMonsterMgr 自足类模式重写后
+//   恢复完整链
+// ============================================================================
+CAkashicObject* ThreadLocalData::CreateAkashicObject(XArea* pArea, UXMapID uxMapID,
+                                                    int nAkashicID, XVec3* vPos,
+                                                    float fRot, unsigned int dwParentID) {
+    (void)pArea;
+    (void)uxMapID;
+    (void)nAkashicID;
+    (void)vPos;
+    (void)fRot;
+    (void)dwParentID;
+    return nullptr;
+}
+
+// ============================================================================
+// DeleteAkashicObject
+// IDA: ?DeleteAkashicObject@ThreadLocalData@@QEAAXPEAVCAkashicObject@@@Z (0x1406D9070)
+// 状态: STUB - 原始逻辑 XMonsterMgr::Delete(&this->m_xAkashicMgr, pAkashic)
+// TODO: 需人工审查 - 同 CreateAkashicObject, AkashicMgr 批次后恢复
+// ============================================================================
+void ThreadLocalData::DeleteAkashicObject(CAkashicObject* pAkashic) {
+    (void)pAkashic;
+}
+
 void ThreadLocalData::SendWorldEventBooster(
     unsigned long dwBuffID,
     __int64 biEndDate) {
@@ -336,4 +372,442 @@ void ThreadLocalData::CreateMatchingMaze(ST_CREATE_MAZE& stCreateMaze, PS_FORCE_
     LogHelper::LogError("game.contents",
         "CreateMatchingMaze error - Failed create maze no pool[ MapID:%I64d ] ( %d )",
         stCreateMaze.uxMapID.nMapID, 409);
+}
+
+// ============================================================================
+// AddLeagueMember - IDA @ 0x1406D70A0
+// 状态: 部分还原 - m_mapLeagueMember 在活动层为 void* 占位映射
+// （原始 0x1450 布局中为 std::map<unsigned long, CLeagueMember*>）。
+// TODO: 需人工审查 - 完整布局批次应把成员改回强类型 CLeagueMember* 映射；
+// 当前按 IDA 逻辑落地: 按 nLeagueID 查找 -> 已存在则 AddLeagueMember +
+// CompareSyncCount；不存在则 new CLeagueMember + AddLeagueMember + 插入 +
+// SendSyncLeagueInfo。
+void ThreadLocalData::AddLeagueMember(CUser* pUser) {
+    if (!pUser) {
+        return;
+    }
+
+    const int nLeagueID = pUser->GetLeagueID();
+    auto it = m_mapLeagueMember.find(static_cast<unsigned int>(nLeagueID));
+    if (it != m_mapLeagueMember.end()) {
+        CLeagueMember* pLeagueMember = static_cast<CLeagueMember*>(it->second);
+        if (pLeagueMember) {
+            pLeagueMember->AddLeagueMember(pUser);
+            pLeagueMember->CompareSyncCount(pUser->GetActorID().dwActorID);
+        }
+        return;
+    }
+
+    CLeagueMember* pLeagueMember = new CLeagueMember();
+    if (!pLeagueMember) {
+        return;
+    }
+    pLeagueMember->AddLeagueMember(pUser);
+    m_mapLeagueMember[static_cast<unsigned int>(nLeagueID)] = pLeagueMember;
+    pLeagueMember->SendSyncLeagueInfo(pUser);
+}
+
+// ============================================================================
+// CompareLeagueInventoryCount - IDA @ 0x1406DA820
+// 已精确还原 - 按 nLeagueID 查 m_mapLeagueMember；
+// 未命中返回 false；命中且非空则交给 CLeagueMember::CompareInventorySyncCount。
+// 说明: m_mapLeagueMember 在活动层为 void* 占位映射（同 AddLeagueMember）。
+bool ThreadLocalData::CompareLeagueInventoryCount(unsigned int nLeagueID, unsigned int dwUCID) {
+    auto it = m_mapLeagueMember.find(nLeagueID);
+    if (it == m_mapLeagueMember.end()) {
+        return false;
+    }
+    CLeagueMember* pMember = static_cast<CLeagueMember*>(it->second);
+    if (pMember) {
+        return pMember->CompareInventorySyncCount(dwUCID);
+    }
+    return false;
+}
+
+// ============================================================================
+// SendLeagueApply - IDA @ 0x1406D7540
+// 已精确还原 - 按 stApplicant.nLeagueID 查 m_mapLeagueMember；
+// 命中且非空则把 ST_LEAGUE_APPLICANT 按值副本交给
+// CLeagueMember::SendLeagueApply。
+// 说明: m_mapLeagueMember 在活动层为 void* 占位映射（同 AddLeagueMember）。
+void ThreadLocalData::SendLeagueApply(ST_LEAGUE_APPLICANT& stApplicant) {
+    auto it = m_mapLeagueMember.find(static_cast<unsigned int>(stApplicant.nLeagueID));
+    if (it == m_mapLeagueMember.end()) {
+        return;
+    }
+    CLeagueMember* pMember = static_cast<CLeagueMember*>(it->second);
+    if (pMember) {
+        pMember->SendLeagueApply(stApplicant);
+    }
+}
+
+// ============================================================================
+// SendLeagueRecruitNoticeToMember - IDA @ 0x1406D9600
+// 已精确还原 - 按 stRecruitNoticeInfo.nLeagueID 查 m_mapLeagueMember；
+// 命中且非空则把 ST_LEAGUE_RECRUIT_NOTICE 按值副本连同剩余时间交给
+// CLeagueMember::SendLeagueRecruitNotice。
+// 说明: m_mapLeagueMember 在活动层为 void* 占位映射（同 AddLeagueMember）。
+void ThreadLocalData::SendLeagueRecruitNoticeToMember(ST_LEAGUE_RECRUIT_NOTICE& stRecruitNoticeInfo, __int64 biRemainTime) {
+    auto it = m_mapLeagueMember.find(static_cast<unsigned int>(stRecruitNoticeInfo.nLeagueID));
+    if (it == m_mapLeagueMember.end()) {
+        return;
+    }
+    CLeagueMember* pMember = static_cast<CLeagueMember*>(it->second);
+    if (pMember) {
+        pMember->SendLeagueRecruitNotice(stRecruitNoticeInfo, biRemainTime);
+    }
+}
+
+// ============================================================================
+// SendLeagueRecordUpdate - IDA @ 0x1406D9890
+// 已精确还原 - 按 stRecordInfo.nLeagueID 查 m_mapLeagueMember；
+// 命中且非空则把 ST_LEAGUE_RECORD 按值副本交给 CLeagueMember::Record。
+// 说明: m_mapLeagueMember 在活动层为 void* 占位映射（同 AddLeagueMember）。
+void ThreadLocalData::SendLeagueRecordUpdate(ST_LEAGUE_RECORD& stRecordInfo) {
+    auto it = m_mapLeagueMember.find(static_cast<unsigned int>(stRecordInfo.nLeagueID));
+    if (it == m_mapLeagueMember.end()) {
+        return;
+    }
+    CLeagueMember* pMember = static_cast<CLeagueMember*>(it->second);
+    if (pMember) {
+        pMember->Record(stRecordInfo);
+    }
+}
+
+// ============================================================================
+// DeleteLeague - IDA @ 0x1406D74A0
+// 已精确还原 - 按 nLeagueID 查 m_mapLeagueMember；命中则先对成员管理器执行
+// CLeagueMember::DeleteLeagueMember(dwUCID)，再从映射中移除该条目。
+// 说明: m_mapLeagueMember 在活动层为 void* 占位映射（同 AddLeagueMember）。
+void ThreadLocalData::DeleteLeague(unsigned int nLeagueID, unsigned int dwUCID) {
+    auto it = m_mapLeagueMember.find(nLeagueID);
+    if (it == m_mapLeagueMember.end()) {
+        return;
+    }
+    CLeagueMember* pMember = static_cast<CLeagueMember*>(it->second);
+    if (pMember) {
+        pMember->DeleteLeagueMember(dwUCID);
+    }
+    m_mapLeagueMember.erase(it);
+}
+
+// ============================================================================
+// SendLeagueKickout - IDA @ 0x1406D97C0
+// 已精确还原 - 按 nLeagueID 查 m_mapLeagueMember；命中则
+// CLeagueMember::UpdateSyncCount(nSyncCount) + KickoutLeagueMember
+// (dwReqUCID, dwKickoutUCID, stUpdateInfo 按值副本)。
+void ThreadLocalData::SendLeagueKickout(unsigned int nLeagueID, int dwReqUCID,
+                                        unsigned int dwKickoutUCID,
+                                        ST_LEAGUE_INFO_UPDATE& stUpdateInfo,
+                                        int nSyncCount) {
+    auto it = m_mapLeagueMember.find(nLeagueID);
+    if (it == m_mapLeagueMember.end()) {
+        return;
+    }
+    CLeagueMember* pMember = static_cast<CLeagueMember*>(it->second);
+    if (!pMember) {
+        return;
+    }
+    pMember->UpdateSyncCount(nSyncCount);
+    ST_LEAGUE_INFO_UPDATE stUpdate = stUpdateInfo;
+    pMember->KickoutLeagueMember(dwReqUCID, dwKickoutUCID, stUpdate);
+}
+
+// ============================================================================
+// LeagueInfoChange - IDA @ 0x1406D7750
+// 已精确还原 - 按 stInfo.nLeagueID 查 m_mapLeagueMember；命中则把
+// ST_LEAGUE_INFO 按值副本交给 CLeagueMember::SendLeagueInfo 广播。
+// 说明: m_mapLeagueMember 在活动层为 void* 占位映射（同 AddLeagueMember）。
+void ThreadLocalData::LeagueInfoChange(ST_LEAGUE_INFO stInfo) {
+    auto it = m_mapLeagueMember.find(static_cast<unsigned int>(stInfo.nLeagueID));
+    if (it == m_mapLeagueMember.end()) {
+        return;
+    }
+    CLeagueMember* pMember = static_cast<CLeagueMember*>(it->second);
+    if (!pMember) {
+        return;
+    }
+    ST_LEAGUE_INFO stCopy = stInfo;
+    pMember->SendLeagueInfo(stCopy);
+}
+
+// ============================================================================
+// UpdateLeagueMember - IDA @ 0x1406D7B10
+// 已精确还原 - 按 stUpdate.nLeagueID 查 m_mapLeagueMember；命中且非空则把
+// ST_LEAGUE_MEMBER_UPDATE 按值副本交给 CLeagueMember::UpdateLeagueMember
+// 向未同步成员广播 (0x22,0x22)。
+// 说明: m_mapLeagueMember 在活动层为 void* 占位映射（同 AddLeagueMember）。
+void ThreadLocalData::UpdateLeagueMember(ST_LEAGUE_MEMBER_UPDATE stUpdate) {
+    auto it = m_mapLeagueMember.find(static_cast<unsigned int>(stUpdate.nLeagueID));
+    if (it == m_mapLeagueMember.end()) {
+        return;
+    }
+    CLeagueMember* pMember = static_cast<CLeagueMember*>(it->second);
+    if (!pMember) {
+        return;
+    }
+    ST_LEAGUE_MEMBER_UPDATE stCopy = stUpdate;
+    pMember->UpdateLeagueMember(stCopy);
+}
+
+// ============================================================================
+// SendLeagueNoticeChangeToMember - IDA @ 0x1406D9540
+// 已精确还原 - 按 stNotice.nLeagueID 查 m_mapLeagueMember；命中且非空则把
+// ST_LEAGUE_NOTICE 按值副本交给 CLeagueMember::SendLeagueNotice(stNotice,
+// dwReqUCID) 向未同步且非 dwReqUCID 本人的成员广播 (0x22,0x29)。
+// 说明: m_mapLeagueMember 在活动层为 void* 占位映射（同 AddLeagueMember）。
+void ThreadLocalData::SendLeagueNoticeChangeToMember(ST_LEAGUE_NOTICE stNotice, unsigned int dwReqUCID) {
+    auto it = m_mapLeagueMember.find(static_cast<unsigned int>(stNotice.nLeagueID));
+    if (it == m_mapLeagueMember.end()) {
+        return;
+    }
+    CLeagueMember* pMember = static_cast<CLeagueMember*>(it->second);
+    if (!pMember) {
+        return;
+    }
+    ST_LEAGUE_NOTICE stCopy = stNotice;
+    pMember->SendLeagueNotice(stCopy, dwReqUCID);
+}
+
+// ============================================================================
+// ChangeLeagueAuth - IDA @ 0x1406D7800
+// 已精确还原 - 按 nLeagueID 查 m_mapLeagueMember；命中且非空则先
+// CLeagueMember::UpdateSyncCount(nSyncCount)，再把 ST_LEAGUE_AUTH_CHANGE
+// 按值副本交给 CLeagueMember::ChangeLeagueAuth 广播。
+// 说明: m_mapLeagueMember 在活动层为 void* 占位映射（同 AddLeagueMember）。
+void ThreadLocalData::ChangeLeagueAuth(ST_LEAGUE_AUTH_CHANGE stChange, int nLeagueID, int nSyncCount) {
+    auto it = m_mapLeagueMember.find(static_cast<unsigned int>(nLeagueID));
+    if (it == m_mapLeagueMember.end()) {
+        return;
+    }
+    CLeagueMember* pMember = static_cast<CLeagueMember*>(it->second);
+    if (!pMember) {
+        return;
+    }
+    pMember->UpdateSyncCount(nSyncCount);
+    ST_LEAGUE_AUTH_CHANGE stCopy = stChange;
+    pMember->ChangeLeagueAuth(stCopy);
+}
+
+// ============================================================================
+// SendLeagueMsg - IDA @ 0x1406D7BC0
+// 已精确还原 - 按 stChatInfo.dwLeagueID 查 m_mapLeagueMember；命中且非空则把
+// PS_CHAT_LEAGUE 与 PS_CHAT_ITEM_LINK_FOR_SERVER 按值副本交给
+// CLeagueMember::SendLeagueMsg 广播 (7,1) 聊天包。
+// 说明: m_mapLeagueMember 在活动层为 void* 占位映射（同 AddLeagueMember）。
+void ThreadLocalData::SendLeagueMsg(PS_CHAT_LEAGUE psChatInfo, PS_CHAT_ITEM_LINK_FOR_SERVER psLinkItemInfo) {
+    auto it = m_mapLeagueMember.find(static_cast<unsigned int>(psChatInfo.dwLeagueID));
+    if (it == m_mapLeagueMember.end()) {
+        return;
+    }
+    CLeagueMember* pMember = static_cast<CLeagueMember*>(it->second);
+    if (!pMember) {
+        return;
+    }
+    PS_CHAT_LEAGUE stChatCopy = psChatInfo;
+    PS_CHAT_ITEM_LINK_FOR_SERVER psLinkCopy = psLinkItemInfo;
+    pMember->SendLeagueMsg(stChatCopy, psLinkCopy);
+}
+
+// ============================================================================
+// SendLeagueDelegate - IDA @ 0x1406DA1B0
+// 已精确还原 - 按 psDelegateRes.nLeagueID 查 m_mapLeagueMember；命中且非空则先
+// CLeagueMember::UpdateSyncCount(nSyncCount)，再把 PS_RES_LEAGUE_DELEGATE
+// 按值副本交给 CLeagueMember::Delegate(stCopy, dwDelegatedUCID)。
+// 说明: m_mapLeagueMember 在活动层为 void* 占位映射（同 AddLeagueMember）。
+void ThreadLocalData::SendLeagueDelegate(PS_RES_LEAGUE_DELEGATE& psDelegateRes,
+                                         unsigned int dwDelegatedUCID,
+                                         int nSyncCount) {
+    auto it = m_mapLeagueMember.find(static_cast<unsigned int>(
+        psDelegateRes.nLeagueID));
+    if (it == m_mapLeagueMember.end()) {
+        return;
+    }
+    CLeagueMember* pMember = static_cast<CLeagueMember*>(it->second);
+    if (!pMember) {
+        return;
+    }
+    pMember->UpdateSyncCount(nSyncCount);
+    PS_RES_LEAGUE_DELEGATE psCopy = psDelegateRes;
+    pMember->Delegate(psCopy, dwDelegatedUCID);
+}
+
+// ============================================================================
+// SendLeagueInventoryMove - IDA @ 0x1406DA3C0
+// 已精确还原 - 先做 psResItemMoveInfo 副本并把 psStorageInfo.stItem 覆盖
+// 副本的 stItem；按 psReqItemMoveInfo.nLeagueID 查 m_mapLeagueMember；
+// 命中且非空则先 CLeagueMember::UpdateInventorySyncCount(nInventorySync)，
+// 再把 PS_RES_ITEM_MOVE_LEAGUE_INVEN 按值副本交给
+// CLeagueMember::InventoryMove(dwReqUCID, stCopy)。
+// 说明: m_mapLeagueMember 在活动层为 void* 占位映射（同 AddLeagueMember）。
+void ThreadLocalData::SendLeagueInventoryMove(
+        unsigned int dwReqUCID,
+        PS_ITEM_MOVE_LEAGUE_INVEN_FOR_GAME& psItemMoveForServer) {
+    PS_RES_ITEM_MOVE_LEAGUE_INVEN psItemMoveInfo = psItemMoveForServer.psResItemMoveInfo;
+    psItemMoveInfo.stItem = psItemMoveForServer.psStorageInfo.stItem;
+
+    auto it = m_mapLeagueMember.find(static_cast<unsigned int>(
+        psItemMoveForServer.psReqItemMoveInfo.nLeagueID));
+    if (it == m_mapLeagueMember.end()) {
+        return;
+    }
+    CLeagueMember* pMember = static_cast<CLeagueMember*>(it->second);
+    if (!pMember) {
+        return;
+    }
+    pMember->UpdateInventorySyncCount(psItemMoveForServer.nInventorySync);
+    PS_RES_ITEM_MOVE_LEAGUE_INVEN psCopy = psItemMoveInfo;
+    pMember->InventoryMove(dwReqUCID, psCopy);
+}
+
+// ============================================================================
+// SendLeagueJoinUser_Invite - IDA @ 0x1406D96C0
+// 已精确还原 - 按 stMemberEx.stMember.nLeagueID 查 m_mapLeagueMember；
+// 命中且非空则先 CLeagueMember::UpdateSyncCount(nSyncCount)，再把
+// ST_LEAGUE_MEMBER_EX 与 ST_LEAGUE_INFO_UPDATE 按值副本连同 byApplyState
+// 交给 CLeagueMember::JoinLeagueUser(stCopy, stUpdateCopy, byApplyState)。
+// 说明: m_mapLeagueMember 在活动层为 void* 占位映射（同 AddLeagueMember）。
+void ThreadLocalData::SendLeagueJoinUser_Invite(ST_LEAGUE_MEMBER_EX stMemberEx,
+                                               ST_LEAGUE_INFO_UPDATE stInfoUpdate,
+                                               unsigned char byApplyState,
+                                               int nSyncCount) {
+    auto it = m_mapLeagueMember.find(static_cast<unsigned int>(
+        stMemberEx.stMember.nLeagueID));
+    if (it == m_mapLeagueMember.end()) {
+        return;
+    }
+    CLeagueMember* pMember = static_cast<CLeagueMember*>(it->second);
+    if (!pMember) {
+        return;
+    }
+    pMember->UpdateSyncCount(nSyncCount);
+    ST_LEAGUE_MEMBER_EX stMemberCopy = stMemberEx;
+    ST_LEAGUE_INFO_UPDATE stUpdateCopy = stInfoUpdate;
+    pMember->JoinLeagueUser(stMemberCopy, stUpdateCopy, byApplyState);
+}
+
+// ============================================================================
+// SendLeagueJoinUser_Apply - IDA @ 0x1406D7300
+// 已精确还原 - 按 stMemberEx.stMember.nLeagueID 查 m_mapLeagueMember；
+// 命中且非空则先 CLeagueMember::UpdateSyncCount(nSyncCount)，再把
+// ST_LEAGUE_MEMBER_EX 与 ST_LEAGUE_INFO_UPDATE 按值副本交给
+// CLeagueMember::JoinLeagueUser(stCopy, stUpdateCopy, 1)。
+// 说明: m_mapLeagueMember 在活动层为 void* 占位映射（同 AddLeagueMember）。
+void ThreadLocalData::SendLeagueJoinUser_Apply(ST_LEAGUE_MEMBER_EX stMemberEx,
+                                               ST_LEAGUE_INFO_UPDATE stInfoUpdate,
+                                               int nSyncCount) {
+    auto it = m_mapLeagueMember.find(static_cast<unsigned int>(
+        stMemberEx.stMember.nLeagueID));
+    if (it == m_mapLeagueMember.end()) {
+        return;
+    }
+    CLeagueMember* pMember = static_cast<CLeagueMember*>(it->second);
+    if (!pMember) {
+        return;
+    }
+    pMember->UpdateSyncCount(nSyncCount);
+    ST_LEAGUE_MEMBER_EX stMemberCopy = stMemberEx;
+    ST_LEAGUE_INFO_UPDATE stUpdateCopy = stInfoUpdate;
+    pMember->JoinLeagueUser(stMemberCopy, stUpdateCopy, 1);
+}
+
+// ============================================================================
+// LeagueApplicantUpdate - IDA @ 0x1406D7CC0
+// 已精确还原 - 遍历 stUpdateList.vecInfo，逐项按 dwActorID 查
+// m_mapLeagueMember；命中且非空则 CLeagueMember::UpdateApplicantList(dwUCID)。
+// 说明: m_mapLeagueMember 在活动层为 void* 占位映射（同 AddLeagueMember）。
+void ThreadLocalData::LeagueApplicantUpdate(ST_LEAGUE_APPLICANT_CHECK_LIST& stUpdateList,
+                                            unsigned int dwUCID) {
+    for (std::size_t i = 0; i < stUpdateList.vecInfo.size(); ++i) {
+        auto it = m_mapLeagueMember.find(stUpdateList.vecInfo[i]);
+        if (it == m_mapLeagueMember.end()) {
+            continue;
+        }
+        CLeagueMember* pMember = static_cast<CLeagueMember*>(it->second);
+        if (pMember) {
+            pMember->UpdateApplicantList(dwUCID);
+        }
+    }
+}
+
+// ============================================================================
+// UpdateMemberPosition - IDA @ 0x1406D7980
+// 已精确还原 - 按 nLeagueID 查 m_mapLeagueMember；命中且非空则先
+// CLeagueMember::UpdateSyncCount(nSyncCount)，再把 ST_LEAGUE_MEMBER_POSITION
+// (0xC 字节) 按值副本交给 CLeagueMember::ChangeLeagueMemberPosition
+// (stCopy, dwActorID) 广播。
+// 说明: m_mapLeagueMember 在活动层为 void* 占位映射（同 AddLeagueMember）。
+void ThreadLocalData::UpdateMemberPosition(ST_LEAGUE_MEMBER_POSITION stPosition,
+                                          unsigned int nLeagueID,
+                                          unsigned int dwActorID, int nSyncCount) {
+    auto it = m_mapLeagueMember.find(static_cast<unsigned int>(nLeagueID));
+    if (it == m_mapLeagueMember.end()) {
+        return;
+    }
+    CLeagueMember* pMember = static_cast<CLeagueMember*>(it->second);
+    if (!pMember) {
+        return;
+    }
+    pMember->UpdateSyncCount(nSyncCount);
+    ST_LEAGUE_MEMBER_POSITION stCopy = stPosition;
+    pMember->ChangeLeagueMemberPosition(stCopy, dwActorID);
+}
+
+// ============================================================================
+// ChangePositionName - IDA @ 0x1406D78D0
+// 已精确还原 - 按 nLeagueID 查 m_mapLeagueMember；命中且非空则把
+// ST_LEAGUE_POSITION_NAME_CHANGE 按值副本交给 CLeagueMember::ChangeLeaguePositionName
+// 向未同步成员广播 (0x22,0x33)。
+// 说明: m_mapLeagueMember 在活动层为 void* 占位映射（同 AddLeagueMember）。
+void ThreadLocalData::ChangePositionName(ST_LEAGUE_POSITION_NAME_CHANGE stChange, int nLeagueID) {
+    auto it = m_mapLeagueMember.find(static_cast<unsigned int>(nLeagueID));
+    if (it == m_mapLeagueMember.end()) {
+        return;
+    }
+    CLeagueMember* pMember = static_cast<CLeagueMember*>(it->second);
+    if (!pMember) {
+        return;
+    }
+    ST_LEAGUE_POSITION_NAME_CHANGE stCopy = stChange;
+    pMember->ChangeLeaguePositionName(stCopy);
+}
+
+// ============================================================================
+// SendLeagueCardChange - IDA @ 0x1406D9940
+// 已精确还原 - 按 psCardInfo.nLeagueID 查 m_mapLeagueMember；命中且非空则先
+// CLeagueMember::UpdateSyncCount(nSyncCount)，再把 PS_REQ_LEAGUE_CARD (0x10 字节)
+// 按值副本交给 CLeagueMember::CardChange 广播。
+// 说明: m_mapLeagueMember 在活动层为 void* 占位映射（同 AddLeagueMember）。
+void ThreadLocalData::SendLeagueCardChange(PS_REQ_LEAGUE_CARD psCardInfo, int nSyncCount) {
+    auto it = m_mapLeagueMember.find(static_cast<unsigned int>(psCardInfo.nLeagueID));
+    if (it == m_mapLeagueMember.end()) {
+        return;
+    }
+    CLeagueMember* pMember = static_cast<CLeagueMember*>(it->second);
+    if (!pMember) {
+        return;
+    }
+    pMember->UpdateSyncCount(nSyncCount);
+    PS_REQ_LEAGUE_CARD psCopy = psCardInfo;
+    pMember->CardChange(psCopy);
+}
+
+// ============================================================================
+// SendLeagueChangeName - IDA @ 0x1406DA280
+// 已精确还原 - 按 psResChangeInfo.nLeagueID 查 m_mapLeagueMember；命中且非空则先
+// CLeagueMember::UpdateSyncCount(nSyncCount)，再把 PS_RES_LEAGUE_NAME_CHANGE
+// (0x1C 字节) 按值副本交给 CLeagueMember::ChangeName 广播。
+// 说明: m_mapLeagueMember 在活动层为 void* 占位映射（同 AddLeagueMember）。
+void ThreadLocalData::SendLeagueChangeName(PS_RES_LEAGUE_NAME_CHANGE& psResChangeInfo, int nSyncCount) {
+    auto it = m_mapLeagueMember.find(static_cast<unsigned int>(psResChangeInfo.nLeagueID));
+    if (it == m_mapLeagueMember.end()) {
+        return;
+    }
+    CLeagueMember* pMember = static_cast<CLeagueMember*>(it->second);
+    if (!pMember) {
+        return;
+    }
+    pMember->UpdateSyncCount(nSyncCount);
+    PS_RES_LEAGUE_NAME_CHANGE psCopy = psResChangeInfo;
+    pMember->ChangeName(psCopy);
 }

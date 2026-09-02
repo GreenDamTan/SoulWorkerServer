@@ -140,14 +140,15 @@ static_assert(sizeof(CPartyMember) == 0x90, "CPartyMember size must be 0x90 byte
 
 // ============================================================================
 // ST_EnterMazeRequst - 进入迷宫请求结构
+// PDB UDT 0x730ab (CForce::STEnterMazeRequst, CParty/CForce 共享):
+//   stMazeInfo (PS_ENTER_MAP_REQ, +0) + dwEndTime (uint64, +88), Size 96
 // ============================================================================
 struct ST_EnterMazeRequst {
-    std::uint16_t wMapID = 0;
-    std::int16_t nJumpID = 0;
-    std::uint32_t dwServerID = 0;
-    int nPortalID = 0;
-    std::uint8_t _pad0[4] = {};
+    PS_ENTER_MAP_REQ stMazeInfo{};
+    std::uint64_t dwEndTime = 0;
 };
+static_assert(sizeof(ST_EnterMazeRequst) == 96,
+              "ST_EnterMazeRequst size must match PDB UDT 0x730ab");
 
 // ============================================================================
 // CParty - 队伍类
@@ -320,6 +321,10 @@ public:
     // IDA: ?EnterMaze@CParty@@QEAA_NPEAVCUser@@TUXMapID@@AEAUPS_ENTER_MAP_REQ@@@Z @ 0x1403A8940
     bool EnterMaze(CUser* pReqUser, UXMapID uxMazeID, struct PS_ENTER_MAP_REQ* stEnterMap);
 
+    // EnterMazeByForce - 强制进入迷宫 (ReqWorldEnterByForce lambda14 调用链)
+    // IDA: ?EnterMazeByForce@CParty@@QEAA_NPEAVCUser@@TUXMapID@@AEAUPS_ENTER_MAP_REQ@@@Z @ 0x1403AAED0
+    bool EnterMazeByForce(CUser* pReqUser, UXMapID uxMazeID, struct PS_ENTER_MAP_REQ* stEnterMap);
+
     // === Reward Functions ===
 
     // OrderPlayPoint - 排序游戏点数
@@ -380,7 +385,27 @@ public:
     void SetLoad(bool bLoad) { m_bLoad = bLoad ? 1 : 0; }
 
     // SetEnterMazeRequst - 设置进入迷宫请求
-    void SetEnterMazeRequst(const ST_EnterMazeRequst& stRequest) { m_stEnterMazeRequst = stRequest; }
+    // IDA: ?SetEnterMazeRequst@CParty@@QEAAXAEAUPS_ENTER_MAP_REQ@@@Z @ 0x1401B9EF0
+    //      (CParty/CForce 共享同一 COMDAT 体)
+    void SetEnterMazeRequst(PS_ENTER_MAP_REQ& stEnterMap);
+
+    // GetEnterMazeRequest - 获取进行中的进迷宫请求
+    // IDA: ?GetEnterMazeRequest@CParty@@QEAAPEAUSTEnterMazeRequst@1@XZ
+    //      (publics RVA 0x2E250; CParty/CForce 共享 COMDAT；
+    //       ReqWorldEnterByForce lambda14 以 stMazeInfo.wMapID (+16) 读取)
+    ST_EnterMazeRequst* GetEnterMazeRequest() { return &m_stEnterMazeRequst; }
+
+    // SetEnterMazeResponse - 登记进入迷宫响应，全员同意后广播
+    // IDA: ?SetEnterMazeResponse@CParty@@QEAA_NK@Z @ 0x1403AA360
+    bool SetEnterMazeResponse(std::uint32_t dwAgreeActor);
+
+    // CreateMazeReq - 构造 ST_CREATE_MAZE 并经控制服转发创建请求
+    // IDA: ?CreateMazeReq@CParty@@QEAAXXZ @ 0x1403AAD60
+    void CreateMazeReq();
+
+    // AgreeEnterMaze - 广播同意进入迷宫 (0x11, 0x4A) 给全部已准备成员
+    // IDA: ?AgreeEnterMaze@CParty@@QEAAXK@Z @ 0x1403AA1F0
+    void AgreeEnterMaze(std::uint32_t dwAgreeActor);
 
 protected:
     // === IDA 确认的成员变量 ===

@@ -5,9 +5,15 @@
 #include "Soulworker/GameServer/XGameServer/CParty.h"
 #include "Soulworker/GameServer/XGameServer/ThreadLocalData.h"
 #include "Soulworker/GameServer/XGameServer/User.h"
+#include "Soulworker/GameServer/XGameServer/GameServer.h"
+#include "Soulworker/GameServer/XGameServer/XWorldResMgr.h"
 #include "Soulworker/GameServer/XGameServer/actor/component/GocNetwork.h"
 #include "Soulworker/GameServer/XGameServer/actor/component/GocSkill.h"
 #include "Soulworker/GameServer/XGameServer/actor/component/GocAkashicRecord.h"
+#include "Soulworker/GameServer/XGameServer/actor/component/GocQuest.h"
+#include "Soulworker/GameServer/XGameServer/actor/component/GocRecode.h"
+#include "Soulworker/GameServer/XGameServer/actor/component/GocAttribute.h"
+#include "Soulworker/GameServer/XGameServer/actor/component/GocEntity.h"
 #include "Soulworker/Common/XNet/XIOCPBase/Packet.h"
 #include "Soulworker/Common/XNet/XCommon/PSServer/PSServerParty.h"
 
@@ -649,6 +655,278 @@ bool CParty::EnterMaze(CUser* pReqUser, UXMapID uxMazeID, PS_ENTER_MAP_REQ* stEn
     }
 
     return true;
+}
+
+// ============================================================================
+// CParty::EnterMazeByForce - 强制进入迷宫
+// IDA: ?EnterMazeByForce@CParty@@QEAA_NPEAVCUser@@TUXMapID@@AEAUPS_ENTER_MAP_REQ@@@Z
+//      @ 0x1403AAED0
+// 已精确还原 - ReqWorldEnterByForce lambda14 (0x14062DD90) 的调用链。
+// 精简版 EnterMaze：跳过组队成员遍历的物品/疲劳/社交校验（原版完整链在
+// EnterMaze 0x1403A8940），仅保留：无效用户 / 表缺失 / Maze_Type 5/11 拒绝 /
+// 已有目标迷宫时转发控制服 (0xF3,0x16) / 无 MapID 拒绝 / 非队长拒绝 /
+// CanEnterPortal / GetPortalPos / 成员准备登记。
+// ============================================================================
+bool CParty::EnterMazeByForce(CUser* pReqUser, UXMapID uxMazeID, PS_ENTER_MAP_REQ* stEnterMap) {
+    if (!pReqUser) {
+        LogHelper::LogError("game.contents",
+            "EnterMazeByForce error - Invalid User[ MapID:%d ] ( %d )",
+            static_cast<int>(stEnterMap->wMapID), 1670);
+        return false;
+    }
+
+    UXMapID zeroID{};
+    if (uxMazeID.nMapID != zeroID.nMapID) {
+        // Per IDA: 目标表缺失或 Maze_Type 5/11 时禁止进入
+        TB_MAZE_INFO* pTBMazeInfo = XGameServer::Instance()
+            ->GetResourceMgr().GetTB_MAZE_INFO(stEnterMap->wMapID);
+        if (!pTBMazeInfo || pTBMazeInfo->Maze_Type == 5
+            || pTBMazeInfo->Maze_Type == 11) {
+            LogHelper::LogError("game.contents",
+                "EnterMazeByForce error - Impossible trespass in maze[ ActorID:%d, MapID:%d ] ( %d )",
+                pReqUser->GetActorID().dwActorID,
+                static_cast<int>(stEnterMap->wMapID), 1681);
+            pReqUser->SendErrorMessage(0x11, 0x41, 55001);
+            return false;
+        }
+        if (m_uxMazeID.nMapID) {
+            // Per IDA: 已在迷宫中时直接转发控制服 (0xF3, 0x16)
+            XSendPacket xSendPacket(0xF3, 0x16);
+            xSendPacket.XParse << m_dwPartyID;
+            xSendPacket.XParse << m_uxMazeID.nMapID;
+            xSendPacket << *stEnterMap;
+            XGameServer::Instance()->GetControlSocket().SendCmd(
+                &xSendPacket, pReqUser, 0x11, 0x41);
+            return true;
+        }
+        LogHelper::LogError("game.contents",
+            "EnterMazeByForce error - Impossible trespass in maze because no MapID[ ActorID:%d, MapID:%d ] ( %d )",
+            pReqUser->GetActorID().dwActorID,
+            static_cast<int>(stEnterMap->wMapID), 1688);
+        pReqUser->SendErrorMessage(0x11, 0x41, 55002);
+        return false;
+    }
+
+    // Per IDA: 清空准备列表
+    m_vecReadyToMazeMember.clear();
+    m_setAgreeToMazeMember.clear();
+
+    TB_MAZE_INFO* pMazeData = XGameServer::Instance()
+        ->GetResourceMgr().GetTB_MAZE_INFO(stEnterMap->wMapID);
+    if (!pMazeData) {
+        LogHelper::LogError("game.contents",
+            "EnterMaze error - No Table TB_MAZE_INFO[ ActorID:%d, TBID:%d ] ( %d )",
+            pReqUser->GetActorID().dwActorID,
+            static_cast<int>(stEnterMap->wMapID), 1707);
+        pReqUser->SendErrorMessage(0x11, 0x41, 55001);
+        return false;
+    }
+
+    // Per IDA: 0x14002F250 (CWayPoint::GetCurID ICF) == 队长判定
+    if (m_dwMasterID != CQuestCondition::GetQuestID(pReqUser->GetActorID())) {
+        LogHelper::LogError("game.contents",
+            "EnterMaze error - Create maze only party master[ ActorID:%d] ( %d )",
+            pReqUser->GetActorID().dwActorID, 1714);
+        pReqUser->SendErrorMessage(0x11, 0x41, 55004);
+        return false;
+    }
+
+    // Per IDA: 当前区域短 ID (GetArea()->m_pInstance 低 16 位)
+    int nUserMapID = static_cast<std::uint16_t>(
+        pReqUser->GetArea()->GetWorldType());
+    if (!XGameServer::Instance()->GetWorldResMgr().CanEnterPortal(
+            nUserMapID, stEnterMap->nPortalID, pReqUser)) {
+        LogHelper::LogError("game.contents",
+            "EnterMaze error - Unfit condition when enter maze[ ActorID:%d, MapID:%d, PortalID:%d ] ( %d )",
+            pReqUser->GetActorID().dwActorID, nUserMapID,
+            stEnterMap->nPortalID, 1722);
+        pReqUser->SendErrorMessage(0x11, 0x41, 55003);
+        return false;
+    }
+
+    // Per IDA: GetPortalPos 直接以 &m_stNextMovePos 为出参
+    if (!XGameServer::Instance()->GetWorldResMgr().GetPortalPos(
+            stEnterMap->wMapID, stEnterMap->nJumpID, &m_stNextMovePos)) {
+        LogHelper::LogError("game.contents",
+            "EnterMaze error - Cant find portal area when create maze[ ActorID:%d , MapID:%d, JumpID:%d ] ( %d )",
+            pReqUser->GetActorID().dwActorID,
+            static_cast<int>(stEnterMap->wMapID), stEnterMap->nJumpID, 1730);
+        pReqUser->SendErrorMessage(0x11, 0x41, 55003);
+        return false;
+    }
+
+    // Per IDA: 成员准备登记 + 同意集合
+    for (auto& kv : m_mapPartyMember) {
+        if (!kv.second) {
+            LogHelper::LogError("game.contents",
+                "EnterMaze error - No PartyMember In Party[ %d  ( %d )",
+                m_dwPartyID, 1740);
+            pReqUser->SendErrorMessage(0x11, 0x41, 55003);
+            return false;
+        }
+        CUser* pMember = XGameServer::Instance()->FindActorIDToUser(
+            kv.first);
+        if (!pMember) {
+            if (kv.second->IsLogin()) {
+                LogHelper::LogDebug("game.party",
+                    "EnterMaze error - ERROR_MAZE_FAILED_ENTER_WRONG_AREA_PARTY_MEMBER");
+                pReqUser->SendErrorMessage(0x11, 0x41, 55041);
+            } else {
+                LogHelper::LogDebug("game.party",
+                    "EnterMaze error - ERROR_MAZE_FAILED_ENTER_LOGOUT_PARTY_MEMBER");
+                pReqUser->SendErrorMessage(0x11, 0x41, 55040);
+            }
+            return false;
+        }
+        if (pMember->GetWorldID() != pReqUser->GetWorldID()) {
+            LogHelper::LogDebug("game.party",
+                "EnterMaze error - ERROR_MAZE_FAILED_ENTER_WRONG_AREA_PARTY_MEMBER[ ActorID:%d ] ( %d )",
+                pReqUser->GetActorID().dwActorID, 1751);
+            pReqUser->SendErrorMessage(0x11, 0x41, 55041);
+            return false;
+        }
+        // Per IDA: 等级检查 (GetLevel ICF fold CGameWorldMode::GetState)
+        if (pMember->GetLevel() < pMazeData->Req_Min_Lv) {
+            LogHelper::LogError("game.contents",
+                "EnterMaze error - Party member is low level ( %d )", 1758);
+            pReqUser->SendErrorMessage(0x11, 0x41, 55013);
+            return false;
+        }
+        if (pMember->stMyCharInfoEx()->stSoulWeapon.dwItemID == -1) {
+            LogHelper::LogError("game.contents",
+                "EnterMaze error - No equip weapon[ ActorID:%d ] ( %d )",
+                pMember->GetActorID().dwActorID, 1765);
+            pReqUser->SendErrorMessage(0x11, 0x41, 55017);
+            return false;
+        }
+        CGocRecode* pRecode = pMember->GetGOC<CGocRecode>();
+        if (!pRecode || !pRecode->IsClearMaze(pMazeData->Check_Clear_Maze)) {
+            LogHelper::LogError("game.contents",
+                "EnterMaze error - Failed Maze Episode No[ ActorID:%d ] ( %d )",
+                pMember->GetActorID().dwActorID, 1773);
+            pReqUser->SendErrorMessage(0x11, 0x41, 55048);
+            return false;
+        }
+        if (pMazeData->NeedQuest_ID) {
+            CGocQuest* pQuest = pMember->GetGOC<CGocQuest>();
+            if (!pQuest
+                || (!pQuest->FindEpisode(pMazeData->NeedQuest_ID)
+                    && !pQuest->IsCompleteEpisode(pMazeData->NeedQuest_ID))) {
+                LogHelper::LogError("game.contents",
+                    "EnterMaze error - No Have Quest To Enter Maze[ ActorID:%d ] ( %d )",
+                    pMember->GetActorID().dwActorID, 1783);
+                pReqUser->SendErrorMessage(0x11, 0x41, 55055);
+                return false;
+            }
+        }
+        if (pMazeData->Fatigue_Point) {
+            CGocAttribute* pAttr = pMember->GetGOC<CGocAttribute>();
+            if (!pAttr || !pAttr->CanUseFP(pMazeData->Fatigue_Point)) {
+                pReqUser->SendErrorMessage(4, 1, 55044,
+                    CQuestCondition::GetQuestID(pMember->GetActorID()));
+                return false;
+            }
+        }
+
+        // Per IDA: 成员准备登记 (nState = GetNetCafe ? 1 : 0)
+        ST_ENTER_MAZE_MEMBER_INFO stMemberInfo{};
+        stMemberInfo.dwMember = CQuestCondition::GetQuestID(
+            pMember->GetActorID());
+        CGocEntity* pEntity = pMember->GetGOC<CGocEntity>();
+        stMemberInfo.nState = pEntity ? (pEntity->GetNetCafe() ? 1 : 0) : 0;
+        m_vecReadyToMazeMember.push_back(stMemberInfo);
+        if (m_dwMasterID != stMemberInfo.dwMember)
+            m_setAgreeToMazeMember.insert(stMemberInfo.dwMember);
+    }
+
+    // Per IDA: SetEnterMazeRequst (0x1401B9EF0, CParty/CForce 共享体)
+    SetEnterMazeRequst(*stEnterMap);
+
+    // Per IDA: >1 成员时向所有成员逐个登记响应 (SetOutputState(2) ICF 标签)
+    if (m_vecReadyToMazeMember.size() > 1) {
+        for (auto& kv : m_mapPartyMember) {
+            auto it = m_mapPartyMember.find(kv.first);
+            if (it != m_mapPartyMember.end() && it->second) {
+                it->second->SetPartyMemberState(2);
+                SetEnterMazeResponse(it->first);
+            }
+        }
+    }
+    return true;
+}
+
+// ============================================================================
+// CParty::SetEnterMazeRequst - 设置进入迷宫请求
+// IDA: ?SetEnterMazeRequst@CParty@@QEAAXAEAUPS_ENTER_MAP_REQ@@@Z
+//      @ 0x1401B9EF0 (CParty/CForce 共享 COMDAT 体；publics 两个符号同 RVA)
+// 已精确还原 - 保存 stMazeInfo 并以 60 秒超时填充 dwEndTime。
+// ============================================================================
+void CParty::SetEnterMazeRequst(PS_ENTER_MAP_REQ& stEnterMap) {
+    m_stEnterMazeRequst.stMazeInfo = stEnterMap;
+    // Per IDA: dwEndTime = GetTickCount64() + 60000
+    m_stEnterMazeRequst.dwEndTime = GetTickCount64() + 60000;
+}
+
+// ============================================================================
+// CParty::SetEnterMazeResponse - 登记进入迷宫响应
+// IDA: ?SetEnterMazeResponse@CParty@@QEAA_NK@Z @ 0x1403AA360
+// 已精确还原 - 有进行中请求时从同意集合移除该成员；
+// 移除后集合为空返回 true；仍有未同意成员时广播 AgreeEnterMaze 后返回 false。
+// ============================================================================
+bool CParty::SetEnterMazeResponse(std::uint32_t dwAgreeActor) {
+    if (!m_stEnterMazeRequst.stMazeInfo.wMapID)
+        return false;
+
+    if (m_setAgreeToMazeMember.empty())
+        return false;
+
+    auto it = m_setAgreeToMazeMember.find(dwAgreeActor);
+    if (it != m_setAgreeToMazeMember.end())
+        m_setAgreeToMazeMember.erase(it);
+
+    if (m_setAgreeToMazeMember.empty())
+        return true;
+
+    AgreeEnterMaze(dwAgreeActor);
+    return false;
+}
+
+// ============================================================================
+// CParty::AgreeEnterMaze - 广播同意进入迷宫
+// IDA: ?AgreeEnterMaze@CParty@@QEAAXK@Z @ 0x1403AA1F0
+// 已精确还原 - 遍历 m_vecReadyToMazeMember，向每个在线成员
+// 发送 (0x11, 0x4A) 包，负载为 dwAgreeActor。
+// ============================================================================
+void CParty::AgreeEnterMaze(std::uint32_t dwAgreeActor) {
+    for (const auto& stMemberInfo : m_vecReadyToMazeMember) {
+        CUser* pUser = XGameServer::Instance()->FindActorIDToUser(
+            stMemberInfo.dwMember);
+        if (pUser) {
+            XSendPacket xSendPacket(0x11, 0x4A);
+            xSendPacket.XParse << dwAgreeActor;
+            CGocNetwork::Send(static_cast<XActor*>(pUser), xSendPacket);
+        }
+    }
+}
+
+// ============================================================================
+// CParty::CreateMazeReq - IDA @ 0x1403AAD60
+// 已精确还原 - 构造 ST_CREATE_MAZE（byGroupType=1, nID=m_dwPartyID）并经
+// XRelaySocket::SendCreateMazeReq (0xF2,0x21) 发往 ControlServer。
+// ============================================================================
+void CParty::CreateMazeReq() {
+    ST_CREATE_MAZE stCreateMaze{};
+    stCreateMaze.dwUserID = m_stEnterMazeRequst.stMazeInfo.dwActorID;
+    stCreateMaze.dwUAID = m_stEnterMazeRequst.stMazeInfo.dwUAID;
+    stCreateMaze.wReqMapID = m_stEnterMazeRequst.stMazeInfo.wMapID;
+    stCreateMaze.nJumpID = m_stEnterMazeRequst.stMazeInfo.nJumpID;
+    stCreateMaze.nPortalID = m_stEnterMazeRequst.stMazeInfo.nPortalID;
+    stCreateMaze.dwUserID = m_dwMasterID;
+    stCreateMaze.stPartyInfo.byGroupType = 1;
+    stCreateMaze.stPartyInfo.nID = m_dwPartyID;
+    stCreateMaze.vecEnterMember.assign(
+        m_vecReadyToMazeMember.begin(), m_vecReadyToMazeMember.end());
+    XGameServer::Instance()->GetControlSocket().SendCreateMazeReq(stCreateMaze);
 }
 
 // IDA: ?OrderPlayPoint@CParty@@QEAAXXZ @ 0x1403A6250

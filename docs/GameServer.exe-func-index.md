@@ -1,4 +1,4 @@
-# GameServer.exe Function Index
+﻿# GameServer.exe Function Index
 
 | directory | file | function | address | status | source | verified | verification |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -746,7 +746,7 @@
 | - | - | ?IsLoaded@VManagedResource@@QEBAHXZ | 0x140018790 | implemented | IDA decompile | yes | -|
 | XGameServer | GocEntity.cpp | ?GetNetCafe@CGocEntity@@QEAA_NXZ | 0x1400187b0 | implemented | IDA decompile | yes | ��ȷ��ԭ-����m_bNetCafe | ???NetCafe??? |
 | XGameServer | GocEntity.cpp | ?IsLoadNetCafe@CGocEntity@@QEAA_NXZ | 0x1400187d0 | implemented | IDA decompile | yes | Check if NetCafe info loaded |
-| XGameServer | CharacterProcess.cpp | ?IsUsableNameFilter@UtilFunc@@YA_NPEA_W@Z | 0x1400187f0 | implemented | IDA decompile | yes | Check if name passes filter |
+| XGameServer | UtilFunc.cpp | ?IsUsableNameFilter@UtilFunc@@YA_NPEA_W@Z | 0x1400187f0 | implemented | IDA decompile + landed source | no | original owner common/xnet/xutil/utility.h; upper-case wstring, walk std::map m_mapTB_NAMEFILTER, type1 wcscmp else wcsstr |
 | XGameServer | GocAkashicRecord.cpp | ??0CGocAkashicRecord@@QEAA@XZ | 0x140018b80 | implemented | IDA decompile | yes | Constructor |
 | - | - | ??_ECGocAkashicRecord@@UEAAPEAXI@Z | 0x140018c30 | blocked | IDA ??_ECGocAkashicRecord@@UEAAPEAXI@Z | yes | - |
 | XGameServer | GocAkashicRecord.cpp | ??1CGocAkashicRecord@@UEAA@XZ | 0x140018c70 | implemented | IDA decompile | yes | Destructor |
@@ -1352,7 +1352,7 @@
 | XGameServer | GocAttribute.cpp | ?ResetMoveSpeed@CGocAttribute@@QEAAX_N@Z | 0x140041ae0 | implemented | IDA decompile | yes | ??????????(??????) |
 | XGameServer | GocAttribute.cpp | ?SendStatLog@CGocAttribute@@QEAAXH@Z | 0x140041b30 | implemented | IDA decompile | yes | ??????????????????) |
 | XGameServer | GocAttribute.cpp | ?IsShouldSyncStatBroadcast@CGocAttribute@@QEAA_NH@Z | 0x140041cc0 | implemented | IDA decompile | yes | ?????????????(??????) |
-| XGameServer | GocAttribute.cpp | ?SetStartStatEnterWorld@CGocAttribute@@QEAAXH_N@Z | 0x140041d10 | implemented | IDA decompile | yes | ???????????��????????????) |
+| XGameServer | GocAttribute.cpp | ?SetStartStatEnterWorld@CGocAttribute@@QEAAXH_N@Z | 0x140041d10 | implemented | IDA decompile + publics + active build | yes | Precise body landed (was invented single-param): !nWorldType or (==2 && bFirstEnter) -> SetFullStat + SetStat(16, residue-arg TODO); ==2 && !bFirstEnter -> stMyCharInfoEx->stAbility.nCurAbility[0]/[1]/[2] restore via SetStat(1/2/3) (offsets +0x58/+0x5C/+0x64); else SetStartStat. publics ?QEAAXH_N confirms two-param ABI. |
 | XGameServer | GocAttribute.cpp | ?SetEquipedOption@CGocAttribute@@QEAAXKM@Z | 0x140041e80 | implemented | IDA decompile | yes | ??????????(??????) |
 | XGameServer | GocAttribute.cpp | ?FindEquipedOptionIndex@CGocAttribute@@QEAAKXZ | 0x140042080 | implemented | IDA decompile | yes | Verified: Increments and returns m_iEquipOptionIndex (wraps at 10000000) |
 | XGameServer | GocAttribute.cpp | ?GetEquipIndex@CGocAttribute@@QEAAHKM@Z | 0x1400420d0 | implemented | IDA decompile | yes | Verified: Searches equipped option list for matching option ID and value |
@@ -2608,13 +2608,13 @@
 | - | - | ??1PS_HELPER_EQUIP_RES@@QEAA@XZ | 0x140092540 | blocked | IDA ??1PS_HELPER_EQUIP_RES@@QEAA@XZ | yes | - |
 | CGocHelper | GocHelper.cpp | ?SendHelperList@CGocHelper@@QEAAXXZ | 0x140092560 | implemented | IDA decompile | yes | IDA��ȷ��ԭ-���������б� |
 | - | - | ??1PS_HELPER_LIST_RES@@QEAA@XZ | 0x1400926e0 | blocked | IDA ??1PS_HELPER_LIST_RES@@QEAA@XZ | yes | - |
-| CGocHelper | GocHelper.cpp | ?GetHelperInfo@CGocHelper@@QEAA_NKAEAUST_HELPER_INFO@@@Z | 0x140092700 | implemented | IDA decompile | yes | IDA��ȷ��ԭ-��ȡ������Ϣ |
+| XGameServer | actor/component/GreenDamTan_GocHelperLink.cpp | ?GetHelperInfo@CGocHelper@@QEAA_NKAEAUST_HELPER_INFO@@@Z | 0x140092700 | implemented | IDA decompile + source/build check | no | Precise body landed in GreenDamTan link unit |
 | - | - | ??4ST_HELPER_INFO@@QEAAAEAU0@AEAU0@@Z | 0x140092780 | blocked | IDA ??4ST_HELPER_INFO@@QEAAAEAU0@AEAU0@@Z | yes | - |
 | CGocHelper | GocHelper.cpp | ?FindHelper@CGocHelper@@QEAA_NK@Z | 0x1400928a0 | implemented | IDA ?FindHelper@CGocHelper@@QEAA_NK@Z | yes | - |
 | CGocHelper | GocHelper.cpp | ?AddMyHelper@CGocHelper@@QEAA_NAEAUST_HELPER_INFO@@_N@Z | 0x140092900 | implemented | IDA decompile | yes | IDA��ȷ��ԭ-�������ֵ��б� |
-| CGocHelper | GocHelper.cpp | ?GetSummonedHelper@CGocHelper@@QEAAPEAVCMonster@@K@Z | 0x140092ad0 | implemented | IDA ?GetSummonedHelper@CGocHelper@@QEAAPEAVCMonster@@K@Z | yes | - |
+| XGameServer | actor/component/GreenDamTan_GocHelperLink.cpp | ?GetSummonedHelper@CGocHelper@@QEAAPEAVCMonster@@K@Z | 0x140092ad0 | implemented | IDA decompile + source/build check | no | Precise body landed in GreenDamTan link unit |
 | XGameServer | GocHelper.cpp | ?GetSummonedHelperList@CGocHelper@@QEAAXAEAV?$map@KKU?$less@K@std@@V?$allocator@U?$pair@$$CBKK@std@@@2@@std@@@Z | 0x140092b40 | implemented | IDA decompile | yes | IDA��ȷ��ԭ-��ȡ���ٻ������б� |
-| CGocHelper | GocHelper.cpp | ?SetHelperSummonState@CGocHelper@@QEAAXK_N@Z | 0x140092c20 | implemented | IDA ?SetHelperSummonState@CGocHelper@@QEAAXK_N@Z | yes | - |
+| XGameServer | actor/component/GreenDamTan_GocHelperLink.cpp | ?SetHelperSummonState@CGocHelper@@QEAAXK_N@Z | 0x140092c20 | implemented | IDA decompile + source/build check | no | Precise body landed in GreenDamTan link unit |
 | CGocHelper | GocHelper.cpp | ?CheckHelperSummonDelay@CGocHelper@@QEAA_NXZ | 0x140092ca0 | implemented | IDA ?CheckHelperSummonDelay@CGocHelper@@QEAA_NXZ | yes | - |
 | CGocHelper | GocHelper.cpp | ?CheckSummonHelper@CGocHelper@@QEAA_NK@Z | 0x140092d10 | implemented | IDA ?CheckSummonHelper@CGocHelper@@QEAA_NK@Z | yes | - |
 | CGocHelper | GocHelper.cpp | ?CheckReleaseHelper@CGocHelper@@QEAA_NK@Z | 0x140092dc0 | implemented | IDA ?CheckReleaseHelper@CGocHelper@@QEAA_NK@Z | yes | - |
@@ -2623,9 +2623,9 @@
 | CGocHelper | GocHelper.cpp | ?HelperSummon@CGocHelper@@QEAA_NK@Z | 0x140093410 | implemented | IDA decompile | yes | IDA��ȷ��ԭ-�ٻ����� |
 | - | - | ??1PS_HELPER_SUMMON_RES@@QEAA@XZ | 0x140094110 | blocked | IDA ??1PS_HELPER_SUMMON_RES@@QEAA@XZ | yes | - |
 | CGocHelper | GocHelper.cpp | ?HelperWarp@CGocHelper@@QEAA_NK@Z | 0x140094130 | implemented | IDA decompile | yes | IDA��ȷ��ԭ-�������ֵ����λ��?|
-| CGocHelper | GocHelper.cpp | ?HelperRelease@CGocHelper@@QEAA_NK@Z | 0x140094300 | implemented | IDA decompile | yes | IDA��ȷ��ԭ-�ͷ��ٻ������� |
+| XGameServer | actor/component/GreenDamTan_GocHelperLink.cpp | ?HelperRelease@CGocHelper@@QEAA_NK@Z | 0x140094300 | implemented | IDA decompile + source/build check | no | Precise body landed in GreenDamTan link unit |
 | CGocHelper | GocHelper.cpp | ?CheckAllHelperSummon@CGocHelper@@QEAAXXZ | 0x1400948a0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ-��鲢�Զ��ٻ���������?|
-| CGocHelper | GocHelper.cpp | ?AllHelperRelease@CGocHelper@@QEAAXXZ | 0x140094af0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ-�ͷ��������ٻ������� |
+| XGameServer | actor/component/GreenDamTan_GocHelperLink.cpp | ?AllHelperRelease@CGocHelper@@QEAAXXZ | 0x140094af0 | implemented | IDA decompile + source/build check | no | Precise body landed in GreenDamTan link unit; converge to GocHelper.cpp later |
 | CGocHelper | GocHelper.cpp | ?AllHelperWarp@CGocHelper@@QEAAXXZ | 0x140094c10 | implemented | IDA decompile | yes | IDA��ȷ��ԭ-�����������ֵ����λ��?|
 | CGocHelper | GocHelper.cpp | ?OtherHelperClear@CGocHelper@@QEAAXXZ | 0x140094d30 | implemented | IDA decompile | yes | IDA��ȷ��ԭ-�����������?|
 | CGocHelper | GocHelper.cpp | ?GetMyHelperStatsALL@CGocHelper@@QEAAXAEAUPS_HELPER_STAT_UPDATE@@@Z | 0x140095170 | implemented | IDA decompile | yes | IDA��ȷ��ԭ-��ȡ������������ͳ�� |
@@ -2639,8 +2639,8 @@
 | CGocHelper | GocHelper.cpp | ?GetSupportTypeRate@CGocHelper@@QEAAME@Z | 0x140096500 | implemented | IDA decompile | yes | IDA��ȷ��ԭ-��ȡ֧Ԯ���ͱ��� |
 | CGocHelper | GocHelper.cpp | ?GetSupportTypeValue@CGocHelper@@QEAAME@Z | 0x140096540 | implemented | IDA decompile | yes | IDA��ȷ��ԭ-��ȡ֧Ԯ����ֵ |
 | CGocHelper | GocHelper.cpp | ?SetMySupportInfo@CGocHelper@@QEAAXAEAUPS_HELPER_SUPPORT_INFO_RES@@@Z | 0x140096660 | implemented | IDA decompile | yes | IDA��ȷ��ԭ-�����ҵ�֧Ԯ��Ϣ |
-| CGocHelper | GocHelper.cpp | ?HelperSupportRelease@CGocHelper@@QEAAXXZ | 0x1400966d0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ-�ͷ���������֧Ԯ |
-| CGocHelper | GocHelper.cpp | ?HelperSupportRelease@CGocHelper@@QEAAXK@Z | 0x140096750 | implemented | IDA decompile | yes | IDA��ȷ��ԭ-�ͷ�ָ�����ֵ�֧Ԯ |
+| CGocHelper | actor/component/GreenDamTan_GocHelperLink.cpp | ?HelperSupportRelease@CGocHelper@@QEAAXXZ | 0x1400966d0 | implemented | IDA decompile + landed source | no | batch-11 full body landed in GreenDamTan_GocHelperLink.cpp (GocHelper.cpp excluded legacy draft): iterates m_mapSummonedHelper calling K-overload HelperSupportRelease(key) per entry |
+| XGameServer | actor/component/GreenDamTan_GocHelperLink.cpp | ?HelperSupportRelease@CGocHelper@@QEAAXK@Z | 0x140096750 | implemented | IDA decompile + source/build check | no | Precise body landed in GreenDamTan link unit |
 | CGocHelper | GocHelper.cpp | ?ReqHelperSupportInfo@CGocHelper@@QEAAXXZ | 0x1400968f0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ-����֧Ԯ��Ϣ |
 | CGocHelper | GocHelper.cpp | ?ReqHelperSupportRegister@CGocHelper@@QEAAXAEAUPS_HELPER_SUPPORT_REGISTER_REQ@@@Z | 0x140096a10 | implemented | IDA decompile | yes | IDA��ȷ��ԭ-����֧Ԯע�� |
 | CGocHelper | GocHelper.cpp | ?ReqHelperSupportReward@CGocHelper@@QEAAXXZ | 0x140096be0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ-����֧Ԯ���� |
@@ -2996,9 +2996,9 @@
 | - | - | ?ItemFPUseFree@CGocInventory@@QEAA_NEF@Z | 0x1400bfad0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | CGocInventory | GocInventory.cpp | ?CanUseGraveInitItem@CGocInventory@@QEAA_NEF@Z | 0x1400bffc0 | verified | PDB + IDA decompile + source build + smoke | yes | Inven-type 2/13 gate, lock-log 25, level gate, count, GetGOC_Recode infinite-tower-limit>=3 restored. |
 | - | - | ?UseGraveInitItem@CGocInventory@@QEAA_NEF@Z | 0x1400c0230 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
-| - | - | ?SendSocketUpdate@CGocInventory@@QEAAXUPS_ITEM_SOCKET_LIST@@@Z | 0x1400c0830 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
-| - | - | ?SendBroachUpdate@CGocInventory@@QEAAXUPS_ITEM_BROACH_LIST@@@Z | 0x1400c0910 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
-| - | - | ?SendPackageInfo@CGocInventory@@QEAAXUPS_ITEM_PACKAGE_LIST@@@Z | 0x1400c0a30 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| XGameServer | GocInventory.cpp | ?SendSocketUpdate@CGocInventory@@QEAAXUPS_ITEM_SOCKET_LIST@@@Z | 0x1400c0830 | implemented | IDA decompile + active build | no | Restored: (8,0x61) sends PS_ITEM_SOCKET_LIST then m_pOwner send. |
+| XGameServer | GocInventory.cpp | ?SendBroachUpdate@CGocInventory@@QEAAXUPS_ITEM_BROACH_LIST@@@Z | 0x1400c0910 | implemented | IDA decompile + active build | no | Restored: empty PS_BROACH_SERIAL_LIST + (8,0x62) sends broach list then serial list, m_pOwner send. |
+| XGameServer | GocInventory.cpp | ?SendPackageInfo@CGocInventory@@QEAAXUPS_ITEM_PACKAGE_LIST@@@Z | 0x1400c0a30 | implemented | IDA decompile + active build | no | Restored: (8,0x72) writes int 1 then package list, m_pOwner send. |
 | - | - | ?ItemMakeCheatByLevel@CGocInventory@@QEAA_NEE_NEE@Z | 0x1400c0b20 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | CGocInventory | GocInventory.cpp | ?CanUseItemTitle@CGocInventory@@QEAA_NV?$shared_ptr@VCItem@@@tr1@std@@@Z | 0x1400c1530 | verified | PDB + IDA decompile + source build + smoke | yes | Item_Effect_Type == 4 predicate restored. |
 | - | - | ?UseItemTitle@CGocInventory@@QEAA_NV?$shared_ptr@VCItem@@@tr1@std@@@Z | 0x1400c15a0 | implemented | IDA ?UseItemTitle@CGocInventory@@QEAA_NV?$shared_ptr@VCItem@@@tr1@std@@@Z | yes | - |
@@ -3035,7 +3035,7 @@
 | - | - | ?SendCashCount@CGocInventory@@QEAAXXZ | 0x1400c8960 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | - | - | ?SendCashSet@CGocInventory@@QEAAXXZ | 0x1400c8b00 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | XGameServer | GocInventory.cpp | ?SendAppearacne@CGocInventory@@QEAAXXZ | 0x1400c8c30 | verified | GameServer PDB decorated ABI + IDA decompile/disasm + source build | yes | Zero-argument sorted appearance packet path (main 8, sub 0x50) verified. |
-| - | - | ?MoveItemToLeagueInven@CGocInventory@@QEAA_NUPS_ITEM_MOVE_LEAGUE_INVEN_FOR_GAME@@@Z | 0x1400c8dd0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| XGameServer | GocInventory.cpp | ?MoveItemToLeagueInven@CGocInventory@@QEAA_NUPS_ITEM_MOVE_LEAGUE_INVEN_FOR_GAME@@@Z | 0x1400c8dd0 | implemented | IDA decompile + active build | no | Restored: 3-type branch; byType 0 GetSlotItem/RemoveItem/(0x22,0x54)+log{4,80}; byType 1 CheckRandomOption/AddItem-fail log{4,99}+Kickout21/SetSocketItem(vtable 0x38,bLoad=0)/SetBroach(vtable 0xA8)/SetPackageList/SendCreateItem/SendBreakItem/SendSocket/Broach/Package/log{4,81}/AddAkashicGetInfo; byType 2 (0x22,0x54)+log{4,82} loop over psItemLogList. |
 | - | - | ??1PS_ITEM_MOVE_LEAGUE_INVEN_FOR_GAME@@QEAA@XZ | 0x1400c9d00 | blocked | IDA ??1PS_ITEM_MOVE_LEAGUE_INVEN_FOR_GAME@@QEAA@XZ | yes | - |
 | - | - | ?CheckOverMoneyDrop@CGocInventory@@QEAAXW4ePriceType@@AEA_J@Z | 0x1400c9d40 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(complete) |
 | - | - | ?AddRecycle@CGocInventory@@QEAAX_JEHH_N@Z | 0x1400c9e60 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
@@ -4036,11 +4036,11 @@
 | CGocNpcCredit | GocNpcCredit.cpp | ?Init@CGocNpcCredit@@QEAAXXZ | 0x140105380 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
 | CGocNpcCredit | GocNpcCredit.cpp | ?OnUpdate@CGocNpcCredit@@QEAAXXZ | 0x1401053e0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
 | CGocNpcCredit | GocNpcCredit.cpp | ?SetNpcCredit@CGocNpcCredit@@QEAAXUPS_NPC_CREDIT_LIST@@@Z | 0x140105500 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
-| CGocNpcCredit | GocNpcCredit.cpp | ?UpdateNpcCredit@CGocNpcCredit@@QEAAXHH@Z | 0x140105640 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
-| CGocNpcCredit | GocNpcCredit.cpp | ?UpdateNpcCredit@CGocNpcCredit@@QEAA_NHHAEAUPS_NPC_CREDIT@@AEAUST_CREATE_ITEMS@@AEAH@Z | 0x140105b30 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
+| CGocNpcCredit | GreenDamTan_GocNpcCreditLink.cpp | ?UpdateNpcCredit@CGocNpcCredit@@QEAAXHH@Z | 0x140105640 | implemented | IDA decompile + active build | yes | Landed in GreenDamTan_GocNpcCreditLink.cpp (GocNpcCredit.cpp excluded: legacy half-finished file): 2-param wrapper - m_bEnable gate, GetTB_NPC, 5-param core, (0x22,0x11) DB packet with QuestID+stNpcCredit+nPoint+nGetPoint, UpdateAchieve1(0x39), ST_LOG_GAME(3,14), SystemPostSend per grade item. |
+| CGocNpcCredit | GreenDamTan_GocNpcCreditLink.cpp | ?UpdateNpcCredit@CGocNpcCredit@@QEAA_NHHAEAUPS_NPC_CREDIT@@AEAUST_CREATE_ITEMS@@AEAH@Z | 0x140105b30 | implemented | IDA decompile + active build | yes | Landed in GreenDamTan_GocNpcCreditLink.cpp: credit accumulation core - new-entry branch (grade table 10*GroupID+1, day limit clamp, Need_Credit loop upgrade, Reward_Item push, cap grade 5) and existing-entry branch (byGrade 5 gate, next grade table, cross-day reset, continued accumulation). |
 | CGocNpcCredit | GocNpcCredit.cpp | ?SendDBNpcCreditLoad@CGocNpcCredit@@QEAAXXZ | 0x140106220 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
 | CGocNpcCredit | GocNpcCredit.cpp | ?GetNpcCreditGrade@CGocNpcCredit@@QEAADH@Z | 0x140106330 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
-| CGocNpcCredit | GocNpcCredit.cpp | ?GetNpcCreditBenefit@CGocNpcCredit@@QEAAHHE@Z | 0x1401063d0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
+| CGocNpcCredit | GreenDamTan_GocNpcCreditLink.cpp | ?GetNpcCreditBenefit@CGocNpcCredit@@QEAAHHE@Z | 0x1401063d0 | implemented | IDA decompile + active build | yes | Landed in GreenDamTan_GocNpcCreditLink.cpp: query NPC group credit-grade benefit rate - m_bEnable gate, GetTB_NPC, m_mpNpcCredit lookup, GetTB_CUSTOMER_GRADE(10*GroupID+byGrade), Benefit_ID_01..06 scan returning Benefit_Value_Rate. |
 | CGocNpcCredit | GocNpcCredit.cpp | ?CanNpcCreditBenefit@CGocNpcCredit@@QEAA_NHEK@Z | 0x1401065c0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
 | CGocNpcCredit | GocNpcCredit.cpp | ?SendDBShopItemLoad@CGocNpcCredit@@QEAAXXZ | 0x140106800 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
 | CGocNpcCredit | GocNpcCredit.cpp | ?SetShopItem@CGocNpcCredit@@QEAAXUST_SHOP_ITEM_LIST@@@Z | 0x140106980 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
@@ -5837,6 +5837,8 @@
 | - | - | ?_Grow_to@?$vector@UPS_SOCIALITEM_USER@@V?$allocator@UPS_SOCIALITEM_USER@@@std@@@std@@IEBA_K_K@Z | 0x14018f060 | blocked | IDA ?_Grow_to@?$vector@UPS_SOCIALITEM_USER@@V?$allocator@UPS_SOCIALITEM_USER@@@std@@@std@@IEBA_K_K@Z | yes | - |
 | - | - | ?SetStartSound@VProjectileBase_cl@@UEAAXPEBD@Z | 0x14018f110 | implemented | IDA ?SetStartSound@VProjectileBase_cl@@UEAAXPEBD@Z | yes | - |
 | XGameServer/Item | CItem.cpp | ?GetBroachList@CItem@@UEAAXAEAUPS_ITEM_BROACH_LIST@@@Z | 0x14018f110 | verified | PDB signature + CItem vtable + IDA folded COMDAT + source build | yes | CItem vtable +0xC0 resolves this PDB symbol to the shared no-op body. |
+| XGameServer/Item | CItem.cpp | ?GetSocketList@CItem@@UEAAXAEAUPS_ITEM_SOCKET_LIST@@@Z | 0x14018e110 | implemented | PDB signature + IDA folded COMDAT + landed source | no | CItem base no-op; CItemEquip 0x140284050 has the real fill. |
+| XGameServer | XArea/XActor.h | ?SetInfoPacket@XActor@@UEAAXAEAVXSendPacket@@@Z | 0x14018e110 | implemented | PDB signature + IDA folded COMDAT + landed source | no | Base no-op virtual added to XActor; shares folded COMDAT with CItem::GetSocketList; derived CNpc/CMonster/CUser overrides already exist. |
 | - | - | ?allocate@?$allocator@UPS_SOCIALITEM_USER@@@std@@QEAAPEAUPS_SOCIALITEM_USER@@_K@Z | 0x14018f120 | blocked | IDA ?allocate@?$allocator@UPS_SOCIALITEM_USER@@@std@@QEAAPEAUPS_SOCIALITEM_USER@@_K@Z | yes | - |
 | - | - | ?max_size@?$allocator@UPS_SOCIALITEM_USER@@@std@@QEBA_KXZ | 0x14018f140 | blocked | IDA ?max_size@?$allocator@UPS_SOCIALITEM_USER@@@std@@QEBA_KXZ | yes | - |
 | - | - | ??$insert@U?$pair@$$CBHE@std@@@?$_Tree@V?$_Tmap_traits@HEU?$less@H@std@@V?$allocator@U?$pair@$$CBHE@std@@@2@$0A@@std@@@std@@QEAA?AU?$pair@V?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@HEU?$less@H@std@@V?$allocator@U?$pair@$$CBHE@std@@@2@$0A@@std@@@std@@@std@@_N@1@$$QEAU?$pair@$$CBHE@1@@Z | 0x14018f180 | blocked | IDA ??$insert@U?$pair@$$CBHE@std@@@?$_Tree@V?$_Tmap_traits@HEU?$less@H@std@@V?$allocator@U?$pair@$$CBHE@std@@@2@$0A@@std@@@std@@QEAA?AU?$pair@V?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@HEU?$less@H@std@@V?$allocator@U?$pair@$$CBHE@std@@@2@$0A@@std@@@std@@@std@@_N@1@$$QEAU?$pair@$$CBHE@1@@Z | yes | - |
@@ -5982,7 +5984,7 @@
 | XGameServer | VaccumCube.cpp | ?IsLock@CVaccumCube@@QEAA_NXZ | 0x1401945d0 | implemented | IDA decompile | yes | �Ƿ����� |
 | XGameServer | VaccumCube.cpp | ?SetRandomKey@CVaccumCube@@QEAAXH@Z | 0x1401945f0 | implemented | IDA decompile | yes | �������key |
 | XGameServer | VaccumCube.cpp | ?GetCount@CVaccumCube@@QEAAHXZ | 0x140194610 | implemented | IDA decompile | yes | ��ȡ���� |
-| - | - | ??1CWarpPotal@@QEAA@XZ | 0x140194630 | blocked | IDA ??1CWarpPotal@@QEAA@XZ | yes | - |
+| XGameServer | Maze.cpp | ??1CWarpPotal@@QEAA@XZ | 0x140194630 | implemented | IDA decompile + landed source | no | body only calls std::vector<tagWARP_POTAL_INFO*>::~vector on m_vecWarpInfo; active landing in Maze.cpp, original ownership WarpPotal.cpp per PDB module/cvdump lines |
 | - | - | ?_Isnil@?$_Tree_val@V?$_Tmap_traits@KUTB_MAZEREWARD_ITEM@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_MAZEREWARD_ITEM@@@std@@@3@$0A@@std@@@std@@SAAEADPEAU_Node@?$_Tree_nod@V?$_Tmap_traits@KUTB_MAZEREWARD_ITEM@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_MAZEREWARD_ITEM@@@std@@@3@$0A@@std@@@2@@Z | 0x140194650 | blocked | IDA ?_Isnil@?$_Tree_val@V?$_Tmap_traits@KUTB_MAZEREWARD_ITEM@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_MAZEREWARD_ITEM@@@std@@@3@$0A@@std@@@std@@SAAEADPEAU_Node@?$_Tree_nod@V?$_Tmap_traits@KUTB_MAZEREWARD_ITEM@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_MAZEREWARD_ITEM@@@std@@@3@$0A@@std@@@2@@Z | yes | - |
 | - | - | ?_Lbound@?$_Tree@V?$_Tmap_traits@KUTB_INTERACTION_ITEM@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_INTERACTION_ITEM@@@std@@@3@$0A@@std@@@std@@IEAAPEAU_Node@?$_Tree_nod@V?$_Tmap_traits@KUTB_INTERACTION_ITEM@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_INTERACTION_ITEM@@@std@@@3@$0A@@std@@@2@AEBK@Z | 0x140194670 | blocked | IDA ?_Lbound@?$_Tree@V?$_Tmap_traits@KUTB_INTERACTION_ITEM@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_INTERACTION_ITEM@@@std@@@3@$0A@@std@@@std@@IEAAPEAU_Node@?$_Tree_nod@V?$_Tmap_traits@KUTB_INTERACTION_ITEM@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_INTERACTION_ITEM@@@std@@@3@$0A@@std@@@2@AEBK@Z | yes | - |
 | - | - | ?lower_bound@?$_Tree@V?$_Tmap_traits@KUTB_MAZEREWARD_ITEM@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_MAZEREWARD_ITEM@@@std@@@3@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@KUTB_MAZEREWARD_ITEM@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_MAZEREWARD_ITEM@@@std@@@3@$0A@@std@@@std@@@2@AEBK@Z | 0x140194710 | blocked | IDA ?lower_bound@?$_Tree@V?$_Tmap_traits@KUTB_MAZEREWARD_ITEM@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_MAZEREWARD_ITEM@@@std@@@3@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@KUTB_MAZEREWARD_ITEM@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_MAZEREWARD_ITEM@@@std@@@3@$0A@@std@@@std@@@2@AEBK@Z | yes | - |
@@ -6360,7 +6362,7 @@
 | - | - | ?ProcessExp@XArea@@UEAAXPEAVXActor@@MH@Z | 0x1401acf80 | blocked | IDA decompile | no | XArea.h inline stub (empty function) |
 | - | - | ?GetSkillLevel@CMover@@UEAAEXZ | 0x1401acfa0 | implemented | IDA ?GetSkillLevel@CMover@@UEAAEXZ | yes | - |
 | - | - | ?MoveActor@XArea@@UEAAGTUXActorID@@AEAUXVec3@@M@Z | 0x1401acfb0 | blocked | IDA decompile | no | XArea.h inline stub (returns 0) |
-| - | - | ?GetEnterDistrictPos@CUser@@QEAAXAEAUSTPosInfo@@@Z | 0x1401acfd0 | implemented | IDA decompile | yes | User.cpp (copies m_stEnterDistrictPos to output) |
+| XGameServer | User.cpp | ?GetEnterDistrictPos@CUser@@QEAAXAEAUSTPosInfo@@@Z | 0x1401acfd0 | implemented | IDA decompile + source/build check | no | Landed this round; build passed |
 | CMonster | Monster.cpp | ?SetSummonLifeTime@CMonster@@QEAAXM@Z | 0x1401ad000 | implemented | IDA ?SetSummonLifeTime@CMonster@@QEAAXM@Z | yes | - |
 | - | - | ?GetOwnerID@CMoverEx@@QEAAKXZ | 0x1401ad020 | implemented | IDA ?GetOwnerID@CMoverEx@@QEAAKXZ | yes | - |
 | - | - | ?IsMonster@XActor@@QEAA_NXZ | 0x1401ad040 | implemented | IDA decompile | yes | XActor.cpp (returns m_eActorType == eActorMonster) |
@@ -6640,16 +6642,16 @@
 | - | - | ?SendForceUpdateMemberInfo@CForce@@QEAAXPEAVCUser@@@Z | 0x1401b9550 | implemented | IDA decompile | yes | Force.cpp (broadcasts force member info update) |
 | - | - | ?GetPartyInfo@CParty@@QEAAXAEAUPS_PARTY_INFO@@@Z | 0x1401b9740 | implemented | IDA ?GetPartyInfo@CParty@@QEAAXAEAUPS_PARTY_INFO@@@Z | yes | - |
 | - | - | ?EnterMaze@CForce@@QEAA_NPEAVCUser@@TUXMapID@@AEAUPS_ENTER_MAP_REQ@@@Z | 0x1401b9810 | implemented | IDA decompile | yes | Force.cpp (complex maze entry with validation) |
-| - | - | ?SetEnterMazeRequst@CForce@@QEAAXAEAUPS_ENTER_MAP_REQ@@@Z | 0x1401baef0 | implemented | IDA decompile | yes | Force.cpp (sets maze enter request with timeout) |
+| XGameServer | CParty.cpp | ?SetEnterMazeRequst@CForce@@QEAAXAEAUPS_ENTER_MAP_REQ@@@Z | 0x1401baef0 | implemented | IDA decompile + active build | yes | Landed in CParty.cpp (CParty/CForce shared COMDAT body at RVA 0x1B9EF0): stores stMazeInfo and sets dwEndTime = GetTickCount64()+60000. |
 | - | - | ??4PS_ENTER_MAP_REQ@@QEAAAEAU0@AEBU0@@Z | 0x1401baf40 | blocked | IDA ??4PS_ENTER_MAP_REQ@@QEAAAEAU0@AEBU0@@Z | yes | - |
-| - | - | ?CancelEnterMaze@CForce@@QEAAXK@Z | 0x1401bb030 | implemented | IDA decompile | yes | Force.cpp (cancels maze enter and notifies members) |
-| - | - | ?AgreeEnterMaze@CForce@@QEAAXK@Z | 0x1401bb1d0 | implemented | IDA decompile | yes | Force.cpp (agrees to maze enter and notifies members) |
-| - | - | ?SetEnterMazeResponse@CForce@@QEAA_NK@Z | 0x1401bb340 | implemented | IDA ?SetEnterMazeResponse@CForce@@QEAA_NK@Z | yes | - |
+| XGameServer | CForce.cpp | ?CancelEnterMaze@CForce@@QEAAXK@Z | 0x1401bb030 | implemented | IDA decompile + active build | yes | Landed: clears wMapID request, broadcasts (0x11,0x4D) with dwCancelActor to ready members, clears m_vecReadyToMazeMember. |
+| XGameServer | CForce.cpp | ?AgreeEnterMaze@CForce@@QEAAXK@Z | 0x1401bb1d0 | implemented | IDA decompile + active build | yes | Landed: iterates m_vecReadyToMazeMember, sends (0x11,0x4F) with dwAgreeActor to each online member (Force-side sub-cmd 0x4F vs CParty 0x4A). |
+| XGameServer | CForce.cpp | ?SetEnterMazeResponse@CForce@@QEAA_NK@Z | 0x1401bb340 | implemented | IDA decompile + active build | yes | Landed: wMapID gate, erase from m_setAgreeToMazeMember, empty->true, else AgreeEnterMaze and false. Independent Force body at RVA 0x1BA340. |
 | XGameServer | CForce.cpp | ?SendEnterMaze@CForce@@QEAAXAEAUPS_ENTER_MAP_RES@@@Z | 0x1401bb420 | implemented | IDA decompile + active build | no | Landed in CForce.cpp: GetTB_MAZE_INFO(wMazeID) gate with LogError 1490, SetMazeID, iterate m_mapForceMember filtered by IsReadyToMaze + ThreadLocalData IsThreadArea, per-member DBSyncQuestCondition/byChangeType/GetPortalPos (fail LogError 1525 return), dwUserID overwrite to member actorID, (3,0x42)+(0xF0,0x12)+ST_LOG_GAME(5,4) L"메이즈 입장" per member. |
 | - | - | ?SendMazeClear@CForce@@QEAAXE@Z | 0x1401bbbd0 | implemented | IDA ?SendMazeClear@CForce@@QEAAXE@Z | yes | - |
-| - | - | ?CreateMazeReq@CForce@@QEAAXXZ | 0x1401bbc90 | implemented | IDA ?CreateMazeReq@CForce@@QEAAXXZ | yes | - |
+| XGameServer | CForce.cpp | ?CreateMazeReq@CForce@@QEAAXXZ | 0x1401bbc90 | implemented | IDA decompile + active build | yes | Landed: builds ST_CREATE_MAZE from m_stEnterMazeRequst, overwrites dwUserID=m_dwMasterID, byGroupType=2, nID=m_dwForceID, assigns vecEnterMember, sends via XRelaySocket::SendCreateMazeReq (0xF2,0x21). |
 | CParty | CParty.cpp | ?CheckPassiveSkill@CParty@@QEAAXPEAVCUser@@EE@Z | 0x1401bbe00 | verified | GameServer PDB + IDA decompile + source build + smoke | yes | Iterates members, checks thread area + distance, delegates to CGocSkill/CGocAkashicRecord CheckPassiveSkill. |
-| - | - | ?EnterMazeByForce@CForce@@QEAA_NPEAVCUser@@TUXMapID@@AEAUPS_ENTER_MAP_REQ@@@Z | 0x1401bc080 | implemented | IDA decompile | yes | Force.cpp (force enters maze with validation) |
+| XGameServer | CForce.cpp | ?EnterMazeByForce@CForce@@QEAA_NPEAVCUser@@TUXMapID@@AEAUPS_ENTER_MAP_REQ@@@Z | 0x1401bc080 | implemented | IDA decompile + active build | yes | Landed: independent Force body - invalid user 1673, existing maze forward (0xF3,0x20), no MapID 1691/0xD6DA, table/Maze_Type 5/11 1684/0xD6D9, master check 1718/0xCF97, GetPortalPos 1736/0xD6DB, member loop 1746/0xCF95/0xCF91/1757/1764/0xCF8F/1771/0xCF90/1779/0xCF92/1789/0xCF93/0xD704, SetEnterMazeRequst + >1 member SetPartyMemberState(2)+SetEnterMazeResponse. No CanEnterPortal (unlike CParty). |
 | - | - | ?CheckEnterMazeItem@CForce@@QEAA_NXZ | 0x1401bcf30 | implemented | IDA ?CheckEnterMazeItem@CForce@@QEAA_NXZ | yes | - |
 | - | - | ?SetPartyMemberState@CParty@@QEAAXE@Z | 0x1401bd3b0 | implemented | IDA ?SetPartyMemberState@CParty@@QEAAXE@Z | yes | - |
 | - | - | ??E?$_Vector_iterator@V?$_Vector_val@UPS_MYROOM_POLLEN_INFO@@V?$allocator@UPS_MYROOM_POLLEN_INFO@@@std@@@std@@@std@@QEAAAEAV01@XZ | 0x1401bd450 | blocked | IDA ??E?$_Vector_iterator@V?$_Vector_val@UPS_MYROOM_POLLEN_INFO@@V?$allocator@UPS_MYROOM_POLLEN_INFO@@@std@@@std@@@std@@QEAAAEAV01@XZ | yes | - |
@@ -6945,11 +6947,11 @@
 | XGameServer | GameSockets.cpp | ??1CGameControlSocket@@UEAA@XZ | 0x1401ca300 | implemented | IDA decompile | yes | CGameControlSocket�������� |
 | XGameServer | GameSockets.cpp | ?SetMyInfo@CGameControlSocket@@UEAAXPEAVXOption@@@Z | 0x1401ca350 | implemented | IDA decompile | yes | ���÷�������Ϣ |
 | XGameServer | GameSockets.cpp | ?ServerProcessEx@CGameControlSocket@@UEAA_NAEAVXPacket@@@Z | 0x1401ca500 | implemented | IDA decompile | yes | ������������ |
-| XGameServer | GameSockets.cpp | ?RecvFindUser@CGameControlSocket@@QEAA_NAEAVXPacket@@@Z | 0x1401ca880 | blocked | IDA decompile | yes | �����û� |
+| XGameServer | GameSockets.cpp | ?RecvFindUser@CGameControlSocket@@QEAA_NAEAVXPacket@@@Z | 0x1401ca880 | implemented | IDA decompile + landed source | no | state1/2 dual-path find-user; lambda0/lambda2 DoJob: IsLive -> SetInvisible(1,4,4,0..0) + send_eSUB_CMD_MOVE_INFO(2,1) + EnterWorldToOther. |
 | - | - | ??0_lambda0_@?A0xa4fe1a90@@QEAA@AEBQEAVCUser@@AEBHAEBUSTPosInfo@@AEBK@Z | 0x1401cae10 | blocked | IDA ??0_lambda0_@?A0xa4fe1a90@@QEAA@AEBQEAVCUser@@AEBHAEBUSTPosInfo@@AEBK@Z | yes | - |
-| - | - | ??R_lambda0_@?A0xa4fe1a90@@QEBAXXZ | 0x1401cae90 | blocked | IDA ??R_lambda0_@?A0xa4fe1a90@@QEBAXXZ | yes | - |
+| XGameServer | GameSockets.cpp | ??R_lambda0_@?A0xa4fe1a90@@QEBAXXZ | 0x1401cae90 | implemented | IDA decompile + landed source (as inline lambda body) | no | - |
 | - | - | ??0_lambda2_@?A0xa4fe1a90@@QEAA@AEBQEAVCUser@@0AEBHAEBUSTPosInfo@@AEBK@Z | 0x1401caff0 | blocked | IDA ??0_lambda2_@?A0xa4fe1a90@@QEAA@AEBQEAVCUser@@0AEBHAEBUSTPosInfo@@AEBK@Z | yes | - |
-| - | - | ??R_lambda2_@?A0xa4fe1a90@@QEBAXXZ | 0x1401cb080 | blocked | IDA ??R_lambda2_@?A0xa4fe1a90@@QEBAXXZ | yes | - |
+| XGameServer | GameSockets.cpp | ??R_lambda2_@?A0xa4fe1a90@@QEBAXXZ | 0x1401cb080 | implemented | IDA decompile + landed source (as inline lambda body) | no | - |
 | XGameServer | GameSockets.cpp | ?PartyProcess@CGameControlSocket@@UEAA_NAEAVXPacket@@@Z | 0x1401cb1e0 | implemented | IDA decompile | yes | ��Ӱ�����?|
 | XGameServer | GameSockets.cpp | ?WorldModeProcess@CGameControlSocket@@UEAA_NAEAVXPacket@@@Z | 0x1401cb230 | implemented | IDA decompile | yes | ����ģʽ������ |
 | XGameServer | GameSockets.cpp | ?ForceProcess@CGameControlSocket@@UEAA_NAEAVXPacket@@@Z | 0x1401cb320 | implemented | IDA decompile | yes | ���Ű����� |
@@ -8158,23 +8160,23 @@
 | - | - | ?PartyProcess@CCommunitySocket@@UEAA_NAEAVXPacket@@@Z | 0x1401f39c0 | implemented | IDA ?PartyProcess@CCommunitySocket@@UEAA_NAEAVXPacket@@@Z | yes | - |
 | - | - | ?LeagueProcess@CCommunitySocket@@UEAA_NAEAVXPacket@@@Z | 0x1401f3dc0 | implemented | IDA ?LeagueProcess@CCommunitySocket@@UEAA_NAEAVXPacket@@@Z | yes | - |
 | - | - | ?ModeMazeProcess@CCommunitySocket@@UEAA_NAEAVXPacket@@@Z | 0x1401f4270 | implemented | IDA ?ModeMazeProcess@CCommunitySocket@@UEAA_NAEAVXPacket@@@Z | yes | - |
-| - | - | ?RecvLeagueMemberUpdate@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x1401f4320 | blocked | IDA ?RecvLeagueMemberUpdate@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | Blocked: lambda152 calls ThreadLocalData::UpdateLeagueMember (manager pending) |
-| - | - | ??0_lambda152_@?A0x93366633@@QEAA@AEBUST_LEAGUE_MEMBER_UPDATE@@@Z | 0x1401f4410 | blocked | IDA ??0_lambda152_@?A0x93366633@@QEAA@AEBUST_LEAGUE_MEMBER_UPDATE@@@Z | yes | - |
-| - | - | ??R_lambda152_@?A0x93366633@@QEBAXXZ | 0x1401f4460 | blocked | IDA ??R_lambda152_@?A0x93366633@@QEBAXXZ | yes | - |
-| - | - | ?RecvLeagueNoticeChange@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x1401f44a0 | blocked | IDA ?RecvLeagueNoticeChange@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | Blocked: lambda3 calls ThreadLocalData::SendLeagueNoticeChangeToMember (manager pending) |
-| - | - | ??R_lambda1_@?A0x93366633@@QEBAXXZ | 0x1401f47b0 | blocked | IDA ??R_lambda1_@?A0x93366633@@QEBAXXZ | yes | - |
-| - | - | ??0_lambda3_@?A0x93366633@@QEAA@AEBUST_LEAGUE_NOTICE@@AEBK@Z | 0x1401f4920 | blocked | IDA ??0_lambda3_@?A0x93366633@@QEAA@AEBUST_LEAGUE_NOTICE@@AEBK@Z | yes | - |
-| - | - | ??R_lambda3_@?A0x93366633@@QEBAXXZ | 0x1401f4990 | blocked | IDA ??R_lambda3_@?A0x93366633@@QEBAXXZ | yes | - |
-| - | - | ?RecvLeagueInfoChange@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x1401f49e0 | blocked | IDA ?RecvLeagueInfoChange@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | Blocked: lambda4 calls ThreadLocalData::LeagueInfoChange (manager pending) |
+| XGameServer | GameSockets.cpp | ?RecvLeagueMemberUpdate@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x1401f4320 | implemented | IDA decompile + disasm + active build | no | Restored: parse ST_LEAGUE_MEMBER_UPDATE (operator>> 0x140756BE0 added to PSServerLeague.h), lambda152 (0x1401F4460) DoJobAllThread -> ThreadLocalData::UpdateLeagueMember per thread. |
+| XGameServer | GameSockets.cpp | ??0_lambda152_@?A0x93366633@@QEAA@AEBUST_LEAGUE_MEMBER_UPDATE@@@Z | 0x1401f4410 | implemented | IDA disasm + active build | no | Lambda capture ctor inlined as std::function capture-by-value in RecvLeagueMemberUpdate. |
+| XGameServer | GameSockets.cpp | ??R_lambda152_@?A0x93366633@@QEBAXXZ | 0x1401f4460 | implemented | IDA decompile + active build | no | Restored as inlined std::function in RecvLeagueMemberUpdate: copy stUpdate then ThreadLocalData::GetInstance()->UpdateLeagueMember. |
+| XGameServer | GameSockets.cpp | ?RecvLeagueNoticeChange@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x1401f44a0 | implemented | IDA decompile + disasm + active build | no | Restored: parse ST_LEAGUE_NOTICE + dwActorID(int); online user -> lambda1 (0x1401F47B0) DoJob (0x22,0x36) notice + lambda192 decrement; always lambda3 (0x1401F4990) DoJobAllThread -> SendLeagueNoticeChangeToMember. |
+| XGameServer | GameSockets.cpp | ??R_lambda1_@?A0x93366633@@QEBAXXZ | 0x1401f47b0 | implemented | IDA decompile + disasm + active build | no | Restored as inlined std::function in RecvLeagueNoticeChange: liveness gate then (0x22,0x36) + ST_LEAGUE_NOTICE to the requesting user. |
+| XGameServer | GameSockets.cpp | ??0_lambda3_@?A0x93366633@@QEAA@AEBUST_LEAGUE_NOTICE@@AEBK@Z | 0x1401f4920 | implemented | IDA disasm + active build | no | Lambda capture ctor inlined as std::function capture-by-value in RecvLeagueNoticeChange. |
+| XGameServer | GameSockets.cpp | ??R_lambda3_@?A0x93366633@@QEBAXXZ | 0x1401f4990 | implemented | IDA decompile + active build | no | Restored as inlined std::function in RecvLeagueNoticeChange: copy stNotice then ThreadLocalData::GetInstance()->SendLeagueNoticeChangeToMember(stCopy, dwActorID). |
+| - | - | ?RecvLeagueInfoChange@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x1401f49e0 | implemented | IDA decompile + active build | no | lambda4 (0x1401F4AE0) DoJobAllThread landed: parse ST_LEAGUE_INFO -> ThreadLocalData::LeagueInfoChange -> CLeagueMember::SendLeagueInfo per thread. Dependency LeagueInfoChange now implemented. |
 | - | - | ??R_lambda4_@?A0x93366633@@QEBAXXZ | 0x1401f4ae0 | blocked | IDA ??R_lambda4_@?A0x93366633@@QEBAXXZ | yes | - |
 | - | - | ?RecvLeagueApplicantRes@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x1401f4b30 | implemented | IDA ?RecvLeagueApplicantRes@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | - |
 | - | - | ??0_lambda5_@?A0x93366633@@QEAA@AEBQEAVCUser@@AEBUST_LEAGUE_APPLICANT@@@Z | 0x1401f4db0 | blocked | IDA ??0_lambda5_@?A0x93366633@@QEAA@AEBQEAVCUser@@AEBUST_LEAGUE_APPLICANT@@@Z | yes | - |
 | - | - | ??R_lambda5_@?A0x93366633@@QEBAXXZ | 0x1401f4e10 | implemented | IDA decompile | yes | Inlined into RecvLeague handler (see verified handler row) |
-| - | - | ?RecvLeagueApplicantAdd@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x1401f5070 | blocked | IDA ?RecvLeagueApplicantAdd@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | Blocked: lambda7 calls ThreadLocalData::SendLeagueApply (manager pending) |
-| - | - | ??R_lambda7_@?A0x93366633@@QEBAXXZ | 0x1401f5160 | blocked | IDA ??R_lambda7_@?A0x93366633@@QEBAXXZ | yes | - |
-| - | - | ?RecvLeagueLogin@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x1401f51a0 | blocked | IDA ?RecvLeagueLogin@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | Blocked: source placeholder; complex multi-struct parse + DoJobAllThread tail awaiting decompile + ThreadLocalData manager |
-| - | - | ??0_lambda8_@?A0x93366633@@QEAA@AEBQEAVCUser@@AEBUST_LEAGUE_INFO@@AEBUST_LEAGUE_MEMBER_LIST@@AEBUST_LEAGUE_APPLICANT_LIST@@AEBUST_LEAGUE_BOARD_LIST@@AEBEAEBUST_LEAGUE_INFO_EX@@AEBUST_LEAGUE_RECORD_LIST@@AEBUST_LEAGUE_INFO_FOR_GAME@@AEBH@Z | 0x1401f5780 | blocked | IDA ??0_lambda8_@?A0x93366633@@QEAA@AEBQEAVCUser@@AEBUST_LEAGUE_INFO@@AEBUST_LEAGUE_MEMBER_LIST@@AEBUST_LEAGUE_APPLICANT_LIST@@AEBUST_LEAGUE_BOARD_LIST@@AEBEAEBUST_LEAGUE_INFO_EX@@AEBUST_LEAGUE_RECORD_LIST@@AEBUST_LEAGUE_INFO_FOR_GAME@@AEBH@Z | yes | - |
-| - | - | ??R_lambda8_@?A0x93366633@@QEBAXXZ | 0x1401f5920 | blocked | IDA ??R_lambda8_@?A0x93366633@@QEBAXXZ | yes | - |
+| XGameServer | GameSockets.cpp | ?RecvLeagueApplicantAdd@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x1401f5070 | implemented | IDA decompile + landed source | no | Parse ST_LEAGUE_APPLICANT; lambda7 DoJobAllThread forwards by-value copy to ThreadLocalData::SendLeagueApply. |
+| XGameServer | GameSockets.cpp | ??R_lambda7_@?A0x93366633@@QEBAXXZ | 0x1401f5160 | implemented | IDA decompile + landed source (as inline lambda body) | no | - |
+| XGameServer | GameSockets.cpp | ?RecvLeagueLogin@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x1401f51a0 | implemented | IDA decompile + disasm + active build | no | Restored: 11-part parse (bLogin, MEMBER_UPDATE, INFO, MEMBER_LIST, APPLICANT_LIST, BOARD_LIST, byState, INFO_EX, RECORD_LIST, INFO_FOR_GAME, nSyncCount); user lookup via stUpdate.dwActorID; bLogin -> lambda8 (0x1401F5920) DoJob (SetLeagueInfo + dwUCID mask + UpdateLeagueSyncCount + (0x22,7) five-list send + (0x22,0x44) broadcast) + lambda192 decrement + lambda152 DoJobAllThread UpdateLeagueMember; !bLogin -> ClearLeagueInfo only. |
+| XGameServer | GameSockets.cpp | ??0_lambda8_@?A0x93366633@@QEAA@AEBQEAVCUser@@AEBUST_LEAGUE_INFO@@AEBUST_LEAGUE_MEMBER_LIST@@AEBUST_LEAGUE_APPLICANT_LIST@@AEBUST_LEAGUE_BOARD_LIST@@AEBEAEBUST_LEAGUE_INFO_EX@@AEBUST_LEAGUE_RECORD_LIST@@AEBUST_LEAGUE_INFO_FOR_GAME@@AEBH@Z | 0x1401f5780 | implemented | IDA disasm + active build | no | Lambda capture ctor inlined as std::function capture-by-value in RecvLeagueLogin. |
+| XGameServer | GameSockets.cpp | ??R_lambda8_@?A0x93366633@@QEBAXXZ | 0x1401f5920 | implemented | IDA decompile + active build | no | Restored as inlined std::function in RecvLeagueLogin: liveness+area gate, SetLeagueInfo(stInfoEx, forGame), dwUCID mask, UpdateLeagueSyncCount, (0x22,7) stInfo+member+applicant+board+record+byState send, (0x22,0x44) stInfoEx broadcast nearby. |
 | - | - | ??R_lambda10_@?A0x93366633@@QEBAXXZ | 0x1401f5d50 | blocked | IDA ??R_lambda10_@?A0x93366633@@QEBAXXZ | yes | - |
 | - | - | ??1ST_LEAGUE_RECORD_LIST@@QEAA@XZ | 0x1401f5d90 | blocked | IDA ??1ST_LEAGUE_RECORD_LIST@@QEAA@XZ | yes | - |
 | - | - | ??0ST_LEAGUE_RECORD_LIST@@QEAA@AEBU0@@Z | 0x1401f5db0 | blocked | IDA ??0ST_LEAGUE_RECORD_LIST@@QEAA@AEBU0@@Z | yes | - |
@@ -8192,24 +8194,24 @@
 | - | - | ??0PS_LEAGUE_SUMMARY_LIST@@QEAA@AEBU0@@Z | 0x1401f6b60 | blocked | IDA ??0PS_LEAGUE_SUMMARY_LIST@@QEAA@AEBU0@@Z | yes | - |
 | - | - | ??1_lambda14_@?A0x93366633@@QEAA@XZ | 0x1401f6b90 | blocked | IDA ??1_lambda14_@?A0x93366633@@QEAA@XZ | yes | - |
 | - | - | ??0_lambda14_@?A0x93366633@@QEAA@AEBV01@@Z | 0x1401f6bd0 | blocked | IDA ??0_lambda14_@?A0x93366633@@QEAA@AEBV01@@Z | yes | - |
-| - | - | ?RecvLeagueApplicantJoinUser@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x1401f6c40 | blocked | IDA ?RecvLeagueApplicantJoinUser@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | Blocked: lambda17 calls ThreadLocalData::AddLeagueMember + CUser::UpdateLeagueSyncCount/SetLeagueInfo (not implemented) |
+| XGameServer | GameSockets.cpp | ?RecvLeagueApplicantJoinUser@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x1401f6c40 | implemented | IDA decompile + active build | no | Restored: parse MEMBER_EX + INFO_EX + INFO_UPDATE + dwActorID + INFO_FOR_GAME + nSyncCount; lambda16 DoJobAllThread -> SendLeagueJoinUser_Apply; joined user online -> lambda17 DoJob (sync count + SetLeagueInfo + AddLeagueMember + (0x22,0x44) broadcast + ST_LOG_GAME{15,14} + accept-user ST_LOG_GAME{15,7}) + lambda192; offline && byClass==6 -> master lambda30 kick chain (IsBit_OR 0xC0 + map/server mismatch -> Kickout 39). |
 | - | - | ??0_lambda16_@?A0x93366633@@QEAA@AEBUST_LEAGUE_MEMBER_EX@@AEBUST_LEAGUE_INFO_UPDATE@@AEBH@Z | 0x1401f7260 | blocked | IDA ??0_lambda16_@?A0x93366633@@QEAA@AEBUST_LEAGUE_MEMBER_EX@@AEBUST_LEAGUE_INFO_UPDATE@@AEBH@Z | yes | - |
-| - | - | ??R_lambda16_@?A0x93366633@@QEBAXXZ | 0x1401f7310 | blocked | IDA ??R_lambda16_@?A0x93366633@@QEBAXXZ | yes | - |
+| XGameServer | GameSockets.cpp | ??R_lambda16_@?A0x93366633@@QEBAXXZ | 0x1401f7310 | implemented | IDA decompile + active build | no | Inlined into RecvLeagueApplicantJoinUser: by-value copies -> ThreadLocalData::SendLeagueJoinUser_Apply(stMemberEx, stInfoUpdate, nSyncCount). |
 | - | - | ??0_lambda17_@?A0x93366633@@QEAA@AEBQEAVCUser@@AEBUST_LEAGUE_MEMBER_EX@@AEBUST_LEAGUE_INFO_EX@@AEBUST_LEAGUE_INFO_UPDATE@@AEBUST_LEAGUE_INFO_FOR_GAME@@AEBKAEBH@Z | 0x1401f7390 | blocked | IDA ??0_lambda17_@?A0x93366633@@QEAA@AEBQEAVCUser@@AEBUST_LEAGUE_MEMBER_EX@@AEBUST_LEAGUE_INFO_EX@@AEBUST_LEAGUE_INFO_UPDATE@@AEBUST_LEAGUE_INFO_FOR_GAME@@AEBKAEBH@Z | yes | - |
-| - | - | ??R_lambda17_@?A0x93366633@@QEBAXXZ | 0x1401f74e0 | blocked | IDA ??R_lambda17_@?A0x93366633@@QEBAXXZ | yes | - |
+| XGameServer | GameSockets.cpp | ??R_lambda17_@?A0x93366633@@QEBAXXZ | 0x1401f74e0 | implemented | IDA decompile + active build | no | Inlined into RecvLeagueApplicantJoinUser: full applicant-join sync chain (see handler row). |
 | - | - | ??0_lambda30_@?A0x492caa09@@QEAA@AEBQEAVCUser@@AEBUPS_DB_CHECK_LOCATION@@@Z | 0x1401f79d0 | blocked | IDA ??0_lambda30_@?A0x492caa09@@QEAA@AEBQEAVCUser@@AEBUPS_DB_CHECK_LOCATION@@@Z | yes | - |
 | - | - | ??R_lambda19_@?A0x93366633@@QEBAXXZ | 0x1401f7a40 | blocked | IDA ??R_lambda19_@?A0x93366633@@QEBAXXZ | yes | - |
-| - | - | ?RecvLeagueInviteJoinUser@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x1401f7b10 | blocked | IDA ?RecvLeagueInviteJoinUser@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | Blocked: source placeholder; complex multi-struct parse + DoJobAllThread tail awaiting decompile + ThreadLocalData manager |
+| XGameServer | GameSockets.cpp | ?RecvLeagueInviteJoinUser@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x1401f7b10 | implemented | IDA decompile + active build | no | Restored: parse MEMBER_EX + byApplyState + INFO_EX + INFO_UPDATE + dwActorID + INFO_FOR_GAME + nSyncCount; lambda21 DoJobAllThread -> SendLeagueJoinUser_Invite; join user online -> lambda22 DoJob (sync count + SetLeagueInfo + AddLeagueMember + (0x22,0x44) broadcast + ST_LOG_GAME{15,4}) + lambda192. |
 | - | - | ??0_lambda21_@?A0x93366633@@QEAA@AEBUST_LEAGUE_MEMBER_EX@@AEBUST_LEAGUE_INFO_UPDATE@@AEBKAEBEAEBH@Z | 0x1401f7f30 | blocked | IDA ??0_lambda21_@?A0x93366633@@QEAA@AEBUST_LEAGUE_MEMBER_EX@@AEBUST_LEAGUE_INFO_UPDATE@@AEBKAEBEAEBH@Z | yes | - |
-| - | - | ??R_lambda21_@?A0x93366633@@QEBAXXZ | 0x1401f8010 | blocked | IDA ??R_lambda21_@?A0x93366633@@QEBAXXZ | yes | - |
+| XGameServer | GameSockets.cpp | ??R_lambda21_@?A0x93366633@@QEBAXXZ | 0x1401f8010 | implemented | IDA decompile + active build | no | Inlined into RecvLeagueInviteJoinUser: by-value copies -> ThreadLocalData::SendLeagueJoinUser_Invite(stMemberEx, stInfoUpdate, byApplyState, nSyncCount). |
 | - | - | ??0_lambda22_@?A0x93366633@@QEAA@AEBQEAVCUser@@AEBUST_LEAGUE_MEMBER_EX@@AEBEAEBUST_LEAGUE_INFO_EX@@AEBUST_LEAGUE_INFO_UPDATE@@AEBKAEBUST_LEAGUE_INFO_FOR_GAME@@AEBH@Z | 0x1401f80a0 | blocked | IDA ??0_lambda22_@?A0x93366633@@QEAA@AEBQEAVCUser@@AEBUST_LEAGUE_MEMBER_EX@@AEBEAEBUST_LEAGUE_INFO_EX@@AEBUST_LEAGUE_INFO_UPDATE@@AEBKAEBUST_LEAGUE_INFO_FOR_GAME@@AEBH@Z | yes | - |
-| - | - | ??R_lambda22_@?A0x93366633@@QEBAXXZ | 0x1401f8200 | blocked | IDA ??R_lambda22_@?A0x93366633@@QEBAXXZ | yes | - |
+| XGameServer | GameSockets.cpp | ??R_lambda22_@?A0x93366633@@QEBAXXZ | 0x1401f8200 | implemented | IDA decompile + active build | no | Inlined into RecvLeagueInviteJoinUser: full invite-join sync chain (see handler row). |
 | - | - | ?RecvLeagueApplicantReject@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x1401f8550 | implemented | IDA ?RecvLeagueApplicantReject@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | - |
 | - | - | ??R_lambda24_@?A0x93366633@@QEBAXXZ | 0x1401f8780 | implemented | IDA decompile | yes | Inlined into RecvLeague handler (see verified handler row) |
 | - | - | ?RecvLeagueApplicantDelete@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x1401f89e0 | blocked | IDA ?RecvLeagueApplicantDelete@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | Blocked: lambda26 calls ThreadLocalData::SendDeleteLeagueApplicant (manager pending) |
 | - | - | ??0_lambda26_@?A0x93366633@@QEAA@AEBHAEBK0@Z | 0x1401f8ae0 | blocked | IDA ??0_lambda26_@?A0x93366633@@QEAA@AEBHAEBK0@Z | yes | - |
 | - | - | ??R_lambda26_@?A0x93366633@@QEBAXXZ | 0x1401f8b30 | blocked | IDA ??R_lambda26_@?A0x93366633@@QEBAXXZ | yes | - |
-| - | - | ?RecvLeagueMemberKick@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x1401f8b70 | blocked | IDA ?RecvLeagueMemberKick@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | Blocked: lambda27 calls CUser::UpdateLeagueSyncCount/GetLeagueInfo (not implemented in User.cpp) |
+| - | - | ?RecvLeagueMemberKick@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x1401f8b70 | implemented | IDA decompile + active build | no | lambda27 (0x1401F91A0) requester chain + lambda29 (0x1401F94C0) kicked-user cleanup + lambda31 (0x1401F97A0) DoJobAllThread SendLeagueKickout landed; dependencies UpdateLeagueSyncCount/GetLeagueInfo/SendLeagueKickout now implemented. |
 | - | - | ??0_lambda27_@?A0x93366633@@QEAA@AEBQEAVCUser@@AEBKAEBUST_LEAGUE_INFO_UPDATE@@AEBFAEBH@Z | 0x1401f9110 | blocked | IDA ??0_lambda27_@?A0x93366633@@QEAA@AEBQEAVCUser@@AEBKAEBUST_LEAGUE_INFO_UPDATE@@AEBFAEBH@Z | yes | - |
 | - | - | ??R_lambda27_@?A0x93366633@@QEBAXXZ | 0x1401f91a0 | blocked | IDA ??R_lambda27_@?A0x93366633@@QEBAXXZ | yes | - |
 | - | - | ??R_lambda29_@?A0x93366633@@QEBAXXZ | 0x1401f94c0 | blocked | IDA ??R_lambda29_@?A0x93366633@@QEBAXXZ | yes | - |
@@ -8222,20 +8224,20 @@
 | - | - | ??R_lambda34_@?A0x93366633@@QEBAXXZ | 0x1401f9fc0 | blocked | IDA ??R_lambda34_@?A0x93366633@@QEBAXXZ | yes | - |
 | - | - | ?RecvLeagueInviteReject@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x1401fa020 | implemented | IDA ?RecvLeagueInviteReject@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | - |
 | - | - | ??0_lambda35_@?A0x93366633@@QEAA@AEBQEAVCUser@@AEBUST_REQ_LEAGUE_INVITE_REJECT@@AEBH@Z | 0x1401fa2a0 | blocked | IDA ??0_lambda35_@?A0x93366633@@QEAA@AEBQEAVCUser@@AEBUST_REQ_LEAGUE_INVITE_REJECT@@AEBH@Z | yes | - |
-| - | - | ??R_lambda35_@?A0x93366633@@QEBAXXZ | 0x1401fa310 | implemented | IDA decompile | yes | Inlined into RecvLeague handler (see verified handler row) |
+| XGameServer | GameSockets.cpp | ??R_lambda35_@?A0x93366633@@QEBAXXZ | 0x1401fa310 | implemented | IDA decompile + active build | no | Inlined into RecvLeaguePositionNameChange: IsLive+GetArea gate -> (0x22,0x15) send -> target lookup -> ST_LOG_GAME{15,5,nParam0=nLeagueID,nParam1=dwActorID,nParam5=level,szComment=L"LEAGUE "} SendDBLog. |
 | - | - | ?RecvLeagueInvite@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x1401fa5e0 | implemented | IDA ?RecvLeagueInvite@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | - |
 | - | - | ??R_lambda37_@?A0x93366633@@QEBAXXZ | 0x1401fac10 | implemented | IDA decompile | yes | Inlined into RecvLeague handler (see verified handler row) |
 | - | - | ??R_lambda39_@?A0x93366633@@QEBAXXZ | 0x1401fae40 | blocked | IDA ??R_lambda39_@?A0x93366633@@QEBAXXZ | yes | - |
-| - | - | ?RecvLeagueDelete@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x1401fafb0 | blocked | IDA ?RecvLeagueDelete@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | Blocked: lambda43 calls ThreadLocalData::DeleteLeague + CUser::SetLeagueInventorySend/SetLeagueDeletePenalty/GetLeagueInfo/ClearLeagueInfo (not implemented) |
+| - | - | ?RecvLeagueDelete@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x1401fafb0 | implemented | IDA decompile + active build | no | lambda43 (0x1401FB5B0) success path + lambda41 (0x1401FB410) error path landed; dependencies DeleteLeague/SetLeagueInventorySend/SetLeagueDeletePenalty/GetLeagueInfo/ClearLeagueInfo now implemented. |
 | - | - | ??R_lambda41_@?A0x93366633@@QEBAXXZ | 0x1401fb410 | blocked | IDA ??R_lambda41_@?A0x93366633@@QEBAXXZ | yes | - |
 | - | - | ??0_lambda43_@?A0x93366633@@QEAA@AEBQEAVCUser@@AEBKAEBHAEB_J2@Z | 0x1401fb540 | blocked | IDA ??0_lambda43_@?A0x93366633@@QEAA@AEBQEAVCUser@@AEBKAEBHAEB_J2@Z | yes | - |
 | - | - | ??R_lambda43_@?A0x93366633@@QEBAXXZ | 0x1401fb5b0 | blocked | IDA ??R_lambda43_@?A0x93366633@@QEBAXXZ | yes | - |
-| - | - | ?RecvLeagueInfo@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x1401fb930 | blocked | IDA ?RecvLeagueInfo@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | Blocked: source placeholder; complex multi-struct parse + DoJobAllThread tail awaiting decompile + ThreadLocalData manager |
+| XGameServer | GameSockets.cpp | ?RecvLeagueInfo@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x1401fb930 | implemented | IDA decompile + active build | no | Restored: 8-part parse (INFO, MEMBER_LIST, APPLICANT_LIST, BOARD_LIST, dwActorID, byState, RECORD_LIST, INFO_FOR_GAME); no-user -> LogError "[LEAUGE]" return true; in-area -> lambda45 (0x1401FBF30) DoJob (build ST_LEAGUE_INFO_EX from nLeagueID/dwLeagueCard/szLeagueName -> SetLeagueInfo -> (0x22,7) send 5 lists + byState) + lambda192 decrement; not-in-area -> return false. |
 | - | - | ??0_lambda45_@?A0x93366633@@QEAA@AEBQEAVCUser@@AEBUST_LEAGUE_INFO@@AEBUST_LEAGUE_MEMBER_LIST@@AEBUST_LEAGUE_APPLICANT_LIST@@AEBUST_LEAGUE_BOARD_LIST@@AEBEAEBUST_LEAGUE_RECORD_LIST@@AEBUST_LEAGUE_INFO_FOR_GAME@@@Z | 0x1401fbde0 | blocked | IDA ??0_lambda45_@?A0x93366633@@QEAA@AEBQEAVCUser@@AEBUST_LEAGUE_INFO@@AEBUST_LEAGUE_MEMBER_LIST@@AEBUST_LEAGUE_APPLICANT_LIST@@AEBUST_LEAGUE_BOARD_LIST@@AEBEAEBUST_LEAGUE_RECORD_LIST@@AEBUST_LEAGUE_INFO_FOR_GAME@@@Z | yes | - |
-| - | - | ??R_lambda45_@?A0x93366633@@QEBAXXZ | 0x1401fbf30 | blocked | IDA ??R_lambda45_@?A0x93366633@@QEBAXXZ | yes | - |
+| XGameServer | GameSockets.cpp | ??R_lambda45_@?A0x93366633@@QEBAXXZ | 0x1401fbf30 | implemented | IDA decompile + active build | no | Inlined into RecvLeagueInfo: IsLive+GetArea gate -> build ST_LEAGUE_INFO_EX -> SetLeagueInfo -> (0x22,7) send stLeagueInfo/member/applicant/board/record + byState. |
 | - | - | ??1_lambda45_@?A0x93366633@@QEAA@XZ | 0x1401fc2e0 | blocked | IDA ??1_lambda45_@?A0x93366633@@QEAA@XZ | yes | - |
 | - | - | ??0_lambda45_@?A0x93366633@@QEAA@AEBV01@@Z | 0x1401fc350 | blocked | IDA ??0_lambda45_@?A0x93366633@@QEAA@AEBV01@@Z | yes | - |
-| - | - | ?RecvCreateLeague@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x1401fc4c0 | implemented | IDA ?RecvCreateLeague@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | - |
+| - | - | ?RecvCreateLeague@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x1401fc4c0 | implemented | IDA decompile + active build | yes | lambda47 (0x1401FC960) landed this round: parse ST_LEAGUE_INFO+MEMBER_EX+dwActorID+INFO_EX+INFO_FOR_GAME; SetLeagueInfo + AddMoney(-100000,0x31) + (0x22,1)+(0x22,0x44) broadcast + AddLeagueMember + ST_LOG_GAME(15,1) + ClassEvent-8 TODO. |
 | - | - | ??0_lambda47_@?A0x93366633@@QEAA@AEBQEAVCUser@@AEBUST_LEAGUE_INFO@@AEBUST_LEAGUE_MEMBER_EX@@AEBUST_LEAGUE_INFO_EX@@AEBUST_LEAGUE_INFO_FOR_GAME@@@Z | 0x1401fc840 | blocked | IDA ??0_lambda47_@?A0x93366633@@QEAA@AEBQEAVCUser@@AEBUST_LEAGUE_INFO@@AEBUST_LEAGUE_MEMBER_EX@@AEBUST_LEAGUE_INFO_EX@@AEBUST_LEAGUE_INFO_FOR_GAME@@@Z | yes | - |
 | - | - | ??R_lambda47_@?A0x93366633@@QEBAXXZ | 0x1401fc960 | blocked | IDA ??R_lambda47_@?A0x93366633@@QEBAXXZ | yes | - |
 | - | - | ?FriendProcess@CCommunitySocket@@UEAA_NAEAVXPacket@@@Z | 0x1401fce80 | implemented | IDA ?FriendProcess@CCommunitySocket@@UEAA_NAEAVXPacket@@@Z | yes | - |
@@ -8358,8 +8360,8 @@
 | - | - | ??0_lambda126_@?A0x93366633@@QEAA@AEBQEAVCUser@@AEBUST_APPLY_MEMBER_LIST@@@Z | 0x1402074d0 | blocked | IDA ??0_lambda126_@?A0x93366633@@QEAA@AEBQEAVCUser@@AEBUST_APPLY_MEMBER_LIST@@@Z | yes | - |
 | - | - | ??R_lambda126_@?A0x93366633@@QEBAXXZ | 0x140207540 | implemented | IDA decompile | yes | Inlined into RecvParty handler (see verified handler row) |
 | - | - | ??0ST_APPLY_MEMBER_LIST@@QEAA@XZ | 0x140207690 | blocked | IDA ??0ST_APPLY_MEMBER_LIST@@QEAA@XZ | yes | - |
-| - | - | ?RecvPartyMazeClear@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x1402076c0 | blocked | IDA ?RecvPartyMazeClear@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | Blocked: stub, manager dependency pending |
-| - | - | ??R_lambda128_@?A0x93366633@@QEBAXXZ | 0x140207740 | blocked | IDA ??R_lambda128_@?A0x93366633@@QEBAXXZ | yes | - |
+| XGameServer | GameSockets.cpp | ?RecvPartyMazeClear@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x1402076c0 | implemented | IDA decompile + landed source | no | Parse dwPartyID; lambda128 DoJobAllThread dispatches to XPartyManager::RecvPartyMazeClear via GetPartyMgr. |
+| XGameServer | GameSockets.cpp | ??R_lambda128_@?A0x93366633@@QEBAXXZ | 0x140207740 | implemented | IDA decompile + landed source (as inline lambda body) | no | - |
 | - | - | ?RecvPartyRecruitInfo@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x140207770 | implemented | IDA ?RecvPartyRecruitInfo@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | - |
 | - | - | ??0_lambda129_@?A0x93366633@@QEAA@AEBQEAVCUser@@AEBUST_PARTY_RECRUIT@@@Z | 0x140207a10 | blocked | IDA ??0_lambda129_@?A0x93366633@@QEAA@AEBQEAVCUser@@AEBUST_PARTY_RECRUIT@@@Z | yes | - |
 | - | - | ??R_lambda129_@?A0x93366633@@QEBAXXZ | 0x140207a80 | implemented | IDA decompile | yes | Inlined into RecvParty handler (see verified handler row) |
@@ -8381,29 +8383,29 @@
 | - | - | ?RecvLeagueList@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x140208ca0 | implemented | IDA ?RecvLeagueList@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | - |
 | - | - | ??0_lambda139_@?A0x93366633@@QEAA@AEBQEAVCUser@@AEBUPS_LEAGUE_SUMMARY_LIST@@AEBUST_LEAGUE_APPLICANT_CHECK_LIST@@@Z | 0x140208f80 | blocked | IDA ??0_lambda139_@?A0x93366633@@QEAA@AEBQEAVCUser@@AEBUPS_LEAGUE_SUMMARY_LIST@@AEBUST_LEAGUE_APPLICANT_CHECK_LIST@@@Z | yes | - |
 | - | - | ??R_lambda139_@?A0x93366633@@QEBAXXZ | 0x140208ff0 | implemented | IDA decompile | yes | Inlined into RecvLeague handler (see verified handler row) |
-| - | - | ?RecvLeagueAuthChange@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x140209190 | blocked | IDA ?RecvLeagueAuthChange@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | Blocked: source placeholder; DoJob x2 + 8x log loop + DoJobAllThread lambda143 tail awaiting ThreadLocalData manager |
+| XGameServer | GameSockets.cpp | ?RecvLeagueAuthChange@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x140209190 | implemented | IDA decompile + active build | no | Restored: parse ST_LEAGUE_AUTH_CHANGE + nLeagueID + dwActorID + nSyncCount; online -> lambda30 (0x1404F0DB0) DoJob (GetLeagueID!=0 -> (0xF6,0x28) forward via SendCmd(0x22,0x32); else LogDebug + SendErrorMessage 57016) + lambda192 decrement + 8x ST_LOG_GAME{15,11,nParam3=idx,nParam4=nAuth[idx]} SendDBLog; always lambda143 (0x1402097E0) DoJobAllThread -> ChangeLeagueAuth. Offline -> return false; else return true. |
 | - | - | ??R_lambda141_@?A0x93366633@@QEBAXXZ | 0x140209600 | blocked | IDA ??R_lambda141_@?A0x93366633@@QEBAXXZ | yes | - |
 | - | - | ??0_lambda143_@?A0x93366633@@QEAA@AEBUST_LEAGUE_AUTH_CHANGE@@AEBH1@Z | 0x140209770 | blocked | IDA ??0_lambda143_@?A0x93366633@@QEAA@AEBUST_LEAGUE_AUTH_CHANGE@@AEBH1@Z | yes | - |
-| - | - | ??R_lambda143_@?A0x93366633@@QEBAXXZ | 0x1402097e0 | blocked | IDA ??R_lambda143_@?A0x93366633@@QEBAXXZ | yes | - |
-| - | - | ?RecvLeaguePositionNameChange@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x140209840 | blocked | IDA ?RecvLeaguePositionNameChange@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | Blocked: lambda146 calls ThreadLocalData::ChangePositionName (manager pending) |
+| XGameServer | GameSockets.cpp | ??R_lambda143_@?A0x93366633@@QEBAXXZ | 0x1402097e0 | implemented | IDA decompile + active build | no | Inlined into RecvLeagueAuthChange: by-value copy -> ThreadLocalData::ChangeLeagueAuth(stCopy, nLeagueID, nSyncCount) per thread. |
+| XGameServer | GameSockets.cpp | ?RecvLeaguePositionNameChange@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x140209840 | implemented | IDA decompile + active build | no | Restored: parse dwActorID(int) + ST_LEAGUE_POSITION_NAME_CHANGE + nLeagueID(int); online (GetArea) -> lambda35 (0x1401FA310) DoJob ((0x22,0x15) send + ST_LOG_GAME SendDBLog) + lambda192 decrement; always lambda146 (0x140209E00) DoJobAllThread -> ThreadLocalData::ChangePositionName. |
 | - | - | ??R_lambda144_@?A0x93366633@@QEBAXXZ | 0x140209b60 | blocked | IDA ??R_lambda144_@?A0x93366633@@QEBAXXZ | yes | - |
 | - | - | ??0_lambda146_@?A0x93366633@@QEAA@AEBUST_LEAGUE_POSITION_NAME_CHANGE@@AEBH@Z | 0x140209da0 | blocked | IDA ??0_lambda146_@?A0x93366633@@QEAA@AEBUST_LEAGUE_POSITION_NAME_CHANGE@@AEBH@Z | yes | - |
-| - | - | ??R_lambda146_@?A0x93366633@@QEBAXXZ | 0x140209e00 | blocked | IDA ??R_lambda146_@?A0x93366633@@QEBAXXZ | yes | - |
-| - | - | ?RecvLeagueMessage@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x140209e50 | blocked | IDA ?RecvLeagueMessage@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | Blocked: lambda147 calls ThreadLocalData::SendLeagueMsg (manager pending) |
+| XGameServer | GameSockets.cpp | ??R_lambda146_@?A0x93366633@@QEBAXXZ | 0x140209e00 | implemented | IDA decompile + active build | no | Inlined into RecvLeaguePositionNameChange: by-value copy -> ThreadLocalData::ChangePositionName(stChangeCopy, nLeagueID) per thread. |
+| XGameServer | GameSockets.cpp | ?RecvLeagueMessage@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x140209e50 | implemented | IDA decompile + active build | no | Restored: parse PS_CHAT_LEAGUE + PS_CHAT_ITEM_LINK_FOR_SERVER; lambda147 (0x14020A020) DoJobAllThread -> SendLeagueMsg per thread. |
 | - | - | ??0_lambda147_@?A0x93366633@@QEAA@AEBUPS_CHAT_LEAGUE@@AEBUPS_CHAT_ITEM_LINK_FOR_SERVER@@@Z | 0x140209fa0 | blocked | IDA ??0_lambda147_@?A0x93366633@@QEAA@AEBUPS_CHAT_LEAGUE@@AEBUPS_CHAT_ITEM_LINK_FOR_SERVER@@@Z | yes | - |
-| - | - | ??R_lambda147_@?A0x93366633@@QEBAXXZ | 0x14020a020 | blocked | IDA ??R_lambda147_@?A0x93366633@@QEBAXXZ | yes | - |
+| XGameServer | GameSockets.cpp | ??R_lambda147_@?A0x93366633@@QEBAXXZ | 0x14020a020 | implemented | IDA decompile + active build | no | Inlined into RecvLeagueMessage: by-value copies -> ThreadLocalData::SendLeagueMsg per thread. |
 | - | - | ??1_lambda147_@?A0x93366633@@QEAA@XZ | 0x14020a0b0 | blocked | IDA ??1_lambda147_@?A0x93366633@@QEAA@XZ | yes | - |
 | - | - | ??0_lambda147_@?A0x93366633@@QEAA@AEBV01@@Z | 0x14020a0e0 | blocked | IDA ??0_lambda147_@?A0x93366633@@QEAA@AEBV01@@Z | yes | - |
-| - | - | ?RecvLeagueMemberPositionChange@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x14020a160 | blocked | IDA ?RecvLeagueMemberPositionChange@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | Blocked: DoJobAllThread lambda150 calls ThreadLocalData::UpdateMemberPosition (manager pending) |
+| XGameServer | GameSockets.cpp | ?RecvLeagueMemberPositionChange@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x14020a160 | implemented | IDA decompile + active build | no | Restored: parse ST_LEAGUE_MEMBER_POSITION + nLeagueID + dwActorID + byPrevPosition(char) + ST_LEAGUE_INFO_FOR_GAME + nSyncCount; online && nResult>0 -> lambda148 (0x14020A5B0) DoJob ((0x22,0x42) send) + lambda192 decrement; always lambda150 (0x14020A7A0) DoJobAllThread -> UpdateMemberPosition. |
 | - | - | ??0_lambda148_@?A0x93366633@@QEAA@AEBQEAVCUser@@AEBUST_LEAGUE_MEMBER_POSITION@@AEBH@Z | 0x14020a540 | blocked | IDA ??0_lambda148_@?A0x93366633@@QEAA@AEBQEAVCUser@@AEBUST_LEAGUE_MEMBER_POSITION@@AEBH@Z | yes | - |
-| - | - | ??R_lambda148_@?A0x93366633@@QEBAXXZ | 0x14020a5b0 | blocked | IDA ??R_lambda148_@?A0x93366633@@QEBAXXZ | yes | - |
+| XGameServer | GameSockets.cpp | ??R_lambda148_@?A0x93366633@@QEBAXXZ | 0x14020a5b0 | implemented | IDA decompile + active build | no | Inlined into RecvLeagueMemberPositionChange: IsLive+GetArea gate -> (0x22,0x42) send ST_LEAGUE_MEMBER_POSITION copy. |
 | - | - | ??0_lambda150_@?A0x93366633@@QEAA@AEBUST_LEAGUE_MEMBER_POSITION@@AEBHAEBK1@Z | 0x14020a720 | blocked | IDA ??0_lambda150_@?A0x93366633@@QEAA@AEBUST_LEAGUE_MEMBER_POSITION@@AEBHAEBK1@Z | yes | - |
-| - | - | ??R_lambda150_@?A0x93366633@@QEBAXXZ | 0x14020a7a0 | blocked | IDA ??R_lambda150_@?A0x93366633@@QEBAXXZ | yes | - |
-| - | - | ?RecvLeagueApplicantUpdate@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x14020a800 | blocked | IDA ?RecvLeagueApplicantUpdate@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | Blocked: lambda151 calls ThreadLocalData::LeagueApplicantUpdate (manager pending) |
+| XGameServer | GameSockets.cpp | ??R_lambda150_@?A0x93366633@@QEBAXXZ | 0x14020a7a0 | implemented | IDA decompile + active build | no | Inlined into RecvLeagueMemberPositionChange: 0xC-byte copy -> ThreadLocalData::UpdateMemberPosition(stCopy, nLeagueID, dwActorID, nSyncCount) per thread. |
+| XGameServer | GameSockets.cpp | ?RecvLeagueApplicantUpdate@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x14020a800 | implemented | IDA decompile + active build | no | Restored: parse dwActorID + ST_LEAGUE_APPLICANT_CHECK_LIST; lambda151 (0x14020A960) DoJobAllThread -> LeagueApplicantUpdate(stCopy, dwActorID). |
 | - | - | ??0_lambda151_@?A0x93366633@@QEAA@AEBKAEBUST_LEAGUE_APPLICANT_CHECK_LIST@@@Z | 0x14020a910 | blocked | IDA ??0_lambda151_@?A0x93366633@@QEAA@AEBKAEBUST_LEAGUE_APPLICANT_CHECK_LIST@@@Z | yes | - |
-| - | - | ??R_lambda151_@?A0x93366633@@QEBAXXZ | 0x14020a960 | blocked | IDA ??R_lambda151_@?A0x93366633@@QEBAXXZ | yes | - |
+| XGameServer | GameSockets.cpp | ??R_lambda151_@?A0x93366633@@QEBAXXZ | 0x14020a960 | implemented | IDA decompile + active build | no | Inlined into RecvLeagueApplicantUpdate: by-value copy -> ThreadLocalData::LeagueApplicantUpdate per thread. |
 | - | - | ??0_lambda151_@?A0x93366633@@QEAA@AEBV01@@Z | 0x14020a9a0 | blocked | IDA ??0_lambda151_@?A0x93366633@@QEAA@AEBV01@@Z | yes | - |
-| - | - | ?RecvLeagueMemberLogOut@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x14020a9e0 | blocked | IDA ?RecvLeagueMemberLogOut@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | Blocked: lambda152 calls ThreadLocalData::UpdateLeagueMember (manager pending) |
+| XGameServer | GameSockets.cpp | ?RecvLeagueMemberLogOut@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x14020a9e0 | implemented | IDA decompile + active build | no | Restored: parse ST_LEAGUE_MEMBER_UPDATE; lambda152 DoJobAllThread -> ThreadLocalData::UpdateLeagueMember(stUpdate) per thread. |
 | - | - | ?RecvExchangePriceHistory@CCommunitySocket@@UEAA_NAEAVXPacket@@@Z | 0x14020aad0 | implemented | IDA ?RecvExchangePriceHistory@CCommunitySocket@@UEAA_NAEAVXPacket@@@Z | yes | - |
 | - | - | ??0_lambda153_@?A0x93366633@@QEAA@AEBQEAVCUser@@AEBUPS_EXCHANGE_PRICE_HISTORY_RES@@@Z | 0x14020ada0 | blocked | IDA ??0_lambda153_@?A0x93366633@@QEAA@AEBQEAVCUser@@AEBUPS_EXCHANGE_PRICE_HISTORY_RES@@@Z | yes | - |
 | - | - | ??R_lambda153_@?A0x93366633@@QEBAXXZ | 0x14020adf0 | blocked | IDA ??R_lambda153_@?A0x93366633@@QEBAXXZ | yes | - |
@@ -8427,28 +8429,28 @@
 | - | - | ??R_lambda159_@?A0x93366633@@QEBAXXZ | 0x14020c030 | implemented | IDA decompile | yes | Inlined into RecvLeague handler (see verified handler row) |
 | - | - | ?RecvLeagueOpenOrNot@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x14020c1a0 | implemented | IDA ?RecvLeagueOpenOrNot@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | - |
 | - | - | ??R_lambda161_@?A0x93366633@@QEBAXXZ | 0x14020c3f0 | implemented | IDA decompile | yes | Inlined into RecvLeague handler (see verified handler row) |
-| - | - | ?RecvLeagueRecruitNotice@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x14020c4c0 | blocked | IDA ?RecvLeagueRecruitNotice@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | Blocked: DoJobAllThread lambda165 calls ThreadLocalData::SendLeagueRecruitNoticeToMember (manager pending) |
+| XGameServer | GameSockets.cpp | ?RecvLeagueRecruitNotice@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x14020c4c0 | implemented | IDA decompile + landed source | no | Parse notice+biRemainTime+dwUCID; online user gets (0x22,0x47) via lambda163 DoJob; lambda165 DoJobAllThread forwards to SendLeagueRecruitNoticeToMember. |
 | - | - | ??0_lambda163_@?A0x93366633@@QEAA@AEBQEAVCUser@@AEB_JAEBUST_LEAGUE_RECRUIT_NOTICE@@@Z | 0x14020c820 | blocked | IDA ??0_lambda163_@?A0x93366633@@QEAA@AEBQEAVCUser@@AEB_JAEBUST_LEAGUE_RECRUIT_NOTICE@@@Z | yes | - |
-| - | - | ??R_lambda163_@?A0x93366633@@QEBAXXZ | 0x14020c8b0 | blocked | IDA ??R_lambda163_@?A0x93366633@@QEBAXXZ | yes | - |
+| XGameServer | GameSockets.cpp | ??R_lambda163_@?A0x93366633@@QEBAXXZ | 0x14020c8b0 | implemented | IDA decompile + landed source (as inline lambda body) | no | - |
 | - | - | ??0_lambda165_@?A0x93366633@@QEAA@AEBUST_LEAGUE_RECRUIT_NOTICE@@AEB_J@Z | 0x14020ca10 | blocked | IDA ??0_lambda165_@?A0x93366633@@QEAA@AEBUST_LEAGUE_RECRUIT_NOTICE@@AEB_J@Z | yes | - |
-| - | - | ??R_lambda165_@?A0x93366633@@QEBAXXZ | 0x14020ca80 | blocked | IDA ??R_lambda165_@?A0x93366633@@QEBAXXZ | yes | - |
+| XGameServer | GameSockets.cpp | ??R_lambda165_@?A0x93366633@@QEBAXXZ | 0x14020ca80 | implemented | IDA decompile + landed source (as inline lambda body) | no | - |
 | - | - | ?RecvCachingComplete@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x14020cad0 | implemented | IDA ?RecvCachingComplete@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | - |
 | - | - | ?IsCanSend@CCommunitySocket@@QEAA_NXZ | 0x14020cb80 | implemented | IDA ?IsCanSend@CCommunitySocket@@QEAA_NXZ | yes | - |
-| - | - | ?RecvLeagueRecordUpdate@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x14020cbc0 | blocked | IDA ?RecvLeagueRecordUpdate@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | Blocked: lambda166 calls ThreadLocalData::SendLeagueRecordUpdate (manager pending) |
-| - | - | ??R_lambda166_@?A0x93366633@@QEBAXXZ | 0x14020ccb0 | blocked | IDA ??R_lambda166_@?A0x93366633@@QEBAXXZ | yes | - |
-| - | - | ?RecvLeagueDelegate@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x14020cd00 | blocked | IDA ?RecvLeagueDelegate@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | Blocked: DoJobAllThread lambda169 calls ThreadLocalData::SendLeagueDelegate (manager pending) |
-| - | - | ??0_lambda167_@?A0x93366633@@QEAA@AEBQEAVCUser@@AEBUPS_RES_LEAGUE_DELEGATE@@@Z | 0x14020d080 | blocked | IDA ??0_lambda167_@?A0x93366633@@QEAA@AEBQEAVCUser@@AEBUPS_RES_LEAGUE_DELEGATE@@@Z | yes | - |
-| - | - | ??R_lambda167_@?A0x93366633@@QEBAXXZ | 0x14020d0f0 | blocked | IDA ??R_lambda167_@?A0x93366633@@QEBAXXZ | yes | - |
-| - | - | ??0_lambda169_@?A0x93366633@@QEAA@AEBUPS_RES_LEAGUE_DELEGATE@@AEBKAEBH@Z | 0x14020d260 | blocked | IDA ??0_lambda169_@?A0x93366633@@QEAA@AEBUPS_RES_LEAGUE_DELEGATE@@AEBKAEBH@Z | yes | - |
-| - | - | ??R_lambda169_@?A0x93366633@@QEBAXXZ | 0x14020d2e0 | blocked | IDA ??R_lambda169_@?A0x93366633@@QEBAXXZ | yes | - |
-| - | - | ?RecvLeagueCardChange@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x14020d340 | blocked | IDA ?RecvLeagueCardChange@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | Blocked: lambda170 calls ThreadLocalData::SendLeagueCardChange (manager pending) |
+| XGameServer | GameSockets.cpp | ?RecvLeagueRecordUpdate@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x14020cbc0 | implemented | IDA decompile + landed source | no | Parse ST_LEAGUE_RECORD; lambda166 DoJobAllThread forwards by-value copy to ThreadLocalData::SendLeagueRecordUpdate. |
+| XGameServer | GameSockets.cpp | ??R_lambda166_@?A0x93366633@@QEBAXXZ | 0x14020ccb0 | implemented | IDA decompile + landed source (as inline lambda body) | no | - |
+| XGameServer | GameSockets.cpp | ?RecvLeagueDelegate@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x14020cd00 | implemented | IDA decompile + active build | no | Restored: parses dwReqUCID/dwDelegatedUCID/PS_RES_LEAGUE_DELEGATE/nSyncCount; online req user lambda167 DoJob sends (0x22,0x49); nResult==0 lambda169 DoJobAllThread -> ThreadLocalData::SendLeagueDelegate. |
+| XGameServer | GameSockets.cpp | ??0_lambda167_@?A0x93366633@@QEAA@AEBQEAVCUser@@AEBUPS_RES_LEAGUE_DELEGATE@@@Z | 0x14020d080 | implemented | IDA decompile + active build | no | Restored: inlined as std::function capture list in RecvLeagueDelegate. |
+| XGameServer | GameSockets.cpp | ??R_lambda167_@?A0x93366633@@QEBAXXZ | 0x14020d0f0 | implemented | IDA decompile + active build | no | Restored: IsLive+GetArea gate then (0x22,0x49) with PS_RES_LEAGUE_DELEGATE copy. |
+| XGameServer | GameSockets.cpp | ??0_lambda169_@?A0x93366633@@QEAA@AEBUPS_RES_LEAGUE_DELEGATE@@AEBKAEBH@Z | 0x14020d260 | implemented | IDA decompile + active build | no | Restored: inlined as std::function capture list in RecvLeagueDelegate. |
+| XGameServer | GameSockets.cpp | ??R_lambda169_@?A0x93366633@@QEBAXXZ | 0x14020d2e0 | implemented | IDA decompile + active build | no | Restored: pLocalData null-guard then SendLeagueDelegate(psCopy, dwDelegatedUCID, nSyncCount). |
+| XGameServer | GameSockets.cpp | ?RecvLeagueCardChange@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x14020d340 | implemented | IDA decompile + active build | no | Restored: parse PS_REQ_LEAGUE_CARD + nSyncCount(int); lambda170 (0x14020D480) DoJobAllThread -> ThreadLocalData::SendLeagueCardChange(psCardCopy, nSyncCount). |
 | - | - | ??0_lambda170_@?A0x93366633@@QEAA@AEBUPS_REQ_LEAGUE_CARD@@AEBH@Z | 0x14020d420 | blocked | IDA ??0_lambda170_@?A0x93366633@@QEAA@AEBUPS_REQ_LEAGUE_CARD@@AEBH@Z | yes | - |
-| - | - | ??R_lambda170_@?A0x93366633@@QEBAXXZ | 0x14020d480 | blocked | IDA ??R_lambda170_@?A0x93366633@@QEBAXXZ | yes | - |
-| - | - | ?RecvLeagueCardChangeRes@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x14020d4d0 | blocked | IDA ?RecvLeagueCardChangeRes@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | Blocked: lambda171 calls CGocInventory::UnLockList/SendUpdateItem + CUser::UpdateLeagueSyncCount/GetLeagueInfo/SetLeagueInfo (not implemented) |
-| - | - | ??0_lambda171_@?A0x93366633@@QEAA@AEBQEAVCUser@@AEBUPS_REQ_LEAGUE_CARD@@AEBUPS_RES_STORAGE_INFO@@AEBH3@Z | 0x14020d820 | blocked | IDA ??0_lambda171_@?A0x93366633@@QEAA@AEBQEAVCUser@@AEBUPS_REQ_LEAGUE_CARD@@AEBUPS_RES_STORAGE_INFO@@AEBH3@Z | yes | - |
-| - | - | ??R_lambda171_@?A0x93366633@@QEBAXXZ | 0x14020d8c0 | blocked | IDA ??R_lambda171_@?A0x93366633@@QEBAXXZ | yes | - |
-| - | - | ??1_lambda171_@?A0x93366633@@QEAA@XZ | 0x14020dd10 | blocked | IDA ??1_lambda171_@?A0x93366633@@QEAA@XZ | yes | - |
-| - | - | ??0_lambda171_@?A0x93366633@@QEAA@AEBV01@@Z | 0x14020dd30 | blocked | IDA ??0_lambda171_@?A0x93366633@@QEAA@AEBV01@@Z | yes | - |
+| XGameServer | GameSockets.cpp | ??R_lambda170_@?A0x93366633@@QEBAXXZ | 0x14020d480 | implemented | IDA decompile + active build | no | Inlined into RecvLeagueCardChange: by-value copy -> ThreadLocalData::SendLeagueCardChange(psCardCopy, nSyncCount) per thread. |
+| XGameServer | GameSockets.cpp | ?RecvLeagueCardChangeRes@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x14020d4d0 | implemented | IDA decompile + active build | no | Restored: parses dwUCID/PS_REQ_LEAGUE_CARD/PS_RES_STORAGE_INFO/nErrorCode/nSyncCount; lambda171 DoJob 3-branch (NULL inven log / errorCode log+UnLock+(0x22,0x50) / nResult send + card-info update + (0x22,0x44) broadcast). |
+| XGameServer | GameSockets.cpp | ??0_lambda171_@?A0x93366633@@QEAA@AEBQEAVCUser@@AEBUPS_REQ_LEAGUE_CARD@@AEBUPS_RES_STORAGE_INFO@@AEBH3@Z | 0x14020d820 | implemented | IDA decompile + active build | no | Restored: inlined as std::function capture list in RecvLeagueCardChangeRes. |
+| XGameServer | GameSockets.cpp | ??R_lambda171_@?A0x93366633@@QEBAXXZ | 0x14020d8c0 | implemented | IDA decompile + active build | no | Restored: GetGOC gate; NULL inven LogError 3360; errorCode!=0 LogError 3368+UnLockList+(0x22,0x50); else (0x22,0x50) nResult; nResult==0 SendUpdateItem+UpdateLeagueSyncCount+GetLeagueInfo->dwLeagueCard/dwUCID->SetLeagueInfo(single-arg)+(0x22,0x44) BroadcastNearby. |
+| XGameServer | GameSockets.cpp | ??1_lambda171_@?A0x93366633@@QEAA@XZ | 0x14020dd10 | implemented | IDA decompile + active build | no | Restored: compiler-generated, covered by std::function destruction. |
+| XGameServer | GameSockets.cpp | ??0_lambda171_@?A0x93366633@@QEAA@AEBV01@@Z | 0x14020dd30 | implemented | IDA decompile + active build | no | Restored: compiler-generated copy ctor, covered by std::function copy semantics. |
 | - | - | ?RecvLeagueWealth@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x14020ddd0 | blocked | IDA ?RecvLeagueWealth@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | Blocked: lambda173 calls ThreadLocalData::SendLeagueWealth (manager pending) |
 | - | - | ??R_lambda173_@?A0x93366633@@QEBAXXZ | 0x14020dec0 | blocked | IDA ??R_lambda173_@?A0x93366633@@QEBAXXZ | yes | - |
 | - | - | ?RecvLeagueLevelup@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x14020df00 | blocked | IDA ?RecvLeagueLevelup@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | Blocked: lambda174 calls ThreadLocalData::SendLeagueLevelUp (manager pending) |
@@ -8468,16 +8470,16 @@
 | - | - | ?RecvPartyRecruitApplyAcceptCheck@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x14020f030 | blocked | IDA ?RecvPartyRecruitApplyAcceptCheck@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | Blocked: stub, manager dependency pending |
 | - | - | ??0_lambda37_@?A0x93366633@@QEAA@AEBQEAVCUser@@AEBUST_REQ_LEAGUE_INVITE@@@Z | 0x14020f320 | blocked | IDA ??0_lambda37_@?A0x93366633@@QEAA@AEBQEAVCUser@@AEBUST_REQ_LEAGUE_INVITE@@@Z | yes | - |
 | - | - | ??R_lambda179_@?A0x93366633@@QEBAXXZ | 0x14020f390 | blocked | IDA ??R_lambda179_@?A0x93366633@@QEBAXXZ | yes | - |
-| - | - | ?RecvLeagueInventoryInfo@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x140210170 | blocked | IDA ?RecvLeagueInventoryInfo@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | Blocked: lambda181 calls CUser::SetLeagueInventoryTime/UpdateLeagueInventorySyncCount (not implemented) |
-| - | - | ??0_lambda181_@?A0x93366633@@QEAA@AEBQEAVCUser@@AEBUPS_RES_STORAGE_INFO@@AEBUPS_ITEM_BROACH_LIST@@AEBUPS_ITEM_SOCKET_LIST@@AEBUPS_ITEM_PACKAGE_LIST@@AEBH@Z | 0x140210590 | blocked | IDA ??0_lambda181_@?A0x93366633@@QEAA@AEBQEAVCUser@@AEBUPS_RES_STORAGE_INFO@@AEBUPS_ITEM_BROACH_LIST@@AEBUPS_ITEM_SOCKET_LIST@@AEBUPS_ITEM_PACKAGE_LIST@@AEBH@Z | yes | - |
-| - | - | ??R_lambda181_@?A0x93366633@@QEBAXXZ | 0x140210640 | blocked | IDA ??R_lambda181_@?A0x93366633@@QEBAXXZ | yes | - |
-| - | - | ??1_lambda181_@?A0x93366633@@QEAA@XZ | 0x1402108b0 | blocked | IDA ??1_lambda181_@?A0x93366633@@QEAA@XZ | yes | - |
+| XGameServer | GameSockets.cpp | ?RecvLeagueInventoryInfo@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x140210170 | implemented | IDA decompile + active build | no | Restored: parses dwReqUCID/PS_RES_STORAGE_INFO/PS_ITEM_BROACH_LIST/PS_ITEM_SOCKET_LIST/PS_ITEM_PACKAGE_LIST/nInventorySyncCount; lambda181 DoJob sets inventory time+sync count then (0x22,0x56) four-struct send. |
+| XGameServer | GameSockets.cpp | ??0_lambda181_@?A0x93366633@@QEAA@AEBQEAVCUser@@AEBUPS_RES_STORAGE_INFO@@AEBUPS_ITEM_BROACH_LIST@@AEBUPS_ITEM_SOCKET_LIST@@AEBUPS_ITEM_PACKAGE_LIST@@AEBH@Z | 0x140210590 | implemented | IDA decompile + active build | no | Restored: inlined as std::function capture list in RecvLeagueInventoryInfo. |
+| XGameServer | GameSockets.cpp | ??R_lambda181_@?A0x93366633@@QEBAXXZ | 0x140210640 | implemented | IDA decompile + active build | no | Restored: IsLive+GetArea gate -> SetLeagueInventoryTime(GetCurDate()) -> UpdateLeagueInventorySyncCount -> (0x22,0x56) storage/broach/socket/package copies. |
+| XGameServer | GameSockets.cpp | ??1_lambda181_@?A0x93366633@@QEAA@XZ | 0x1402108b0 | implemented | IDA decompile + active build | no | Restored: compiler-generated, covered by std::function destruction. |
 | - | - | ??0_lambda181_@?A0x93366633@@QEAA@AEBV01@@Z | 0x140210910 | blocked | IDA ??0_lambda181_@?A0x93366633@@QEAA@AEBV01@@Z | yes | - |
-| - | - | ?RecvLeagueInventoryMove@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x1402109d0 | blocked | IDA ?RecvLeagueInventoryMove@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | Blocked: lambda185 calls ThreadLocalData::SendLeagueInventoryMove (manager pending); lambda183 depends CGocInventory::MoveItemToLeagueInven (void* placeholder) |
-| - | - | ??0_lambda183_@?A0x93366633@@QEAA@AEBQEAVCUser@@AEBUPS_ITEM_MOVE_LEAGUE_INVEN_FOR_GAME@@@Z | 0x140210d90 | blocked | IDA ??0_lambda183_@?A0x93366633@@QEAA@AEBQEAVCUser@@AEBUPS_ITEM_MOVE_LEAGUE_INVEN_FOR_GAME@@@Z | yes | - |
-| - | - | ??R_lambda183_@?A0x93366633@@QEBAXXZ | 0x140210de0 | blocked | IDA ??R_lambda183_@?A0x93366633@@QEBAXXZ | yes | - |
-| - | - | ??0_lambda185_@?A0x93366633@@QEAA@AEBKAEBUPS_ITEM_MOVE_LEAGUE_INVEN_FOR_GAME@@@Z | 0x140211040 | blocked | IDA ??0_lambda185_@?A0x93366633@@QEAA@AEBKAEBUPS_ITEM_MOVE_LEAGUE_INVEN_FOR_GAME@@@Z | yes | - |
-| - | - | ??R_lambda185_@?A0x93366633@@QEBAXXZ | 0x140211090 | blocked | IDA ??R_lambda185_@?A0x93366633@@QEBAXXZ | yes | - |
+| XGameServer | GameSockets.cpp | ?RecvLeagueInventoryMove@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x1402109d0 | implemented | IDA decompile + active build | no | Restored: parses dwReqUCID + PS_ITEM_MOVE_LEAGUE_INVEN_FOR_GAME; online user lambda183 DoJob (error: SetLock by byType + SendErrorMessage 0xDEDC + LogError 3764; success: MoveItemToLeagueInven); nErrorCode==0 lambda185 DoJobAllThread -> ThreadLocalData::SendLeagueInventoryMove. |
+| XGameServer | GameSockets.cpp | ??0_lambda183_@?A0x93366633@@QEAA@AEBQEAVCUser@@AEBUPS_ITEM_MOVE_LEAGUE_INVEN_FOR_GAME@@@Z | 0x140210d90 | implemented | IDA decompile + active build | no | Restored: inlined as std::function capture list in RecvLeagueInventoryMove. |
+| XGameServer | GameSockets.cpp | ??R_lambda183_@?A0x93366633@@QEBAXXZ | 0x140210de0 | implemented | IDA decompile + active build | no | Restored: IsLive+GetArea gate -> GetGOC<CGocInventory>; nErrorCode<=0 MoveItemToLeagueInven copy; error branch SetLock by byType + SendErrorMessage(0x22,0x54,0xDEDC) + LogError 3764. |
+| XGameServer | GameSockets.cpp | ??0_lambda185_@?A0x93366633@@QEAA@AEBKAEBUPS_ITEM_MOVE_LEAGUE_INVEN_FOR_GAME@@@Z | 0x140211040 | implemented | IDA decompile + active build | no | Restored: inlined as std::function capture list in RecvLeagueInventoryMove. |
+| XGameServer | GameSockets.cpp | ??R_lambda185_@?A0x93366633@@QEBAXXZ | 0x140211090 | implemented | IDA decompile + active build | no | Restored: GetInstance then SendLeagueInventoryMove(dwReqUCID, struct copy). |
 | - | - | ??0PS_ITEM_MOVE_LEAGUE_INVEN_FOR_GAME@@QEAA@AEBU0@@Z | 0x140211100 | blocked | IDA ??0PS_ITEM_MOVE_LEAGUE_INVEN_FOR_GAME@@QEAA@AEBU0@@Z | yes | - |
 | - | - | ??0_lambda183_@?A0x93366633@@QEAA@AEBV01@@Z | 0x140211260 | blocked | IDA ??0_lambda183_@?A0x93366633@@QEAA@AEBV01@@Z | yes | - |
 | - | - | ??1_lambda183_@?A0x93366633@@QEAA@XZ | 0x1402112b0 | blocked | IDA ??1_lambda183_@?A0x93366633@@QEAA@XZ | yes | - |
@@ -8575,10 +8577,10 @@
 | - | - | ?RecvModeMazeMatchingTime_Cheat@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x14021a450 | implemented | IDA ?RecvModeMazeMatchingTime_Cheat@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | - |
 | - | - | ??0_lambda252_@?A0x93366633@@QEAA@AEBUPS_SERVER_MODE_MAZE_MATCHING_TIME_INFO@@@Z | 0x14021a5b0 | blocked | IDA ??0_lambda252_@?A0x93366633@@QEAA@AEBUPS_SERVER_MODE_MAZE_MATCHING_TIME_INFO@@@Z | yes | - |
 | - | - | ??R_lambda252_@?A0x93366633@@QEBAXXZ | 0x14021a600 | blocked | IDA ??R_lambda252_@?A0x93366633@@QEBAXXZ | yes | - |
-| - | - | ?RecvLeagueNameChange@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x14021a620 | blocked | IDA ?RecvLeagueNameChange@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | yes | Blocked: DoJobAllThread lambda255 calls ThreadLocalData::SendLeagueChangeName (manager pending) |
+| XGameServer | GameSockets.cpp | ?RecvLeagueNameChange@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z | 0x14021a620 | implemented | IDA decompile + active build | no | Restored: parse PS_LEAGUE_NAME_CHANGE_SERVER; offline/not-in-area -> return false; online -> lambda253 (0x14021A9E0) DoJob (SetReqLeagueNameChange(false) + build PS_RES_LEAGUE_NAME_CHANGE; nResult!=0 -> UnLockList; nResult==0 -> UpdateItemEnd(0x78) chain, fail -> LogError+UnLockList+52011+(0x22,0x58) early return, success -> SendUpdateItem + SetLeagueName + (0x22,0x44) broadcast + ST_LOG_GAME{15,16} per-item SendDBLog; final (0x22,0x58) send) + lambda192 decrement + lambda255 DoJobAllThread (nResult==0 -> SendLeagueChangeName with nSysnCount). |
 | - | - | ??0_lambda253_@?A0x93366633@@QEAA@AEBQEAVCUser@@AEBUPS_LEAGUE_NAME_CHANGE_SERVER@@@Z | 0x14021a990 | blocked | IDA ??0_lambda253_@?A0x93366633@@QEAA@AEBQEAVCUser@@AEBUPS_LEAGUE_NAME_CHANGE_SERVER@@@Z | yes | - |
-| - | - | ??R_lambda253_@?A0x93366633@@QEBAXXZ | 0x14021a9e0 | blocked | IDA ??R_lambda253_@?A0x93366633@@QEBAXXZ | yes | - |
-| - | - | ??R_lambda255_@?A0x93366633@@QEBAXXZ | 0x14021b0a0 | blocked | IDA ??R_lambda255_@?A0x93366633@@QEBAXXZ | yes | - |
+| XGameServer | GameSockets.cpp | ??R_lambda253_@?A0x93366633@@QEBAXXZ | 0x14021a9e0 | implemented | IDA decompile + active build | no | Inlined into RecvLeagueNameChange: full CGocInventory name-change result chain (see handler row). |
+| XGameServer | GameSockets.cpp | ??R_lambda255_@?A0x93366633@@QEBAXXZ | 0x14021b0a0 | implemented | IDA decompile + active build | no | Inlined into RecvLeagueNameChange: nResult==0 gate -> build PS_RES_LEAGUE_NAME_CHANGE copy -> ThreadLocalData::SendLeagueChangeName(psCopy, nSysnCount) per thread. |
 | - | - | ??0_lambda253_@?A0x93366633@@QEAA@AEBV01@@Z | 0x14021b160 | blocked | IDA ??0_lambda253_@?A0x93366633@@QEAA@AEBV01@@Z | yes | - |
 | - | - | ??1?$_Callable_base@V_lambda46_@?A0xe322620c@@$0A@@tr1@std@@QEAA@XZ | 0x14021b1b0 | blocked | IDA ??1?$_Callable_base@V_lambda46_@?A0xe322620c@@$0A@@tr1@std@@QEAA@XZ | yes | - |
 | - | - | ??0_lambda255_@?A0x93366633@@QEAA@AEBUPS_LEAGUE_NAME_CHANGE_SERVER@@@Z | 0x14021b1d0 | blocked | IDA ??0_lambda255_@?A0x93366633@@QEAA@AEBUPS_LEAGUE_NAME_CHANGE_SERVER@@@Z | yes | - |
@@ -11455,7 +11457,7 @@
 | - | - | ??$_Construct@UPS_LEAGUE_INFO_SUMMARY@@AEBU1@@std@@YAXPEAUPS_LEAGUE_INFO_SUMMARY@@AEBU1@@Z | 0x14025c8a0 | blocked | IDA ??$_Construct@UPS_LEAGUE_INFO_SUMMARY@@AEBU1@@std@@YAXPEAUPS_LEAGUE_INFO_SUMMARY@@AEBU1@@Z | yes | - |
 | - | - | ??$_Construct@UST_PARTY_RECRUIT@@AEBU1@@std@@YAXPEAUST_PARTY_RECRUIT@@AEBU1@@Z | 0x14025c950 | blocked | IDA ??$_Construct@UST_PARTY_RECRUIT@@AEBU1@@std@@YAXPEAUST_PARTY_RECRUIT@@AEBU1@@Z | yes | - |
 | - | - | ??$_Construct@UST_EXCHANGE_PRICE_INFO@@AEBU1@@std@@YAXPEAUST_EXCHANGE_PRICE_INFO@@AEBU1@@Z | 0x14025ca00 | blocked | IDA ??$_Construct@UST_EXCHANGE_PRICE_INFO@@AEBU1@@std@@YAXPEAUST_EXCHANGE_PRICE_INFO@@AEBU1@@Z | yes | - |
-| - | - | ?SetLeagueName@CUser@@QEAAXPEA_W@Z | 0x14025cab0 | implemented | IDA ?SetLeagueName@CUser@@QEAAXPEA_W@Z | yes | - |
+| XGameServer | User.cpp | ?SetLeagueName@CUser@@QEAAXPEA_W@Z | 0x14025cab0 | implemented | IDA decompile + active build | no | Restored: wcscpy_s(m_stCharInfo.stLeagueInfo.szLeagueName, szName). |
 | XGameServer | GocInventory.cpp | ?SetReqLeagueNameChange@CGocInventory@@QEAAX_N@Z | 0x14025cae0 | verified | GameServer PDB + IDA decompile/assembly + source build | yes | Assigns m_bReqLeagueNameChange. |
 | - | - | ??0PS_LEAGUE_NAME_CHANGE_SERVER@@QEAA@XZ | 0x14025cb00 | blocked | IDA ??0PS_LEAGUE_NAME_CHANGE_SERVER@@QEAA@XZ | yes | - |
 | - | - | ??0PS_SERVER_MODE_MAZE_MATCHING_TIME_INFO@@QEAA@XZ | 0x14025cb70 | blocked | IDA ??0PS_SERVER_MODE_MAZE_MATCHING_TIME_INFO@@QEAA@XZ | yes | - |
@@ -11469,7 +11471,7 @@
 | - | - | ??0PS_RES_ITEM_MOVE_LEAGUE_INVEN@@QEAA@XZ | 0x14025cdf0 | blocked | IDA ??0PS_RES_ITEM_MOVE_LEAGUE_INVEN@@QEAA@XZ | yes | - |
 | - | - | ??0PS_REQ_ITEM_MOVE_LEAGUE_INVEN@@QEAA@XZ | 0x14025cea0 | blocked | IDA ??0PS_REQ_ITEM_MOVE_LEAGUE_INVEN@@QEAA@XZ | yes | - |
 | - | - | ??0PS_ITEM_MOVE_LEAGUE_INVEN_FOR_GAME@@QEAA@XZ | 0x14025cf30 | blocked | IDA ??0PS_ITEM_MOVE_LEAGUE_INVEN_FOR_GAME@@QEAA@XZ | yes | - |
-| - | - | ?UpdateLeagueInventorySyncCount@CUser@@QEAAXH@Z | 0x14025cfc0 | implemented | IDA ?UpdateLeagueInventorySyncCount@CUser@@QEAAXH@Z | yes | - |
+| XGameServer | User.cpp | ?UpdateLeagueInventorySyncCount@CUser@@QEAAXH@Z | 0x14025cfc0 | implemented | IDA decompile + active build | no | Restored: assign m_nLeagueInventorySyncCount (was note-only placeholder in User.cpp). |
 | - | - | ?SetLeagueInventoryTime@CUser@@QEAAX_J@Z | 0x14025cfe0 | implemented | IDA ?SetLeagueInventoryTime@CUser@@QEAAX_J@Z | yes | - |
 | - | - | ??0PS_SERVER_PARTY_RECRUIT_APPLY_ACCEPT_CHECK@@QEAA@XZ | 0x14025d000 | blocked | IDA ??0PS_SERVER_PARTY_RECRUIT_APPLY_ACCEPT_CHECK@@QEAA@XZ | yes | - |
 | - | - | ?UpdateLeagueSyncFlag@CUser@@QEAAX_N@Z | 0x14025d060 | implemented | IDA ?UpdateLeagueSyncFlag@CUser@@QEAAX_N@Z | yes | - |
@@ -12190,38 +12192,38 @@
 | - | - | ??0CLeagueMember@@QEAA@XZ | 0x14028a5c0 | blocked | IDA ??0CLeagueMember@@QEAA@XZ | yes | - |
 | - | - | ?Clear@CLeagueMember@@QEAAXXZ | 0x14028a600 | implemented | IDA ?Clear@CLeagueMember@@QEAAXXZ | yes | - |
 | - | - | ?AddLeagueMember@CLeagueMember@@QEAAXPEAVCUser@@@Z | 0x14028a630 | implemented | IDA ?AddLeagueMember@CLeagueMember@@QEAAXPEAVCUser@@@Z | yes | - |
-| - | - | ?WithDrawLeagueMember@CLeagueMember@@QEAAXKUST_LEAGUE_INFO_UPDATE@@@Z | 0x14028a6a0 | implemented | IDA ?WithDrawLeagueMember@CLeagueMember@@QEAAXKUST_LEAGUE_INFO_UPDATE@@@Z | yes | - |
+| XGameServer | LeagueMember.cpp | ?WithDrawLeagueMember@CLeagueMember@@QEAAXKUST_LEAGUE_INFO_UPDATE@@@Z | 0x14028a6a0 | implemented | IDA decompile + active build | no | Restored: iterate m_mapUser (skip self UCID + sync-flagged), UpdateLeagueSyncCount + (0x22,9)+dwUCID + (0x22,0x43)+stUpdateInfo, then erase self entry. PDB sig is 2-param by-value (IDA float a3 is stack pollution). |
 | - | - | ?JoinLeagueUser@CLeagueMember@@QEAAXUST_LEAGUE_MEMBER_EX@@UST_LEAGUE_INFO_UPDATE@@E@Z | 0x14028a930 | implemented | IDA ?JoinLeagueUser@CLeagueMember@@QEAAXUST_LEAGUE_MEMBER_EX@@UST_LEAGUE_INFO_UPDATE@@E@Z | yes | - |
-| - | - | ?SendLeagueApply@CLeagueMember@@QEAAXUST_LEAGUE_APPLICANT@@@Z | 0x14028ac50 | implemented | IDA ?SendLeagueApply@CLeagueMember@@QEAAXUST_LEAGUE_APPLICANT@@@Z | yes | - |
-| - | - | ?LoginLeagueMember@CLeagueMember@@QEAAXUST_LEAGUE_MEMBER_UPDATE@@@Z | 0x14028ade0 | implemented | IDA ?LoginLeagueMember@CLeagueMember@@QEAAXUST_LEAGUE_MEMBER_UPDATE@@@Z | yes | - |
-| - | - | ?LeagueApplicantDelete@CLeagueMember@@QEAAXK@Z | 0x14028af80 | implemented | IDA ?LeagueApplicantDelete@CLeagueMember@@QEAAXK@Z | yes | - |
-| - | - | ?SendLeagueBoard@CLeagueMember@@QEAAXUST_LEAGUE_BOARD@@K@Z | 0x14028b0d0 | implemented | IDA ?SendLeagueBoard@CLeagueMember@@QEAAXUST_LEAGUE_BOARD@@K@Z | yes | - |
-| - | - | ?SendLeagueInfo@CLeagueMember@@QEAAXUST_LEAGUE_INFO@@@Z | 0x14028b210 | implemented | IDA ?SendLeagueInfo@CLeagueMember@@QEAAXUST_LEAGUE_INFO@@@Z | yes | - |
-| - | - | ?SendLeagueNotice@CLeagueMember@@QEAAXUST_LEAGUE_NOTICE@@K@Z | 0x14028b280 | implemented | IDA ?SendLeagueNotice@CLeagueMember@@QEAAXUST_LEAGUE_NOTICE@@K@Z | yes | - |
-| - | - | ?ChangeLeagueAuth@CLeagueMember@@QEAAXUST_LEAGUE_AUTH_CHANGE@@@Z | 0x14028b410 | implemented | IDA ?ChangeLeagueAuth@CLeagueMember@@QEAAXUST_LEAGUE_AUTH_CHANGE@@@Z | yes | - |
-| - | - | ?ChangeLeaguePositionName@CLeagueMember@@QEAAXUST_LEAGUE_POSITION_NAME_CHANGE@@@Z | 0x14028b590 | implemented | IDA ?ChangeLeaguePositionName@CLeagueMember@@QEAAXUST_LEAGUE_POSITION_NAME_CHANGE@@@Z | yes | - |
-| - | - | ?ChangeLeagueMemberPosition@CLeagueMember@@QEAAXUST_LEAGUE_MEMBER_POSITION@@K@Z | 0x14028b6d0 | implemented | IDA ?ChangeLeagueMemberPosition@CLeagueMember@@QEAAXUST_LEAGUE_MEMBER_POSITION@@K@Z | yes | - |
+| XGameServer | LeagueMember.cpp | ?SendLeagueApply@CLeagueMember@@QEAAXUST_LEAGUE_APPLICANT@@@Z | 0x14028ac50 | implemented | IDA decompile + active build | no | Restored: iterate m_mapUser, skip applicant self (dwActorID compare) and sync-flagged members, send (0x22,0x24)+ST_LEAGUE_APPLICANT. PDB sig is 1-param (IDA float a3 is stack pollution). |
+| XGameServer | LeagueMember.cpp | ?LoginLeagueMember@CLeagueMember@@QEAAXUST_LEAGUE_MEMBER_UPDATE@@@Z | 0x14028ade0 | implemented | IDA decompile + active build | no | Restored: iterate m_mapUser, skip logging-in user (UXActorID operator== compare) and sync-flagged members, send (0x22,0x22)+ST_LEAGUE_MEMBER_UPDATE. PDB sig is 1-param (IDA float a3 is stack pollution). |
+| XGameServer | LeagueMember.cpp | ?LeagueApplicantDelete@CLeagueMember@@QEAAXK@Z | 0x14028af80 | implemented | IDA decompile + active build | no | Restored: iterate m_mapUser, skip sync-flagged members, UpdateLeagueSyncCount + (0x22,0x26)+dwUCID. PDB sig is 1-param (IDA float a3 is stack pollution). |
+| XGameServer | LeagueMember.cpp | ?SendLeagueBoard@CLeagueMember@@QEAAXUST_LEAGUE_BOARD@@K@Z | 0x14028b0d0 | implemented | IDA decompile + active build | no | Restored: iterate m_mapUser, skip sync-flagged members, send (0x22,8)+ST_LEAGUE_BOARD. dwWriterUCID kept per PDB sig but unused in binary loop body. |
+| - | - | ?SendLeagueInfo@CLeagueMember@@QEAAXUST_LEAGUE_INFO@@@Z | 0x14028b210 | implemented | no | Exact-restored per disasm: 0x66-byte function only iterates m_mapUser without side effects (send call appears trimmed); loop preserved with TODO for packet evidence. | - |
+| XGameServer | LeagueMember.cpp | ?SendLeagueNotice@CLeagueMember@@QEAAXUST_LEAGUE_NOTICE@@K@Z | 0x14028b280 | implemented | IDA decompile + active build | no | Restored: iterate m_mapUser, skip writer UCID (GetActorID compare) and sync-flagged members, broadcast (0x22,0x29) + ST_LEAGUE_NOTICE via CGocNetwork::Send. |
+| XGameServer | LeagueMember.cpp | ?ChangeLeagueAuth@CLeagueMember@@QEAAXUST_LEAGUE_AUTH_CHANGE@@@Z | 0x14028b410 | implemented | IDA decompile + active build | no | Restored: iterate m_mapUser, skip sync-flagged members: SetLeagueAuth(local copy) + UpdateLeagueSyncCount + (0x22,0x32) send stAuthChange. PDB signature is 1-param (IDA float a3 is stack pollution). |
+| XGameServer | LeagueMember.cpp | ?ChangeLeaguePositionName@CLeagueMember@@QEAAXUST_LEAGUE_POSITION_NAME_CHANGE@@@Z | 0x14028b590 | implemented | IDA decompile + active build | no | Restored: iterate m_mapUser, skip sync-flagged members, broadcast (0x22,0x33) + ST_LEAGUE_POSITION_NAME_CHANGE via CGocNetwork::Send. PDB signature is 1-param (IDA float a3 is stack pollution). |
+| XGameServer | LeagueMember.cpp | ?ChangeLeagueMemberPosition@CLeagueMember@@QEAAXUST_LEAGUE_MEMBER_POSITION@@K@Z | 0x14028b6d0 | implemented | IDA decompile + active build | no | Restored: iterate m_mapUser, skip sync-flagged members: if member ActorID == stPosition.dwActorID -> SetLeaguePosition(byPosition); UpdateLeagueSyncCount + (0x22,0x39) send stMemberPos. PDB signature is 2-param (IDA float a3 is stack pollution). |
 | - | - | ?DeleteLeagueMember@CLeagueMember@@QEAAXK@Z | 0x14028b880 | implemented | IDA ?DeleteLeagueMember@CLeagueMember@@QEAAXK@Z | yes | - |
-| - | - | ?UpdateLeagueMember@CLeagueMember@@QEAAXUST_LEAGUE_MEMBER_UPDATE@@@Z | 0x14028b8f0 | implemented | IDA ?UpdateLeagueMember@CLeagueMember@@QEAAXUST_LEAGUE_MEMBER_UPDATE@@@Z | yes | - |
-| - | - | ?SendLeagueMsg@CLeagueMember@@QEAAXUPS_CHAT_LEAGUE@@UPS_CHAT_ITEM_LINK_FOR_SERVER@@@Z | 0x14028ba30 | implemented | IDA ?SendLeagueMsg@CLeagueMember@@QEAAXUPS_CHAT_LEAGUE@@UPS_CHAT_ITEM_LINK_FOR_SERVER@@@Z | yes | - |
-| - | - | ?UpdateApplicantList@CLeagueMember@@QEAAXK@Z | 0x14028bc70 | implemented | IDA ?UpdateApplicantList@CLeagueMember@@QEAAXK@Z | yes | - |
-| - | - | ?SendLeagueRecruitNotice@CLeagueMember@@QEAAXUST_LEAGUE_RECRUIT_NOTICE@@_J@Z | 0x14028bdb0 | implemented | IDA ?SendLeagueRecruitNotice@CLeagueMember@@QEAAXUST_LEAGUE_RECRUIT_NOTICE@@_J@Z | yes | - |
+| XGameServer | LeagueMember.cpp | ?UpdateLeagueMember@CLeagueMember@@QEAAXUST_LEAGUE_MEMBER_UPDATE@@@Z | 0x14028b8f0 | implemented | IDA decompile + active build | no | Restored: iterate m_mapUser, skip sync-flagged members, broadcast (0x22,0x22) + ST_LEAGUE_MEMBER_UPDATE via CGocNetwork::Send. PDB signature is 1-param (IDA float a3 is stack pollution). |
+| XGameServer | LeagueMember.cpp | ?SendLeagueMsg@CLeagueMember@@QEAAXUPS_CHAT_LEAGUE@@UPS_CHAT_ITEM_LINK_FOR_SERVER@@@Z | 0x14028ba30 | implemented | IDA decompile + active build | no | Restored: iterate m_mapUser, skip sync-flagged members, send (7,1) + dwActorID + 4 + szMsg + byItemLinkCount + per-item PS_CHAT_ITEM_LINK via CGocNetwork::Send. |
+| XGameServer | LeagueMember.cpp | ?UpdateApplicantList@CLeagueMember@@QEAAXK@Z | 0x14028bc70 | implemented | IDA decompile + active build | no | Restored: iterate m_mapUser, skip sync-flagged members, send (0x22,0x26) + dwUCID via CGocNetwork::Send. PDB signature is 1-param (IDA float a3 is stack pollution). |
+| XGameServer | LeagueMember.cpp | ?SendLeagueRecruitNotice@CLeagueMember@@QEAAXUST_LEAGUE_RECRUIT_NOTICE@@_J@Z | 0x14028bdb0 | implemented | IDA decompile + active build | no | Restored: iterate m_mapUser, skip sync-flagged members, send (0x22,0x47)+ST_LEAGUE_RECRUIT_NOTICE + biRemainTime(int64). |
 | - | - | ?KickoutLeagueMember@CLeagueMember@@QEAAXKKUST_LEAGUE_INFO_UPDATE@@@Z | 0x14028bf00 | implemented | IDA ?KickoutLeagueMember@CLeagueMember@@QEAAXKKUST_LEAGUE_INFO_UPDATE@@@Z | yes | - |
-| - | - | ?Record@CLeagueMember@@QEAAXUST_LEAGUE_RECORD@@@Z | 0x14028c210 | implemented | IDA ?Record@CLeagueMember@@QEAAXUST_LEAGUE_RECORD@@@Z | yes | - |
-| - | - | ?CardChange@CLeagueMember@@QEAAXUPS_REQ_LEAGUE_CARD@@@Z | 0x14028c350 | implemented | IDA ?CardChange@CLeagueMember@@QEAAXUPS_REQ_LEAGUE_CARD@@@Z | yes | - |
+| XGameServer | LeagueMember.cpp | ?Record@CLeagueMember@@QEAAXUST_LEAGUE_RECORD@@@Z | 0x14028c210 | implemented | IDA decompile + active build | no | Restored: iterate m_mapUser, skip sync-flagged members, send (0x22,0x48)+ST_LEAGUE_RECORD. PDB sig is 1-param (IDA float a3 is stack pollution). |
+| XGameServer | LeagueMember.cpp | ?CardChange@CLeagueMember@@QEAAXUPS_REQ_LEAGUE_CARD@@@Z | 0x14028c350 | implemented | IDA decompile + active build | no | Restored: iterate m_mapUser, skip sync-flagged members: SetLeagueCard(psCard.dwLeagueCard) + UpdateLeagueSyncCount(m_nSyncCount) + (0x22,0x31) send psCard, then GetLeagueInfo -> stInfoEx.dwUCID = GetActorID().dwActorID (no mask) -> (0x22,0x44) BroadcastNearby. |
 | - | - | ?Wealth@CLeagueMember@@QEAAXUST_LEAGUE_INFO_UPDATE@@@Z | 0x14028c590 | implemented | IDA ?Wealth@CLeagueMember@@QEAAXUST_LEAGUE_INFO_UPDATE@@@Z | yes | - |
 | - | - | ?Levelup@CLeagueMember@@QEAAXHEEUPS_AUTO_SKILL@@@Z | 0x14028c6d0 | implemented | IDA ?Levelup@CLeagueMember@@QEAAXHEEUPS_AUTO_SKILL@@@Z | yes | - |
-| - | - | ?SkillLearn@CLeagueMember@@QEAAXUPS_RES_LEAGUE_SKILL@@@Z | 0x14028c8f0 | implemented | IDA ?SkillLearn@CLeagueMember@@QEAAXUPS_RES_LEAGUE_SKILL@@@Z | yes | - |
-| - | - | ?Delegate@CLeagueMember@@QEAAXUPS_RES_LEAGUE_DELEGATE@@K@Z | 0x14028ca60 | implemented | IDA ?Delegate@CLeagueMember@@QEAAXUPS_RES_LEAGUE_DELEGATE@@K@Z | yes | - |
+| XGameServer | LeagueMember.cpp | ?SkillLearn@CLeagueMember@@QEAAXUPS_RES_LEAGUE_SKILL@@@Z | 0x14028c8f0 | implemented | IDA decompile + active build | no | Restored: iterate m_mapUser, skip sync-flagged members, SetLeagueSkill(bySkillGroupID, bySkillLevel) + UpdateLeagueSyncCount + (0x22,0x53)+psSkill. PDB sig is 1-param (IDA float a3 is stack pollution). |
+| XGameServer | LeagueMember.cpp | ?Delegate@CLeagueMember@@QEAAXUPS_RES_LEAGUE_DELEGATE@@K@Z | 0x14028ca60 | implemented | IDA decompile + active build | no | Restored: iterate m_mapUser, skip sync-flagged members, SetLeagueMaster(dwDelegatedUCID) + UpdateLeagueSyncCount + (0x22,0xA)+local copy of PS_RES_LEAGUE_DELEGATE. Prior source comment address 0x14028BA60 was wrong; real symbol is 0x14028CA60. |
 | - | - | ?CompareSyncCount@CLeagueMember@@QEAAXK@Z | 0x14028cc30 | implemented | IDA ?CompareSyncCount@CLeagueMember@@QEAAXK@Z | yes | - |
 | - | - | ?SendSyncLeagueInfo@CLeagueMember@@QEAAXPEAVCUser@@@Z | 0x14028cce0 | implemented | IDA ?SendSyncLeagueInfo@CLeagueMember@@QEAAXPEAVCUser@@@Z | yes | - |
 | - | - | ?UpdateSyncCount@CLeagueMember@@QEAAXH@Z | 0x14028cdf0 | implemented | IDA ?UpdateSyncCount@CLeagueMember@@QEAAXH@Z | yes | - |
 | - | - | ?UpdateInventorySyncCount@CLeagueMember@@QEAAXH@Z | 0x14028ce10 | implemented | IDA ?UpdateInventorySyncCount@CLeagueMember@@QEAAXH@Z | yes | - |
-| - | - | ?InventoryMove@CLeagueMember@@QEAAXKUPS_RES_ITEM_MOVE_LEAGUE_INVEN@@@Z | 0x14028ce30 | implemented | IDA ?InventoryMove@CLeagueMember@@QEAAXKUPS_RES_ITEM_MOVE_LEAGUE_INVEN@@@Z | yes | - |
-| - | - | ?CompareInventorySyncCount@CLeagueMember@@QEAA_NK@Z | 0x14028cfc0 | implemented | IDA ?CompareInventorySyncCount@CLeagueMember@@QEAA_NK@Z | yes | - |
-| - | - | ?ChangeName@CLeagueMember@@QEAAXUPS_RES_LEAGUE_NAME_CHANGE@@@Z | 0x14028d080 | implemented | IDA ?ChangeName@CLeagueMember@@QEAAXUPS_RES_LEAGUE_NAME_CHANGE@@@Z | yes | - |
+| XGameServer | LeagueMember.cpp | ?InventoryMove@CLeagueMember@@QEAAXKUPS_RES_ITEM_MOVE_LEAGUE_INVEN@@@Z | 0x14028ce30 | implemented | IDA decompile + active build | no | Restored: iterate ALL members (sync-flagged included), UpdateLeagueInventorySyncCount(m_nInventorySyncCount), send (0x22,0x57)+psMove only to ActorID != dwReqUCID. Uses new operator<< @ 0x140758040 added to PSServerLeague.h. |
+| XGameServer | LeagueMember.cpp | ?CompareInventorySyncCount@CLeagueMember@@QEAA_NK@Z | 0x14028cfc0 | implemented | IDA decompile + active build | no | Restored: find by dwUCID; miss/empty -> false; equal counts -> false; mismatch -> LogError(707) + true. |
+| XGameServer | LeagueMember.cpp | ?ChangeName@CLeagueMember@@QEAAXUPS_RES_LEAGUE_NAME_CHANGE@@@Z | 0x14028d080 | implemented | IDA decompile + active build | no | Restored: iterate m_mapUser, skip sync-flagged members: SetLeagueName + UpdateLeagueSyncCount + (0x22,0x30) send psNameChange, then GetLeagueInfo -> stInfoEx.dwUCID = GetActorID().dwActorID (no mask) -> (0x22,0x44) BroadcastNearby. PDB signature is 1-param (IDA float a3 is stack pollution). |
 | - | - | ?find@?$_Tree@V?$_Tmap_traits@KPEAV?$map@KVVString@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKVVString@@@std@@@3@@std@@U?$less@K@2@V?$allocator@U?$pair@$$CBKPEAV?$map@KVVString@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKVVString@@@std@@@3@@std@@@std@@@2@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@KPEAV?$map@KVVString@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKVVString@@@std@@@3@@std@@U?$less@K@2@V?$allocator@U?$pair@$$CBKPEAV?$map@KVVString@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKVVString@@@std@@@3@@std@@@std@@@2@$0A@@std@@@std@@@2@AEBK@Z | 0x14028d2c0 | blocked | IDA ?find@?$_Tree@V?$_Tmap_traits@KPEAV?$map@KVVString@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKVVString@@@std@@@3@@std@@U?$less@K@2@V?$allocator@U?$pair@$$CBKPEAV?$map@KVVString@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKVVString@@@std@@@3@@std@@@std@@@2@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@KPEAV?$map@KVVString@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKVVString@@@std@@@3@@std@@U?$less@K@2@V?$allocator@U?$pair@$$CBKPEAV?$map@KVVString@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKVVString@@@std@@@3@@std@@@std@@@2@$0A@@std@@@std@@@2@AEBK@Z | yes | - |
-| - | - | ?GetLeagueInventorySyncCount@CUser@@QEAAHXZ | 0x14028d380 | implemented | IDA ?GetLeagueInventorySyncCount@CUser@@QEAAHXZ | yes | - |
+| XGameServer | User.cpp | ?GetLeagueInventorySyncCount@CUser@@QEAAHXZ | 0x14028d380 | implemented | IDA decompile + active build | no | Restored: return m_nLeagueInventorySyncCount (was note-only placeholder in User.cpp). |
 | - | - | ?GetLeagueSyncCount@CUser@@QEAAHXZ | 0x14028d3a0 | implemented | IDA ?GetLeagueSyncCount@CUser@@QEAAHXZ | yes | - |
 | - | - | ?GetLeagueSyncFlag@CUser@@QEAA_NXZ | 0x14028d3c0 | implemented | IDA ?GetLeagueSyncFlag@CUser@@QEAA_NXZ | yes | - |
 | - | - | ?GetSectorBoxID@CSector@@QEAAHXZ | 0x14028d3e0 | implemented | IDA ?GetSectorBoxID@CSector@@QEAAHXZ | yes | - |
@@ -12604,7 +12606,7 @@
 | - | - | ?GetCurSuperArmorGage@CMover@@QEAAMXZ | 0x1402a5030 | implemented | IDA ?GetCurSuperArmorGage@CMover@@QEAAMXZ | yes | - |
 | - | - | ?GetMaxSuperArmorGage@CMover@@QEAAMXZ | 0x1402a5050 | implemented | IDA ?GetMaxSuperArmorGage@CMover@@QEAAMXZ | yes | - |
 | - | - | ?IsBot@XActor@@QEAA_NXZ | 0x1402a5070 | implemented | IDA ?IsBot@XActor@@QEAA_NXZ | yes | - |
-| - | - | ?GetPositionXVec3@CMover@@QEAAAEAUXVec3@@XZ | 0x1402a5080 | implemented | IDA ?GetPositionXVec3@CMover@@QEAAAEAUXVec3@@XZ | yes | - |
+| XGameServer | actor/Mover/Mover.cpp (inline in Mover.h) | ?GetPositionXVec3@CMover@@QEAAAEAUXVec3@@XZ | 0x1402a5080 | implemented | IDA decompile + landed inline | no | return &m_vPosition reinterpreted as XVec3&; |
 | - | - | ?GetCurTime@VPublicTransport_cl@@QEAAMXZ | 0x1402a50a0 | implemented | IDA ?GetCurTime@VPublicTransport_cl@@QEAAMXZ | yes | - |
 | - | - | ?GetPublicTransportTime@CUser@@QEAAMXZ | 0x1402a50c0 | implemented | IDA ?GetPublicTransportTime@CUser@@QEAAMXZ | yes | - |
 | - | - | ?GetPublicTransportIndex@CUser@@QEAAGXZ | 0x1402a50f0 | implemented | IDA ?GetPublicTransportIndex@CUser@@QEAAGXZ | yes | - |
@@ -14767,11 +14769,11 @@
 | - | - | ??1?$map@HUST_RANDOM_BUFF@@U?$less@H@std@@V?$allocator@U?$pair@$$CBHUST_RANDOM_BUFF@@@std@@@3@@std@@QEAA@XZ | 0x140310cc0 | blocked | IDA ??1?$map@HUST_RANDOM_BUFF@@U?$less@H@std@@V?$allocator@U?$pair@$$CBHUST_RANDOM_BUFF@@@std@@@3@@std@@QEAA@XZ | yes | - |
 | - | - | ??1?$map@HUST_TIME_STEP_TIMER@@U?$less@H@std@@V?$allocator@U?$pair@$$CBHUST_TIME_STEP_TIMER@@@std@@@3@@std@@QEAA@XZ | 0x140310ce0 | blocked | IDA ??1?$map@HUST_TIME_STEP_TIMER@@U?$less@H@std@@V?$allocator@U?$pair@$$CBHUST_TIME_STEP_TIMER@@@std@@@3@@std@@QEAA@XZ | yes | - |
 | XGameServer | Maze.cpp | ??1XMaze@@UEAA@XZ | 0x140310d00 | implemented | IDA decompile | yes | IDA������ʵ��
-| XGameServer | Maze.cpp | ?StartMazeTime@XMaze@@QEAAXXZ | 0x140311b70 | implemented | IDA decompile | yes | ״̬Ϊ0ʱ����״̬1,��¼��ʼʱ��,����SectorAI |
-| XGameServer | Maze.cpp | ?FinishMazeTime@XMaze@@QEAAXXZ | 0x140311bd0 | implemented | IDA decompile | yes | ����״̬4,��������ʱ�� |
+| XGameServer | Maze.cpp | ?StartMazeTime@XMaze@@QEAAXXZ | 0x140311b70 | verified | IDA decompile + landed source + batch-12 compare | yes | batch-12 fresh IDA re-verify PASS: !m_nMazeState gate -> SetMazeState(1,1) + m_dwMazeStartTime=GetTickCount64() + RunSectorAI(10001,1); landed body exact match |
+| XGameServer | Maze.cpp | ?FinishMazeTime@XMaze@@QEAAXXZ | 0x140311bd0 | verified | IDA decompile + landed source + batch-12 compare | yes | batch-12 fresh IDA re-verify PASS: SetMazeState(4,1) + m_dwMazePlayTime=GetTickCount64()-m_dwMazeStartTime; landed body exact match |
 | XGameServer | Maze.cpp | ?MazePlayTime_Now@XMaze@@QEAAKXZ | 0x140311c10 | implemented | IDA decompile | yes | ���ص�ǰ����ʱ��(��) |
 | - | - | ??_GCSector@@QEAAPEAXI@Z | 0x140312f70 | blocked | IDA ??_GCSector@@QEAAPEAXI@Z | yes | - |
-| XGameServer | Maze.cpp | ?SetMazeState@XMaze@@QEAAXH_N@Z | 0x140312fb0 | implemented | IDA decompile | yes | �����Թ�״̬,״̬7��ͣ����timer,ͬ���㲥��(0x11/0x21) |
+| XGameServer | Maze.cpp | ?SetMazeState@XMaze@@QEAAXH_N@Z | 0x140312fb0 | verified | IDA decompile + landed source + batch-12 compare | yes | batch-12 fresh IDA re-verify PASS: m_nMazeState=nState + m_dwMazeWaitTime=GetTickCount64() + state7 PauseAlltimer(1) + bSync (0x11,0x21)<<nState broadcast eAll + LogDebug; tail ICF noise call is folded xSendPacket dtor; landed body exact match |
 | XGameServer | Maze.cpp | ?SetLuaValue@XMaze@@QEAAXPEAD@Z | 0x1403130c0 | implemented | IDA decompile | yes | ��Luaֵ�ַ���push��m_vecLuaValues |
 | XGameServer | Maze.cpp | ?EnterGameObject@XMaze@@UEAAGPEAVXActor@@W4E_SEND_INFO_TYPE@IXArea@@@Z | 0x140313130 | implemented | IDA decompile | yes | IDA������ʵ��
 | XGameServer | Maze.cpp | ?ExitGameObject@XMaze@@UEAAGPEAVXActor@@W4E_SEND_INFO_TYPE@IXArea@@@Z | 0x140313580 | implemented | IDA decompile | yes | IDA������ʵ��
@@ -14781,12 +14783,12 @@
 | XGameServer | Maze.cpp | ?ExitActor@XMaze@@UEAAGPEAVXActor@@@Z | 0x1403140d0 | implemented | IDA decompile | yes | ExitActor-User exit maze processing flow |
 | - | - | ??1?$pair@$$CBKV?$map@HV?$shared_ptr@VCDropItemGroup@@@tr1@std@@U?$less@H@3@V?$allocator@U?$pair@$$CBHV?$shared_ptr@VCDropItemGroup@@@tr1@std@@@std@@@3@@std@@@std@@QEAA@XZ | 0x140315710 | blocked | IDA ??1?$pair@$$CBKV?$map@HV?$shared_ptr@VCDropItemGroup@@@tr1@std@@U?$less@H@3@V?$allocator@U?$pair@$$CBHV?$shared_ptr@VCDropItemGroup@@@tr1@std@@@std@@@3@@std@@@std@@QEAA@XZ | yes | - |
 | - | - | ??1CWeeklyMission_Day@@QEAA@XZ | 0x140315730 | blocked | IDA ??1CWeeklyMission_Day@@QEAA@XZ | yes | - |
-| XGameServer | Maze.cpp | ?MoveActor@XMaze@@QEAA?AV?$TResult@V?$optional@VXVec3@@@@@@@@PEAVXActor@@AEAUXVec3@@M@Z | 0x140315750 | implemented | IDA decompile | yes | 精确还原-RTTI转换并调用SetPosInfo |
+| XGameServer | Maze.cpp | ?MoveActor@XMaze@@QEAA?AV?$TResult@V?$optional@VXVec3@@@@@@@@PEAVXActor@@AEAUXVec3@@M@Z | 0x140315750 | implemented | IDA decompile + landed source + batch-12 compare | no | batch-12 stale blocked row fixed: true body pre-existed (RTDynamicCast CMover gate -> SetPosInfo(vPos,fRot); 50001 fail code); two-branch null/cast-fail split is layout-equivalent to IDA single RTDynamicCast null check |
 | XGameServer | Maze.cpp | ?MoveActor@XMaze@@QEAA?AV?$TResult@V?$optional@VXVec3@@@@@@@@TUXActorID@@AEAUXVec3@@M@Z | 0x140315800 | implemented | IDA decompile | yes | 精确还原-查找Actor后委托给XActor版本 |
 | - | - | ??4ST_CREATE_MAZE@@QEAAAEAU0@AEBU0@@Z | 0x140315a30 | blocked | IDA ??4ST_CREATE_MAZE@@QEAAAEAU0@AEBU0@@Z | yes | - |
 | - | - | ??4ST_MAP_INFO@@QEAAAEAU0@AEBU0@@Z | 0x140315b10 | blocked | IDA ??4ST_MAP_INFO@@QEAAAEAU0@AEBU0@@Z | yes | - |
-| - | - | ?SetParty@XMaze@@QEAAXV?$shared_ptr@VCParty@@@tr1@std@@@Z | 0x140315c40 | implemented | IDA decompile | yes | - |
-| - | - | ?SetForce@XMaze@@QEAAXV?$shared_ptr@VCForce@@@tr1@std@@@Z | 0x140315d50 | implemented | IDA decompile | yes | - |
+| XGameServer | Maze.cpp | ?SetParty@XMaze@@QEAAXV?$shared_ptr@VCParty@@@tr1@std@@@Z | 0x140315c40 | implemented | IDA decompile + landed source | no | m_pParty empty gate only; assign + SetMazeID(UXMapID(m_uxMapID.nMapID)) + m_nPartyUserCount + byGroupType=1 + LogDebug; recovery-era m_pForce.reset() and null-else branch removed per IDA; TUXMapID stand-in bridged to UXMapID via nMapID (active XArea.h layout divergence) |
+| XGameServer | Maze.cpp | ?SetForce@XMaze@@QEAAXV?$shared_ptr@VCForce@@@tr1@std@@@Z | 0x140315d50 | implemented | IDA decompile + landed source | no | m_pForce empty gate only; assign + SetMazeID + m_nPartyUserCount + byGroupType=2 + LogDebug; recovery-era m_pParty.reset() and null-else branch removed per IDA |
 | XGameServer | Maze.cpp | ?SpawnGenerateMonster@XMaze@@UEAAXXZ | 0x140317750 | implemented | IDA decompile | yes | IDA������ʵ��
 | XGameServer | Maze.cpp | ?ExcuteEventSpawn@XMaze@@QEAAXH@Z | 0x140317a40 | implemented | IDA decompile | yes | IDA������ʵ��
 | XGameServer | Maze.cpp | ?ExcuteCheckEventSpawnBox@XMaze@@QEAAXPEAVCUser@@HH@Z | 0x140317b60 | implemented | IDA decompile | yes | ִ�м���¼����ɺ�?|
@@ -14798,13 +14800,13 @@
 | XGameServer | Maze.cpp | ?RandProb@XMaze@@IEAAHXZ | 0x140318e90 | implemented | IDA decompile | yes | IDA������ʵ��
 | XGameServer | Maze.cpp | ?nRand@XMaze@@IEAAHHH@Z | 0x140318eb0 | implemented | IDA decompile | yes | IDA������ʵ��
 | XGameServer | Maze.cpp | ?fRand@XMaze@@IEAAMMM@Z | 0x140318ee0 | implemented | IDA decompile | yes | IDA������ʵ��
-| XGameServer | Maze.cpp | ?CreateMonster@XMaze@@QEAAPEAVCMonster@@TUXMapID@@HHUXVec3@@MW4E_SEND_INFO_TYPE@IXArea@@HHTUXActorID@@@Z | 0x140318f20 | implemented | IDA decompile | yes | IDA������ʵ��
-| XGameServer | Maze.cpp | ?DeleteMonster@XMaze@@QEAAXPEAVCMonster@@@Z | 0x140319ac0 | implemented | IDA decompile | yes | IDA������ʵ��
-| XGameServer | Maze.cpp | ?NotifyMonsterDelete@XMaze@@QEAAXPEAVCMonster@@@Z | 0x14031a0d0 | implemented | IDA decompile | yes | Broadcast monster delete to bot users |
-| XGameServer | Maze.cpp | ?CreateNpc@XMaze@@QEAAPEAVCNpc@@TUXMapID@@HHUXVec3@@MW4E_SEND_INFO_TYPE@IXArea@@@Z | 0x14031a250 | implemented | IDA decompile | yes | - |
-| XGameServer | Maze.cpp | ?DeleteNpc@XMaze@@QEAAXPEAVCNpc@@@Z | 0x14031a430 | implemented | IDA decompile | yes | DeleteNPC-ExitGameObject+ThreadLocalData |
-| XGameServer | Maze.cpp | ?CreateAkashicObject@XMaze@@QEAAPEAVCAkashicObject@@TUXMapID@@HUXVec3@@MKW4E_SEND_INFO_TYPE@IXArea@@@Z | 0x14031a4a0 | implemented | IDA decompile | yes | ��ȷ��ԭ-����Akashic���� |
-| XGameServer | Maze.cpp | ?DeleteAkashicObject@XMaze@@QEAAXPEAVCAkashicObject@@@Z | 0x14031a5e0 | implemented | IDA decompile | yes | DeleteAkashicObject-ExitGameObject+ThreadLocalData |
+| XGameServer | Maze.cpp | ?CreateMonster@XMaze@@QEAAPEAVCMonster@@TUXMapID@@HHUXVec3@@MW4E_SEND_INFO_TYPE@IXArea@@HHTUXActorID@@@Z | 0x140318f20 | implemented | IDA decompile + landed source | no | batch-9 precision upgrade: six recovery-era gaps filled per fresh IDA decompile - SetHitCollisionDataToActor+SetTraceBoneNameDataToActor after collision setup; Roguelike (Maze_Type 15) full chain: mapPlayerList scan -> CUser RTDynamicCast -> GetGOC_Entity(false) -> GetRoguelikeTotalStep>0 -> GetTB_COMMON(0x7919) -> GetGOC_Attribute(false) -> UpdateScaleStat(0x15/0x0A/0x18) + Finalize + GetStat(0x0A) -> SetHpEx; Monster_Type 11 broken-parts chain: Monster_Parts_ID_02/03 -> GetTB_MONSTER_BROKEN_PARTS -> SetHitPartsInfo(0/1, ID, Type, HP*Pct*0.000099999997f); GetRecoverySuperArmorTime real call replacing hardcoded 0; m_stEscortMonster.pMonster direct assignment replacing invented dwActorID; AddActor key is QuestID (CQuestCondition subsystem unrestored, dwActorID stand-in TODO noted) |
+| XGameServer | Maze.cpp | ?DeleteMonster@XMaze@@QEAAXPEAVCMonster@@@Z | 0x140319ac0 | implemented | IDA decompile + landed source | no | batch-9 full body replacing empty recovery-era shell (ExitGameObject was commented out): Maze_Group74/Faction25 log gate -> GetTableID/GetTB_MONSTER -> (Type0/3 no-clear or Type11) sector chain: m_mapRespawnBox.find(GetSpawnBoxID) -> SetQuestRespawn -> DeleteActor(&bBossDie, Type!=11) -> bBossDie: UpdateClearMazeCondition(1,nTableID)+m_mapProcessSpawnBox cleanup loop (GroutonBoxID skip, delete+erase)+DieMonsters(0,1)+TerminateSpawn; Maze_Type7+IsComplete -> UpdateClearMazeCondition(3,1); silhouette chain: IsApplySilhouet+GetSilhoutte -> setEnabled(0)+m_nDestroySilhouetes+++push; tail: NotifyMonsterDelete+ExitGameObject(?XActor:nullptr,eSendInfoTypeNot)+GetSilhoutte-null-gated ThreadLocalData::DeleteMonster; QuestID dwActorID stand-in TODO noted |
+| XGameServer | Maze.cpp | ?NotifyMonsterDelete@XMaze@@QEAAXPEAVCMonster@@@Z | 0x14031a0d0 | implemented | IDA decompile + landed source | no | m_bHaveBotUser gate; packet (0x17,0x13); GetActorID; CQuestCondition::GetQuestID commented (subsystem unrestored, TODO noted); SendBroadCast(pMonster?XActor:nullptr, eAll) - recovery-era early null return removed per IDA; second GetActorID + LogDebug |
+| XGameServer | Maze.cpp | ?CreateNpc@XMaze@@QEAAPEAVCNpc@@TUXMapID@@HHUXVec3@@MW4E_SEND_INFO_TYPE@IXArea@@@Z | 0x14031a250 | implemented | IDA decompile + landed source | no | GetTB_NPC gate -> m_mapSector.find (recovery-era pSector null check removed per IDA) -> ThreadLocalData::CreateNpc (stub layer) -> EnterGameObject fail path DeleteNpc -> SetSector/UpdateSectorID/SetCollisionEnable(1,0) |
+| XGameServer | Maze.cpp | ?DeleteNpc@XMaze@@QEAAXPEAVCNpc@@@Z | 0x14031a430 | implemented | IDA decompile + landed source | no | ExitGameObject(pNpc?XActor:nullptr, eSendInfoTypeNot) both branches per IDA + ThreadLocalData::DeleteNpc (previously commented out, now live) |
+| XGameServer | Maze.cpp | ?CreateAkashicObject@XMaze@@QEAAPEAVCAkashicObject@@TUXMapID@@HUXVec3@@MKW4E_SEND_INFO_TYPE@IXArea@@@Z | 0x14031a4a0 | implemented | IDA decompile + landed source | no | GetTB_AKASHIC_RECORDS gate -> ThreadLocalData::CreateAkashicObject (stub layer) -> null return -> EnterGameObject fail DeleteAkashicObject -> SetCollisionEnable(0,0); full chain live, dependency layer stubbed |
+| XGameServer | Maze.cpp | ?DeleteAkashicObject@XMaze@@QEAAXPEAVCAkashicObject@@@Z | 0x14031a5e0 | implemented | IDA decompile + landed source | no | ExitGameObject(pAkashic?XActor:nullptr, eSendInfoTypeNot) + ThreadLocalData::DeleteAkashicObject (previously commented out, now live stub) |
 | XGameServer | Maze.cpp | ?GetSpawnPos@XMaze@@UEAAXPEBUVMonsterSpawnInfo@@AEAUXVec3@@@Z | 0x14031a650 | implemented | IDA decompile | yes | 精确还原-根据m_iCreationPositionType计算生成位置(中心�?随机) |
 | XGameServer | Maze.cpp | ?ExcuteSpawnBoxCheck@XMaze@@QEAAHHW4E_SEND_INFO_TYPE@IXArea@@_N@Z | 0x14031a7b0 | implemented | IDA decompile | yes | ��ȷ��ԭ-���ִ��SpawnBox |
 | XGameServer | Maze.cpp | ?GetProcessSpawnBoxInfo@XMaze@@QEAAPEAUVMonsterSpawnInfo@@G@Z | 0x14031a980 | implemented | IDA decompile | yes | ��ȷ��ԭ-��ȡProcessSpawnBox��Ϣ |
@@ -14813,7 +14815,7 @@
 | XGameServer | Maze.cpp | ?AddSyncSpawnActive@XMaze@@QEAAXPEBUVMonsterSpawnInfo@@@Z | 0x14031b510 | implemented | IDA decompile | yes | ��ȷ��ԭ-����ͬ�����ɼ���(�պ���) |
 | XGameServer | Maze.cpp | ?ExcuteSpawnBox@XMaze@@QEAAXPEBUVMonsterSpawnInfo@@W4E_SEND_INFO_TYPE@IXArea@@@Z | 0x14031b560 | implemented | IDA decompile | yes | ִ�����ɺ�(VMonsterSpawnInfo�汾) |
 | XGameServer | Maze.cpp | ?ExcuteSpawn@XMaze@@QEAAXHHPEBUVMonsterSpawnInfo@@W4E_SEND_INFO_TYPE@IXArea@@@Z | 0x14031be90 | implemented | IDA decompile | yes | ��ȷ��ԭ-ִ������(RespawnManager����) |
-| XGameServer | Maze.cpp | ?OnUpdate@XMaze@@UEAAXM@Z | 0x14031c330 | implemented | IDA decompile | yes | IDA������ʵ��
+| XGameServer | Maze.cpp | ?OnUpdate@XMaze@@UEAAXM@Z | 0x14031c330 | implemented | IDA decompile + fresh full-chain compare | yes | batch13 full-chain rework: UserDB 4/8/0x10 gate + LoadComplete erase; RespawnManager::Update; invalid-user cleanup chain (IsBit_OR/GetValidMapInsID/GetScanner erase/RemoveKey/LogError); DeleteNpc/DeleteAkashicObject dispatch; write-locked stepSilhouettes; tail chain all 7 updates; TODO-marked deviations (GetGroupID gate, GetQuestID key, XActor vtable OnUpdate) 
 | XGameServer | Maze.cpp | ?UpdateCasualRaidTimer@XMaze@@QEAAXM@Z | 0x14031d850 | implemented | IDA decompile | yes | ��ȷ��ԭ-��������Raid��ʱ�� |
 | XGameServer | Maze.cpp | ?SendSectorInfos@XMaze@@QEAAXPEAVXActor@@@Z | 0x14031d920 | implemented | IDA decompile | yes | IDA������ʵ��
 | XGameServer | Maze.cpp | ?SendGateInfos@XMaze@@QEAAXPEAVXActor@@_N@Z | 0x14031db80 | implemented | IDA decompile | yes | IDA������ʵ��
@@ -14824,17 +14826,17 @@
 | XGameServer | Maze.cpp | ?SendLastClientSync@XMaze@@QEAAXPEAVXActor@@@Z | 0x14031eb10 | implemented | IDA decompile | yes | IDA������ʵ��
 | XGameServer | Maze.cpp | ?SendObjectInfo@XMaze@@UEAA_NPEAVXActor@@_N@Z | 0x14031ebe0 | implemented | IDA decompile | yes | 精确还原-发送对象信息给用户 |
 | - | - | ?SendTransportationInfo@XModeMaze@@UEAA_NPEAVXActor@@@Z | 0x14031eef0 | implemented | IDA ?SendTransportationInfo@XModeMaze@@UEAA_NPEAVXActor@@@Z | yes | - |
-| XGameServer | Maze.cpp | ?CreateNavMesh@XMaze@@QEAA_NPEBD@Z | 0x14031f120 | implemented | IDA decompile | yes | ��ȷ��ԭ-������������ |
-| XGameServer | Maze.cpp | ?CreateScriptInst@XMaze@@QEAA_NPEBD@Z | 0x14031f2c0 | implemented | IDA decompile | yes | ��ȷ��ԭ-�����ű�ʵ�� |
+| XGameServer | Maze.cpp | ?CreateNavMesh@XMaze@@QEAA_NPEBD@Z | 0x14031f120 | implemented | IDA decompile + landed source + batch-12 compare | no | batch-12 stale blocked row fixed: body landed (batch-7 era); CFAutoSlimWriteLock + g_strCurPath+/World/Navmesh + sprintf %s/%s.hkt + DohHavok loadNavMesh + hkReferencedObject::operator new(0x100) chain; Havok layer is stub - active divergence documented |
+| XGameServer | Maze.cpp | ?CreateScriptInst@XMaze@@QEAA_NPEBD@Z | 0x14031f2c0 | implemented | IDA decompile + landed source + batch-12 compare | no | batch-12 stale blocked row fixed: body landed (batch-7 era); g_strCurPath+/Scripts + %s/Server/%s.lua + GetScriptManager->CreateScriptInstanceFromFile + AssertValid + GetSystemActor + ExecuteFunctionArg(OnMazeCreated); script layer partial |
 | XGameServer | Maze.cpp | ?GetSectorIDFromPos@XMaze@@QEAAHAEBVhkvVec3@@@Z | 0x14031f450 | implemented | IDA decompile | yes | IDA������ʵ��
 | XGameServer | Maze.cpp | ?GetSectorUniqueIDFromPos@XMaze@@QEAAHAEBVhkvVec3@@@Z | 0x14031f560 | implemented | IDA decompile | yes | ��ȷ��ԭ-��λ�û�ȡSectorΨһID |
 | XGameServer | Maze.cpp | ?GetSectorFromPos@XMaze@@QEAAPEAVCSector@@AEBVhkvVec3@@@Z | 0x14031f670 | implemented | IDA decompile | yes | IDA������ʵ��
-| XGameServer | Maze.cpp | ?RunSectorAI@XMaze@@QEAAXAEBVhkvVec3@@_N@Z | 0x14031f780 | implemented | IDA decompile | yes | ��ȷ��ԭ-����Sector AI(λ�ð汾) |
-| XGameServer | Maze.cpp | ?RunSectorAI@XMaze@@QEAAXH_N@Z | 0x14031f7c0 | implemented | IDA decompile | yes | ��ȷ��ԭ-����Sector AI(SectorID�汾) |
-| XGameServer | Maze.cpp | ?SpawnSectorMonster@XMaze@@QEAAXH@Z | 0x14031f900 | implemented | IDA decompile | yes | ��ȷ��ԭ-����Sector���� |
-| XGameServer | Maze.cpp | ?SpawnSectorMonsterForOpt@XMaze@@QEAAXH@Z | 0x14031f9b0 | implemented | IDA decompile | yes | ��ȷ��ԭ-Ϊ�Ż�����Sector���� |
+| XGameServer | Maze.cpp | ?RunSectorAI@XMaze@@QEAAXAEBVhkvVec3@@_N@Z | 0x14031f780 | verified | IDA decompile + landed source + batch-12 compare | yes | batch-12 fresh IDA re-verify PASS: GetSectorIDFromPos(vPos) -> RunSectorAI(nSector, bIsPotal) delegation; landed body exact match |
+| XGameServer | Maze.cpp | ?RunSectorAI@XMaze@@QEAAXH_N@Z | 0x14031f7c0 | verified | IDA decompile + landed source + batch-12 compare | yes | batch-12 fresh IDA re-verify PASS: AddLog(19,nSector,0,'') commented (CTextDBLog backlog) + GetEventUniqueID(nSector, level) -> m_mapSector.find -> SetAI(1)+CheckClearState+SetLastSectorID(nSector,bIsPotal)+IsBossSector->SetBossSector + LogDebug; landed body exact match |
+| XGameServer | Maze.cpp | ?SpawnSectorMonster@XMaze@@QEAAXH@Z | 0x14031f900 | implemented | IDA decompile + landed source (moved from excluded MazeRaid.cpp) | no | ��ȷ��ԭ-����Sector���� |
+| XGameServer | Maze.cpp | ?SpawnSectorMonsterForOpt@XMaze@@QEAAXH@Z | 0x14031f9b0 | implemented | IDA decompile + landed source (moved from excluded MazeRaid.cpp; m_iRelativeSectorID nEnd branch TODO pending CSector PDB layout alignment) | no | ��ȷ��ԭ-Ϊ�Ż�����Sector���� |
 | XGameServer | Maze.cpp | ?SendSectorCompleteState@XMaze@@QEAAXHH@Z | 0x14031faf0 | implemented | IDA decompile | yes | ��ȷ��ԭ-����Sector���״�?|
-| XGameServer | Maze.cpp | ?SetPotalFlag@XMaze@@QEAAXH_N@Z | 0x14031fbc0 | implemented | IDA decompile | yes | ��ȷ��ԭ-���ô����ű�־ |
+| XGameServer | Maze.cpp | ?SetPotalFlag@XMaze@@QEAAXH_N@Z | 0x14031fbc0 | implemented | IDA decompile + landed source | no | AddLog commented pending CTextDBLog subsystem; full (4,9) broadcast + open-time chain restored |
 | XGameServer | Maze.cpp | ?UpdatePortalState@XMaze@@QEAAXXZ | 0x14031fe20 | implemented | IDA decompile | yes | ��ȷ��ԭ-���´�����״̬ |
 | XGameServer | Maze.cpp | ?SetGateFlag@XMaze@@QEAAXH_N@Z | 0x140320000 | implemented | IDA decompile | yes | ��ȷ��ԭ-�����ű�־ |
 | XGameServer | Maze.cpp | ?SetGateFlagNoSend@XMaze@@QEAAXH_N@Z | 0x1403202d0 | implemented | IDA decompile | yes | ��ȷ��ԭ-�����ű�־(�����Ͱ�) |
@@ -14852,31 +14854,31 @@
 | XGameServer | Maze.cpp | ?RunOperationEnd@XMaze@@QEAAXH@Z | 0x1403234e0 | implemented | IDA decompile | yes | ��ȷ��ԭ-���в������� |
 | XGameServer | Maze.cpp | ?OnActionSkill@XMaze@@QEAAXHH@Z | 0x140323570 | implemented | IDA decompile | yes | ��ȷ��ԭ-���ܶ����ص� |
 | XGameServer | Maze.cpp | ?OnProtectSkill@XMaze@@QEAAXH@Z | 0x140323600 | implemented | IDA decompile | yes | ��ȷ��ԭ-�������ܻص� |
-| XGameServer | Maze.cpp | ?AllUserWarp@XMaze@@QEAA_NAEAUXVec3@@M_N@Z | 0x140323680 | implemented | IDA decompile | yes | ��ȷ��ԭ-�����û����� |
-| XGameServer | Maze.cpp | ?AllUserWarp@XMaze@@QEAAXH@Z | 0x140323980 | implemented | IDA decompile | yes | ��ȷ��ԭ-�����û����͵�ָ������λ�� |
-| XGameServer | Maze.cpp | ?AllMonsterWarp@XMaze@@QEAAXAEAUXVec3@@M@Z | 0x140323d60 | implemented | IDA decompile | yes | ��ȷ��ԭ-���й��ﴫ�� |
+| XGameServer | Maze.cpp | ?AllUserWarp@XMaze@@QEAA_NAEAUXVec3@@M_N@Z | 0x140323680 | implemented | IDA decompile + landed source | no | signature corrected from (XVec3*,float,int) to PDB (XVec3&,float,bool); SetDirectionYaw fYaw is register residue, TODO noted |
+| XGameServer | Maze.cpp | ?AllUserWarp@XMaze@@QEAAXH@Z | 0x140323980 | implemented | IDA decompile + landed source | no | int overload: GetBatchLayerLevel -> GetEventUniqueID -> m_mapCommonPostionBox lookup -> GetCenter -> per-player MoveActor/SetDedicatedMonsterID(0)/SetDirectionYaw(0.0f,2)/SetPositionXVec3/MoveingValueClear/ChangeMotion(1,1,18)/SendResWarp(0,curPos,fRot) -> AllMonsterWarp -> RunSectorAI(true) -> SetActiveSectorID+CheckCutsceneState(1) |
+| XGameServer | Maze.cpp | ?AllMonsterWarp@XMaze@@QEAAXAEAUXVec3@@M@Z | 0x140323d60 | implemented | IDA decompile + landed source | no | Type==2 CMonster IsFollower chain; SetDirectionYaw fYaw residue TODO noted |
 | XGameServer | Maze.cpp | ?AllUserWarpInSector@XMaze@@QEAAXVhkvVec3@@M@Z | 0x140323ef0 | implemented | IDA decompile | yes | ��ȷ��ԭ-�����û���Sector�ڴ��� |
 | XGameServer | Maze.cpp | ?EnterPartyForceMember@XMaze@@QEAA_NPEAVCUser@@@Z | 0x1403241d0 | implemented | IDA decompile | yes | - |
 | XGameServer | Maze.cpp | ?GetCurUserCount@XMaze@@QEAAHXZ | 0x140324af0 | implemented | IDA decompile | yes | ��ȷ��ԭ-��ȡ��ǰ�û����� |
 | XGameServer | Maze.cpp | ?TestReward@XMaze@@QEAAXXZ | 0x140324b20 | implemented | IDA decompile | yes | �����Թ����� |
 | XGameServer | Maze.cpp | ?IsCanUseActiveAkashic@XMaze@@QEAA_NXZ | 0x140324cf0 | implemented | IDA decompile | yes | ��ȷ��ԭ-����Ƿ����ʹ������Akashic |
-| XGameServer | Maze.cpp | ?UpdateClearMazeCondition@XMaze@@QEAAXHH@Z | 0x140324d50 | implemented | IDA decompile | yes | ��ȷ��ԭ-��������Թ�����?|
-| XGameServer | Maze.cpp | ?ProcessReward@XMaze@@UEAAXXZ | 0x140324e10 | implemented | IDA decompile | yes | ��ȷ��ԭ-�����Թ����� |
+| XGameServer | Maze.cpp | ?UpdateClearMazeCondition@XMaze@@QEAAXHH@Z | 0x140324d50 | implemented | IDA decompile + landed source | no | batch-10 precision upgrade: local conTypes/conValues cache-array rewrite replaced with IDA original pointer-arithmetic loop *(&Clear_Con_Type_01+i)==nConditionType && *(&Clear_Con_Value_01+i)==nValue -> m_bClearCondition[i]=0; ProcessReward tail; TB_MAZE_INFO layout verified (Type_01/02/03 contiguous uint8, Value_01/02/03 contiguous uint) |
+| XGameServer | Maze.cpp | ?ProcessReward@XMaze@@UEAAXXZ | 0x140324e10 | implemented | IDA decompile + landed source | no | batch-11 full body: three-branch clear-calc (AND/OR/MazeType7) + post-complete chain AddLog(4,0,0,'')TODO + AllDestroySectorMonster(GetLastSectorID()) + FinishMazeTime + CheckHiddenEventState + ReleaseHelperSupportEquip; MazeType 14/18/19 kill-score: player loop SetInvincibleActor(1)+SetImmunityStatus(4)+UpdateDefenseType+GetGOC_Recode(0)->MonsterKillScoreReward(nPoint, GetMazeType(), dwMazePlayTime); MazeType 7 infinite tower: GM+Status(0x2000) skip, RewardInfinteTower(m_nChapter,m_nStage,dwPlayTime/100), NPC purge (Type!=1&&2&&!IsSystemActor -> SetDieReason(0xC,HP)+SetDie(GetDeathMotion(),1)); non-Roguelike: party/force/per-user MazeReward chain + TB_MAZEREWARD_ITEM grouton draw ((10*nHighRank+50)*Mob_Rate/100/100 vs nRand(1,10000) -> m_dwWaitGroutonSpawnTime=GetTickCount64()+15000) + player invincible loop |
 | XGameServer | Maze.cpp | ?ProcessDropByHit@XMaze@@QEAAXKHHAEAUXVec3@@H@Z | 0x140325950 | implemented | IDA decompile | yes | ��ȷ��ԭ-����ʱ�������� |
 | XGameServer | Maze.cpp | ?ProcessDrop@XMaze@@UEAA_NPEAVXActor@@HAEAUXVec3@@@Z | 0x140325d20 | implemented | IDA decompile | yes | ��ȷ��ԭ-������Ʒ���� |
 | XGameServer | Maze.cpp | ?ExitArea@XMaze@@UEAAXPEAVXActor@@@Z | 0x140326270 | implemented | IDA decompile | yes | ��ȷ��ԭ-�����û��뿪�Թ����� |
-| - | - | ?GetScanner@XMaze@@QEAAPEAV?$map@KPEAVCMover@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKPEAVCMover@@@std@@@3@@std@@PEAVXActor@@@Z | 0x1403264d0 | blocked | IDA ?GetScanner@XMaze@@QEAAPEAV?$map@KPEAVCMover@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKPEAVCMover@@@std@@@3@@std@@PEAVXActor@@@Z | yes | - |
+| XGameServer | Maze.cpp | ?GetScanner@XMaze@@QEAAPEAV?$map@KPEAVCMover@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKPEAVCMover@@@std@@@3@@std@@PEAVXActor@@@Z | 0x1403264d0 | implemented | IDA decompile + landed source | no | nullptr gate; Type 0 -> &m_objectScanner (mapPlayerList at offset 0, layout-equivalent to IDA MAZE_OBJECT base), Type 1-2 -> &mapNPCList, else -> &mapEtcList; body already landed Maze.cpp:816, stale blocked row updated |
 | XGameServer | Maze.cpp | ?IsDieAllUser@XMaze@@QEAA_NXZ | 0x140326540 | implemented | IDA decompile | yes | ��ȷ��ԭ-��������û��Ƿ�����?|
 | XGameServer | Maze.cpp | ?SendBroadCast@XMaze@@UEAAXAEAVXSendPacket@@PEAVXActor@@W4E_BROADCAST_TYPE@IXArea@@@Z | 0x1403265e0 | implemented | IDA decompile | yes | ��ȷ��ԭ-�㲥���ݰ��������û� |
 | XGameServer | Maze.cpp | ?SendBroadCast@XMaze@@UEAAXAEAVXSendPacket@@PEAVXActor@@_NW4E_BROADCAST_TYPE@IXArea@@@Z | 0x1403266f0 | implemented | IDA decompile | yes | ��ȷ��ԭ-�㲥���ݰ�(�������ų�) |
 | XGameServer | Maze.cpp | ?UpdateMazeState@XMaze@@QEAAXXZ | 0x140326820 | implemented | IDA decompile | yes | IDA精确还原-迷宫状态机更新 | ��ȷ��ԭ-�����Թ�״̬ |
 | XGameServer | Maze.cpp | ?LoadComplete@XMaze@@UEAAXPEAVXActor@@@Z | 0x1403271a0 | implemented | IDA decompile | yes | - |
 | - | - | ?CheckGuardTarget@XMaze@@QEAAXPEAVCMonster@@K@Z | 0x140328260 | implemented | IDA ?CheckGuardTarget@XMaze@@QEAAXPEAVCMonster@@K@Z | yes | - |
-| XGameServer | Maze.cpp | ?AddHelper@XMaze@@QEAAXPEAVCMonster@@@Z | 0x1403282c0 | implemented | IDA decompile | yes | ��ȷ��ԭ-�������ֹ��� |
-| XGameServer | Maze.cpp | ?DeleteHelper@XMaze@@QEAAXPEAVCMonster@@@Z | 0x140328300 | implemented | IDA decompile | yes | ��ȷ��ԭ-ɾ�����ֹ��� |
+| XGameServer | Maze.cpp | ?AddHelper@XMaze@@QEAAXPEAVCMonster@@@Z | 0x1403282c0 | implemented | IDA decompile + source/build check | no | Precise body landed in GreenDamTan link unit this round |
+| XGameServer | Maze.cpp | ?DeleteHelper@XMaze@@QEAAXPEAVCMonster@@@Z | 0x140328300 | implemented | IDA decompile + source/build check | no | Precise body landed in GreenDamTan link unit this round |
 | XGameServer | Maze.cpp | ?GetHelperCount@XMaze@@QEAAHXZ | 0x140328690 | implemented | IDA decompile | yes | ��ȷ��ԭ-��ȡHelper���� |
 | - | - | ?GetHelperList@XMaze@@QEAAXAEAV?$vector@PEAVCMonster@@V?$allocator@PEAVCMonster@@@std@@@std@@@Z | 0x1403286c0 | implemented | IDA ?GetHelperList@XMaze@@QEAAXAEAV?$vector@PEAVCMonster@@V?$allocator@PEAVCMonster@@@std@@@std@@@Z | yes | - |
-| XGameServer | Maze.cpp | ?ReleaseHelperSupportEquip@XMaze@@QEAAXXZ | 0x140328770 | implemented | IDA decompile | yes | ��ȷ��ԭ-�ͷ�����֧Ԯװ�� |
+| XGameServer | Maze.cpp | ?ReleaseHelperSupportEquip@XMaze@@QEAAXXZ | 0x140328770 | implemented | IDA decompile + landed source | no | batch-11 full body landing: player loop GetGOC_Helper(0) -> HelperSupportRelease(); consumed by ProcessReward |
 | XGameServer | Maze.cpp | ?ChangeMonsterLevelStat@XMaze@@QEAAXH@Z | 0x140328840 | implemented | IDA decompile | yes | ���ݶ��������ı����ȼ����� |
 | XGameServer | Maze.cpp | ?SendNoticePacket@XMaze@@QEAAXHHM@Z | 0x140328bc0 | implemented | IDA decompile | yes | ��ȷ��ԭ-����֪ͨ���ݰ� |
 | XGameServer | Maze.cpp | ?SetPosToParty@XMaze@@UEAA_NPEAVCUser@@@Z | 0x140328ca0 | implemented | IDA decompile | yes | ��ȷ��ԭ-�����û�λ�õ�����λ�� |
@@ -14929,7 +14931,7 @@
 | XGameServer | Maze.cpp | ?FindUserByLowLevel@XMaze@@QEAAKXZ | 0x14032c3d0 | implemented | IDA decompile | yes | ��ʵ��(ȱʧCMover::GetLevel) |
 | XGameServer | Maze.cpp | ?FindUserByQuest@XMaze@@QEAAPEAVCMover@@H@Z | 0x14032c4e0 | implemented | IDA decompile | yes | ��ʵ��(ȱʧCGocQuest) |
 | XGameServer | Maze.cpp | ?GetUserByIndex@XMaze@@QEAAPEAVCMover@@H@Z | 0x14032c5e0 | implemented | IDA decompile | yes | ��ʵ��(ȱʧm_objectScanner) |
-| XGameServer | Maze.cpp | ?CheckFollowMonster@XMaze@@QEAAXXZ | 0x14032c690 | implemented | IDA decompile | yes | ��ʵ��(ȱʧCMonster) |
+| XGameServer | Maze.cpp | ?CheckFollowMonster@XMaze@@QEAAXXZ | 0x14032c690 | verified | IDA decompile + landed source + batch-12 compare | yes | batch-12 fresh IDA re-verify PASS: mapNPCList loop, null gate, GetType()==2, RTDynamicCast CMover->CMonster, IsFollower -> CMonster::CheckFollowMonster; landed body exact match |
 | XGameServer | Maze.cpp | ?IsHaveCondition@XMaze@@QEAA_NH@Z | 0x14032c790 | implemented | IDA decompile | yes | ��ʵ��(ȱʧCGocQuest) |
 | XGameServer | Maze.cpp | ?IsEnableInteraction@XMaze@@QEAA_NH@Z | 0x14032c890 | implemented | IDA decompile | yes | ��齻�������Ƿ�����?|
 | XGameServer | Maze.cpp | ?IsExistedMonster@XMaze@@QEAA_NH@Z | 0x14032c920 | implemented | IDA decompile | yes | ��ʵ��(ȱʧm_objectScanner��������) |
@@ -14952,7 +14954,7 @@
 | XGameServer | Maze.cpp | ?SetLuaValue@XMaze@@QEAAXHH@Z | 0x14032e310 | implemented | IDA decompile | yes | ����m_vecLuaValueָ������ֵ |
 | XGameServer | Maze.cpp | ?AddLuaValue@XMaze@@QEAAXHH@Z | 0x14032e350 | implemented | IDA decompile | yes | �ۼ�m_vecLuaValueָ������ֵ |
 | XGameServer | Maze.cpp | ?GetLuaValue@XMaze@@QEAAHH@Z | 0x14032e3a0 | implemented | IDA decompile | yes | ��ȡm_vecLuaValueָ������ֵ |
-| XGameServer | Maze.cpp | ?GetUniqueID@XMaze@@QEAAHH@Z | 0x14032e3d0 | implemented | IDA decompile | yes | ��ȡΨһID(����SectorID��BatchLayerLevel) |
+| XGameServer | Maze.cpp | ?GetUniqueID@XMaze@@QEAAHH@Z | 0x14032e3d0 | implemented | IDA decompile + landed source | no | batch-11 precision fix: invented (level<<16)|id formula replaced by IDA original VEventObjectInfo::GetEventUniqueID(nID, GetBatchLayerLevel()) = 100000*(level+1)+nID; return type corrected uint32_t->int per PDB QEAAH ABI |
 | XGameServer | Maze.cpp | ?SetGameModeState@XMaze@@QEAAXH@Z | 0x14032e400 | implemented | IDA decompile | yes | ��ʵ��(ȱʧCSector::SetModeState) |
 | XGameServer | Maze.cpp | ?InitQuestConditionForSectorClear@XMaze@@QEAAXXZ | 0x14032e440 | implemented | IDA decompile | yes | ��ʵ��(ȱʧCGocQuest����) |
 | XGameServer | Maze.cpp | ?IsCompleteQuestCondition@XMaze@@QEAA_NAEA_N@Z | 0x14032e520 | implemented | IDA decompile | yes | ��ʵ��(ȱʧCGocQuest����) |
@@ -14976,7 +14978,7 @@
 | XGameServer | Maze.cpp | ?SetLastSectorID@XMaze@@QEAAXH_N@Z | 0x14032ff20 | implemented | IDA decompile | yes | �������Sector ID |
 | XGameServer | Maze.cpp | ?GetLastSectorID@XMaze@@QEAAHXZ | 0x14032ff90 | implemented | IDA decompile | yes | ��ȡ���Sector ID |
 | XGameServer | Maze.cpp | ?SetBossSector@XMaze@@QEAAX_N@Z | 0x14032fff0 | implemented | IDA decompile | yes | ����Boss������?|
-| XGameServer | Maze.cpp | ?SetQuestRespawn@XMaze@@QEAAXKHHPEBUVMonsterSpawnInfo@@@Z | 0x1403301e0 | implemented | IDA decompile | yes | �������������� |
+| XGameServer | Maze.cpp | ?SetQuestRespawn@XMaze@@QEAAXKHHPEBUVMonsterSpawnInfo@@@Z | 0x1403301e0 | implemented | IDA decompile + landed source | no | batch-10 full body replacing empty shell: mapPlayerList non-empty + pMonsterSpawn null gate + m_RespawnTime>0.0 && m_eRespawnType==1 gate -> first player GetGOC_Quest(false) -> FindCondition(m_iRespawnCondition) -> RegisterQuestMonster(dwActorID,nTableID,nType,nCondition,pSpawn) -> GetEventUniqueID(m_iSectorID, GetBatchLayerLevel()) -> m_mapSector.find -> sector non-null -> AddRespawnBoxID(pSpawn->iUniqueID); Maze.h signature corrected const void* -> const VMonsterSpawnInfo* per PDB; VMonsterSpawnInfo tail fields (m_eRespawnType/m_iRespawnCondition/m_iStep/m_ProtectionTarget/m_CreationEffectFile/iUniqueID) landed from PDB fieldlist 0x72694 |
 | XGameServer | Maze.cpp | ?UpdateQuestRespawn@XMaze@@QEAAXH@Z | 0x140330440 | implemented | IDA decompile | yes | �������������� |
 | XGameServer | Maze.cpp | ?SetMonsterLastDamageType@XMaze@@QEAAXKK@Z | 0x1403305c0 | implemented | IDA decompile | yes | ���ù�������˺�����?|
 | XGameServer | Maze.cpp | ?GetMonsterLastDamageType@XMaze@@QEAAKK@Z | 0x140330660 | implemented | IDA decompile | yes | ��ȡ��������˺�����?|
@@ -15449,7 +15451,7 @@
 | - | - | ?GetChangeMobNewID@CMoverEx@@QEAAKXZ | 0x140353a00 | implemented | IDA ?GetChangeMobNewID@CMoverEx@@QEAAKXZ | yes | - |
 | - | - | ??0PS_MAZE_UPDATE_INFO_SYNC@@QEAA@XZ | 0x140353a20 | blocked | IDA ??0PS_MAZE_UPDATE_INFO_SYNC@@QEAA@XZ | yes | - |
 | - | - | ?GetClientLoadComplete@CUser@@QEAA_NXZ | 0x140353a90 | implemented | IDA ?GetClientLoadComplete@CUser@@QEAA_NXZ | yes | - |
-| - | - | ?IsUserStatus@CUser@@QEAAHK@Z | 0x140353ab0 | implemented | IDA ?IsUserStatus@CUser@@QEAAHK@Z | yes | - |
+| XGameServer | User.cpp | ?IsUserStatus@CUser@@QEAAHK@Z | 0x140353ab0 | implemented | IDA decompile + landed source | no | return (dwStatus & m_stCharInfo.dwStatus) != 0; |
 | XGameServer | Monster.cpp | ?GetGroupID@CMonster@@QEAAHXZ | 0x140353ad0 | implemented | IDA decompile | yes | ��ȡ��ID |
 | - | - | ?GetTimer@LogicTimer@@QEBAMXZ | 0x140353af0 | implemented | IDA ?GetTimer@LogicTimer@@QEBAMXZ | yes | - |
 | - | - | ?GetMaxTimer@LogicTimer@@QEBAMXZ | 0x140353b00 | implemented | IDA ?GetMaxTimer@LogicTimer@@QEBAMXZ | yes | - |
@@ -15473,7 +15475,7 @@
 | - | - | ?SetSABreakTime@CMoverEx@@QEAAXM@Z | 0x140353f80 | implemented | IDA ?SetSABreakTime@CMoverEx@@QEAAXM@Z | yes | - |
 | - | - | ?SetSABreakLoopTime@CMoverEx@@QEAAXM@Z | 0x140353fa0 | implemented | IDA ?SetSABreakLoopTime@CMoverEx@@QEAAXM@Z | yes | - |
 | - | - | ?SetSABreakType@CMoverEx@@QEAAXE@Z | 0x140353fc0 | implemented | IDA ?SetSABreakType@CMoverEx@@QEAAXE@Z | yes | - |
-| - | - | ?GetRecoverySuperArmorTime@CMover@@QEAAMXZ | 0x140353fe0 | implemented | IDA ?GetRecoverySuperArmorTime@CMover@@QEAAMXZ | yes | - |
+| XGameServer | MoverLinkStubs.cpp | ?GetRecoverySuperArmorTime@CMover@@QEAAMXZ | 0x140353fe0 | implemented | IDA decompile + landed source | no | batch-9 landed exact body in MoverLinkStubs.cpp: return m_fRecoverySuperArmorTime; consumed by XMaze::CreateMonster SA-break chain |
 | - | - | ?_Isnil@?$_Tree_val@V?$_Tmap_traits@KUTB_MONSTER_BROKEN_PARTS@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_MONSTER_BROKEN_PARTS@@@std@@@3@$0A@@std@@@std@@SAAEADPEAU_Node@?$_Tree_nod@V?$_Tmap_traits@KUTB_MONSTER_BROKEN_PARTS@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_MONSTER_BROKEN_PARTS@@@std@@@3@$0A@@std@@@2@@Z | 0x140354000 | blocked | IDA ?_Isnil@?$_Tree_val@V?$_Tmap_traits@KUTB_MONSTER_BROKEN_PARTS@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_MONSTER_BROKEN_PARTS@@@std@@@3@$0A@@std@@@std@@SAAEADPEAU_Node@?$_Tree_nod@V?$_Tmap_traits@KUTB_MONSTER_BROKEN_PARTS@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_MONSTER_BROKEN_PARTS@@@std@@@3@$0A@@std@@@2@@Z | yes | - |
 | - | - | ?_Lbound@?$_Tree@V?$_Tmap_traits@KUTB_MONSTER_BROKEN_PARTS@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_MONSTER_BROKEN_PARTS@@@std@@@3@$0A@@std@@@std@@IEAAPEAU_Node@?$_Tree_nod@V?$_Tmap_traits@KUTB_MONSTER_BROKEN_PARTS@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_MONSTER_BROKEN_PARTS@@@std@@@3@$0A@@std@@@2@AEBK@Z | 0x140354020 | blocked | IDA ?_Lbound@?$_Tree@V?$_Tmap_traits@KUTB_MONSTER_BROKEN_PARTS@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_MONSTER_BROKEN_PARTS@@@std@@@3@$0A@@std@@@std@@IEAAPEAU_Node@?$_Tree_nod@V?$_Tmap_traits@KUTB_MONSTER_BROKEN_PARTS@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_MONSTER_BROKEN_PARTS@@@std@@@3@$0A@@std@@@2@AEBK@Z | yes | - |
 | - | - | ?lower_bound@?$_Tree@V?$_Tmap_traits@KUTB_MONSTER_BROKEN_PARTS@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_MONSTER_BROKEN_PARTS@@@std@@@3@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@KUTB_MONSTER_BROKEN_PARTS@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_MONSTER_BROKEN_PARTS@@@std@@@3@$0A@@std@@@std@@@2@AEBK@Z | 0x1403540c0 | blocked | IDA ?lower_bound@?$_Tree@V?$_Tmap_traits@KUTB_MONSTER_BROKEN_PARTS@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_MONSTER_BROKEN_PARTS@@@std@@@3@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@KUTB_MONSTER_BROKEN_PARTS@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_MONSTER_BROKEN_PARTS@@@std@@@3@$0A@@std@@@std@@@2@AEBK@Z | yes | - |
@@ -15864,14 +15866,14 @@ yes | ?????????? |
 | - | - | ?GetUsedDelayedProjectile@CMover@@QEAAPEAUSDelayedProjectile@@PEAVAttackJudgmentTrigger@@@Z | 0x14036e820 | implemented | IDA ?GetUsedDelayedProjectile@CMover@@QEAAPEAUSDelayedProjectile@@PEAVAttackJudgmentTrigger@@@Z | yes | - |
 | - | - | ?GetFilterData@CMover@@QEAAXHAEAH00@Z | 0x14036e8d0 | implemented | IDA ?GetFilterData@CMover@@QEAAXHAEAH00@Z | yes | - |
 | - | - | ?SetFilterData@CMover@@QEAAXHHHH@Z | 0x14036e9a0 | implemented | IDA ?SetFilterData@CMover@@QEAAXHHHH@Z | yes | - |
-| - | - | ?SyncMove@CMover@@QEAAXXZ | 0x14036ea30 | implemented | IDA ?SyncMove@CMover@@QEAAXXZ | yes | - |
+| XGameServer | actor/Mover/Mover.cpp | ?SyncMove@CMover@@QEAAXXZ | 0x14036ea30 | implemented | IDA decompile + source/build check | no | Precise body landed this round; build passed |
 | XGameServer | Mover.cpp | ?send_eSUB_CMD_MOVE@CMover@@QEAAXPEAV1@MME@Z | 0x14036eac0 | implemented | IDA decompile | yes | 发送移动数据包(main=5,sub=2) |
 | - | - | ?send_eSUB_CMD_MOVE_STOP@CMover@@QEAAXPEAV1@@Z | 0x14036ee90 | implemented | IDA ?send_eSUB_CMD_MOVE_STOP@CMover@@QEAAXPEAV1@@Z | yes | - |
 | XGameServer | Mover.cpp | ?send_eSUB_CMD_MOVE_BATTLE@CMover@@QEAAXPEAV1@_N@Z | 0x14036f1e0 | implemented | IDA decompile | yes | 发送战斗姿态移动包(main=5,sub=8) |
 | XGameServer | Mover.cpp | ?send_eSUB_CMD_MOVE_GAZE@CMover@@QEAAXPEAV1@@Z | 0x14036f480 | implemented | IDA decompile | yes | 发送凝视移动包(main=5,sub=0xA) |
 | XGameServer | Mover.cpp | ?send_eSUB_CMD_MOVE_TRACE@CMover@@QEAAXPEAV1@@Z | 0x14036f6b0 | implemented | IDA decompile | yes | 发送追踪移动包(main=5,sub=0xB) |
 | XGameServer | Mover.cpp | ?send_eSUB_CMD_MOVE_IDLE@CMover@@QEAAXPEAV1@M@Z | 0x14036fd50 | implemented | IDA decompile | yes | 发送空闲移动包(main=5,sub=9) |
-| - | - | ?send_eSUB_CMD_MOVE_INFO@CMover@@QEAAXPEAV1@KK@Z | 0x14036fef0 | implemented | IDA ?send_eSUB_CMD_MOVE_INFO@CMover@@QEAAXPEAV1@KK@Z | yes | - |
+| XGameServer | actor/Mover/Mover.cpp | ?send_eSUB_CMD_MOVE_INFO@CMover@@QEAAXPEAV1@KK@Z | 0x14036fef0 | implemented | IDA decompile + landed source | no | (5,0xD)<<questID<<type<<val then SendBroadCastAfterLoading(this,packet,0). |
 | - | - | ?send_eSUB_CMD_MOVE_STIFFEN@CMover@@QEAAXPEAV1@MM@Z | 0x14036fff0 | implemented | IDA ?send_eSUB_CMD_MOVE_STIFFEN@CMover@@QEAAXPEAV1@MM@Z | yes | - |
 | - | - | ?send_eSUB_CMD_MOVE_IGNORE_MOTION_DELTA@CMover@@QEAAXPEAV1@VhkvVec3@@_N@Z | 0x140370100 | implemented | IDA ?send_eSUB_CMD_MOVE_IGNORE_MOTION_DELTA@CMover@@QEAAXPEAV1@VhkvVec3@@_N@Z | yes | - |
 | - | - | ?send_eSUB_CMD_MOVE_UPDATE_DIR@CMover@@QEAAXPEAV1@_N@Z | 0x140370390 | implemented | IDA ?send_eSUB_CMD_MOVE_UPDATE_DIR@CMover@@QEAAXPEAV1@_N@Z | yes | - |
@@ -16276,8 +16278,8 @@ yes | ?????????? |
 | - | - | ?UpdateGrapAttach@CMoverEx@@QEAAXXZ | 0x140399560 | implemented | IDA ?UpdateGrapAttach@CMoverEx@@QEAAXXZ | yes | - |
 | - | - | ?ClearGrapProcess@CMoverEx@@QEAAXXZ | 0x1403995b0 | implemented | IDA ?ClearGrapProcess@CMoverEx@@QEAAXXZ | yes | - |
 | - | - | ?UpdateGrapDetach@CMoverEx@@QEAAXXZ | 0x1403996c0 | implemented | IDA ?UpdateGrapDetach@CMoverEx@@QEAAXXZ | yes | - |
-| - | - | ?SetHitPartsInfo@CMoverEx@@QEAAXHKEHH@Z | 0x140399cc0 | implemented | IDA ?SetHitPartsInfo@CMoverEx@@QEAAXHKEHH@Z | yes | - |
-| - | - | ?SetHitPartsHP@CMoverEx@@QEAAXHHH@Z | 0x140399d30 | implemented | IDA ?SetHitPartsHP@CMoverEx@@QEAAXHHH@Z | yes | - |
+| XGameServer | MoverLinkStubs.cpp | ?SetHitPartsInfo@CMoverEx@@QEAAXHKEHH@Z | 0x140399cc0 | implemented | IDA decompile + landed source | no | batch-9 landed exact body in MoverLinkStubs.cpp: iIndex<2 -> m_sHitParts[iIndex].dwTableID/byPartsID assign + SetHitPartsHP(iIndex,iCurHP,iMaxHP) |
+| XGameServer | MoverLinkStubs.cpp | ?SetHitPartsHP@CMoverEx@@QEAAXHHH@Z | 0x140399d30 | implemented | IDA decompile + landed source | no | batch-9 landed exact body in MoverLinkStubs.cpp: iIndex<2 -> iCurHP clamped to iMaxHP then iCurHP/iMaxHP written to m_sHitParts[iIndex] |
 | - | - | ?SetChangeMonsterInfo@CMoverEx@@QEAAXKK@Z | 0x140399da0 | implemented | IDA ?SetChangeMonsterInfo@CMoverEx@@QEAAXKK@Z | yes | - |
 | - | - | ?PlayChangeMonsterMotion@CMoverEx@@QEAAXPEBD@Z | 0x140399dd0 | implemented | IDA ?PlayChangeMonsterMotion@CMoverEx@@QEAAXPEBD@Z | yes | - |
 | - | - | ?IsOptionInvokeArea@CMoverEx@@QEAA_NW4EFFECT_INVOKE_AREA_TYPE@@@Z | 0x140399e30 | implemented | IDA ?IsOptionInvokeArea@CMoverEx@@QEAA_NW4EFFECT_INVOKE_AREA_TYPE@@@Z | yes | - |
@@ -16556,13 +16558,16 @@ yes | ?????????? |
 | - | - | ?EnterMaze@CParty@@QEAA_NPEAVCUser@@TUXMapID@@AEAUPS_ENTER_MAP_REQ@@@Z | 0x1403a8940 | implemented | IDA ?EnterMaze@CParty@@QEAA_NPEAVCUser@@TUXMapID@@AEAUPS_ENTER_MAP_REQ@@@Z | yes | - |
 | - | - | ?IsEnterMazeRequest@CParty@@QEAA_NXZ | 0x1403aa020 | implemented | IDA ?IsEnterMazeRequest@CParty@@QEAA_NXZ | yes | - |
 | - | - | ?CancelEnterMaze@CParty@@QEAAXK@Z | 0x1403aa040 | implemented | IDA ?CancelEnterMaze@CParty@@QEAAXK@Z | yes | - |
-| - | - | ?AgreeEnterMaze@CParty@@QEAAXK@Z | 0x1403aa1f0 | implemented | IDA ?AgreeEnterMaze@CParty@@QEAAXK@Z | yes | - |
-| - | - | ?SetEnterMazeResponse@CParty@@QEAA_NK@Z | 0x1403aa360 | implemented | IDA ?SetEnterMazeResponse@CParty@@QEAA_NK@Z | yes | - |
+| XGameServer | CParty.cpp | ?AgreeEnterMaze@CParty@@QEAAXK@Z | 0x1403aa1f0 | implemented | IDA decompile + active build | yes | Landed: iterates m_vecReadyToMazeMember, sends (0x11,0x4A) with dwAgreeActor to each online member. |
+| XGameServer | CParty.cpp | ?SetEnterMazeResponse@CParty@@QEAA_NK@Z | 0x1403aa360 | implemented | IDA decompile + active build | yes | Landed: wMapID gate, empty set gate, find/erase, empty->true, else AgreeEnterMaze and false. |
+| XGameServer | CParty.cpp | ?SetEnterMazeRequst@CParty@@QEAAXAEAUPS_ENTER_MAP_REQ@@@Z | 0x1401b9ef0 | implemented | IDA decompile + active build | yes | Landed: stores stMazeInfo and sets dwEndTime = GetTickCount64()+60000. CParty/CForce shared COMDAT (publics RVA 0x1B9EF0). |
+| XGameServer | CParty.h | ?GetEnterMazeRequest@CParty@@QEAAPEAUSTEnterMazeRequst@1@XZ | 0x14002e250 | implemented | publics RVA + active build | yes | Landed inline in CParty.h: returns &m_stEnterMazeRequst. CParty/CForce shared COMDAT (publics RVA 0x2E250); ReqWorldEnterByForce lambda14 reads stMazeInfo.wMapID via this getter (IDA ICF 0x14002F250). |
+
 | - | - | ?SendEnterMaze@CParty@@QEAAXAEAUPS_ENTER_MAP_RES@@@Z | 0x1403aa440 | implemented | IDA ?SendEnterMaze@CParty@@QEAAXAEAUPS_ENTER_MAP_RES@@@Z | yes | - |
 | XGameServer | CParty.cpp | ?SetForceType@CForce@@QEAAXE@Z | 0x1403aabf0 | implemented | IDA ?SetForceType@CForce@@QEAAXE@Z | yes | - |
 | - | - | ?SendMazeClear@CParty@@QEAAXE@Z | 0x1403aaca0 | implemented | IDA ?SendMazeClear@CParty@@QEAAXE@Z | yes | - |
-| - | - | ?CreateMazeReq@CParty@@QEAAXXZ | 0x1403aad60 | implemented | IDA ?CreateMazeReq@CParty@@QEAAXXZ | yes | - |
-| - | - | ?EnterMazeByForce@CParty@@QEAA_NPEAVCUser@@TUXMapID@@AEAUPS_ENTER_MAP_REQ@@@Z | 0x1403aaed0 | implemented | IDA ?EnterMazeByForce@CParty@@QEAA_NPEAVCUser@@TUXMapID@@AEAUPS_ENTER_MAP_REQ@@@Z | yes | - |
+| XGameServer | CParty.cpp | ?CreateMazeReq@CParty@@QEAAXXZ | 0x1403aad60 | implemented | IDA decompile + active build | yes | Landed: builds ST_CREATE_MAZE from m_stEnterMazeRequst, overwrites dwUserID=m_dwMasterID, byGroupType=1, nID=m_dwPartyID, assigns vecEnterMember, sends via XRelaySocket::SendCreateMazeReq (0xF2,0x21). |
+| XGameServer | CParty.cpp | ?EnterMazeByForce@CParty@@QEAA_NPEAVCUser@@TUXMapID@@AEAUPS_ENTER_MAP_REQ@@@Z | 0x1403aaed0 | implemented | IDA decompile + active build | yes | Landed: invalid user 1670, existing maze forward (0xF3,0x16), no MapID 1688/55002, table/Maze_Type 5/11 1681/55001, master check 1714/55004, CanEnterPortal 1722/55003, GetPortalPos 1730, member loop with readiness registration and >1 member state broadcast. |
 | - | - | ?ClearMemberRecode@CParty@@QEAAXXZ | 0x1403abe60 | implemented | IDA ?ClearMemberRecode@CParty@@QEAAXXZ | yes | - |
 | XGameServer | CParty.cpp | ?SyncMemberHP@CParty@@QEAAXHHH@Z | 0x1403abee0 | implemented | IDA ?SyncMemberHP@CParty@@QEAAXHHH@Z | yes | - |
 | - | - | ?ChangeMemberName@CParty@@QEAAXAEAUPS_CHANGE_NAME@@@Z | 0x1403abf90 | implemented | IDA ?ChangeMemberName@CParty@@QEAAXAEAUPS_CHANGE_NAME@@@Z | yes | - |
@@ -16721,7 +16726,7 @@ yes | ?????????? |
 | - | - | ??R_lambda28_@?A0x492caa09@@QEBAXXZ | 0x1403b6590 | blocked | IDA ??R_lambda28_@?A0x492caa09@@QEBAXXZ | yes | - |
 | - | - | ?DBParse@CCharacterProcess@@QEAA_NAEAVXPacket@@@Z | 0x1403b6600 | implemented | IDA ?DBParse@CCharacterProcess@@QEAA_NAEAVXPacket@@@Z | yes | - |
 | - | - | ?ResCharacterCheckLocation@CCharacterProcess@@QEAA_NAEAVXPacket@@@Z | 0x1403b6a90 | implemented | IDA ?ResCharacterCheckLocation@CCharacterProcess@@QEAA_NAEAVXPacket@@@Z | yes | - |
-| - | - | ??R_lambda30_@?A0x492caa09@@QEBAXXZ | 0x1403b6be0 | blocked | IDA ??R_lambda30_@?A0x492caa09@@QEBAXXZ | yes | - |
+| XGameServer | GameSockets.cpp | ??R_lambda30_@?A0x492caa09@@QEBAXXZ | 0x1403b6be0 | implemented | IDA decompile + active build | no | Inlined into RecvLeagueApplicantJoinUser master branch: IsLive && !IsBit_OR(ChangeServer|ChangeWorld) && GetArea gate; map-instance/server-ID mismatch vs stMemberEx fields -> PS_KICK_USER_INFO{dwUAID, byKickType=39} Kickout. |
 | - | - | ?ResCharacterAllowInfo@CCharacterProcess@@QEAA_NAEAVXPacket@@@Z | 0x1403b6d60 | implemented | IDA ?ResCharacterAllowInfo@CCharacterProcess@@QEAA_NAEAVXPacket@@@Z | yes | - |
 | - | - | ??R_lambda31_@?A0x492caa09@@QEBAXXZ | 0x1403b6eb0 | blocked | IDA ??R_lambda31_@?A0x492caa09@@QEBAXXZ | yes | - |
 | - | - | ?ResCharacterStatusUpdate@CCharacterProcess@@QEAA_NAEAVXPacket@@@Z | 0x1403b7030 | implemented | IDA ?ResCharacterStatusUpdate@CCharacterProcess@@QEAA_NAEAVXPacket@@@Z | yes | - |
@@ -18077,7 +18082,7 @@ yes | ?????????? |
 | - | - | ??0PS_DB_CHARACTER_INFO_OTHER_RES@@QEAA@XZ | 0x1403e1670 | blocked | IDA ??0PS_DB_CHARACTER_INFO_OTHER_RES@@QEAA@XZ | yes | - |
 | - | - | ??0PS_DB_CHARACTER_INFO_OTHER_REQ@@QEAA@XZ | 0x1403e1700 | blocked | IDA ??0PS_DB_CHARACTER_INFO_OTHER_REQ@@QEAA@XZ | yes | - |
 | - | - | ??0PS_OTHER_CHARACTER_INFO_REQ@@QEAA@XZ | 0x1403e1740 | blocked | IDA ??0PS_OTHER_CHARACTER_INFO_REQ@@QEAA@XZ | yes | - |
-| - | - | ?IsBattleState@CUser@@QEAA_NXZ | 0x1403e1770 | implemented | IDA ?IsBattleState@CUser@@QEAA_NXZ | yes | - |
+| XGameServer | User.cpp | ?IsBattleState@CUser@@QEAA_NXZ | 0x1403e1770 | implemented | IDA decompile + landed source | no | return m_fBattleStateTime > 0.0f; |
 | - | - | ?LoadCommnuity@CUser@@QEAAXUST_CHAR_COMMUNITY@@@Z | 0x1403e17b0 | implemented | IDA ?LoadCommnuity@CUser@@QEAAXUST_CHAR_COMMUNITY@@@Z | yes | - |
 | XGameServer | GocRecode.h | ?SetLoadMazeEnterLimitCount@CGocRecode@@QEAAXXZ | 0x1403e1810 | implemented | IDA decompile | yes | ��ȷ��ԭ-���ü����Թ��������� |
 | XGameServer | GocRecode.h | ?IsLoadDB_All@CGocRecode@@QEAA_NXZ | 0x1403e1830 | implemented | IDA decompile | yes | ��ȷ��ԭ-����Ƿ�������?|
@@ -18110,7 +18115,7 @@ yes | ?????????? |
 | - | - | ?GetPartyID@CParty@@QEAAKXZ | 0x1403e1e40 | implemented | IDA ?GetPartyID@CParty@@QEAAKXZ | yes | - |
 | - | - | ?SetOpenAlwaysSoulMetry@CGocSoulMetry@@QEAAX_N@Z | 0x1403e1e50 | implemented | IDA ?SetOpenAlwaysSoulMetry@CGocSoulMetry@@QEAAX_N@Z | yes | - |
 | - | - | ??0ST_SOCIALITEM_CARD@@QEAA@XZ | 0x1403e1e70 | blocked | IDA ??0ST_SOCIALITEM_CARD@@QEAA@XZ | yes | - |
-| - | - | ?_CheckValidString@UtilFunc@@YA_NPEAD@Z | 0x1403e1e90 | implemented | IDA ?_CheckValidString@UtilFunc@@YA_NPEAD@Z | yes | - |
+| - | - | ?_CheckValidString@UtilFunc@@YA_NPEAD@Z | 0x1403e1e90 | implemented | IDA decompile + landed source | no | original owner common/xnet/xutil/utility.h; narrow-char digit/alpha only |
 | - | - | ??0CChatProcess@@QEAA@XZ | 0x1403e1f80 | blocked | IDA ??0CChatProcess@@QEAA@XZ | yes | - |
 | - | - | ??_ECChatProcess@@UEAAPEAXI@Z | 0x1403e2030 | blocked | IDA ??_ECChatProcess@@UEAAPEAXI@Z | yes | - |
 | - | - | ??1CChatProcess@@UEAA@XZ | 0x1403e2070 | blocked | IDA ??1CChatProcess@@UEAA@XZ | yes | - |
@@ -19782,25 +19787,25 @@ yes | ?????????? |
 | XGameServer | Process/ForceProcess.cpp | ?ReqForceInvite@XForceProcess@@QEAA_NAEAVXPacket@@@Z | 0x140430d40 | implemented | IDA decompile + disasm + active build | no | Restored: PS_REQ_PARTY_INVITE + bySelect parse, GetCurID anti-replay gate (SendErrorMessage 1,0xC3B6 + Kickout byKickType 8), lambda0 (0x1404310B0) full body: IsMaze 53102 / IsMatching 53131 / already-in-party 53145 / world-type + TB_DISTRICT Force_Use 53147 / IsForceUser branch (IsMasterUser 53103, GetUserCount>=8 53110, force-in-maze 53116) / self-invite 53134 / IsBlockByName 53013, pass -> (0xFA,0xB) via SendCmd; user-null or no-area returns false. |
 | - | - | ??0_lambda0_@?A0xfdbe7117@@QEAA@AEBQEAVCUser@@AEBUPS_REQ_FORCE_INVITE@@AEBE@Z | 0x140431020 | blocked | IDA ??0_lambda0_@?A0xfdbe7117@@QEAA@AEBQEAVCUser@@AEBUPS_REQ_FORCE_INVITE@@AEBE@Z | yes | - |
 | - | - | ??R_lambda0_@?A0xfdbe7117@@QEBAXXZ | 0x1404310b0 | blocked | IDA ??R_lambda0_@?A0xfdbe7117@@QEBAXXZ | yes | - |
-| XGameServer | process/ForceProcess.cpp | ?ReqForceAccept@XForceProcess@XForceProcess@@QEAA_NAEAVXPacket@@@Z | 0x1404319f0 | blocked | IDA decompile + active build | no | CORRECTED: prior implemented status had no source; now landed as documented STUB wired into Parse dispatch; full IDA-precise restore pending next batch. |
+| XGameServer | process/ForceProcess.cpp | ?ReqForceAccept@XForceProcess@@QEAA_NAEAVXPacket@@@Z | 0x1404319f0 | implemented | IDA decompile + active build | no | lambda2 (0x140431bd0) full accept chain landed: IsMaze 53102 / IsMatching 53131 / battlefield safety-zone 53119+53133 / Force_Use 53147 / GocForce IsParty 53104 / self-accept 53134 / GocParty IsParty 53004 / pass -> (0xFA,0xC) PS_RES_FORCE_INVITE + UAID + level via SendCmd(0x2E,2); dispatch via IncrementJobCount + DoJob + lambda192. |
 | - | - | ??R_lambda2_@?A0xfdbe7117@@QEBAXXZ | 0x140431bd0 | blocked | IDA ??R_lambda2_@?A0xfdbe7117@@QEBAXXZ | yes | - |
-| XGameServer | process/ForceProcess.cpp | ?ReqForceCancel@XForceProcess@XForceProcess@@QEAA_NAEAVXPacket@@@Z | 0x140432370 | blocked | IDA decompile + active build | no | CORRECTED: prior implemented status had no source; now landed as documented STUB wired into Parse dispatch; full IDA-precise restore pending next batch. |
+| XGameServer | process/ForceProcess.cpp | ?ReqForceCancel@XForceProcess@@QEAA_NAEAVXPacket@@@Z | 0x140432370 | implemented | IDA decompile + active build | no | lambda4 (0x140432580) landed: parse dwReqID + dwErrorID, build PS_FORCE_REJECT{self rejectID, reqActor, name, errorID} via (0xFA,0xD) SendCheck; dispatch via IncrementJobCount + DoJob + lambda192. |
 | - | - | ??R_lambda4_@?A0xfdbe7117@@QEBAXXZ | 0x140432580 | blocked | IDA ??R_lambda4_@?A0xfdbe7117@@QEBAXXZ | yes | - |
-| XGameServer | process/ForceProcess.cpp | ?ReqForceChangeMaster@XForceProcess@XForceProcess@@QEAA_NAEAVXPacket@@@Z | 0x140432790 | blocked | IDA decompile + active build | no | CORRECTED: prior implemented status had no source; now landed as documented STUB wired into Parse dispatch; full IDA-precise restore pending next batch. |
+| XGameServer | process/ForceProcess.cpp | ?ReqForceChangeMaster@XForceProcess@@QEAA_NAEAVXPacket@@@Z | 0x140432790 | implemented | IDA decompile + active build | no | lambda6 (0x140432980) landed: parse dwMasterID, GocForce ChangeMaster(dwMasterID) on live user; dispatch via IncrementJobCount + DoJob + lambda192. |
 | - | - | ??R_lambda6_@?A0xfdbe7117@@QEBAXXZ | 0x140432980 | blocked | IDA ??R_lambda6_@?A0xfdbe7117@@QEBAXXZ | yes | - |
-| XGameServer | process/ForceProcess.cpp | ?ReqForceKickOut@XForceProcess@XForceProcess@@QEAA_NAEAVXPacket@@@Z | 0x140432a20 | blocked | IDA decompile + active build | no | CORRECTED: prior implemented status had no source; now landed as documented STUB wired into Parse dispatch; full IDA-precise restore pending next batch. |
+| XGameServer | process/ForceProcess.cpp | ?ReqForceKickOut@XForceProcess@@QEAA_NAEAVXPacket@@@Z | 0x140432a20 | implemented | IDA decompile + active build | no | lambda8 (0x140432c10) landed: parse dwActorID, GocForce IsMatchingDate -> SendErrorMessage(0x12,4,53152), else CGocForce::KickOut(dwActorID, pUser); dispatch via IncrementJobCount + DoJob + lambda192. |
 | - | - | ??R_lambda8_@?A0xfdbe7117@@QEBAXXZ | 0x140432c10 | blocked | IDA ??R_lambda8_@?A0xfdbe7117@@QEBAXXZ | yes | - |
-| XGameServer | process/ForceProcess.cpp | ?ReqForceLeave@XForceProcess@@QEAA_NXZ | 0x140432d40 | blocked | IDA decompile + active build | no | CORRECTED: prior implemented status had no source; now landed as documented STUB (no-arg per decorated _NXZ); full IDA-precise restore pending next batch. |
+| XGameServer | process/ForceProcess.cpp | ?ReqForceLeave@XForceProcess@@QEAA_NXZ | 0x140432d40 | implemented | IDA decompile + active build | no | lambda10 (0x140432ef0) landed: GocForce IsMatchingDate -> SendErrorMessage(0x2E,5,53152), else CGocForce::Leave(); dispatch via IncrementJobCount + DoJob + lambda192. |
 | - | - | ??R_lambda10_@?A0xfdbe7117@@QEBAXXZ | 0x140432ef0 | blocked | IDA ??R_lambda10_@?A0xfdbe7117@@QEBAXXZ | yes | - |
-| XGameServer | process/ForceProcess.cpp | ?ReqForceMatchingEnter@XForceProcess@XForceProcess@@QEAA_NAEAVXPacket@@@Z | 0x140432fd0 | blocked | IDA decompile + active build | no | CORRECTED: prior implemented status had no source; now landed as documented STUB wired into Parse dispatch; full IDA-precise restore pending next batch. |
+| XGameServer | process/ForceProcess.cpp | ?ReqForceMatchingEnter@XForceProcess@@QEAA_NAEAVXPacket@@@Z | 0x140432fd0 | implemented | IDA decompile + active build | no | lambda12 (0x140433250) landed: parse dwMapID+dwPortalID; IsMatching 53131 / maze table 55003 / GetStartPortalID 55003 (active-boundary stub) / CheckMazeOpenTime 55060 / Maze_Type!=9||Admission!=5 55003 / CanEnterPortal 55007 (stub) / IsReady 50003 (stub) / CheckForceMatchingEnter -> (0xFA,0x13) psEnter+psMaster via SendCmd(0x2E,0x30); fail path LogError 514 + 5-param SendErrorMessage (4,0x41,0xD6FB,nNeedItemID). |
 | - | - | ??0_lambda12_@?A0xfdbe7117@@QEAA@AEBQEAVCUser@@AEBK1QEAVXForceProcess@@@Z | 0x1404331f0 | blocked | IDA ??0_lambda12_@?A0xfdbe7117@@QEAA@AEBQEAVCUser@@AEBK1QEAVXForceProcess@@@Z | yes | - |
 | - | - | ??R_lambda12_@?A0xfdbe7117@@QEBAXXZ | 0x140433250 | blocked | IDA ??R_lambda12_@?A0xfdbe7117@@QEBAXXZ | yes | - |
 | - | - | ??1PS_SERVER_FORCE_MATCHING_ENTER@@QEAA@XZ | 0x140433b50 | blocked | IDA ??1PS_SERVER_FORCE_MATCHING_ENTER@@QEAA@XZ | yes | - |
-| XGameServer | process/ForceProcess.cpp | ?ReqForceMatchingExit@XForceProcess@@QEAA_NXZ | 0x140433b90 | blocked | IDA decompile + active build | no | CORRECTED: prior implemented status had no source; now landed as documented STUB (no-arg per decorated _NXZ); full IDA-precise restore pending next batch. |
+| XGameServer | process/ForceProcess.cpp | ?ReqForceMatchingExit@XForceProcess@@QEAA_NXZ | 0x140433b90 | implemented | IDA decompile + active build | no | lambda14 (0x140433d30) landed: GetMatchingState != 1 -> (0xFA,0x14) actorID + 0 + UAID + level via SendCmd(0x2E,0x31); dispatch via IncrementJobCount + DoJob + lambda192. |
 | - | - | ??R_lambda14_@?A0xfdbe7117@@QEBAXXZ | 0x140433d30 | blocked | IDA ??R_lambda14_@?A0xfdbe7117@@QEBAXXZ | yes | - |
-| XGameServer | process/ForceProcess.cpp | ?ReqForceMatchingCheck@XForceProcess@XForceProcess@@QEAA_NAEAVXPacket@@@Z | 0x140433f20 | blocked | IDA decompile + active build | no | CORRECTED: prior implemented status had no source; now landed as documented STUB wired into Parse dispatch; full IDA-precise restore pending next batch. |
+| XGameServer | process/ForceProcess.cpp | ?ReqForceMatchingCheck@XForceProcess@@QEAA_NAEAVXPacket@@@Z | 0x140433f20 | implemented | IDA decompile + active build | no | lambda16 (0x140434100) landed: parse byCheck, GocForce null-gate, PS_SERVER_FORCE_MATCHING_CHECK{UAID,UCID,byCheck,nError=0} via (0xFA,0x15) SendCmd(0x2E,0x32); dispatch via IncrementJobCount + DoJob + lambda192. |
 | - | - | ??R_lambda16_@?A0xfdbe7117@@QEBAXXZ | 0x140434100 | blocked | IDA ??R_lambda16_@?A0xfdbe7117@@QEBAXXZ | yes | - |
-| XGameServer | process/ForceProcess.cpp | ?CheckForceMatchingEnter@XForceProcess@XForceProcess@@QEAA_NAEAVXPacket@@@Z | 0x1404342a0 | blocked | IDA decompile + active build | no | CORRECTED: prior implemented status had no source; now landed as documented STUB wired into Parse dispatch; full IDA-precise restore pending next batch. |
+| XGameServer | process/ForceProcess.cpp | ?CheckForceMatchingEnter@XForceProcess@@QEAA_NPEAVCUser@@GAEAHAEAUPS_SERVER_FORCE_MATCHING_ENTER@@1@Z | 0x1404342a0 | implemented | IDA decompile + active build | no | Group-level check landed: CheckForceMatchingEnterUser on caller, then Party chain (IsMaster no-arg 53002 / CGocForce::CheckForceMatchingEnter 53149 / member map walk via FindActorIDToUser 51001, byGroupType=1, GetPartyID) and Force chain (IsMaster(dwUCID) 53103 / 53149 / walk, byGroupType=2), collecting PS_SERVER_FORCE_MATCHING_ENTER_MEMBER per member. Hex-Rays presented the Party chain through CGocForce; landed accordingly with CGocParty::IsMaster explicit qualification. |
 | XGameServer | process/ForceProcess.cpp | ?CheckForceMatchingEnterUser@XForceProcess@@QEAA_NPEAVCUser@@GAEAH1@Z | 0x140435020 | implemented | IDA decompile + active build | no | Restored full 10-stage validation chain: null user 51001, GetTB_MAZE_INFO 55008, soul weapon 53136, NeedItem via GetTBInvenPtr/GetSameItems_2/SetMazeNeedItemID 55035-with-itemID, CheckMazeEnterCount, NeedQuest FindEpisode/IsCompleteEpisode 55037, IsClearMaze 53127, Req_Min_Lv 53123, Fatigue CanUseFP 55044, trade state 55002, social item type-3 55093. |
 | - | - | ?push_back@?$vector@UST_FORCE_MEMBER@@V?$allocator@UST_FORCE_MEMBER@@@std@@@std@@QEAAXAEBUST_FORCE_MEMBER@@@Z | 0x140435760 | blocked | IDA ?push_back@?$vector@UST_FORCE_MEMBER@@V?$allocator@UST_FORCE_MEMBER@@@std@@@std@@QEAAXAEBUST_FORCE_MEMBER@@@Z | yes | - |
 | - | - | ?_Grow_to@?$vector@UST_MODE_MAZE_MEMBER_INFO@@V?$allocator@UST_MODE_MAZE_MEMBER_INFO@@@std@@@std@@IEBA_K_K@Z | 0x1404358b0 | blocked | IDA ?_Grow_to@?$vector@UST_MODE_MAZE_MEMBER_INFO@@V?$allocator@UST_MODE_MAZE_MEMBER_INFO@@@std@@@std@@IEBA_K_K@Z | yes | - |
@@ -20834,7 +20839,7 @@ yes | ?????????? |
 | - | - | ??$_ApplyX@X@?$_Callable_obj@V_lambda2_@?A0xc08901e6@@$0A@@tr1@std@@QEAAXXZ | 0x140452940 | blocked | IDA ??$_ApplyX@X@?$_Callable_obj@V_lambda2_@?A0xc08901e6@@$0A@@tr1@std@@QEAAXXZ | yes | - |
 | - | - | ??$_ApplyX@X@?$_Callable_obj@V_lambda4_@?A0xc08901e6@@$0A@@tr1@std@@QEAAXXZ | 0x140452960 | blocked | IDA ??$_ApplyX@X@?$_Callable_obj@V_lambda4_@?A0xc08901e6@@$0A@@tr1@std@@QEAAXXZ | yes | - |
 | XGameServer | GocRecode.h | ?GetRequestEnterInfinite@CGocRecode@@QEAA_NXZ | 0x140452980 | implemented | IDA decompile | yes | ��ȷ��ԭ-��ȡ�������������?|
-| - | - | ?CheckValidString@UtilFunc@@YA_NPEA_WW4NATION_TYPE@@@Z | 0x1404529a0 | implemented | IDA ?CheckValidString@UtilFunc@@YA_NPEA_WW4NATION_TYPE@@@Z | yes | - |
+| - | - | ?CheckValidString@UtilFunc@@YA_NPEA_WW4NATION_TYPE@@@Z | 0x1404529a0 | implemented | IDA decompile + landed source | no | original owner common/xnet/xutil/utility.h; KOR digit/alpha/hangul, JPN adds kana/kanji/symbol whitelist |
 | - | - | ?GetPageDeckCount@CGocAkashicRecord@@QEAAEXZ | 0x140452e60 | implemented | IDA ?GetPageDeckCount@CGocAkashicRecord@@QEAAEXZ | yes | - |
 | - | - | ??0CItemProcess@@QEAA@XZ | 0x140452e80 | blocked | IDA ??0CItemProcess@@QEAA@XZ | yes | - |
 | - | - | ??_ECItemProcess@@UEAAPEAXI@Z | 0x140452f00 | blocked | IDA ??_ECItemProcess@@UEAAPEAXI@Z | yes | - |
@@ -24169,7 +24174,7 @@ yes | ?????????? |
 | - | - | ?Parse@CLeagueProcess@@UEAA_NAEAVXPacket@@@Z | 0x1404ebc10 | implemented | IDA ?Parse@CLeagueProcess@@UEAA_NAEAVXPacket@@@Z | yes | - |
 | - | - | ?ReqLeagueSearch@CLeagueProcess@@QEAA_NAEAVXPacket@@@Z | 0x1404ebf40 | implemented | IDA ?ReqLeagueSearch@CLeagueProcess@@QEAA_NAEAVXPacket@@@Z | yes | - |
 | - | - | ??R_lambda0_@?A0x60d956b0@@QEBAXXZ | 0x1404ec170 | blocked | IDA ??R_lambda0_@?A0x60d956b0@@QEBAXXZ | yes | - |
-| - | - | ?ReqLeagueOverlapName@CLeagueProcess@@QEAA_NAEAVXPacket@@@Z | 0x1404ec460 | implemented | IDA ?ReqLeagueOverlapName@CLeagueProcess@@QEAA_NAEAVXPacket@@@Z | yes | - |
+| - | - | ?ReqLeagueOverlapName@CLeagueProcess@@QEAA_NAEAVXPacket@@@Z | 0x1404ec460 | implemented | IDA decompile + landed source | no | name length/filter/nation checks then XSendDBPacket(7,0x12) |
 | - | - | ?ReqLeagueCreate@CLeagueProcess@@QEAA_NAEAVXPacket@@@Z | 0x1404ec720 | implemented | IDA ?ReqLeagueCreate@CLeagueProcess@@QEAA_NAEAVXPacket@@@Z | yes | - |
 | - | - | ??0_lambda2_@?A0x60d956b0@@QEAA@AEBQEAVCUser@@AEBUST_REQ_LEAGUE_CREATE@@QEAVCLeagueProcess@@@Z | 0x1404ec940 | blocked | IDA ??0_lambda2_@?A0x60d956b0@@QEAA@AEBQEAVCUser@@AEBUST_REQ_LEAGUE_CREATE@@QEAVCLeagueProcess@@@Z | yes | - |
 | - | - | ??R_lambda2_@?A0x60d956b0@@QEBAXXZ | 0x1404ec9b0 | blocked | IDA ??R_lambda2_@?A0x60d956b0@@QEBAXXZ | yes | - |
@@ -24187,60 +24192,60 @@ yes | ?????????? |
 | - | - | ?ReqLeagueInvite@CLeagueProcess@@QEAA_NAEAVXPacket@@@Z | 0x1404ee790 | implemented | IDA ?ReqLeagueInvite@CLeagueProcess@@QEAA_NAEAVXPacket@@@Z | yes | - |
 | - | - | ??0_lambda14_@?A0x60d956b0@@QEAA@AEBQEAVCUser@@AEBUST_REQ_LEAGUE_INVITE@@AEBH@Z | 0x1404ee9e0 | blocked | IDA ??0_lambda14_@?A0x60d956b0@@QEAA@AEBQEAVCUser@@AEBUST_REQ_LEAGUE_INVITE@@AEBH@Z | yes | - |
 | - | - | ??R_lambda14_@?A0x60d956b0@@QEBAXXZ | 0x1404eea70 | blocked | IDA ??R_lambda14_@?A0x60d956b0@@QEBAXXZ | yes | - |
-| - | - | ?ReqLeagueInviteAccept@CLeagueProcess@@QEAA_NAEAVXPacket@@@Z | 0x1404eecf0 | implemented | IDA ?ReqLeagueInviteAccept@CLeagueProcess@@QEAA_NAEAVXPacket@@@Z | yes | - |
+| - | - | ?ReqLeagueInviteAccept@CLeagueProcess@@QEAA_NAEAVXPacket@@@Z | 0x1404eecf0 | implemented | IDA decompile + landed source | no | parse ST_REQ_LEAGUE_INVITE_ACCEPT, lambda16 (0x1404EEFB0) joins league check 57008 then send (0xF6,0xD)+biJoinDate |
 | - | - | ??0_lambda16_@?A0x60d956b0@@QEAA@AEBQEAVCUser@@AEBUST_REQ_LEAGUE_INVITE_ACCEPT@@AEB_J@Z | 0x1404eef30 | blocked | IDA ??0_lambda16_@?A0x60d956b0@@QEAA@AEBQEAVCUser@@AEBUST_REQ_LEAGUE_INVITE_ACCEPT@@AEB_J@Z | yes | - |
-| - | - | ??R_lambda16_@?A0x60d956b0@@QEBAXXZ | 0x1404eefb0 | blocked | IDA ??R_lambda16_@?A0x60d956b0@@QEBAXXZ | yes | - |
-| - | - | ?ReqLeagueInviteReject@CLeagueProcess@@QEAA_NAEAVXPacket@@@Z | 0x1404ef150 | implemented | IDA ?ReqLeagueInviteReject@CLeagueProcess@@QEAA_NAEAVXPacket@@@Z | yes | - |
-| - | - | ??R_lambda18_@?A0x60d956b0@@QEBAXXZ | 0x1404ef370 | blocked | IDA ??R_lambda18_@?A0x60d956b0@@QEBAXXZ | yes | - |
-| - | - | ?ReqLeagueBoard@CLeagueProcess@@QEAA_NAEAVXPacket@@@Z | 0x1404ef5b0 | implemented | IDA ?ReqLeagueBoard@CLeagueProcess@@QEAA_NAEAVXPacket@@@Z | yes | - |
+| - | - | ??R_lambda16_@?A0x60d956b0@@QEBAXXZ | 0x1404eefb0 | implemented | IDA decompile + landed source | no | ReqLeagueInviteAccept job body: IsLive gate, already-joined 57008, else (0xF6,0xD)+stInvite+biJoinDate SendCmd(0x22,0x14) |
+| - | - | ?ReqLeagueInviteReject@CLeagueProcess@@QEAA_NAEAVXPacket@@@Z | 0x1404ef150 | implemented | IDA decompile + landed source | no | parse ST_REQ_LEAGUE_INVITE_REJECT, lambda18 (0x1404EF370) overwrites szTargetName with requester name, send (0xF6,0x10) or 51006 |
+| - | - | ??R_lambda18_@?A0x60d956b0@@QEBAXXZ | 0x1404ef370 | implemented | IDA decompile + landed source | no | ReqLeagueInviteReject job body: dwTargetUCID==0 51006 else szTargetName=self name, (0xF6,0x10) SendCmd(0x22,0x15) |
+| - | - | ?ReqLeagueBoard@CLeagueProcess@@QEAA_NAEAVXPacket@@@Z | 0x1404ef5b0 | implemented | IDA decompile + landed source | no | parse ST_LEAGUE_BOARD, lambda20 (0x1404EF8E0) biEnrollDate=GetCurDate send (0xF6,0x14) or 57005 |
 | - | - | ??0_lambda20_@?A0x60d956b0@@QEAA@AEBQEAVCUser@@AEBHAEBUST_LEAGUE_BOARD@@@Z | 0x1404ef850 | blocked | IDA ??0_lambda20_@?A0x60d956b0@@QEAA@AEBQEAVCUser@@AEBHAEBUST_LEAGUE_BOARD@@@Z | yes | - |
-| - | - | ??R_lambda20_@?A0x60d956b0@@QEBAXXZ | 0x1404ef8e0 | blocked | IDA ??R_lambda20_@?A0x60d956b0@@QEBAXXZ | yes | - |
-| - | - | ?ReqLeagueApplicantAccept@CLeagueProcess@@QEAA_NAEAVXPacket@@@Z | 0x1404efb10 | implemented | IDA ?ReqLeagueApplicantAccept@CLeagueProcess@@QEAA_NAEAVXPacket@@@Z | yes | - |
+| - | - | ??R_lambda20_@?A0x60d956b0@@QEBAXXZ | 0x1404ef8e0 | implemented | IDA decompile + landed source | no | ReqLeagueBoard job body: nLeagueID==0 57005 else biEnrollDate=GetCurDate, (0xF6,0x14)+dwActorID+nLeagueID SendCmd(0x22,8) |
+| - | - | ?ReqLeagueApplicantAccept@CLeagueProcess@@QEAA_NAEAVXPacket@@@Z | 0x1404efb10 | implemented | IDA decompile + landed source | no | parse ST_REQ_LEAGUE_APPLICANT_ACCEPT, lambda22 (0x1404EFDF0) biJoinDate=GetCurDate send (0xF6,0x16) or 57016 |
 | - | - | ??0_lambda22_@?A0x60d956b0@@QEAA@AEBQEAVCUser@@AEBUST_REQ_LEAGUE_APPLICANT_ACCEPT@@AEBK@Z | 0x1404efd70 | blocked | IDA ??0_lambda22_@?A0x60d956b0@@QEAA@AEBQEAVCUser@@AEBUST_REQ_LEAGUE_APPLICANT_ACCEPT@@AEBK@Z | yes | - |
-| - | - | ??R_lambda22_@?A0x60d956b0@@QEBAXXZ | 0x1404efdf0 | blocked | IDA ??R_lambda22_@?A0x60d956b0@@QEBAXXZ | yes | - |
-| - | - | ?ReqLeagueApplicantReject@CLeagueProcess@@QEAA_NAEAVXPacket@@@Z | 0x1404effd0 | implemented | IDA ?ReqLeagueApplicantReject@CLeagueProcess@@QEAA_NAEAVXPacket@@@Z | yes | - |
-| - | - | ??R_lambda24_@?A0x60d956b0@@QEBAXXZ | 0x1404f01c0 | blocked | IDA ??R_lambda24_@?A0x60d956b0@@QEBAXXZ | yes | - |
-| - | - | ?DBLeagueParse@CLeagueProcess@@QEAA_NAEAVXPacket@@@Z | 0x1404f0330 | implemented | IDA ?DBLeagueParse@CLeagueProcess@@QEAA_NAEAVXPacket@@@Z | yes | - |
-| - | - | ?ResLeagueOverlapName@CLeagueProcess@@QEAA_NAEAVXPacket@@@Z | 0x1404f0380 | implemented | IDA ?ResLeagueOverlapName@CLeagueProcess@@QEAA_NAEAVXPacket@@@Z | yes | - |
+| - | - | ??R_lambda22_@?A0x60d956b0@@QEBAXXZ | 0x1404efdf0 | implemented | IDA decompile + landed source | no | ReqLeagueApplicantAccept job body: nLeagueID==0 LogError 615/57016 else biJoinDate=GetCurDate, (0xF6,0x16)+dwActorID SendCmd(0x22,0x18) |
+| - | - | ?ReqLeagueApplicantReject@CLeagueProcess@@QEAA_NAEAVXPacket@@@Z | 0x1404effd0 | implemented | IDA decompile + landed source | no | parse ST_REQ_LEAGUE_APPLICANT_REJECT, lambda24 (0x1404F01C0) dwUCID=pUser actor, send (0xF6,0x17) |
+| - | - | ??R_lambda24_@?A0x60d956b0@@QEBAXXZ | 0x1404f01c0 | implemented | IDA decompile + landed source | no | ReqLeagueApplicantReject job body: dwUCID=pUser actor ID, (0xF6,0x17) SendCmd(0x22,0x19) |
+| XGameServer | GocLeague.cpp | ?DBLeagueParse@CLeagueProcess@@QEAA_NAEAVXPacket@@@Z | 0x1404f0330 | implemented | IDA decompile + landed source | no | - |
+| XGameServer | GocLeague.cpp | ?ResLeagueOverlapName@CLeagueProcess@@QEAA_NAEAVXPacket@@@Z | 0x1404f0380 | implemented | IDA decompile + landed source | no | - |
 | - | - | ??R_lambda26_@?A0x60d956b0@@QEBAXXZ | 0x1404f05d0 | blocked | IDA ??R_lambda26_@?A0x60d956b0@@QEBAXXZ | yes | - |
-| - | - | ?ReqLeagueList@CLeagueProcess@@QEAA_NAEAVXPacket@@@Z | 0x1404f0780 | implemented | IDA ?ReqLeagueList@CLeagueProcess@@QEAA_NAEAVXPacket@@@Z | yes | - |
+| XGameServer | GocLeague.cpp | ?ReqLeagueList@CLeagueProcess@@QEAA_NAEAVXPacket@@@Z | 0x1404f0780 | implemented | IDA decompile + landed source | no | - |
 | - | - | ??0_lambda36_@?A0xe322620c@@QEAA@AEBQEAVCUser@@AEBHAEBE@Z | 0x1404f09c0 | blocked | IDA ??0_lambda36_@?A0xe322620c@@QEAA@AEBQEAVCUser@@AEBHAEBE@Z | yes | - |
 | - | - | ??R_lambda28_@?A0x60d956b0@@QEBAXXZ | 0x1404f0a10 | blocked | IDA ??R_lambda28_@?A0x60d956b0@@QEBAXXZ | yes | - |
-| - | - | ?ReqLeagueAuthChange@CLeagueProcess@@QEAA_NAEAVXPacket@@@Z | 0x1404f0b10 | implemented | IDA ?ReqLeagueAuthChange@CLeagueProcess@@QEAA_NAEAVXPacket@@@Z | yes | - |
+| XGameServer | GocLeague.cpp | ?ReqLeagueAuthChange@CLeagueProcess@@QEAA_NAEAVXPacket@@@Z | 0x1404f0b10 | implemented | IDA decompile + landed source | no | - |
 | - | - | ??0_lambda30_@?A0x60d956b0@@QEAA@AEBQEAVCUser@@AEBUST_LEAGUE_AUTH_CHANGE@@@Z | 0x1404f0d50 | blocked | IDA ??0_lambda30_@?A0x60d956b0@@QEAA@AEBQEAVCUser@@AEBUST_LEAGUE_AUTH_CHANGE@@@Z | yes | - |
-| - | - | ??R_lambda30_@?A0x60d956b0@@QEBAXXZ | 0x1404f0db0 | blocked | IDA ??R_lambda30_@?A0x60d956b0@@QEBAXXZ | yes | - |
-| - | - | ?ReqLeagueNoticeChange@CLeagueProcess@@QEAA_NAEAVXPacket@@@Z | 0x1404f0f90 | implemented | IDA ?ReqLeagueNoticeChange@CLeagueProcess@@QEAA_NAEAVXPacket@@@Z | yes | - |
+| XGameServer | GameSockets.cpp | ??R_lambda30_@?A0x60d956b0@@QEBAXXZ | 0x1404f0db0 | implemented | IDA decompile + active build | no | Inlined into RecvLeagueAuthChange: IsLive gate -> GetLeagueID!=0 -> (0xF6,0x28)+stChange+LeagueID+ActorID via SendCmd(0x22,0x32); else LogDebug + SendErrorMessage(0x22,0x28,57016). |
+| XGameServer | GocLeague.cpp | ?ReqLeagueNoticeChange@CLeagueProcess@@QEAA_NAEAVXPacket@@@Z | 0x1404f0f90 | implemented | IDA decompile + landed source | no | - |
 | - | - | ??0_lambda1_@?A0x93366633@@QEAA@AEBQEAVCUser@@AEBUST_LEAGUE_NOTICE@@@Z | 0x1404f11c0 | blocked | IDA ??0_lambda1_@?A0x93366633@@QEAA@AEBQEAVCUser@@AEBUST_LEAGUE_NOTICE@@@Z | yes | - |
 | - | - | ??R_lambda32_@?A0x60d956b0@@QEBAXXZ | 0x1404f1230 | blocked | IDA ??R_lambda32_@?A0x60d956b0@@QEBAXXZ | yes | - |
-| - | - | ?CheckNameChangeItem@CLeagueProcess@@QEAAHUPS_ITEM_SLOT_INFO@@AEAUPS_RES_STORAGE_INFO@@@Z | 0x1404f1470 | implemented | IDA ?CheckNameChangeItem@CLeagueProcess@@QEAAHUPS_ITEM_SLOT_INFO@@AEAUPS_RES_STORAGE_INFO@@@Z | yes | - |
-| - | - | ?SendLeagueNameChangeMsg@CLeagueProcess@@QEAAXHUPS_REQ_LEAGUE_NAME_CHANGE@@@Z | 0x1404f1910 | implemented | IDA ?SendLeagueNameChangeMsg@CLeagueProcess@@QEAAXHUPS_REQ_LEAGUE_NAME_CHANGE@@@Z | yes | - |
-| - | - | ?ReqLeagueNameChange@CLeagueProcess@@QEAA_NAEAVXPacket@@@Z | 0x1404f1aa0 | implemented | IDA ?ReqLeagueNameChange@CLeagueProcess@@QEAA_NAEAVXPacket@@@Z | yes | - |
+| XGameServer | GocLeague.cpp | ?CheckNameChangeItem@CLeagueProcess@@QEAAHUPS_ITEM_SLOT_INFO@@AEAUPS_RES_STORAGE_INFO@@@Z | 0x1404f1470 | implemented | IDA decompile + landed source | no | - |
+| XGameServer | GocLeague.cpp | ?SendLeagueNameChangeMsg@CLeagueProcess@@QEAAXHUPS_REQ_LEAGUE_NAME_CHANGE@@@Z | 0x1404f1910 | implemented | IDA decompile + landed source | no | - |
+| XGameServer | GocLeague.cpp | ?ReqLeagueNameChange@CLeagueProcess@@QEAA_NAEAVXPacket@@@Z | 0x1404f1aa0 | implemented | IDA decompile + landed source | no | - |
 | - | - | ??0_lambda34_@?A0x60d956b0@@QEAA@AEBQEAVCUser@@AEBUPS_REQ_LEAGUE_NAME_CHANGE@@QEAVCLeagueProcess@@@Z | 0x1404f1cc0 | blocked | IDA ??0_lambda34_@?A0x60d956b0@@QEAA@AEBQEAVCUser@@AEBUPS_REQ_LEAGUE_NAME_CHANGE@@QEAVCLeagueProcess@@@Z | yes | - |
 | - | - | ??R_lambda34_@?A0x60d956b0@@QEBAXXZ | 0x1404f1d30 | blocked | IDA ??R_lambda34_@?A0x60d956b0@@QEBAXXZ | yes | - |
-| - | - | ?ReqLeagueCardChange@CLeagueProcess@@QEAA_NAEAVXPacket@@@Z | 0x1404f25e0 | implemented | IDA ?ReqLeagueCardChange@CLeagueProcess@@QEAA_NAEAVXPacket@@@Z | yes | - |
+| XGameServer | GocLeague.cpp | ?ReqLeagueCardChange@CLeagueProcess@@QEAA_NAEAVXPacket@@@Z | 0x1404f25e0 | implemented | IDA decompile + landed source | no | - |
 | - | - | ??R_lambda36_@?A0x60d956b0@@QEBAXXZ | 0x1404f27e0 | blocked | IDA ??R_lambda36_@?A0x60d956b0@@QEBAXXZ | yes | - |
-| - | - | ?ReqLeaguePositionNameChange@CLeagueProcess@@QEAA_NAEAVXPacket@@@Z | 0x1404f30c0 | implemented | IDA ?ReqLeaguePositionNameChange@CLeagueProcess@@QEAA_NAEAVXPacket@@@Z | yes | - |
+| XGameServer | GocLeague.cpp | ?ReqLeaguePositionNameChange@CLeagueProcess@@QEAA_NAEAVXPacket@@@Z | 0x1404f30c0 | implemented | IDA decompile + landed source | no | - |
 | - | - | ??R_lambda38_@?A0x60d956b0@@QEBAXXZ | 0x1404f32e0 | blocked | IDA ??R_lambda38_@?A0x60d956b0@@QEBAXXZ | yes | - |
-| - | - | ?ReqLeagueMemberPositionChange@CLeagueProcess@@QEAA_NAEAVXPacket@@@Z | 0x1404f36a0 | implemented | IDA ?ReqLeagueMemberPositionChange@CLeagueProcess@@QEAA_NAEAVXPacket@@@Z | yes | - |
+| XGameServer | GocLeague.cpp | ?ReqLeagueMemberPositionChange@CLeagueProcess@@QEAA_NAEAVXPacket@@@Z | 0x1404f36a0 | implemented | IDA decompile + landed source | no | - |
 | - | - | ??R_lambda40_@?A0x60d956b0@@QEBAXXZ | 0x1404f3890 | blocked | IDA ??R_lambda40_@?A0x60d956b0@@QEBAXXZ | yes | - |
-| - | - | ?ReqLeagueOpenOrNot@CLeagueProcess@@QEAA_NAEAVXPacket@@@Z | 0x1404f3ac0 | implemented | IDA ?ReqLeagueOpenOrNot@CLeagueProcess@@QEAA_NAEAVXPacket@@@Z | yes | - |
+| XGameServer | GocLeague.cpp | ?ReqLeagueOpenOrNot@CLeagueProcess@@QEAA_NAEAVXPacket@@@Z | 0x1404f3ac0 | implemented | IDA decompile + landed source | no | - |
 | - | - | ??R_lambda44_@?A0x60d956b0@@QEBAXXZ | 0x1404f3cb0 | blocked | IDA ??R_lambda44_@?A0x60d956b0@@QEBAXXZ | yes | - |
-| - | - | ?ReqLeagueRecruitNotice@CLeagueProcess@@QEAA_NAEAVXPacket@@@Z | 0x1404f3e40 | implemented | IDA ?ReqLeagueRecruitNotice@CLeagueProcess@@QEAA_NAEAVXPacket@@@Z | yes | - |
+| XGameServer | GocLeague.cpp | ?ReqLeagueRecruitNotice@CLeagueProcess@@QEAA_NAEAVXPacket@@@Z | 0x1404f3e40 | implemented | IDA decompile + landed source | no | - |
 | - | - | ??0_lambda46_@?A0x60d956b0@@QEAA@AEBQEAVCUser@@AEBUST_LEAGUE_RECRUIT_NOTICE@@@Z | 0x1404f4090 | blocked | IDA ??0_lambda46_@?A0x60d956b0@@QEAA@AEBQEAVCUser@@AEBUST_LEAGUE_RECRUIT_NOTICE@@@Z | yes | - |
 | - | - | ??R_lambda46_@?A0x60d956b0@@QEBAXXZ | 0x1404f4100 | blocked | IDA ??R_lambda46_@?A0x60d956b0@@QEBAXXZ | yes | - |
-| - | - | ?CheckNpc@CLeagueProcess@@QEAA_NKEH@Z | 0x1404f4380 | implemented | IDA ?CheckNpc@CLeagueProcess@@QEAA_NKEH@Z | yes | - |
-| - | - | ?ReqLeagueDelegate@CLeagueProcess@@QEAA_NAEAVXPacket@@@Z | 0x1404f4570 | implemented | IDA ?ReqLeagueDelegate@CLeagueProcess@@QEAA_NAEAVXPacket@@@Z | yes | - |
+| XGameServer | GocLeague.cpp | ?CheckNpc@CLeagueProcess@@QEAA_NKEH@Z | 0x1404f4380 | implemented | IDA decompile + landed source | no | - |
+| XGameServer | GocLeague.cpp | ?ReqLeagueDelegate@CLeagueProcess@@QEAA_NAEAVXPacket@@@Z | 0x1404f4570 | implemented | IDA decompile + landed source | no | - |
 | - | - | ??R_lambda48_@?A0x60d956b0@@QEBAXXZ | 0x1404f4780 | blocked | IDA ??R_lambda48_@?A0x60d956b0@@QEBAXXZ | yes | - |
-| - | - | ?ReqLeagueSkillLearn@CLeagueProcess@@QEAA_NAEAVXPacket@@@Z | 0x1404f4a40 | implemented | IDA ?ReqLeagueSkillLearn@CLeagueProcess@@QEAA_NAEAVXPacket@@@Z | yes | - |
+| XGameServer | GocLeague.cpp | ?ReqLeagueSkillLearn@CLeagueProcess@@QEAA_NAEAVXPacket@@@Z | 0x1404f4a40 | implemented | IDA decompile + landed source | no | - |
 | - | - | ??R_lambda50_@?A0x60d956b0@@QEBAXXZ | 0x1404f4c40 | blocked | IDA ??R_lambda50_@?A0x60d956b0@@QEBAXXZ | yes | - |
-| - | - | ?ReqLeagueInventoryMove@CLeagueProcess@@QEAA_NAEAVXPacket@@@Z | 0x1404f5250 | implemented | IDA ?ReqLeagueInventoryMove@CLeagueProcess@@QEAA_NAEAVXPacket@@@Z | yes | - |
+| XGameServer | GocLeague.cpp | ?ReqLeagueInventoryMove@CLeagueProcess@@QEAA_NAEAVXPacket@@@Z | 0x1404f5250 | implemented | IDA decompile + landed source | no | - |
 | - | - | ??0_lambda52_@?A0x60d956b0@@QEAA@AEBQEAVCUser@@AEBUPS_REQ_ITEM_MOVE_LEAGUE_INVEN@@QEAVCLeagueProcess@@@Z | 0x1404f5460 | blocked | IDA ??0_lambda52_@?A0x60d956b0@@QEAA@AEBQEAVCUser@@AEBUPS_REQ_ITEM_MOVE_LEAGUE_INVEN@@QEAVCLeagueProcess@@@Z | yes | - |
-| - | - | ??R_lambda52_@?A0x60d956b0@@QEBAXXZ | 0x1404f54d0 | blocked | IDA ??R_lambda52_@?A0x60d956b0@@QEBAXXZ | yes | - |
-| - | - | ?ReqLeagueInventoryInfo@CLeagueProcess@@QEAA_NAEAVXPacket@@@Z | 0x1404f62c0 | implemented | IDA ?ReqLeagueInventoryInfo@CLeagueProcess@@QEAA_NAEAVXPacket@@@Z | yes | - |
-| - | - | ??R_lambda54_@?A0x60d956b0@@QEBAXXZ | 0x1404f64d0 | blocked | IDA ??R_lambda54_@?A0x60d956b0@@QEBAXXZ | yes | - |
-| - | - | ?CheckLeagueInventoryIn@CLeagueProcess@@QEAAHUPS_REQ_ITEM_MOVE_LEAGUE_INVEN@@AEAUSTItem@@AEAUPS_ITEM_MOVE_LEAGUE_INVEN_FOR_GAME@@@Z | 0x1404f6c40 | implemented | IDA ?CheckLeagueInventoryIn@CLeagueProcess@@QEAAHUPS_REQ_ITEM_MOVE_LEAGUE_INVEN@@AEAUSTItem@@AEAUPS_ITEM_MOVE_LEAGUE_INVEN_FOR_GAME@@@Z | yes | - |
-| - | - | ?CheckLeagueInventoryOut@CLeagueProcess@@QEAAHUPS_REQ_ITEM_MOVE_LEAGUE_INVEN@@@Z | 0x1404f72a0 | implemented | IDA ?CheckLeagueInventoryOut@CLeagueProcess@@QEAAHUPS_REQ_ITEM_MOVE_LEAGUE_INVEN@@@Z | yes | - |
-| - | - | ?CheckLeagueInventoryInMove@CLeagueProcess@@QEAAHUPS_REQ_ITEM_MOVE_LEAGUE_INVEN@@@Z | 0x1404f75e0 | implemented | IDA ?CheckLeagueInventoryInMove@CLeagueProcess@@QEAAHUPS_REQ_ITEM_MOVE_LEAGUE_INVEN@@@Z | yes | - |
+| XGameServer | User.cpp | ??R_lambda52_@?A0x60d956b0@@QEBAXXZ | 0x1404f54d0 | implemented | IDA decompile + landed source (as inline lambda body) | no | - |
+| XGameServer | GocLeague.cpp | ?ReqLeagueInventoryInfo@CLeagueProcess@@QEAA_NAEAVXPacket@@@Z | 0x1404f62c0 | implemented | IDA decompile + landed source | no | - |
+| XGameServer | User.cpp | ??R_lambda54_@?A0x60d956b0@@QEBAXXZ | 0x1404f64d0 | implemented | IDA decompile + landed source (as inline lambda body) | no | - |
+| XGameServer | GocLeague.cpp | ?CheckLeagueInventoryIn@CLeagueProcess@@QEAAHUPS_REQ_ITEM_MOVE_LEAGUE_INVEN@@AEAUSTItem@@AEAUPS_ITEM_MOVE_LEAGUE_INVEN_FOR_GAME@@@Z | 0x1404f6c40 | implemented | IDA decompile + landed source | no | - |
+| XGameServer | GocLeague.cpp | ?CheckLeagueInventoryOut@CLeagueProcess@@QEAAHUPS_REQ_ITEM_MOVE_LEAGUE_INVEN@@@Z | 0x1404f72a0 | implemented | IDA decompile + landed source | no | - |
+| XGameServer | GocLeague.cpp | ?CheckLeagueInventoryInMove@CLeagueProcess@@QEAAHUPS_REQ_ITEM_MOVE_LEAGUE_INVEN@@@Z | 0x1404f75e0 | implemented | IDA decompile + landed source | no | - |
 | - | - | ??$?0V_lambda0_@?A0x60d956b0@@@?$function@$$A6AXXZ@tr1@std@@QEAA@V_lambda0_@?A0x60d956b0@@@Z | 0x1404f76f0 | blocked | IDA ??$?0V_lambda0_@?A0x60d956b0@@@?$function@$$A6AXXZ@tr1@std@@QEAA@V_lambda0_@?A0x60d956b0@@@Z | yes | - |
 | - | - | ??$?0V_lambda1_@?A0x60d956b0@@@?$function@$$A6AXXZ@tr1@std@@QEAA@V_lambda1_@?A0x60d956b0@@@Z | 0x1404f7740 | blocked | IDA ??$?0V_lambda1_@?A0x60d956b0@@@?$function@$$A6AXXZ@tr1@std@@QEAA@V_lambda1_@?A0x60d956b0@@@Z | yes | - |
 | - | - | ??$?0V_lambda2_@?A0x60d956b0@@@?$function@$$A6AXXZ@tr1@std@@QEAA@V_lambda2_@?A0x60d956b0@@@Z | 0x1404f7770 | blocked | IDA ??$?0V_lambda2_@?A0x60d956b0@@@?$function@$$A6AXXZ@tr1@std@@QEAA@V_lambda2_@?A0x60d956b0@@@Z | yes | - |
@@ -24788,8 +24793,8 @@ yes | ?????????? |
 | - | - | ??$_ApplyX@X@?$_Callable_obj@V_lambda50_@?A0x60d956b0@@$0A@@tr1@std@@QEAAXXZ | 0x140503d00 | blocked | IDA ??$_ApplyX@X@?$_Callable_obj@V_lambda50_@?A0x60d956b0@@$0A@@tr1@std@@QEAAXXZ | yes | - |
 | - | - | ??$_ApplyX@X@?$_Callable_obj@V_lambda52_@?A0x60d956b0@@$0A@@tr1@std@@QEAAXXZ | 0x140503d20 | blocked | IDA ??$_ApplyX@X@?$_Callable_obj@V_lambda52_@?A0x60d956b0@@$0A@@tr1@std@@QEAAXXZ | yes | - |
 | - | - | ??$_ApplyX@X@?$_Callable_obj@V_lambda54_@?A0x60d956b0@@$0A@@tr1@std@@QEAAXXZ | 0x140503d40 | blocked | IDA ??$_ApplyX@X@?$_Callable_obj@V_lambda54_@?A0x60d956b0@@$0A@@tr1@std@@QEAAXXZ | yes | - |
-| - | - | ?GetLeagueInventoryTime@CUser@@QEAA_JXZ | 0x140503d60 | implemented | IDA ?GetLeagueInventoryTime@CUser@@QEAA_JXZ | yes | - |
-| - | - | ?CheckSendLeagueInventoryInfo@CUser@@QEAA_NXZ | 0x140503d80 | implemented | IDA ?CheckSendLeagueInventoryInfo@CUser@@QEAA_NXZ | yes | - |
+| XGameServer | User.cpp | ?GetLeagueInventoryTime@CUser@@QEAA_JXZ | 0x140503d60 | implemented | IDA decompile + landed source | no | - |
+| XGameServer | User.cpp | ?CheckSendLeagueInventoryInfo@CUser@@QEAA_NXZ | 0x140503d80 | implemented | IDA decompile + landed source | no | - |
 | - | - | ??0PS_REQ_LEAGUE_INVEN_INFO@@QEAA@XZ | 0x140503db0 | blocked | IDA ??0PS_REQ_LEAGUE_INVEN_INFO@@QEAA@XZ | yes | - |
 | - | - | ?_Lbound@?$_Tree@V?$_Tmap_traits@KUTB_CUSTOMER_BENEFIT@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_CUSTOMER_BENEFIT@@@std@@@3@$0A@@std@@@std@@IEAAPEAU_Node@?$_Tree_nod@V?$_Tmap_traits@KUTB_CUSTOMER_BENEFIT@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_CUSTOMER_BENEFIT@@@std@@@3@$0A@@std@@@2@AEBK@Z | 0x140503df0 | blocked | IDA ?_Lbound@?$_Tree@V?$_Tmap_traits@KUTB_CUSTOMER_BENEFIT@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_CUSTOMER_BENEFIT@@@std@@@3@$0A@@std@@@std@@IEAAPEAU_Node@?$_Tree_nod@V?$_Tmap_traits@KUTB_CUSTOMER_BENEFIT@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_CUSTOMER_BENEFIT@@@std@@@3@$0A@@std@@@2@AEBK@Z | yes | - |
 | - | - | ?lower_bound@?$_Tree@V?$_Tmap_traits@KUST_HAVE_PROFILE_PHOTO_INFO@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUST_HAVE_PROFILE_PHOTO_INFO@@@std@@@3@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@KUST_HAVE_PROFILE_PHOTO_INFO@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUST_HAVE_PROFILE_PHOTO_INFO@@@std@@@3@$0A@@std@@@std@@@2@AEBK@Z | 0x140503e90 | blocked | IDA ?lower_bound@?$_Tree@V?$_Tmap_traits@KUST_HAVE_PROFILE_PHOTO_INFO@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUST_HAVE_PROFILE_PHOTO_INFO@@@std@@@3@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@KUST_HAVE_PROFILE_PHOTO_INFO@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUST_HAVE_PROFILE_PHOTO_INFO@@@std@@@3@$0A@@std@@@std@@@2@AEBK@Z | yes | - |
@@ -32599,43 +32604,43 @@ yes | ?????????? |
 | - | - | ??$_ApplyX@X@?$_Callable_obj@V_lambda8_@?A0xec1e1aaa@@$0A@@tr1@std@@QEAAXXZ | 0x140628110 | blocked | IDA ??$_ApplyX@X@?$_Callable_obj@V_lambda8_@?A0xec1e1aaa@@$0A@@tr1@std@@QEAAXXZ | yes | - |
 | - | - | ??$_Allocate@V?$_Impl_no_alloc0@U?$_Callable_obj@V_lambda8_@?A0xec1e1aaa@@$0A@@tr1@std@@X@tr1@std@@@std@@YAPEAV?$_Impl_no_alloc0@U?$_Callable_obj@V_lambda8_@?A0xec1e1aaa@@$0A@@tr1@std@@X@tr1@0@_KPEAV120@@Z | 0x140628130 | blocked | IDA ??$_Allocate@V?$_Impl_no_alloc0@U?$_Callable_obj@V_lambda8_@?A0xec1e1aaa@@$0A@@tr1@std@@X@tr1@std@@@std@@YAPEAV?$_Impl_no_alloc0@U?$_Callable_obj@V_lambda8_@?A0xec1e1aaa@@$0A@@tr1@std@@X@tr1@0@_KPEAV120@@Z | yes | - |
 | - | - | ?destroy@?$allocator@V?$_Impl_no_alloc0@U?$_Callable_obj@V_lambda92_@?A0x1c4c2827@@$0A@@tr1@std@@X@tr1@std@@@std@@QEAAXPEAV?$_Impl_no_alloc0@U?$_Callable_obj@V_lambda92_@?A0x1c4c2827@@$0A@@tr1@std@@X@tr1@2@@Z | 0x1406281c0 | blocked | IDA ?destroy@?$allocator@V?$_Impl_no_alloc0@U?$_Callable_obj@V_lambda92_@?A0x1c4c2827@@$0A@@tr1@std@@X@tr1@std@@@std@@QEAAXPEAV?$_Impl_no_alloc0@U?$_Callable_obj@V_lambda92_@?A0x1c4c2827@@$0A@@tr1@std@@X@tr1@2@@Z | yes | - |
-| - | - | ?GetWorldType@@YAHH@Z | 0x1406281e0 | blocked | IDA ?GetWorldType@@YAHH@Z | yes | - |
-| - | - | ??0CWorldProcess@@QEAA@XZ | 0x140628210 | blocked | IDA ??0CWorldProcess@@QEAA@XZ | yes | - |
+| XGameServer | Process/WorldProcess.cpp | ?GetWorldType@@YAHH@Z | 0x1406281e0 | implemented | IDA decompile + landed source | no | return nMapID>=1000 ? nMapID/10000-1 : 0. |
+| XGameServer | Process/WorldProcess.cpp | ??0CWorldProcess@@QEAA@XZ | 0x140628210 | implemented | IDA decompile + landed source | no | TXProcess base + SetCmd(4) + SetName("CWorldProcess"). |
 | - | - | ??_GCWorldProcess@@UEAAPEAXI@Z | 0x140628290 | blocked | IDA ??_GCWorldProcess@@UEAAPEAXI@Z | yes | - |
-| - | - | ??1CWorldProcess@@UEAA@XZ | 0x1406282d0 | blocked | IDA ??1CWorldProcess@@UEAA@XZ | yes | - |
-| - | - | ?Parse@CWorldProcess@@UEAA_NAEAVXPacket@@@Z | 0x140628300 | implemented | IDA ?Parse@CWorldProcess@@UEAA_NAEAVXPacket@@@Z | yes | - |
-| - | - | ?ReqWorldEnter@CWorldProcess@@QEAA_NAEAVXPacket@@@Z | 0x1406284d0 | implemented | IDA ?ReqWorldEnter@CWorldProcess@@QEAA_NAEAVXPacket@@@Z | yes | - |
+| XGameServer | Process/WorldProcess.cpp | ??1CWorldProcess@@UEAA@XZ | 0x1406282d0 | implemented | IDA decompile + landed source | no | base dtor only. |
+| XGameServer | Process/WorldProcess.cpp | ?Parse@CWorldProcess@@UEAA_NAEAVXPacket@@@Z | 0x140628300 | implemented | IDA decompile + landed source | no | subcmd dispatch table 1/0x41/4/6/7/0xB/0xD/0x19/0x31/0x33/0x40/0x61. |
+| XGameServer | Process/WorldProcess.cpp | ?ReqWorldEnter@CWorldProcess@@QEAA_NAEAVXPacket@@@Z | 0x1406284d0 | implemented | IDA decompile + source/build check | no | Full lambda14 body landed; build passed; IDA comparison done this round |
 | - | - | ??R_lambda0_@?A0xe64b4e5a@@QEBAXXZ | 0x140628740 | blocked | IDA ??R_lambda0_@?A0xe64b4e5a@@QEBAXXZ | yes | - |
-| - | - | ?ReqWorldObjectInfo@CWorldProcess@@QEAA_NAEAVXPacket@@@Z | 0x14062b250 | implemented | IDA ?ReqWorldObjectInfo@CWorldProcess@@QEAA_NAEAVXPacket@@@Z | yes | - |
+| XGameServer | WorldProcess.cpp | ?ReqWorldObjectInfo@CWorldProcess@@QEAA_NAEAVXPacket@@@Z | 0x14062b250 | implemented | IDA decompile + active build | yes | Landed true body (publics RVA 0x62A250 is a duplicate mapping; IDA function bounds 0x14062B250-0x14062B3EF) + lambda2 body 0x14062B3F0: gates, SetClientLoadComplete(true), SetLogChangeMap(false), GetArea SendObjectInfo virtual dispatch (vtable+136), IsDistirct (vtable+192) -> XDistrict::SetObjectInfoReq, CGocAkashicRecord SetUserLoad(true) (COMDAT 0x14019C1D0 with CItem::SetUseCount) + ThinkAkashicPassive, CGocAttribute IsFullStat/GetWorldType -> SetStartStatEnterWorld(two-param)/SetFullStat(false)/SetStartRegStat(true)/SendOriginStatAll/SendStatAll/SetEchelonLevelBooster, lambda192 decrement DoJob. |
 | - | - | ??R_lambda2_@?A0xe64b4e5a@@QEBAXXZ | 0x14062b3f0 | blocked | IDA ??R_lambda2_@?A0xe64b4e5a@@QEBAXXZ | yes | - |
-| - | - | ?ReqWorldWarp@CWorldProcess@@QEAA_NAEAVXPacket@@@Z | 0x14062b770 | implemented | IDA ?ReqWorldWarp@CWorldProcess@@QEAA_NAEAVXPacket@@@Z | yes | - |
-| - | - | ??R_lambda4_@?A0xe64b4e5a@@QEBAXXZ | 0x14062b9c0 | blocked | IDA ??R_lambda4_@?A0xe64b4e5a@@QEBAXXZ | yes | - |
-| - | - | ?ReqWorldWarpOut@CWorldProcess@@QEAA_NAEAVXPacket@@@Z | 0x14062c1a0 | implemented | IDA ?ReqWorldWarpOut@CWorldProcess@@QEAA_NAEAVXPacket@@@Z | yes | - |
-| - | - | ??R_lambda6_@?A0xe64b4e5a@@QEBAXXZ | 0x14062c340 | blocked | IDA ??R_lambda6_@?A0xe64b4e5a@@QEBAXXZ | yes | - |
+| XGameServer | Process/WorldProcess.cpp | ?ReqWorldWarp@CWorldProcess@@QEAA_NAEAVXPacket@@@Z | 0x14062b770 | implemented | IDA decompile + landed source | no | parse nMapID/nJumpID/nPotalID; gates; IncrementJobCount + DoJob(lambda4 warp body) + DecrementJobCount DoJob. |
+| XGameServer | Process/WorldProcess.cpp | ??R_lambda4_@?A0xe64b4e5a@@QEBAXXZ | 0x14062b9c0 | implemented | IDA decompile + landed source (as inline lambda body) | no | GM/status gate; world check; maze WarpPortal or portal pos move with SendResWarp; 30031/10012 special exit via (0xF2,0x31) control send. |
+| XGameServer | Process/WorldProcess.cpp | ?ReqWorldWarpOut@CWorldProcess@@QEAA_NAEAVXPacket@@@Z | 0x14062c1a0 | implemented | IDA decompile + landed source | no | parse-free; lambda6 ctor before null check; gates; IncrementJobCount + DoJob(lambda6 WarpOut body) + DecrementJobCount DoJob. |
+| XGameServer | Process/WorldProcess.cpp | ??R_lambda6_@?A0xe64b4e5a@@QEBAXXZ | 0x14062c340 | implemented | IDA decompile + landed source (as inline lambda body) | no | pUser/IsLive/GetArea gate -> XMaze cast -> GetActorID().dwActorID -> GetWarpPotal -> RemoveWarpPotal. |
 | - | - | ?ReqWorldCheckSector@CWorldProcess@@QEAA_NAEAVXPacket@@@Z | 0x14062c440 | implemented | IDA ?ReqWorldCheckSector@CWorldProcess@@QEAA_NAEAVXPacket@@@Z | yes | - |
 | - | - | ??R_lambda8_@?A0xe64b4e5a@@QEBAXXZ | 0x14062c650 | blocked | IDA ??R_lambda8_@?A0xe64b4e5a@@QEBAXXZ | yes | - |
-| - | - | ?ReqWorldMoverInfo@CWorldProcess@@QEAA_NAEAVXPacket@@@Z | 0x14062c8f0 | implemented | IDA ?ReqWorldMoverInfo@CWorldProcess@@QEAA_NAEAVXPacket@@@Z | yes | - |
-| - | - | ??R_lambda10_@?A0xe64b4e5a@@QEBAXXZ | 0x14062caf0 | blocked | IDA ??R_lambda10_@?A0xe64b4e5a@@QEBAXXZ | yes | - |
-| - | - | ?ReqWorldEnterToOther@CWorldProcess@@QEAA_NAEAVXPacket@@@Z | 0x14062ce60 | implemented | IDA ?ReqWorldEnterToOther@CWorldProcess@@QEAA_NAEAVXPacket@@@Z | yes | - |
+| XGameServer | Process/WorldProcess.cpp | ?ReqWorldMoverInfo@CWorldProcess@@QEAA_NAEAVXPacket@@@Z | 0x14062c8f0 | implemented | IDA decompile + landed source | no | parse nActorID; gates; IncrementJobCount + DoJob(lambda10 MoverInfo body) + DecrementJobCount DoJob. |
+| XGameServer | Process/WorldProcess.cpp | ??R_lambda10_@?A0xe64b4e5a@@QEBAXXZ | 0x14062caf0 | implemented | IDA decompile + landed source (as inline lambda body) | no | GetMoverObject(nActorID) -> PC (4,0x21)/NPC (4,0x23)+SyncMove/Monster (4,0x22), <<1 + SetInfoPacket + BridgeSend each. |
+| XGameServer | Process/WorldProcess.cpp | ?ReqWorldEnterToOther@CWorldProcess@@QEAA_NAEAVXPacket@@@Z | 0x14062ce60 | implemented | IDA decompile + landed source | no | parse entermap+pos+target; lambda12 DoJob: GetWorldType 3-branch portal validation, party/force group info, (0xF2,0x54) via control socket. |
 | - | - | ??0_lambda12_@?A0xe64b4e5a@@QEAA@AEBQEAVCUser@@AEBUPS_ENTER_MAP_REQ@@AEBUSTPosInfo@@AEBK@Z | 0x14062d0f0 | blocked | IDA ??0_lambda12_@?A0xe64b4e5a@@QEAA@AEBQEAVCUser@@AEBUPS_ENTER_MAP_REQ@@AEBUSTPosInfo@@AEBK@Z | yes | - |
-| - | - | ??R_lambda12_@?A0xe64b4e5a@@QEBAXXZ | 0x14062d1b0 | blocked | IDA ??R_lambda12_@?A0xe64b4e5a@@QEBAXXZ | yes | - |
+| XGameServer | Process/WorldProcess.cpp | ??R_lambda12_@?A0xe64b4e5a@@QEBAXXZ | 0x14062d1b0 | implemented | IDA decompile + landed source (as inline lambda body) | no | - |
 | - | - | ?ReqWorldEnterByForce@CWorldProcess@@QEAA_NAEAVXPacket@@@Z | 0x14062da90 | implemented | IDA ?ReqWorldEnterByForce@CWorldProcess@@QEAA_NAEAVXPacket@@@Z | yes | - |
 | - | - | ??0_lambda14_@?A0xe64b4e5a@@QEAA@AEBQEAVCUser@@AEBUPS_ENTER_MAP_REQ@@QEAVCWorldProcess@@@Z | 0x14062dd00 | blocked | IDA ??0_lambda14_@?A0xe64b4e5a@@QEAA@AEBQEAVCUser@@AEBUPS_ENTER_MAP_REQ@@QEAVCWorldProcess@@@Z | yes | - |
-| - | - | ??R_lambda14_@?A0xe64b4e5a@@QEBAXXZ | 0x14062dd90 | blocked | IDA ??R_lambda14_@?A0xe64b4e5a@@QEBAXXZ | yes | - |
-| - | - | ?ReqWorldEscape@CWorldProcess@@QEAA_NAEAVXPacket@@@Z | 0x14062ec90 | implemented | IDA ?ReqWorldEscape@CWorldProcess@@QEAA_NAEAVXPacket@@@Z | yes | - |
-| - | - | ??R_lambda16_@?A0xe64b4e5a@@QEBAXXZ | 0x14062ee70 | blocked | IDA ??R_lambda16_@?A0xe64b4e5a@@QEBAXXZ | yes | - |
+| XGameServer | WorldProcess.cpp | ??R_lambda14_@?A0xe64b4e5a@@QEBAXXZ | 0x14062dd90 | implemented | IDA decompile + active build | yes | Landed: ReqWorldEnterByForce lambda body - quadruple gate, GetQuestID overwrite, GetWorldType 3-branch (district/MyRoom/maze), party+force EnterMazeByForce chain with SetEnterMazeResponse/GetEnterMazeRequest/CreateMazeReq, LABEL_48 tail (0xF2,0x21)/(0xF2,0x31) SendCmd(0x11,0x41). |
+| XGameServer | Process/WorldProcess.cpp | ?ReqWorldEscape@CWorldProcess@@QEAA_NAEAVXPacket@@@Z | 0x14062ec90 | implemented | IDA decompile + landed source | no | parse-free; gates; IncrementJobCount + DoJob(lambda16 Escape body) + DecrementJobCount DoJob. |
+| XGameServer | Process/WorldProcess.cpp | ??R_lambda16_@?A0xe64b4e5a@@QEBAXXZ | 0x14062ee70 | implemented | IDA decompile + landed source (as inline lambda body) | no | IsEnableEscapeWorld gate -> (pMaze && TBMapID==22061) || !IsBattleState -> EscapeActor -> (4,0x33)<<1 + SetNextEscapeTime; errors 0xD705/0xD706/0xD712. |
 | - | - | ?ReqWorldVersion@CWorldProcess@@QEAA_NAEAVXPacket@@@Z | 0x14062f150 | implemented | IDA ?ReqWorldVersion@CWorldProcess@@QEAA_NAEAVXPacket@@@Z | yes | - |
 | - | - | ??R_lambda18_@?A0xe64b4e5a@@QEBAXXZ | 0x14062f300 | blocked | IDA ??R_lambda18_@?A0xe64b4e5a@@QEBAXXZ | yes | - |
 | - | - | ?ReqGameOut@CWorldProcess@@QEAA_NAEAVXPacket@@@Z | 0x14062f500 | implemented | IDA ?ReqGameOut@CWorldProcess@@QEAA_NAEAVXPacket@@@Z | yes | - |
 | - | - | ??R_lambda20_@?A0xe64b4e5a@@QEBAXXZ | 0x14062f6a0 | blocked | IDA ??R_lambda20_@?A0xe64b4e5a@@QEBAXXZ | yes | - |
 | - | - | ?ReqWorldDistrictTransport@CWorldProcess@@QEAA_NAEAVXPacket@@@Z | 0x14062f910 | implemented | IDA ?ReqWorldDistrictTransport@CWorldProcess@@QEAA_NAEAVXPacket@@@Z | yes | - |
-| - | - | ??0_lambda22_@?A0xe64b4e5a@@QEAA@AEBQEAVCUser@@AEBUPS_DISTRICT_TRANSPORT_REQ@@QEAVCWorldProcess@@@Z | 0x14062fb60 | blocked | IDA ??0_lambda22_@?A0xe64b4e5a@@QEAA@AEBQEAVCUser@@AEBUPS_DISTRICT_TRANSPORT_REQ@@QEAVCWorldProcess@@@Z | yes | - |
-| - | - | ??R_lambda22_@?A0xe64b4e5a@@QEBAXXZ | 0x14062fbf0 | blocked | IDA ??R_lambda22_@?A0xe64b4e5a@@QEBAXXZ | yes | - |
-| - | - | ?ReqWorldSkipInTutorial02@CWorldProcess@@QEAA_NAEAVXPacket@@@Z | 0x140632240 | implemented | IDA ?ReqWorldSkipInTutorial02@CWorldProcess@@QEAA_NAEAVXPacket@@@Z | yes | - |
-| - | - | ??R_lambda24_@?A0xe64b4e5a@@QEBAXXZ | 0x140632430 | blocked | IDA ??R_lambda24_@?A0xe64b4e5a@@QEBAXXZ | yes | - |
-| - | - | ?CheckAdmissionMember@CWorldProcess@@QEAA_NH_NAEAH@Z | 0x140632770 | implemented | IDA ?CheckAdmissionMember@CWorldProcess@@QEAA_NH_NAEAH@Z | yes | - |
-| - | - | ?IsEnterTheThingEvent@CWorldProcess@@AEAA_NXZ | 0x140632b10 | implemented | IDA ?IsEnterTheThingEvent@CWorldProcess@@AEAA_NXZ | yes | - |
-| - | - | ?GetEventJumpID@CWorldProcess@@AEAAHH@Z | 0x140632d70 | implemented | IDA ?GetEventJumpID@CWorldProcess@@AEAAHH@Z | yes | - |
+| XGameServer | WorldProcess.cpp | ??0_lambda22_@?A0xe64b4e5a@@QEAA@AEBQEAVCUser@@AEBUPS_DISTRICT_TRANSPORT_REQ@@QEAVCWorldProcess@@@Z | 0x14062fb60 | implemented | IDA decompile + active build | yes | Landed: lambda22 ctor captures pUser/psDistrictTransport/pProcess for ReqWorldDistrictTransport DoJob. |
+| XGameServer | WorldProcess.cpp | ??R_lambda22_@?A0xe64b4e5a@@QEBAXXZ | 0x14062fbf0 | implemented | IDA decompile + active build | yes | Landed: ReqWorldDistrictTransport lambda body - control-socket gate, quest/achieve condition checks, item use type/inven/cooltime checks, TB_DISTRICT/maze portal positioning, credit raise chain. |
+| XGameServer | Process/WorldProcess.cpp | ?ReqWorldSkipInTutorial02@CWorldProcess@@QEAA_NAEAVXPacket@@@Z | 0x140632240 | implemented | IDA decompile + landed source | no | parse nMapID; gates; IncrementJobCount + DoJob(lambda24 tutorial skip) + DecrementJobCount DoJob. |
+| XGameServer | Process/WorldProcess.cpp | ??R_lambda24_@?A0xe64b4e5a@@QEBAXXZ | 0x140632430 | implemented | IDA decompile + landed source (as inline lambda body) | no | GM gate; world check; maze GetTutorial && TBMapID 21112 -> quest chain 0x186A5/0x186A7 (MoveNpcToWayPoint 101001/4109, ResetQuestAll, Accept/CompleteByForce) + MoveNextSector(pUser,2). |
+| XGameServer | WorldProcess.cpp | ?CheckAdmissionMember@CWorldProcess@@QEAA_NH_NAEAH@Z | 0x140632770 | implemented | IDA decompile + active build | yes | Landed: nType 1 solo (in party -> 55032), 2 must-party (not in -> 55033), 3 join (not in -> 55033, full && !bBreakInto -> 55051), 4 -> 55052, 5 Force (not in -> 53156, GetForceUserCount<4 -> 53126); tail nType!=5 in-Force -> 55067. |
+| XGameServer | Process/WorldProcess.cpp | ?IsEnterTheThingEvent@CWorldProcess@@AEAA_NXZ | 0x140632b10 | implemented | IDA decompile + landed source | no | TB_MAZE_INFO 0x754F Req_Min_Lv check; world type 0/2/3 + safety zone/BattleZone checks; errors 55002/55062/55063. |
+| XGameServer | WorldProcess.cpp | ?GetEventJumpID@CWorldProcess@@AEAAHH@Z | 0x140632d70 | implemented | IDA decompile + active build | yes | Landed single-param mapping: 10003/10051/10002->3002101, 10021/10061->3002102, 10031->3002103, 10041/11001/30021->3002104, else 0. Call site passes (GetMapInsID().nMapID<<16)>>48 short MapID. Previous two-param signature was wrong. |
 | - | - | ??$?0V_lambda0_@?A0xe64b4e5a@@@?$function@$$A6AXXZ@tr1@std@@QEAA@V_lambda0_@?A0xe64b4e5a@@@Z | 0x140632e00 | blocked | IDA ??$?0V_lambda0_@?A0xe64b4e5a@@@?$function@$$A6AXXZ@tr1@std@@QEAA@V_lambda0_@?A0xe64b4e5a@@@Z | yes | - |
 | - | - | ??$?0V_lambda1_@?A0xe64b4e5a@@@?$function@$$A6AXXZ@tr1@std@@QEAA@V_lambda1_@?A0xe64b4e5a@@@Z | 0x140632e50 | blocked | IDA ??$?0V_lambda1_@?A0xe64b4e5a@@@?$function@$$A6AXXZ@tr1@std@@QEAA@V_lambda1_@?A0xe64b4e5a@@@Z | yes | - |
 | - | - | ??$?0V_lambda2_@?A0xe64b4e5a@@@?$function@$$A6AXXZ@tr1@std@@QEAA@V_lambda2_@?A0xe64b4e5a@@@Z | 0x140632e80 | blocked | IDA ??$?0V_lambda2_@?A0xe64b4e5a@@@?$function@$$A6AXXZ@tr1@std@@QEAA@V_lambda2_@?A0xe64b4e5a@@@Z | yes | - |
@@ -34259,22 +34264,22 @@ yes | ?????????? |
 | XGameServer | ThreadLocalData.cpp | ?SendChannelInfo@ThreadLocalData@@QEAAXPEAVCUser@@G@Z | 0x1406d6a50 | implemented | IDA decompile | yes | ��ȷ��ԭ-����Ƶ����Ϣ���û� |
 | XGameServer | ThreadLocalData.cpp | ?ReloadMonsterAI@ThreadLocalData@@QEAAXXZ | 0x1406d6b70 | implemented | IDA decompile | yes | ��ȷ��ԭ-�������й���AI�ű� |
 | XGameServer | ThreadLocalData.cpp | ?SendMazeInfo@ThreadLocalData@@QEAAXXZ | 0x1406d6ef0 | implemented | IDA decompile | yes | ��ȷ��ԭ-�����Թ���Ϣͬ��������socket |
-| XGameServer | ThreadLocalData.cpp | ?AddLeagueMember@ThreadLocalData@@QEAAXPEAVCUser@@@Z | 0x1406d70a0 | implemented | IDA decompile | yes | ��ȷ��ԭ-�������˳�Ա |
+| XGameServer | ThreadLocalData.cpp | ?AddLeagueMember@ThreadLocalData@@QEAAXPEAVCUser@@@Z | 0x1406d70a0 | implemented | IDA decompile + active build | no | Landed in ThreadLocalData_Stub.cpp: per-League lookup in m_mapLeagueMember (void* active-layer placeholder); existing entry -> CLeagueMember::AddLeagueMember + CompareSyncCount; missing -> new CLeagueMember + insert + SendSyncLeagueInfo. |
 | XGameServer | ThreadLocalData.cpp | ?LeaveLeagueMember@ThreadLocalData@@QEAAXPEAVCUser@@@Z | 0x1406d7240 | implemented | IDA decompile | yes | ��ȷ��ԭ-�Ƴ����˳�Ա |
-| XGameServer | ThreadLocalData.cpp | ?SendLeagueJoinUser_Apply@ThreadLocalData@@QEAAXUST_LEAGUE_MEMBER_EX@@UST_LEAGUE_INFO_UPDATE@@H@Z | 0x1406d7300 | implemented | IDA decompile | yes | ��ȷ��ԭ-�������˼������� |
+| XGameServer | ThreadLocalData.cpp | ?SendLeagueJoinUser_Apply@ThreadLocalData@@QEAAXUST_LEAGUE_MEMBER_EX@@UST_LEAGUE_INFO_UPDATE@@H@Z | 0x1406d7300 | implemented | IDA decompile + active build | no | Landed in ThreadLocalData_Stub.cpp (active-layer adapter): by-LeagueID lookup, UpdateSyncCount, by-value copies to CLeagueMember::JoinLeagueUser(stCopy, stUpdateCopy, 1). |
 | XGameServer | ThreadLocalData.cpp | ?SendLoginLeagueMember@ThreadLocalData@@QEAAXUST_LEAGUE_MEMBER_UPDATE@@@Z | 0x1406d73f0 | implemented | IDA decompile | yes | ��ȷ��ԭ-���͵�¼���˳�Ա |
-| XGameServer | ThreadLocalData.cpp | ?DeleteLeague@ThreadLocalData@@QEAAXHK@Z | 0x1406d74a0 | implemented | IDA decompile | yes | ��ȷ��ԭ-ɾ������ |
-| XGameServer | ThreadLocalData.cpp | ?SendLeagueApply@ThreadLocalData@@QEAAXUST_LEAGUE_APPLICANT@@@Z | 0x1406d7540 | implemented | IDA decompile | yes | ��ȷ��ԭ-������������ |
+| XGameServer | ThreadLocalData.cpp | ?DeleteLeague@ThreadLocalData@@QEAAXHK@Z | 0x1406d74a0 | implemented | no | Landed in ThreadLocalData_Stub.cpp (active-layer adapter; m_mapLeagueMember as void* placeholder map per original std::map<unsigned long, CLeagueMember*>). | ��ȷ��ԭ-ɾ������ |
+| XGameServer | ThreadLocalData_Stub.cpp | ?SendLeagueApply@ThreadLocalData@@QEAAXUST_LEAGUE_APPLICANT@@@Z | 0x1406d7540 | implemented | IDA decompile + landed source (ThreadLocalData_Stub.cpp active layer) | no | find nLeagueID in m_mapLeagueMember then forward by-value copy to CLeagueMember::SendLeagueApply. |
 | XGameServer | ThreadLocalData.cpp | ?SendDeleteLeagueApplicant@ThreadLocalData@@QEAAXHKH@Z | 0x1406d75f0 | implemented | IDA decompile | yes | ��ȷ��ԭ-����ɾ������������ |
 | XGameServer | ThreadLocalData.cpp | ?SendLeagueBoard@ThreadLocalData@@QEAAXUST_LEAGUE_BOARD@@KH@Z | 0x1406d7690 | implemented | IDA decompile | yes | ��ȷ��ԭ-�������˹����?|
 | XGameServer | ThreadLocalData.cpp | ?LeagueInfoChange@ThreadLocalData@@QEAAXUST_LEAGUE_INFO@@@Z | 0x1406d7750 | implemented | IDA decompile | yes | ��ȷ��ԭ-������Ϣ���?|
-| XGameServer | ThreadLocalData.cpp | ?ChangeLeagueAuth@ThreadLocalData@@QEAAXUST_LEAGUE_AUTH_CHANGE@@HH@Z | 0x1406d7800 | implemented | IDA decompile | yes | ��ȷ��ԭ-�������Ȩ��?|
-| XGameServer | ThreadLocalData.cpp | ?ChangePositionName@ThreadLocalData@@QEAAXUST_LEAGUE_POSITION_NAME_CHANGE@@H@Z | 0x1406d78d0 | implemented | IDA decompile | yes | ��ȷ��ԭ-���ְλ����?|
-| XGameServer | ThreadLocalData.cpp | ?UpdateMemberPosition@ThreadLocalData@@QEAAXUST_LEAGUE_MEMBER_POSITION@@HKH@Z | 0x1406d7980 | implemented | IDA decompile | yes | ��ȷ��ԭ-���³�Աְλ |
+| XGameServer | ThreadLocalData.cpp | ?ChangeLeagueAuth@ThreadLocalData@@QEAAXUST_LEAGUE_AUTH_CHANGE@@HH@Z | 0x1406d7800 | implemented | IDA decompile + active build | no | Landed in ThreadLocalData_Stub.cpp (active-layer adapter; m_mapLeagueMember as void* placeholder map): by-LeagueID lookup, UpdateSyncCount(nSyncCount), by-value copy to CLeagueMember::ChangeLeagueAuth. |
+| XGameServer | ThreadLocalData.cpp | ?ChangePositionName@ThreadLocalData@@QEAAXUST_LEAGUE_POSITION_NAME_CHANGE@@H@Z | 0x1406d78d0 | implemented | IDA decompile + active build | no | Landed in ThreadLocalData_Stub.cpp (active-layer adapter; m_mapLeagueMember as void* placeholder map): by-LeagueID lookup then by-value copy to CLeagueMember::ChangeLeaguePositionName. |
+| XGameServer | ThreadLocalData.cpp | ?UpdateMemberPosition@ThreadLocalData@@QEAAXUST_LEAGUE_MEMBER_POSITION@@HKH@Z | 0x1406d7980 | implemented | IDA decompile + active build | no | Landed in ThreadLocalData_Stub.cpp (active-layer adapter; m_mapLeagueMember as void* placeholder map): by-LeagueID lookup, UpdateSyncCount(nSyncCount), 0xC-byte copy to CLeagueMember::ChangeLeagueMemberPosition(stCopy, dwActorID). |
 | XGameServer | ThreadLocalData.cpp | ?SendLeagueWithdraw@ThreadLocalData@@QEAAXHKUST_LEAGUE_INFO_UPDATE@@H@Z | 0x1406d7a40 | implemented | IDA decompile | yes | ��ȷ��ԭ-���������˳� |
-| XGameServer | ThreadLocalData.cpp | ?UpdateLeagueMember@ThreadLocalData@@QEAAXUST_LEAGUE_MEMBER_UPDATE@@@Z | 0x1406d7b10 | implemented | IDA decompile | yes | ��ȷ��ԭ-�������˳�Ա |
-| XGameServer | ThreadLocalData.cpp | ?SendLeagueMsg@ThreadLocalData@@QEAAXUPS_CHAT_LEAGUE@@UPS_CHAT_ITEM_LINK_FOR_SERVER@@@Z | 0x1406d7bc0 | implemented | IDA decompile | yes | ��ȷ��ԭ-����������Ϣ |
-| XGameServer | ThreadLocalData.cpp | ?LeagueApplicantUpdate@ThreadLocalData@@QEAAXAEBUST_LEAGUE_APPLICANT_CHECK_LIST@@K@Z | 0x1406d7cc0 | implemented | IDA decompile | yes | ��ȷ��ԭ-���������˸��� |
+| XGameServer | ThreadLocalData.cpp | ?UpdateLeagueMember@ThreadLocalData@@QEAAXUST_LEAGUE_MEMBER_UPDATE@@@Z | 0x1406d7b10 | implemented | IDA decompile + active build | no | Landed in ThreadLocalData_Stub.cpp (active-layer adapter; m_mapLeagueMember as void* placeholder map per original std::map<unsigned long, CLeagueMember*>): by-LeagueID lookup then by-value copy to CLeagueMember::UpdateLeagueMember. |
+| XGameServer | ThreadLocalData.cpp | ?SendLeagueMsg@ThreadLocalData@@QEAAXUPS_CHAT_LEAGUE@@UPS_CHAT_ITEM_LINK_FOR_SERVER@@@Z | 0x1406d7bc0 | implemented | IDA decompile + active build | no | Landed in ThreadLocalData_Stub.cpp (active-layer adapter; m_mapLeagueMember as void* placeholder map): by-LeagueID lookup from psChatInfo.dwLeagueID, by-value copies to CLeagueMember::SendLeagueMsg. |
+| XGameServer | ThreadLocalData.cpp | ?LeagueApplicantUpdate@ThreadLocalData@@QEAAXAEBUST_LEAGUE_APPLICANT_CHECK_LIST@@K@Z | 0x1406d7cc0 | implemented | IDA decompile + active build | no | Landed in ThreadLocalData_Stub.cpp (active-layer adapter): iterate vecInfo, per-actorID lookup, CLeagueMember::UpdateApplicantList(dwUCID). |
 | XGameServer | ThreadLocalData.cpp | ?CreateMyRoom@ThreadLocalData@@QEAAXUST_MYROOM_USER@@UST_MYROOM_OWNER_INFO@@TUXMapID@@K@Z | 0x1406d7d90 | implemented | IDA decompile | yes | ��ȷ��ԭ-�������˷��� |
 | XGameServer | ThreadLocalData.cpp | ?EnterMyRoom@ThreadLocalData@@QEAAXUST_MYROOM_USER@@TUXMapID@@K@Z | 0x1406d7fb0 | implemented | IDA decompile | yes | ��ȷ��ԭ-������˷���?|
 | XGameServer | ThreadLocalData.cpp | ?DeleteMyRoomReq@ThreadLocalData@@QEAAXKTUXMapID@@@Z | 0x1406d8190 | implemented | IDA decompile | yes | ��ȷ��ԭ-����ɾ�����˷��� |
@@ -34300,17 +34305,17 @@ yes | ?????????? |
 | XGameServer | ThreadLocalData.cpp | ?CreateSocialItemObject@ThreadLocalData@@QEAAPEAVCSocialItemObject@@UXVec3@@@Z | 0x1406d8de0 | implemented | IDA decompile | yes | ��ȷ��ԭ-�����罻��Ʒ |
 | XGameServer | ThreadLocalData.cpp | ?DeleteSocialItemObject@ThreadLocalData@@QEAAXPEAVCSocialItemObject@@@Z | 0x1406d8e30 | implemented | IDA decompile | yes | ��ȷ��ԭ-ɾ���罻��Ʒ |
 | XGameServer | ThreadLocalData.cpp | ?CreateNpc@ThreadLocalData@@QEAAPEAVCNpc@@PEAVXArea@@TUXMapID@@HHUXVec3@@M_N@Z | 0x1406d8e60 | implemented | IDA decompile | yes | ��ȷ��ԭ-����NPC���� |
-| XGameServer | ThreadLocalData.cpp | ?CreateAkashicObject@ThreadLocalData@@QEAAPEAVCAkashicObject@@PEAVXArea@@TUXMapID@@HUXVec3@@MK@Z | 0x1406d8fb0 | implemented | IDA decompile | yes | ��ȷ��ԭ-����Akashic���� |
-| XGameServer | ThreadLocalData.cpp | ?DeleteAkashicObject@ThreadLocalData@@QEAAXPEAVCAkashicObject@@@Z | 0x1406d9070 | implemented | IDA decompile | yes | 精确还原-通过m_xAkashicMgr->Delete删除 |
+| XGameServer | ThreadLocalData_Stub.cpp | ?CreateAkashicObject@ThreadLocalData@@QEAAPEAVCAkashicObject@@PEAVXArea@@TUXMapID@@HUXVec3@@MK@Z | 0x1406d8fb0 | implemented | IDA decompile + active-adapter stub | no | original chain XAkashicObjectMgr::Create + vftable SetArea proven by IDA 0x1406D8FB0; XAkashicObjectMgr.h is half-finished (invented TXObjectMgr specialization conflicts IXObject.h 280B main template), so active adapter returns nullptr with TODO; AkashicMgr batch to restore full chain |
+| XGameServer | ThreadLocalData_Stub.cpp | ?DeleteAkashicObject@ThreadLocalData@@QEAAXPEAVCAkashicObject@@@Z | 0x1406d9070 | implemented | IDA decompile + active-adapter stub | no | original chain XMonsterMgr::Delete(&m_xAkashicMgr, pAkashic) proven by IDA 0x1406D9070; active adapter no-op with TODO; AkashicMgr batch to restore |
 | XGameServer | ThreadLocalData.cpp | ?DeleteNpc@ThreadLocalData@@QEAAXPEAVCNpc@@@Z | 0x1406d90a0 | implemented | IDA decompile | yes | 精确还原-通过m_xNpcMgr->Delete删除 |
 | XGameServer | ThreadLocalData.cpp | ?ReloadMazeResource@ThreadLocalData@@QEAA_NH@Z | 0x1406d90d0 | implemented | IDA decompile | yes | ��ȷ��ԭ-�����Թ���Դ�ͽű� |
 | XGameServer | ThreadLocalData.cpp | ?UpdateReportInfo@ThreadLocalData@@QEAAXXZ | 0x1406d9230 | implemented | IDA decompile | yes | ��ȷ��ԭ-���±�������?|
-| XGameServer | ThreadLocalData.cpp | ?SendLeagueNoticeChangeToMember@ThreadLocalData@@QEAAXUST_LEAGUE_NOTICE@@K@Z | 0x1406d9540 | implemented | IDA decompile | yes | ��ȷ��ԭ-�������˹����� |
-| XGameServer | ThreadLocalData.cpp | ?SendLeagueRecruitNoticeToMember@ThreadLocalData@@QEAAXUST_LEAGUE_RECRUIT_NOTICE@@_J@Z | 0x1406d9600 | implemented | IDA decompile | yes | ��ȷ��ԭ-����������ļ���� |
-| XGameServer | ThreadLocalData.cpp | ?SendLeagueJoinUser_Invite@ThreadLocalData@@QEAAXUST_LEAGUE_MEMBER_EX@@UST_LEAGUE_INFO_UPDATE@@EH@Z | 0x1406d96c0 | implemented | IDA decompile | yes | ��ȷ��ԭ-���������������?|
-| XGameServer | ThreadLocalData.cpp | ?SendLeagueKickout@ThreadLocalData@@QEAAXHKKUST_LEAGUE_INFO_UPDATE@@H@Z | 0x1406d97c0 | implemented | IDA decompile | yes | ��ȷ��ԭ-���������߳���Ա |
-| XGameServer | ThreadLocalData.cpp | ?SendLeagueRecordUpdate@ThreadLocalData@@QEAAXUST_LEAGUE_RECORD@@@Z | 0x1406d9890 | implemented | IDA decompile | yes | ��ȷ��ԭ-�������˼�¼���� |
-| XGameServer | ThreadLocalData.cpp | ?SendLeagueCardChange@ThreadLocalData@@QEAAXUPS_REQ_LEAGUE_CARD@@H@Z | 0x1406d9940 | implemented | IDA decompile | yes | ��ȷ��ԭ-�������˿�Ƭ���?|
+| XGameServer | ThreadLocalData.cpp | ?SendLeagueNoticeChangeToMember@ThreadLocalData@@QEAAXUST_LEAGUE_NOTICE@@K@Z | 0x1406d9540 | implemented | IDA decompile + active build | no | Landed in ThreadLocalData_Stub.cpp (active-layer adapter; m_mapLeagueMember as void* placeholder map per original std::map<unsigned long, CLeagueMember*>): by-LeagueID lookup then by-value copy to CLeagueMember::SendLeagueNotice(stCopy, dwReqUCID). |
+| XGameServer | ThreadLocalData_Stub.cpp | ?SendLeagueRecruitNoticeToMember@ThreadLocalData@@QEAAXUST_LEAGUE_RECRUIT_NOTICE@@_J@Z | 0x1406d9600 | implemented | IDA decompile + landed source (ThreadLocalData_Stub.cpp active layer) | no | find nLeagueID in m_mapLeagueMember then forward by-value copy + biRemainTime to CLeagueMember::SendLeagueRecruitNotice. |
+| XGameServer | ThreadLocalData.cpp | ?SendLeagueJoinUser_Invite@ThreadLocalData@@QEAAXUST_LEAGUE_MEMBER_EX@@UST_LEAGUE_INFO_UPDATE@@EH@Z | 0x1406d96c0 | implemented | IDA decompile + active build | no | Landed in ThreadLocalData_Stub.cpp (active-layer adapter): by-LeagueID lookup, UpdateSyncCount, by-value copies to CLeagueMember::JoinLeagueUser(stCopy, stUpdateCopy, byApplyState). |
+| XGameServer | ThreadLocalData.cpp | ?SendLeagueKickout@ThreadLocalData@@QEAAXHKKUST_LEAGUE_INFO_UPDATE@@H@Z | 0x1406d97c0 | implemented | no | Landed in ThreadLocalData_Stub.cpp (active-layer adapter; m_mapLeagueMember as void* placeholder map per original std::map<unsigned long, CLeagueMember*>). | ��ȷ��ԭ-���������߳���Ա |
+| XGameServer | ThreadLocalData_Stub.cpp | ?SendLeagueRecordUpdate@ThreadLocalData@@QEAAXUST_LEAGUE_RECORD@@@Z | 0x1406d9890 | implemented | IDA decompile + landed source (ThreadLocalData_Stub.cpp active layer) | no | find nLeagueID in m_mapLeagueMember then forward by-value copy to CLeagueMember::Record. |
+| XGameServer | ThreadLocalData.cpp | ?SendLeagueCardChange@ThreadLocalData@@QEAAXUPS_REQ_LEAGUE_CARD@@H@Z | 0x1406d9940 | implemented | IDA decompile + active build | no | Landed in ThreadLocalData_Stub.cpp (active-layer adapter; m_mapLeagueMember as void* placeholder map): by-LeagueID lookup, UpdateSyncCount(nSyncCount), 0x10-byte copy to CLeagueMember::CardChange. |
 | XGameServer | ThreadLocalData.cpp | ?SendLeagueWealth@ThreadLocalData@@QEAAXUST_LEAGUE_INFO_UPDATE@@@Z | 0x1406d99f0 | implemented | IDA decompile | yes | ��ȷ��ԭ-�������˲Ƹ����� |
 | XGameServer | ThreadLocalData.cpp | ?SendLeagueLevelUp@ThreadLocalData@@QEAAXHEEUPS_AUTO_SKILL@@H@Z | 0x1406d9aa0 | implemented | IDA decompile | yes | ��ȷ��ԭ-������������ |
 | XGameServer | ThreadLocalData.cpp | ?SendLeagueSkillLearn@ThreadLocalData@@QEAAXUPS_RES_LEAGUE_SKILL@@H@Z | 0x1406d9b60 | implemented | IDA decompile | yes | ��ȷ��ԭ-�������˼���ѧϰ |
@@ -34321,14 +34326,14 @@ yes | ?????????? |
 | - | - | ?MyRoomPollenHelp@ThreadLocalData@@QEAAXHTUXMapID@@HUPS_MYROOM_POLLEN_HELP_USER@@_JK@Z | 0x1406d9ee0 | implemented | IDA ?MyRoomPollenHelp@ThreadLocalData@@QEAAXHTUXMapID@@HUPS_MYROOM_POLLEN_HELP_USER@@_JK@Z | yes | - |
 | - | - | ?MyRoomPollenItemUse@ThreadLocalData@@QEAAXHTUXMapID@@UPS_MYROOM_POLLEN_INFO@@@Z | 0x1406da090 | implemented | IDA ?MyRoomPollenItemUse@ThreadLocalData@@QEAAXHTUXMapID@@UPS_MYROOM_POLLEN_INFO@@@Z | yes | - |
 | - | - | ?SendLeagueDelegate@ThreadLocalData@@QEAAXUPS_RES_LEAGUE_DELEGATE@@KH@Z | 0x1406da1b0 | implemented | IDA ?SendLeagueDelegate@ThreadLocalData@@QEAAXUPS_RES_LEAGUE_DELEGATE@@KH@Z | yes | - |
-| - | - | ?SendLeagueChangeName@ThreadLocalData@@QEAAXUPS_RES_LEAGUE_NAME_CHANGE@@H@Z | 0x1406da280 | implemented | IDA ?SendLeagueChangeName@ThreadLocalData@@QEAAXUPS_RES_LEAGUE_NAME_CHANGE@@H@Z | yes | - |
+| XGameServer | ThreadLocalData.cpp | ?SendLeagueChangeName@ThreadLocalData@@QEAAXUPS_RES_LEAGUE_NAME_CHANGE@@H@Z | 0x1406da280 | implemented | IDA decompile + active build | no | Landed in ThreadLocalData_Stub.cpp (active-layer adapter; m_mapLeagueMember as void* placeholder map): by-LeagueID lookup, UpdateSyncCount(nSyncCount), 0x1C-byte copy to CLeagueMember::ChangeName. |
 | - | - | ?UpdateSyncLeagueLoad@ThreadLocalData@@QEAAXH@Z | 0x1406da340 | implemented | IDA ?UpdateSyncLeagueLoad@ThreadLocalData@@QEAAXH@Z | yes | - |
 | - | - | ?SendLeagueInventoryMove@ThreadLocalData@@QEAAXKUPS_ITEM_MOVE_LEAGUE_INVEN_FOR_GAME@@@Z | 0x1406da3c0 | implemented | IDA ?SendLeagueInventoryMove@ThreadLocalData@@QEAAXKUPS_ITEM_MOVE_LEAGUE_INVEN_FOR_GAME@@@Z | yes | - |
 | - | - | ??4PS_RES_ITEM_MOVE_LEAGUE_INVEN@@QEAAAEAU0@AEAU0@@Z | 0x1406da550 | blocked | IDA ??4PS_RES_ITEM_MOVE_LEAGUE_INVEN@@QEAAAEAU0@AEAU0@@Z | yes | - |
 | - | - | ?SendDayEvent@ThreadLocalData@@QEAAXAEAUPS_DAY_EVENT_LIST@@@Z | 0x1406da650 | implemented | IDA ?SendDayEvent@ThreadLocalData@@QEAAXAEAUPS_DAY_EVENT_LIST@@@Z | yes | - |
 | - | - | ?SendOperationTime@ThreadLocalData@@QEAAXXZ | 0x1406da6f0 | implemented | IDA ?SendOperationTime@ThreadLocalData@@QEAAXXZ | yes | - |
 | XGameServer | ThreadLocalData_Stub.cpp | ?SendWorldEventBooster@ThreadLocalData@@QEAAXK_J@Z | 0x1406DA780 | blocked | IDA decompile + active GameServer stub build | no | Iterates the thread-local area map and forwards the booster to each area. |
-| - | - | ?CompareLeagueInventoryCount@ThreadLocalData@@QEAA_NHK@Z | 0x1406da820 | implemented | IDA ?CompareLeagueInventoryCount@ThreadLocalData@@QEAA_NHK@Z | yes | - |
+| XGameServer | ThreadLocalData_Stub.cpp | ?CompareLeagueInventoryCount@ThreadLocalData@@QEAA_NHK@Z | 0x1406da820 | implemented | IDA decompile + landed source (ThreadLocalData_Stub.cpp active layer) | no | - |
 | - | - | ?MyRoomPollenCancel@ThreadLocalData@@QEAAXHTUXMapID@@H@Z | 0x1406da8a0 | implemented | IDA ?MyRoomPollenCancel@ThreadLocalData@@QEAAXHTUXMapID@@H@Z | yes | - |
 | - | - | ?StartWorldMode@ThreadLocalData@@QEAAXAEAUST_WORLD_MODE_INFO@@@Z | 0x1406da940 | implemented | IDA ?StartWorldMode@ThreadLocalData@@QEAAXAEAUST_WORLD_MODE_INFO@@@Z | yes | - |
 | - | - | ?FinishWorldMode@ThreadLocalData@@QEAAXAEAUPS_WORLD_MODE_FINISH@@@Z | 0x1406da9e0 | implemented | IDA ?FinishWorldMode@ThreadLocalData@@QEAAXAEAUPS_WORLD_MODE_FINISH@@@Z | yes | - |
@@ -34611,8 +34616,8 @@ yes | ?????????? |
 | - | - | ?IsLive@CUser@@UEAA_NXZ | 0x1406e97c0 | blocked | IDA ?IsLive@CUser@@UEAA_NXZ | yes | - |
 | - | - | ?IsCounterAttackHit@CUser@@UEAAHXZ | 0x1406e9820 | blocked | IDA ?IsCounterAttackHit@CUser@@UEAAHXZ | yes | - |
 | - | - | ?SendCharacterInfo@CUser@@QEAAXXZ | 0x1406e9950 | implemented | IDA ?SendCharacterInfo@CUser@@QEAAXXZ | yes | - |
-| - | - | ?SendResWarp@CUser@@QEAAXEAEAUXVec3@@M@Z | 0x1406e9ae0 | blocked | IDA ?SendResWarp@CUser@@QEAAXEAEAUXVec3@@M@Z | yes | - |
-| - | - | ?Warp@CUser@@QEAAXAEAUXVec3@@@Z | 0x1406e9c40 | implemented | IDA decompile | yes | IDA精确还原-传送到指定位置并广播包 |
+| XGameServer | User.cpp | ?SendResWarp@CUser@@QEAAXEAEAUXVec3@@M@Z | 0x1406e9ae0 | implemented | IDA decompile + landed source | no | (4,8): STWarp{byResult,xPos,fRot} + GetQuestID + CGocNetwork::SendBroadCast(eAll). |
+| XGameServer | User.cpp | ?Warp@CUser@@QEAAXAEAUXVec3@@@Z | 0x1406e9c40 | implemented | IDA decompile + landed source | no | GetArea -> MoveActor(this,pos) -> (4,8) STWarp{byResult=0,xPos,fRot=m_pPosInfo->fRot} + GetQuestID -> SendBroadCast(eAll). Previous approximate body with TODOs replaced. |
 | XGameServer | User.cpp | ?SetInfoPacket@CUser@@UEAAXAEAVXSendPacket@@@Z | 0x1406e9e60 | implemented | IDA decompile + source/build check | yes | Added active-source packet writer for the `STCharInfoEx` portion returned through `GetMyCharInfoEx`; `BuildBuffInfo` remains a separate blocked function. |
 | XGameServer | User.cpp | ?GetMyCharInfoEx@CUser@@QEAAAEAUSTMyCharInfoEx@@XZ | 0x1406e9ec0 | implemented | IDA decompile + source/build check | yes | Added active-source accessor returning `m_stCharInfo`; full `BuildBuffInfo` refresh remains a separate blocked function. |
 | XGameServer | User.cpp | ?BuildBuffInfo@CUser@@QEAAXXZ | 0x1406e9f20 | implemented | IDA decompile | yes | Precise IDA restoration - build buff info from m_stBuffState array |
@@ -34704,7 +34709,7 @@ yes | ?????????? |
 | - | - | ?FindCurDivergence@CUser@@QEAAPEBUTB_DIVERGENCE@@H@Z | 0x1406f8490 | blocked | IDA ?FindCurDivergence@CUser@@QEAAPEBUTB_DIVERGENCE@@H@Z | yes | - |
 | - | - | ?IsUsingSwapSkill@CUser@@UEAAHXZ | 0x1406f8610 | blocked | IDA ?IsUsingSwapSkill@CUser@@UEAAHXZ | yes | - |
 | - | - | ?EnterWorldByForce@CUser@@QEAAXHHAEAUSTPosInfo@@@Z | 0x1406f86a0 | blocked | IDA ?EnterWorldByForce@CUser@@QEAAXHHAEAUSTPosInfo@@@Z | yes | - |
-| - | - | ?EnterWorldToOther@CUser@@QEAAXHHUSTPosInfo@@K@Z | 0x1406f8800 | blocked | IDA ?EnterWorldToOther@CUser@@QEAAXHHUSTPosInfo@@K@Z | yes | - |
+| XGameServer | User.cpp | ?EnterWorldToOther@CUser@@QEAAXHHUSTPosInfo@@K@Z | 0x1406f8800 | implemented | IDA decompile + landed source | no | Fill PS_ENTER_MAP_REQ then GetProcessPtr<CWorldProcess>(4); (4,1)<<st<<pos<<target; SetUsIndex(2); ReqWorldEnterToOther. |
 | - | - | ?ClearPrivateShop@CUser@@QEAA_NXZ | 0x1406f8960 | blocked | IDA ?ClearPrivateShop@CUser@@QEAA_NXZ | yes | - |
 | - | - | ?TakePublicTransport@CUser@@QEAAXG@Z | 0x1406f8a00 | blocked | IDA ?TakePublicTransport@CUser@@QEAAXG@Z | yes | - |
 | - | - | ?ClearPublicTransport@CUser@@QEAAXXZ | 0x1406f9070 | blocked | IDA ?ClearPublicTransport@CUser@@QEAAXXZ | yes | - |
@@ -34717,9 +34722,9 @@ yes | ?????????? |
 | - | - | ?AddBonusFP@CUser@@QEAA_NF@Z | 0x1406f9ba0 | implemented | IDA ?AddBonusFP@CUser@@QEAA_NF@Z | yes | - |
 | - | - | ?AddPCBangFP@CUser@@QEAA_NFF_N@Z | 0x1406f9c20 | implemented | IDA ?AddPCBangFP@CUser@@QEAA_NFF_N@Z | yes | - |
 | - | - | ?GetPCBangFP@CUser@@QEAAF_N@Z | 0x1406f9ee0 | implemented | IDA ?GetPCBangFP@CUser@@QEAAF_N@Z | yes | - |
-| - | - | ?IsEnableEscapeWorld@CUser@@QEAA_NXZ | 0x1406fa020 | blocked | IDA ?IsEnableEscapeWorld@CUser@@QEAA_NXZ | yes | - |
+| XGameServer | User.cpp | ?IsEnableEscapeWorld@CUser@@QEAA_NXZ | 0x1406fa020 | implemented | IDA decompile + landed source | no | return m_nEnableEscapeTime <= GetTickCount64(); |
 | - | - | ?CheckKeepAliveKey@CUser@@QEAA_NAEBUST_KEEP_ALIVE@@AEAE@Z | 0x1406fa050 | blocked | IDA ?CheckKeepAliveKey@CUser@@QEAA_NAEBUST_KEEP_ALIVE@@AEAE@Z | yes | - |
-| - | - | ?SetNextEscapeTime@CUser@@QEAAXXZ | 0x1406fa590 | blocked | IDA ?SetNextEscapeTime@CUser@@QEAAXXZ | yes | - |
+| XGameServer | User.cpp | ?SetNextEscapeTime@CUser@@QEAAXXZ | 0x1406fa590 | implemented | IDA decompile + landed source | no | m_nEnableEscapeTime = GetTickCount64() + 60000; |
 | CUser | User.cpp | ?SendChatNotify@CUser@@QEAAXHH@Z | 0x1406fa5c0 | verified | PDB + IDA decompile + source build + smoke | yes | Sends main 7/sub 5 PS_CHAT_NOTIFY packet. |
 | - | - | ?UseItem@CUser@@UEAAHK@Z | 0x1406fa6a0 | implemented | IDA ?UseItem@CUser@@UEAAHK@Z | yes | - |
 | - | - | ?CheckBuffByMapID@CUser@@UEAAXH@Z | 0x1406faa80 | blocked | IDA ?CheckBuffByMapID@CUser@@UEAAXH@Z | yes | - |
@@ -34728,8 +34733,8 @@ yes | ?????????? |
 | - | - | ?SendLogoutToServer@CUser@@QEAAXHE@Z | 0x1406faef0 | blocked | IDA ?SendLogoutToServer@CUser@@QEAAXHE@Z | yes | - |
 | - | - | ?SendErrorMessage@CUser@@QEAA_NEEG@Z | 0x1406fb1a0 | implemented | IDA ?SendErrorMessage@CUser@@QEAA_NEEG@Z | yes | - |
 | XGameServer | User.cpp | ?SendErrorMessage@CUser@@QEAA_NEEGK@Z | 0x1406fb290 | implemented | IDA decompile + active build | no | Restored 4-param overload: (main, sub|0x80) + errorCode + dwUCID via BridgeSend; returns true. |
-| - | - | ?GetLeagueInfo@CUser@@QEAAXAEAUST_LEAGUE_INFO_EX@@@Z | 0x1406fb3a0 | blocked | IDA ?GetLeagueInfo@CUser@@QEAAXAEAUST_LEAGUE_INFO_EX@@@Z | yes | - |
-| - | - | ?ClearLeagueInfo@CUser@@QEAAXXZ | 0x1406fb440 | blocked | IDA ?ClearLeagueInfo@CUser@@QEAAXXZ | yes | - |
+| - | - | ?GetLeagueInfo@CUser@@QEAAXAEAUST_LEAGUE_INFO_EX@@@Z | 0x1406fb3a0 | implemented | IDA decompile + active build | no | Landed: reads m_stCharInfo.stLeagueInfo (nLeagueID/uCard.nCard/szLeagueName) into ST_LEAGUE_INFO_EX. |
+| - | - | ?ClearLeagueInfo@CUser@@QEAAXXZ | 0x1406fb440 | implemented | IDA decompile + active build | no | Landed: zero stLeagueInfo (nLeagueID/nCard/name[0]) + memset m_stLeagueInfo. |
 | - | - | ?SetActiveBroachEffect@CUser@@QEAAXK@Z | 0x1406fb490 | verified | IDA decompile + PDB signature + source build | yes | Hides old visibility, shows the resolved new state, and persists only a changed value via (3, 0x84). |
 | - | - | ?SendDBAllowInfo@CUser@@QEAAXXZ | 0x1406fbae0 | blocked | IDA ?SendDBAllowInfo@CUser@@QEAAXXZ | yes | - |
 | - | - | ?SetGameOption@CUser@@QEAAXUST_OPTION_BIT@@@Z | 0x1406fbbc0 | blocked | IDA ?SetGameOption@CUser@@QEAAXUST_OPTION_BIT@@@Z | yes | - |
@@ -34757,27 +34762,27 @@ yes | ?????????? |
 | - | - | ?SendTickLog@CUser@@QEAAXXZ | 0x1406ffb50 | implemented | IDA ?SendTickLog@CUser@@QEAAXXZ | yes | - |
 | - | - | ?AddPingLog@CUser@@QEAAX_KH@Z | 0x140700040 | blocked | IDA ?AddPingLog@CUser@@QEAAX_KH@Z | yes | - |
 | - | - | ?SendPingLog@CUser@@QEAAXXZ | 0x140700090 | blocked | IDA ?SendPingLog@CUser@@QEAAXXZ | yes | - |
-| - | - | ?SetLogChangeMap@CUser@@QEAAX_N@Z | 0x140700500 | blocked | IDA ?SetLogChangeMap@CUser@@QEAAX_N@Z | yes | - |
+| XGameServer | User.cpp | ?SetLogChangeMap@CUser@@QEAAX_N@Z | 0x140700500 | implemented | IDA decompile + source/build check | no | Landed this round; build passed |
 | - | - | ?UpdateLinkSkill@CUser@@UEAAXM@Z | 0x140700560 | blocked | IDA ?UpdateLinkSkill@CUser@@UEAAXM@Z | yes | - |
 | - | - | ?UpdateCheckAttackSkill@CUser@@UEAAXM@Z | 0x140700680 | blocked | IDA ?UpdateCheckAttackSkill@CUser@@UEAAXM@Z | yes | - |
 | CUser | User.cpp | ?IsLeagueSkill@CUser@@QEAA_NH@Z | 0x1407007a0 | verified | GameServer PDB + IDA decompile + source build + smoke | yes | Returns m_stLeagueInfo.bySkillInfo[nSkill] != 0. |
-| - | - | ?IsLeagueAuth@CUser@@QEAA_NEW4E_LEAGUE_AUTH@@@Z | 0x1407007e0 | blocked | IDA ?IsLeagueAuth@CUser@@QEAA_NEW4E_LEAGUE_AUTH@@@Z | yes | - |
-| - | - | ?GetLeagueSkillEffectValue@CUser@@QEAAHH@Z | 0x140700830 | blocked | IDA ?GetLeagueSkillEffectValue@CUser@@QEAAHH@Z | yes | - |
-| - | - | ?SetLeagueCard@CUser@@QEAAXK@Z | 0x1407008f0 | blocked | IDA ?SetLeagueCard@CUser@@QEAAXK@Z | yes | - |
-| - | - | ?SetLeagueMaster@CUser@@QEAAXK@Z | 0x140700910 | blocked | IDA ?SetLeagueMaster@CUser@@QEAAXK@Z | yes | - |
-| - | - | ?SetLeaguePosition@CUser@@QEAAXE@Z | 0x140700930 | blocked | IDA ?SetLeaguePosition@CUser@@QEAAXE@Z | yes | - |
-| - | - | ?SetLeagueInfo@CUser@@QEAAXAEAUST_LEAGUE_INFO_EX@@UST_LEAGUE_INFO_FOR_GAME@@@Z | 0x140700950 | blocked | IDA ?SetLeagueInfo@CUser@@QEAAXAEAUST_LEAGUE_INFO_EX@@UST_LEAGUE_INFO_FOR_GAME@@@Z | yes | - |
-| - | - | ?SetLeagueInfo@CUser@@QEAAXAEAUST_LEAGUE_INFO_EX@@@Z | 0x140700a40 | blocked | IDA ?SetLeagueInfo@CUser@@QEAAXAEAUST_LEAGUE_INFO_EX@@@Z | yes | - |
-| - | - | ?SetLeagueAuth@CUser@@QEAAXUST_LEAGUE_AUTH_CHANGE@@@Z | 0x140700ae0 | blocked | IDA ?SetLeagueAuth@CUser@@QEAAXUST_LEAGUE_AUTH_CHANGE@@@Z | yes | - |
-| - | - | ?SetLeagueSkill@CUser@@QEAAXEE@Z | 0x140700b30 | blocked | IDA ?SetLeagueSkill@CUser@@QEAAXEE@Z | yes | - |
-| - | - | ?SetLeagueLevel@CUser@@QEAAXE@Z | 0x140700b60 | blocked | IDA ?SetLeagueLevel@CUser@@QEAAXE@Z | yes | - |
+| XGameServer | User.cpp | ?IsLeagueAuth@CUser@@QEAA_NEW4E_LEAGUE_AUTH@@@Z | 0x1407007e0 | implemented | IDA decompile + landed source | no | - |
+| XGameServer | User.cpp | ?GetLeagueSkillEffectValue@CUser@@QEAAHH@Z | 0x140700830 | implemented | IDA decompile + active build | yes | Landed: reads m_stLeagueInfo.bySkillInfo[nSkill], scans GetTB_LEAGUE_SKILL_Map for League_Skill_Type==nSkill+1 && League_Get_Skill_Level match, returns League_Skill_Apply_Value. |
+| XGameServer | User.cpp | ?SetLeagueCard@CUser@@QEAAXK@Z | 0x1407008f0 | implemented | IDA decompile + active build | no | Restored: assign m_stCharInfo.stLeagueInfo.uCard.nCard = dwCardInfo. |
+| XGameServer | User.cpp | ?SetLeagueMaster@CUser@@QEAAXK@Z | 0x140700910 | implemented | IDA decompile + active build | no | Restored: assign m_stLeagueInfo.dwMasterUCID. |
+| XGameServer | User.cpp | ?SetLeaguePosition@CUser@@QEAAXE@Z | 0x140700930 | implemented | IDA decompile + active build | no | Restored: assign m_stLeagueInfo.byPosition. |
+| - | - | ?SetLeagueInfo@CUser@@QEAAXAEAUST_LEAGUE_INFO_EX@@UST_LEAGUE_INFO_FOR_GAME@@@Z | 0x140700950 | implemented | IDA decompile + active build | no | Landed: writes m_stCharInfo.stLeagueInfo (nLeagueID/uCard.nCard/szLeagueName) + m_stLeagueInfo copy. Second param by value per PDB decoration. |
+| XGameServer | User.cpp | ?SetLeagueInfo@CUser@@QEAAXAEAUST_LEAGUE_INFO_EX@@@Z | 0x140700a40 | implemented | IDA decompile + active build | no | Restored: single-arg overload writes m_stCharInfo.stLeagueInfo (nLeagueID/uCard.nCard/szLeagueName) only; PDB publics RVA 0x6FFA40. |
+| XGameServer | User.cpp | ?SetLeagueAuth@CUser@@QEAAXUST_LEAGUE_AUTH_CHANGE@@@Z | 0x140700ae0 | implemented | IDA decompile + active build | no | Restored: copy 9 auth entries to m_stLeagueInfo.nAuth. |
+| - | - | ?SetLeagueSkill@CUser@@QEAAXEE@Z | 0x140700b30 | implemented | IDA decompile + active build | no | Landed: m_stLeagueInfo.bySkillInfo[byGroupID] = bySkillLevel. |
+| - | - | ?SetLeagueLevel@CUser@@QEAAXE@Z | 0x140700b60 | implemented | IDA decompile + active build | no | Landed: m_stLeagueInfo.byLeagueLevel = byLevel. |
 | - | - | ?InitSuperArmorGage@CUser@@QEAAXXZ | 0x140700b80 | implemented | IDA ?InitSuperArmorGage@CUser@@QEAAXXZ | yes | - |
 | XGameServer | User.cpp | ?CheckMazeEnterCount@CUser@@QEAA_NPEAUTB_MAZE_INFO@@AEAH@Z | 0x140700c30 | implemented | IDA decompile + active build | no | Restored: PC-room (GetNetCafe + Maze_Enter_Count_PC_Room) and normal (Maze_Enter_Count + GetMazeEnterPlusDayCount) daily limits with Maze_Type==2 base-maze aggregation via GetDailyBaseMazeID; base-error 55053, no-record 53138. |
 | - | - | ?OnPassiveCheck@CUser@@QEAAXM@Z | 0x140701130 | implemented | IDA ?OnPassiveCheck@CUser@@QEAAXM@Z | yes | - |
 | - | - | ?CheckInfiniteTowerEnterCount@CUser@@QEAA_NPEAUTB_MAZE_INFO@@@Z | 0x1407012a0 | blocked | IDA ?CheckInfiniteTowerEnterCount@CUser@@QEAA_NPEAUTB_MAZE_INFO@@@Z | yes | - |
 | - | - | ?SetArea@CUser@@UEAAXPEAVXArea@@@Z | 0x140701470 | blocked | IDA ?SetArea@CUser@@UEAAXPEAVXArea@@@Z | yes | - |
 | - | - | ?GetArea@CUser@@UEAAPEAVXArea@@XZ | 0x1407015c0 | blocked | IDA ?GetArea@CUser@@UEAAPEAVXArea@@XZ | yes | - |
-| - | - | ?GetValidMapInsID@CUser@@QEAA?ATUXMapID@@XZ | 0x140701610 | blocked | IDA ?GetValidMapInsID@CUser@@QEAA?ATUXMapID@@XZ | yes | - |
+| XGameServer | User.cpp | ?GetValidMapInsID@CUser@@QEAA?ATUXMapID@@XZ | 0x140701610 | implemented | IDA decompile | yes | exact restore: GetArea ? GetMapInsID : UXMapID(0); wired for OnUpdate invalid-user chain (batch13) |
 | - | - | ?CheckKickoutNow@CUser@@QEAA_NXZ | 0x140701680 | blocked | IDA ?CheckKickoutNow@CUser@@QEAA_NXZ | yes | - |
 | - | - | ?SendToDBAccountDate@CUser@@QEAAXXZ | 0x1407016c0 | blocked | IDA ?SendToDBAccountDate@CUser@@QEAAXXZ | yes | - |
 | - | - | ?SendCheckSpeedLog@CUser@@QEAAXXZ | 0x1407017a0 | blocked | IDA ?SendCheckSpeedLog@CUser@@QEAAXXZ | yes | - |
@@ -35276,21 +35281,21 @@ yes | ?????????? |
 | - | - | ?GetCrossProduct@hkvVec3@@QEBA?BV1@AEBV1@@Z | 0x140718630 | blocked | IDA ?GetCrossProduct@hkvVec3@@QEBA?BV1@AEBV1@@Z | yes | - |
 | - | - | ?GetPathNodeCount@VisPath_cl@@QEBAHXZ | 0x140718670 | implemented | IDA ?GetPathNodeCount@VisPath_cl@@QEBAHXZ | yes | - |
 | - | - | ??0stAccelValue@@QEAA@M@Z | 0x140718690 | blocked | IDA ??0stAccelValue@@QEAA@M@Z | yes | - |
-| - | - | ??0CWarpPotal@@QEAA@XZ | 0x1407186c0 | blocked | IDA ??0CWarpPotal@@QEAA@XZ | yes | - |
-| - | - | ?Init@CWarpPotal@@QEAAXPEAVXMaze@@@Z | 0x140718730 | blocked | IDA ?Init@CWarpPotal@@QEAAXPEAVXMaze@@@Z | yes | - |
-| - | - | ?WarpInfoClear@CWarpPotal@@QEAAXXZ | 0x140718790 | implemented | IDA ?WarpInfoClear@CWarpPotal@@QEAAXXZ | yes | - |
-| - | - | ??_GtagWARP_POTAL_INFO@@QEAAPEAXI@Z | 0x1407188a0 | blocked | IDA ??_GtagWARP_POTAL_INFO@@QEAAPEAXI@Z | yes | - |
-| - | - | ??1tagWARP_POTAL_INFO@@QEAA@XZ | 0x1407188e0 | blocked | IDA ??1tagWARP_POTAL_INFO@@QEAA@XZ | yes | - |
-| - | - | ?AddWarpPotal@CWarpPotal@@QEAAXKHHH@Z | 0x140718900 | implemented | IDA ?AddWarpPotal@CWarpPotal@@QEAAXKHHH@Z | yes | - |
-| - | - | ??0tagWARP_POTAL_INFO@@QEAA@XZ | 0x140718b10 | blocked | IDA ??0tagWARP_POTAL_INFO@@QEAA@XZ | yes | - |
-| - | - | ?RemoveWarpPotal@CWarpPotal@@QEAAXK@Z | 0x140718b40 | implemented | IDA ?RemoveWarpPotal@CWarpPotal@@QEAAXK@Z | yes | - |
-| - | - | ?CheckWarp@CWarpPotal@@QEAAXXZ | 0x140718c00 | blocked | IDA ?CheckWarp@CWarpPotal@@QEAAXXZ | yes | - |
-| - | - | ?SendWarpPotal@CWarpPotal@@QEAAXPEAUtagWARP_POTAL_INFO@@@Z | 0x140718d80 | implemented | IDA ?SendWarpPotal@CWarpPotal@@QEAAXPEAUtagWARP_POTAL_INFO@@@Z | yes | - |
-| - | - | ?ClosePortal@CWarpPotal@@QEAAXHH@Z | 0x140718fe0 | implemented | IDA ?ClosePortal@CWarpPotal@@QEAAXHH@Z | yes | - |
-| - | - | ?ProcessTimeCount@CWarpPotal@@QEAAXM@Z | 0x140719090 | blocked | IDA ?ProcessTimeCount@CWarpPotal@@QEAAXM@Z | yes | - |
-| - | - | ?SendWarpMessage@CWarpPotal@@QEAAXH@Z | 0x140719130 | implemented | IDA ?SendWarpMessage@CWarpPotal@@QEAAXH@Z | yes | - |
+| XGameServer | Maze.cpp | ??0CWarpPotal@@QEAA@XZ | 0x1407186c0 | implemented | IDA decompile + landed source | no | zero-init m_pMaze/m_pCurInfo/m_bReCheck/m_fWarpTime/m_nSendTimeSec/m_bWarpTimeCheck only; original ctor does NOT write m_nJumpID (+0x40); active landing in Maze.cpp, original ownership WarpPotal.cpp per PDB module/cvdump lines |
+| XGameServer | Maze.cpp | ?Init@CWarpPotal@@QEAAXPEAVXMaze@@@Z | 0x140718730 | implemented | IDA decompile + landed source | no | zero-init m_bReCheck/m_bWarpTimeCheck/m_fWarpTime/m_nSendTimeSec/m_pCurInfo + m_pMaze=pMaze + m_nJumpID=0; previously landed, row was stale blocked |
+| XGameServer | Maze.cpp | ?WarpInfoClear@CWarpPotal@@QEAAXXZ | 0x140718790 | implemented | IDA decompile + landed source | no | m_bWarpTimeCheck=0; clear each info lstUsers; delete each info; vector clear. |
+| XGameServer | Maze.cpp | ??_GtagWARP_POTAL_INFO@@QEAAPEAXI@Z | 0x1407188a0 | implemented | compiler-generated (scalar deleting destructor, IDA 0x1407188A0) | no | compiler-generated scalar deleting destructor; no separate source body required |
+| XGameServer | Maze.cpp | ??1tagWARP_POTAL_INFO@@QEAA@XZ | 0x1407188e0 | implemented | IDA decompile + landed source | no | implicit ~list via member; explicit empty dtor landed for function-granularity parity |
+| XGameServer | Maze.cpp | ?AddWarpPotal@CWarpPotal@@QEAAXKHHH@Z | 0x140718900 | implemented | IDA decompile + landed source | no | m_nJumpID set; dedupe scan (nMapID,nJumpID,nPortalID); reuse info push user or new tagWARP_POTAL_INFO; tail SetReCheck (ICF shows as XWorldManager::ReqWorldInfo). |
+| XGameServer | Maze.cpp | ??0tagWARP_POTAL_INFO@@QEAA@XZ | 0x140718b10 | implemented | IDA decompile + landed source | no | list default-construct only; NSDMI zero-init removed from struct per IDA ctor (raw operator new(0x28) + ctor, no value-init); sole creation point AddWarpPotal fills 3 int fields immediately |
+| XGameServer | Maze.cpp | ?RemoveWarpPotal@CWarpPotal@@QEAAXK@Z | 0x140718b40 | implemented | IDA decompile + landed source | no | m_pCurInfo lstUsers scan for dwUserID -> remove + SetReCheck (ICF tail shows as XWorldManager::ReqWorldInfo). |
+| XGameServer | WarpPotal.cpp | ?CheckWarp@CWarpPotal@@QEAAXXZ | 0x140718c00 | implemented | IDA decompile + landed source (Maze.cpp active landing) | no | GetCurUserCount minus invisible; per-info jumpID match, nCount==nUserCnt -> SendWarpPotal, 2*nCount>=nUserCnt -> 6s countdown arm; else cancel countdown |
+| XGameServer | WarpPotal.cpp | ?SendWarpPotal@CWarpPotal@@QEAAXPEAUtagWARP_POTAL_INFO@@@Z | 0x140718d80 | implemented | IDA decompile + landed source (Maze.cpp active landing) | no | GetPortalPos gate (2 log paths); AllUserWarp(vPos,fRot,true); (4,0xE) nPortalID+STWarp+nSectorID broadcast; reset flags; cutscene SetActiveSectorID/CheckCutsceneState(1); ClearPortalUser + ClosePortal |
+| XGameServer | WarpPotal.cpp | ?ClosePortal@CWarpPotal@@QEAAXHH@Z | 0x140718fe0 | implemented | IDA decompile + landed source (Maze.cpp active landing) | no | GetResource -> SearchFromID -> eEventObjectType_Box picks iID else -1 -> SetPotalFlag(nBoxID,false) |
+| XGameServer | WarpPotal.cpp | ?ProcessTimeCount@CWarpPotal@@QEAAXM@Z | 0x140719090 | implemented | IDA decompile + landed source (Maze.cpp active landing) | no | m_fWarpTime -= dt; integer-second boundary: sec>0 -> SendWarpMessage(sec)-- else SendWarpMessage(0)+SendWarpPotal(m_pCurInfo) |
+| XGameServer | WarpPotal.cpp | ?SendWarpMessage@CWarpPotal@@QEAAXH@Z | 0x140719130 | implemented | IDA decompile + landed source (Maze.cpp active landing) | no | (4,0xF) nTimeSec broadcast eAll |
 | - | - | ?Update@CWarpPotal@@QEAAXM@Z | 0x1407191e0 | implemented | IDA ?Update@CWarpPotal@@QEAAXM@Z | yes | - |
-| - | - | ?ClearPortalUser@CWarpPotal@@QEAAXH@Z | 0x140719240 | implemented | IDA ?ClearPortalUser@CWarpPotal@@QEAAXH@Z | yes | - |
+| XGameServer | WarpPotal.cpp | ?ClearPortalUser@CWarpPotal@@QEAAXH@Z | 0x140719240 | implemented | IDA decompile + landed source (Maze.cpp active landing) | no | scan m_vecWarpInfo for nPortalID match -> clear lstUsers + return |
 | - | - | ?remove@?$list@KV?$allocator@K@std@@@std@@QEAAXAEBK@Z | 0x1407192d0 | blocked | IDA ?remove@?$list@KV?$allocator@K@std@@@std@@QEAAXAEBK@Z | yes | - |
 | - | - | ?ReqWorldInfo@XWorldManager@@QEAAXXZ | 0x1407193d0 | implemented | IDA ?ReqWorldInfo@XWorldManager@@QEAAXXZ | yes | - |
 | - | - | ??0XWorldManager@@QEAA@XZ | 0x1407193e0 | blocked | IDA ??0XWorldManager@@QEAA@XZ | yes | - |
@@ -35440,13 +35445,13 @@ yes | ?????????? |
 | - | - | ?GetStartPortalPos@XWorldResMgr@@QEAA_NHHPEAUSTPosInfo@@@Z | 0x1407206c0 | implemented | IDA ?GetStartPortalPos@XWorldResMgr@@QEAA_NHHPEAUSTPosInfo@@@Z | yes | - |
 | - | - | ?GetMazeEscapePos@XWorldResMgr@@QEAA_NHAEAHPEAUSTPosInfo@@@Z | 0x140720890 | implemented | IDA ?GetMazeEscapePos@XWorldResMgr@@QEAA_NHAEAHPEAUSTPosInfo@@@Z | yes | - |
 | - | - | ?CanEnterPortal@XWorldResMgr@@QEAA_NHHPEAVCUser@@@Z | 0x140720a90 | implemented | IDA ?CanEnterPortal@XWorldResMgr@@QEAA_NHHPEAVCUser@@@Z | yes | - |
-| - | - | ?CheckEnterMapPortalPos@XWorldResMgr@@QEAA_NPEAVCUser@@HH@Z | 0x140720c60 | implemented | IDA ?CheckEnterMapPortalPos@XWorldResMgr@@QEAA_NPEAVCUser@@HH@Z | yes | - |
+| XGameServer | XWorldResMgr.h | ?CheckEnterMapPortalPos@XWorldResMgr@@QEAA_NPEAVCUser@@HH@Z | 0x140720c60 | implemented | IDA decompile + active-layer stub | no | Precise signature + active stub (VEventObjectResource unrecovered); TODO marker in header |
 | - | - | ?GetCheckSectorBox@XWorldResMgr@@QEAAXHHHAEAH0@Z | 0x140721130 | implemented | IDA ?GetCheckSectorBox@XWorldResMgr@@QEAAXHHHAEAH0@Z | yes | - |
 | - | - | ?GetNextPosition@XWorldResMgr@@QEAA_NHHAEAH0@Z | 0x140721210 | implemented | IDA ?GetNextPosition@XWorldResMgr@@QEAA_NHHAEAH0@Z | yes | - |
 | - | - | ?GetStartPortalID@XWorldResMgr@@QEAA_NHAEAHPEAUSTPosInfo@@@Z | 0x140721360 | implemented | IDA ?GetStartPortalID@XWorldResMgr@@QEAA_NHAEAHPEAUSTPosInfo@@@Z | yes | - |
 | - | - | ?IsPrivateShopBox@XWorldResMgr@@QEAA_NPEAVCUser@@AEAH@Z | 0x140721510 | implemented | IDA ?IsPrivateShopBox@XWorldResMgr@@QEAA_NPEAVCUser@@AEAH@Z | yes | - |
 | - | - | ?IsSocialItemExcludeBox@XWorldResMgr@@QEAA_NPEAVCUser@@AEAVhkvVec3@@M@Z | 0x1407216d0 | implemented | IDA ?IsSocialItemExcludeBox@XWorldResMgr@@QEAA_NPEAVCUser@@AEAVhkvVec3@@M@Z | yes | - |
-| - | - | ?GetJumpID@XWorldResMgr@@QEAAHHH@Z | 0x140721a70 | implemented | IDA ?GetJumpID@XWorldResMgr@@QEAAHHH@Z | yes | - |
+| XGameServer | XWorldResMgr.h | ?GetJumpID@XWorldResMgr@@QEAAHHH@Z | 0x140721a70 | implemented | IDA decompile + active-layer stub | no | Precise signature + active stub; TODO marker in header |
 | - | - | ??A?$map@FPEAVVEventObjectResource@@U?$less@F@std@@V?$allocator@U?$pair@$$CBFPEAVVEventObjectResource@@@std@@@3@@std@@QEAAAEAPEAVVEventObjectResource@@AEBF@Z | 0x140721ba0 | blocked | IDA ??A?$map@FPEAVVEventObjectResource@@U?$less@F@std@@V?$allocator@U?$pair@$$CBFPEAVVEventObjectResource@@@std@@@3@@std@@QEAAAEAPEAVVEventObjectResource@@AEBF@Z | yes | - |
 | - | - | ?find@?$_Tree@V?$_Tmap_traits@FPEAVVEventObjectResource@@U?$less@F@std@@V?$allocator@U?$pair@$$CBFPEAVVEventObjectResource@@@std@@@3@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@FPEAVVEventObjectResource@@U?$less@F@std@@V?$allocator@U?$pair@$$CBFPEAVVEventObjectResource@@@std@@@3@$0A@@std@@@std@@@2@AEBF@Z | 0x140721c70 | blocked | IDA ?find@?$_Tree@V?$_Tmap_traits@FPEAVVEventObjectResource@@U?$less@F@std@@V?$allocator@U?$pair@$$CBFPEAVVEventObjectResource@@@std@@@3@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@FPEAVVEventObjectResource@@U?$less@F@std@@V?$allocator@U?$pair@$$CBFPEAVVEventObjectResource@@@std@@@3@$0A@@std@@@std@@@2@AEBF@Z | yes | - |
 | - | - | ?lower_bound@?$_Tree@V?$_Tmap_traits@FPEAVVEventObjectResource@@U?$less@F@std@@V?$allocator@U?$pair@$$CBFPEAVVEventObjectResource@@@std@@@3@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@FPEAVVEventObjectResource@@U?$less@F@std@@V?$allocator@U?$pair@$$CBFPEAVVEventObjectResource@@@std@@@3@$0A@@std@@@std@@@2@AEBF@Z | 0x140721d30 | blocked | IDA ?lower_bound@?$_Tree@V?$_Tmap_traits@FPEAVVEventObjectResource@@U?$less@F@std@@V?$allocator@U?$pair@$$CBFPEAVVEventObjectResource@@@std@@@3@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@FPEAVVEventObjectResource@@U?$less@F@std@@V?$allocator@U?$pair@$$CBFPEAVVEventObjectResource@@@std@@@3@$0A@@std@@@std@@@2@AEBF@Z | yes | - |
@@ -36596,7 +36601,7 @@ yes | ?????????? |
 | - | - | ??6@YAAEAVXPacket@@AEAV0@AEAUST_LEAGUE_APPLICANT@@@Z | 0x1407549f0 | blocked | IDA ??6@YAAEAVXPacket@@AEAV0@AEAUST_LEAGUE_APPLICANT@@@Z | yes | - |
 | - | - | ??5@YAAEAVXPacket@@AEAV0@AEAUST_LEAGUE_APPLICANT@@@Z | 0x140754b10 | blocked | IDA ??5@YAAEAVXPacket@@AEAV0@AEAUST_LEAGUE_APPLICANT@@@Z | yes | - |
 | - | - | ??6@YAAEAVXPacket@@AEAV0@AEAUST_LEAGUE_APPLICANT_LIST@@@Z | 0x140754c20 | blocked | IDA ??6@YAAEAVXPacket@@AEAV0@AEAUST_LEAGUE_APPLICANT_LIST@@@Z | yes | - |
-| - | - | ??5@YAAEAVXPacket@@AEAV0@AEAUST_LEAGUE_APPLICANT_LIST@@@Z | 0x140754ca0 | blocked | IDA ??5@YAAEAVXPacket@@AEAV0@AEAUST_LEAGUE_APPLICANT_LIST@@@Z | yes | - |
+| Common/XNet/XCommon | PSServerLeague.h | ??5@YAAEAVXPacket@@AEAV0@AEAUST_LEAGUE_APPLICANT_LIST@@@Z | 0x140754ca0 | implemented | IDA decompile + active build | no | Restored in PSServerLeague.h: local cCount then per-item ST_LEAGUE_APPLICANT push_back (nCount not written back per IDA). |
 | - | - | ??6@YAAEAVXPacket@@AEAV0@AEAUST_LEAGUE_INFO@@@Z | 0x140754d60 | blocked | IDA ??6@YAAEAVXPacket@@AEAV0@AEAUST_LEAGUE_INFO@@@Z | yes | - |
 | - | - | ??5@YAAEAVXPacket@@AEAV0@AEAUST_LEAGUE_INFO@@@Z | 0x140755240 | blocked | IDA ??5@YAAEAVXPacket@@AEAV0@AEAUST_LEAGUE_INFO@@@Z | yes | - |
 | - | - | ??6@YAAEAVXPacket@@AEAV0@AEAUST_LEAGUE_MEMBER_EX@@@Z | 0x1407555e0 | blocked | IDA ??6@YAAEAVXPacket@@AEAV0@AEAUST_LEAGUE_MEMBER_EX@@@Z | yes | - |
@@ -36604,7 +36609,7 @@ yes | ?????????? |
 | - | - | ??6@YAAEAVXPacket@@AEAV0@AEAUST_LEAGUE_BOARD@@@Z | 0x140755990 | blocked | IDA ??6@YAAEAVXPacket@@AEAV0@AEAUST_LEAGUE_BOARD@@@Z | yes | - |
 | - | - | ??5@YAAEAVXPacket@@AEAV0@AEAUST_LEAGUE_BOARD@@@Z | 0x140755a80 | blocked | IDA ??5@YAAEAVXPacket@@AEAV0@AEAUST_LEAGUE_BOARD@@@Z | yes | - |
 | - | - | ??6@YAAEAVXPacket@@AEAV0@AEAUST_LEAGUE_BOARD_LIST@@@Z | 0x140755b50 | blocked | IDA ??6@YAAEAVXPacket@@AEAV0@AEAUST_LEAGUE_BOARD_LIST@@@Z | yes | - |
-| - | - | ??5@YAAEAVXPacket@@AEAV0@AEAUST_LEAGUE_BOARD_LIST@@@Z | 0x140755bd0 | blocked | IDA ??5@YAAEAVXPacket@@AEAV0@AEAUST_LEAGUE_BOARD_LIST@@@Z | yes | - |
+| Common/XNet/XCommon | PSServerLeague.h | ??5@YAAEAVXPacket@@AEAV0@AEAUST_LEAGUE_BOARD_LIST@@@Z | 0x140755bd0 | implemented | IDA decompile + active build | no | Restored in PSServerLeague.h: local cCount then per-item ST_LEAGUE_BOARD push_back (nCount not written back per IDA). |
 | - | - | ??5@YAAEAVXPacket@@AEAV0@AEAUST_REQ_LEAGUE_CREATE@@@Z | 0x140755c90 | blocked | IDA ??5@YAAEAVXPacket@@AEAV0@AEAUST_REQ_LEAGUE_CREATE@@@Z | yes | - |
 | - | - | ??6@YAAEAVXPacket@@AEAV0@AEAUST_REQ_LEAGUE_CREATE@@@Z | 0x140755d20 | blocked | IDA ??6@YAAEAVXPacket@@AEAV0@AEAUST_REQ_LEAGUE_CREATE@@@Z | yes | - |
 | - | - | ??5@YAAEAVXPacket@@AEAV0@AEAUST_REQ_LEAGUE_INVITE@@@Z | 0x140755dc0 | blocked | IDA ??5@YAAEAVXPacket@@AEAV0@AEAUST_REQ_LEAGUE_INVITE@@@Z | yes | - |
@@ -36618,7 +36623,7 @@ yes | ?????????? |
 | - | - | ??6@YAAEAVXPacket@@AEAV0@AEAUST_REQ_LEAGUE_APPLICANT_ACCEPT@@@Z | 0x1407563b0 | blocked | IDA ??6@YAAEAVXPacket@@AEAV0@AEAUST_REQ_LEAGUE_APPLICANT_ACCEPT@@@Z | yes | - |
 | - | - | ??5@YAAEAVXPacket@@AEAV0@AEAUST_REQ_LEAGUE_APPLICANT_ACCEPT@@@Z | 0x140756470 | blocked | IDA ??5@YAAEAVXPacket@@AEAV0@AEAUST_REQ_LEAGUE_APPLICANT_ACCEPT@@@Z | yes | - |
 | - | - | ??6@YAAEAVXPacket@@AEAV0@AEAUST_LEAGUE_MEMBER_LIST@@@Z | 0x140756520 | blocked | IDA ??6@YAAEAVXPacket@@AEAV0@AEAUST_LEAGUE_MEMBER_LIST@@@Z | yes | - |
-| - | - | ??5@YAAEAVXPacket@@AEAV0@AEAUST_LEAGUE_MEMBER_LIST@@@Z | 0x1407565a0 | blocked | IDA ??5@YAAEAVXPacket@@AEAV0@AEAUST_LEAGUE_MEMBER_LIST@@@Z | yes | - |
+| Common/XNet/XCommon | PSServerLeague.h | ??5@YAAEAVXPacket@@AEAV0@AEAUST_LEAGUE_MEMBER_LIST@@@Z | 0x1407565a0 | implemented | IDA decompile + active build | no | Restored in PSServerLeague.h: local cCount then per-item ST_LEAGUE_MEMBER_EX push_back (nCount not written back per IDA). |
 | - | - | ??6@YAAEAVXPacket@@AEAV0@AEAUST_LEAGUE_NOTICE@@@Z | 0x140756660 | blocked | IDA ??6@YAAEAVXPacket@@AEAV0@AEAUST_LEAGUE_NOTICE@@@Z | yes | - |
 | - | - | ??5@YAAEAVXPacket@@AEAV0@AEAUST_LEAGUE_NOTICE@@@Z | 0x140756700 | blocked | IDA ??5@YAAEAVXPacket@@AEAV0@AEAUST_LEAGUE_NOTICE@@@Z | yes | - |
 | - | - | ??6@YAAEAVXPacket@@AEAV0@AEAUST_LEAGUE_AUTH_CHANGE@@@Z | 0x1407567a0 | blocked | IDA ??6@YAAEAVXPacket@@AEAV0@AEAUST_LEAGUE_AUTH_CHANGE@@@Z | yes | - |
@@ -36627,7 +36632,7 @@ yes | ?????????? |
 | - | - | ??5@YAAEAVXPacket@@AEAV0@AEAUST_LEAGUE_POSITION_NAME_CHANGE@@@Z | 0x140756980 | blocked | IDA ??5@YAAEAVXPacket@@AEAV0@AEAUST_LEAGUE_POSITION_NAME_CHANGE@@@Z | yes | - |
 | - | - | ??5@YAAEAVXPacket@@AEAV0@AEAUST_LEAGUE_MEMBER_POSITION@@@Z | 0x140756a20 | blocked | IDA ??5@YAAEAVXPacket@@AEAV0@AEAUST_LEAGUE_MEMBER_POSITION@@@Z | yes | - |
 | - | - | ??6@YAAEAVXPacket@@AEAV0@AEAUST_LEAGUE_MEMBER_UPDATE@@@Z | 0x140756aa0 | blocked | IDA ??6@YAAEAVXPacket@@AEAV0@AEAUST_LEAGUE_MEMBER_UPDATE@@@Z | yes | - |
-| - | - | ??5@YAAEAVXPacket@@AEAV0@AEAUST_LEAGUE_MEMBER_UPDATE@@@Z | 0x140756be0 | blocked | IDA ??5@YAAEAVXPacket@@AEAV0@AEAUST_LEAGUE_MEMBER_UPDATE@@@Z | yes | - |
+| Common/XNet/XCommon | PSServerLeague.h | ??5@YAAEAVXPacket@@AEAV0@AEAUST_LEAGUE_MEMBER_UPDATE@@@Z | 0x140756be0 | implemented | IDA decompile + active build | no | Restored in PSServerLeague.h: nLeagueID, dwActorID, bLogin, byLevel, sWorld, biPlayDate, GetWString(szName,21), byChannel, byAwaken, dwProfilePhotoID. |
 | - | - | ??6@YAAEAVXPacket@@AEAV0@AEAUPS_AKASHIC_DISASSEMBLE_LIST@@@Z | 0x140756d10 | blocked | IDA ??6@YAAEAVXPacket@@AEAV0@AEAUPS_AKASHIC_DISASSEMBLE_LIST@@@Z | yes | - |
 | - | - | ??5@YAAEAVXPacket@@AEAV0@AEAUPS_AKASHIC_DISASSEMBLE_LIST@@@Z | 0x140756da0 | blocked | IDA ??5@YAAEAVXPacket@@AEAV0@AEAUPS_AKASHIC_DISASSEMBLE_LIST@@@Z | yes | - |
 | - | - | ??6@YAAEAVXPacket@@AEAV0@AEAUST_LEAGUE_INFO_EX@@@Z | 0x140756e20 | blocked | IDA ??6@YAAEAVXPacket@@AEAV0@AEAUST_LEAGUE_INFO_EX@@@Z | yes | - |
@@ -36639,7 +36644,7 @@ yes | ?????????? |
 | - | - | ??6@YAAEAVXPacket@@AEAV0@AEAUST_LEAGUE_RECORD@@@Z | 0x1407571e0 | blocked | IDA ??6@YAAEAVXPacket@@AEAV0@AEAUST_LEAGUE_RECORD@@@Z | yes | - |
 | - | - | ??5@YAAEAVXPacket@@AEAV0@AEAUST_LEAGUE_RECORD@@@Z | 0x1407572f0 | blocked | IDA ??5@YAAEAVXPacket@@AEAV0@AEAUST_LEAGUE_RECORD@@@Z | yes | - |
 | - | - | ??6@YAAEAVXPacket@@AEAV0@AEAUST_LEAGUE_RECORD_LIST@@@Z | 0x1407573e0 | blocked | IDA ??6@YAAEAVXPacket@@AEAV0@AEAUST_LEAGUE_RECORD_LIST@@@Z | yes | - |
-| - | - | ??5@YAAEAVXPacket@@AEAV0@AEAUST_LEAGUE_RECORD_LIST@@@Z | 0x140757460 | blocked | IDA ??5@YAAEAVXPacket@@AEAV0@AEAUST_LEAGUE_RECORD_LIST@@@Z | yes | - |
+| Common/XNet/XCommon | PSServerLeague.h | ??5@YAAEAVXPacket@@AEAV0@AEAUST_LEAGUE_RECORD_LIST@@@Z | 0x140757460 | implemented | IDA decompile + active build | no | Restored in PSServerLeague.h: local cCount then per-item ST_LEAGUE_RECORD push_back (nCount not written back per IDA). |
 | - | - | ??6@YAAEAVXPacket@@AEAV0@AEAUPS_RES_LEAGUE_DELEGATE@@@Z | 0x140757520 | blocked | IDA ??6@YAAEAVXPacket@@AEAV0@AEAUPS_RES_LEAGUE_DELEGATE@@@Z | yes | - |
 | - | - | ??5@YAAEAVXPacket@@AEAV0@AEAUPS_RES_LEAGUE_DELEGATE@@@Z | 0x1407575e0 | blocked | IDA ??5@YAAEAVXPacket@@AEAV0@AEAUPS_RES_LEAGUE_DELEGATE@@@Z | yes | - |
 | - | - | ??6@YAAEAVXPacket@@AEAV0@AEAUPS_REQ_LEAGUE_CARD@@@Z | 0x140757680 | blocked | IDA ??6@YAAEAVXPacket@@AEAV0@AEAUPS_REQ_LEAGUE_CARD@@@Z | yes | - |
@@ -36908,7 +36913,7 @@ yes | ?????????? |
 | - | - | ??0?$_Pair_base@$$CBHVVPList@@@std@@QEAA@$$QEBH$$QEAVVPList@@@Z | 0x1407639a0 | blocked | IDA ??0?$_Pair_base@$$CBHVVPList@@@std@@QEAA@$$QEBH$$QEAVVPList@@@Z | yes | - |
 | - | - | ??_EVEventObjectResource@@WBA@EAAPEAXI@Z | 0x1407639f0 | blocked | IDA ??_EVEventObjectResource@@WBA@EAAPEAXI@Z | yes | - |
 | - | - | ?ReplaceExtension@VPathHelper@@SAXPEADPEBD1@Z | 0x140763a00 | implemented | IDA ?ReplaceExtension@VPathHelper@@SAXPEADPEBD1@Z | yes | - |
-| - | - | ?GetCenter@VEventObjectInfo@@QEBA?AVhkvVec3@@XZ | 0x140763a30 | implemented | IDA ?GetCenter@VEventObjectInfo@@QEBA?AVhkvVec3@@XZ | yes | - |
+| XGameServer | InteractionObject.h | ?GetCenter@VEventObjectInfo@@QEBA?AVhkvVec3@@XZ | 0x140763a30 | implemented | IDA decompile + PDB fieldlist 0x74D05 (VANILLA non-virtual) + landed source | no | midpoint x/y from PosTopLeft/PosBottomRight, z = PosTopLeft.z; inline in pack(4) type block; consumed by XMaze::AllUserWarp(int) 0x140323980 |
 | - | - | ?Load@VEventObjectInfo@@UEAA_NPEAVTiXmlElement@@@Z | 0x140763ac0 | implemented | IDA ?Load@VEventObjectInfo@@UEAA_NPEAVTiXmlElement@@@Z | yes | - |
 | - | - | ?Clone@VEventObjectInfo@@UEAAPEAU1@XZ | 0x1407640e0 | implemented | IDA ?Clone@VEventObjectInfo@@UEAAPEAU1@XZ | yes | - |
 | - | - | ??0VEventObjectInfo@@QEAA@AEBU0@@Z | 0x140764140 | blocked | IDA ??0VEventObjectInfo@@QEAA@AEBU0@@Z | yes | - |
@@ -37427,7 +37432,7 @@ yes | ?????????? |
 | - | - | ?SendUpdateServerInfo@XRelaySocket@@QEAAXHH@Z | 0x14077c260 | implemented | IDA ?SendUpdateServerInfo@XRelaySocket@@QEAAXHH@Z | yes | - |
 | - | - | ?RecvServerUpdate@XRelaySocket@@UEAA_NAEAVXPacket@@@Z | 0x14077c350 | implemented | IDA ?RecvServerUpdate@XRelaySocket@@UEAA_NAEAVXPacket@@@Z | yes | - |
 | - | - | ?AddUserCount@XRelaySocket@@QEAAXH@Z | 0x14077c380 | implemented | IDA ?AddUserCount@XRelaySocket@@QEAAXH@Z | yes | - |
-| - | - | ?SendCreateMazeReq@XRelaySocket@@QEAAXAEAUST_CREATE_MAZE@@@Z | 0x14077c390 | implemented | IDA ?SendCreateMazeReq@XRelaySocket@@QEAAXAEAUST_CREATE_MAZE@@@Z | yes | - |
+| XGameServer | GameSockets.cpp | ?SendCreateMazeReq@XRelaySocket@@QEAAXAEAUST_CREATE_MAZE@@@Z | 0x14077c390 | implemented | IDA decompile + active build | yes | Landed: XSendPacket(eCMD_SERVER, eSUB_CMD_SERVER_CREATE_MAZE_REQ) i.e. (0xF2,0x21), serializes ST_CREATE_MAZE, XIOCPClient::Send to ControlServer. |
 | - | - | ?IsReady@XRelaySocket@@QEAA_NXZ | 0x14077c440 | implemented | IDA ?IsReady@XRelaySocket@@QEAA_NXZ | yes | - |
 | - | - | ?OnStartThread@XRelaySocket@@UEAAXXZ | 0x14077c460 | implemented | IDA ?OnStartThread@XRelaySocket@@UEAAXXZ | yes | - |
 | - | - | ??0ST_SERVER_INFO@@QEAA@XZ | 0x14077c720 | blocked | IDA ??0ST_SERVER_INFO@@QEAA@XZ | yes | - |
@@ -43892,6 +43897,8 @@ yes | ?????????? |
 | - | - | ?SendOtherOutfos@XArea@@UEAAXAEAVXSendPacket@@PEAVXActor@@@Z | 0x1408f0930 | implemented | IDA ?SendOtherOutfos@XArea@@UEAAXAEAVXSendPacket@@PEAVXActor@@@Z | yes | - |
 | - | - | ??1XArea@@UEAA@XZ | 0x1408f0b90 | blocked | IDA ??1XArea@@UEAA@XZ | yes | - |
 | - | - | ?BackSends@XIOCPServer@@MEAA_NXZ | 0x1408f0c60 | blocked | IDA ?BackSends@XIOCPServer@@MEAA_NXZ | yes | - |
+| XArea | XArea.h | ?EscapeActor@XArea@@UEAA_NPEAVXActor@@@Z | 0x1408f0c60 | implemented | PDB publics RVA 0x8EFC60 + ICF body (return true) + landed inline base | no | Base returns true; vtable slot [8]; overridden by XMaze (0x1402914C0)/XDistrict (0x1402CBD60)/XMyRoom (0x1402AFFE0). |
+| XArea | XArea.h | ?MoveActor@XArea@@UEAAGPEAVXActor@@AEAUXVec3@@M_N@Z | - | implemented | PDB publics + vtable slot [10] + landed inline base | no | Base returns 0; signature corrected from hkvVec3* to XVec3& per PDB/publics; overridden by XMaze/XDistrict. |
 | - | - | ?Clear@XArea@@UEAAXXZ | 0x1408f0c70 | implemented | IDA ?Clear@XArea@@UEAAXXZ | yes | - |
 | - | - | ??0XArea@@QEAA@XZ | 0x1408f0ca0 | blocked | IDA ??0XArea@@QEAA@XZ | yes | - |
 | - | - | ??_EXArea@@UEAAPEAXI@Z | 0x1408f0d20 | blocked | IDA ??_EXArea@@UEAAPEAXI@Z | yes | - |
@@ -57436,9 +57443,6 @@ yes | ?????????? |
 | XGameServer | Maze.cpp | ?Clear@XMaze@@UEAAXXZ | 0x140311C60 | implemented | IDA decompile | yes | Clear maze - destroys all actors and cleans up state |
 | XGameServer | Maze.cpp | ?GetMazeType@XMaze@@QEAAEXZ | 0x14005ABD0 | implemented | IDA decompile | yes | Get maze type - returns TB_MAZE_INFO.Maze_Type |
 | XGameServer | Maze.cpp | ?GetMazeGameState@XMaze@@QEAAHXZ | 0x1400492B0 | implemented | IDA decompile | yes | Get maze game state - returns current state flag |
-| XGameServer | Maze.cpp | ?StartMazeTime@XMaze@@QEAAXXZ | 0x140311B70 | implemented | IDA decompile | yes | Start maze timer - sets state to running, records start time |
-| XGameServer | Maze.cpp | ?FinishMazeTime@XMaze@@QEAAXXZ | 0x140311BD0 | implemented | IDA decompile | yes | Finish maze timer - sets state to complete, calculates play time |
-| XGameServer | Maze.cpp | ?SetMazeState@XMaze@@QEAAXH_N@Z | 0x140312FB0 | implemented | IDA decompile | yes | Set maze state - updates state and optionally broadcasts |
 | XGameServer | MazeProcess.cpp | ??0CMazeProcess@@QEAA@XZ | 0x14050A080 | implemented | IDA decompile | yes | CMazeProcess constructor - initializes base class |
 | XGameServer | MazeProcess.cpp | ??1CMazeProcess@@UEAA@XZ | 0x14050A140 | implemented | IDA decompile | yes | CMazeProcess destructor - cleanup |
 | XGameServer | MazeProcess.cpp | ?Parse@CMazeProcess@@UEAA_NAEAVXPacket@@@Z | 0x14050A170 | implemented | IDA decompile | yes | Parse packet - dispatches maze packets to handlers |
@@ -57769,7 +57773,6 @@ yes | ?????????? |
 | XGameServer | MazeRaid.cpp | ?SpawnSectorMonster@XMaze@@QEAAXH@Z | 0x14031F900 | implemented | IDA decompile | yes | Spawn monsters in specified sector |
 | XGameServer | MazeRaid.cpp | ?SpawnSectorMonsterForOpt@XMaze@@QEAAXH@Z | 0x14031F9B0 | implemented | IDA decompile | yes | Spawn monsters in sector with optimization |
 | XGameServer | MazeRaid.cpp | ?AllDestroySectorMonster@XMaze@@QEAAXH@Z | 0x140329A60 | implemented | IDA decompile | yes | Destroy all monsters in sector |
-| XGameServer | MazeRaid.cpp | ?RunSectorAI@XMaze@@QEAAXH_N@Z | 0x14031F7C0 | implemented | IDA decompile | yes | Run AI for specified sector |
 | XGameServer | MazeRaid.cpp | ?GetSectorFromPos@XMaze@@QEAAPEAVCSector@@AEBVhkvVec3@@@Z | 0x14031F670 | implemented | IDA decompile | yes | Get sector from world position |
 | XGameServer | MazeRaid.cpp | ?GetSector@XMaze@@QEAAPEAVCSector@@H@Z | 0x14032B270 | implemented | IDA decompile | yes | Get sector by ID |
 | XGameServer | MazeRaid.cpp | ?GetSectorIDFromPos@XMaze@@QEAAHAEBVhkvVec3@@@Z | 0x14031F450 | implemented | IDA decompile | yes | Get sector ID from world position |
@@ -57981,13 +57984,13 @@ yes | ?????????? |
 | XGameServer | GocLeague.cpp | ??0CGocLeague@@QEAA@XZ | 0x1400FA870 | implemented | IDA decompile | yes | Guild component constructor |
 | XGameServer | GocLeague.cpp | ?Init@CGocLeague@@QEAAXXZ | 0x1400FA920 | implemented | IDA decompile | yes | Initialize guild component |
 | XGameServer | GocLeague.cpp | ?GetFamilyID@CGocLeague@@SAHXZ | 0x1402AC5A0 | implemented | IDA decompile | yes | Get family ID constant |
-| XGameServer | GocLeague.cpp | ??0CLeagueMember@@QEAA@XZ | 0x14028A5C0 | implemented | IDA decompile | yes | Guild member manager constructor |
-| XGameServer | GocLeague.cpp | ?Clear@CLeagueMember@@QEAAXXZ | 0x14028A600 | implemented | IDA decompile | yes | Clear all guild members |
-| XGameServer | GocLeague.cpp | ?AddLeagueMember@CLeagueMember@@QEAAXPEAVCUser@@@Z | 0x14028A630 | implemented | IDA decompile | yes | Add member to guild tracking |
-| XGameServer | GocLeague.cpp | ?JoinLeagueUser@CLeagueMember@@QEAAXUST_LEAGUE_MEMBER_EX@@UST_LEAGUE_INFO_UPDATE@@E@Z | 0x14028A930 | implemented | IDA decompile | yes | Broadcast new member joining |
-| XGameServer | GocLeague.cpp | ?KickoutLeagueMember@CLeagueMember@@QEAAXKKUST_LEAGUE_INFO_UPDATE@@@Z | 0x14028BF00 | implemented | IDA decompile | yes | Kick member from guild |
-| XGameServer | GocLeague.cpp | ?Levelup@CLeagueMember@@QEAAXHEEUPS_AUTO_SKILL@@@Z | 0x14028C6D0 | implemented | IDA decompile | yes | Broadcast guild level up |
-| XGameServer | GocLeague.cpp | ?Wealth@CLeagueMember@@QEAAXUST_LEAGUE_INFO_UPDATE@@@Z | 0x14028C590 | implemented | IDA decompile | yes | Broadcast guild wealth update |
+| XGameServer | LeagueMember.cpp | ??0CLeagueMember@@QEAA@XZ | 0x14028A5C0 | implemented | IDA decompile | yes | Guild member manager constructor |
+| XGameServer | LeagueMember.cpp | ?Clear@CLeagueMember@@QEAAXXZ | 0x14028A600 | implemented | IDA decompile | yes | Clear all guild members |
+| XGameServer | LeagueMember.cpp | ?AddLeagueMember@CLeagueMember@@QEAAXPEAVCUser@@@Z | 0x14028A630 | implemented | IDA decompile | yes | Add member to guild tracking |
+| XGameServer | LeagueMember.cpp | ?JoinLeagueUser@CLeagueMember@@QEAAXUST_LEAGUE_MEMBER_EX@@UST_LEAGUE_INFO_UPDATE@@E@Z | 0x14028A930 | implemented | IDA decompile | yes | Broadcast new member joining |
+| XGameServer | LeagueMember.cpp | ?KickoutLeagueMember@CLeagueMember@@QEAAXKKUST_LEAGUE_INFO_UPDATE@@@Z | 0x14028BF00 | implemented | IDA decompile | yes | Kick member from guild |
+| XGameServer | LeagueMember.cpp | ?Levelup@CLeagueMember@@QEAAXHEEUPS_AUTO_SKILL@@@Z | 0x14028C6D0 | implemented | IDA decompile | yes | Broadcast guild level up |
+| XGameServer | LeagueMember.cpp | ?Wealth@CLeagueMember@@QEAAXUST_LEAGUE_INFO_UPDATE@@@Z | 0x14028C590 | implemented | IDA decompile | yes | Broadcast guild wealth update |
 | XGameServer | GocLeague.cpp | ??0CLeagueProcess@@QEAA@XZ | 0x1404EBB20 | implemented | IDA decompile | yes | Guild process handler constructor |
 | XGameServer | GocLeague.cpp | ?Parse@CLeagueProcess@@UEAA_NAEAVXPacket@@@Z | 0x1404EBC10 | implemented | IDA decompile | yes | Main guild packet router |
 | XGameServer | GocLeague.cpp | ?ReqLeagueSearch@CLeagueProcess@@QEAA_NAEAVXPacket@@@Z | 0x1404EBF40 | implemented | IDA decompile | yes | Handle guild search request |
@@ -58003,27 +58006,27 @@ yes | ?????????? |
 | XGameServer | GocLeague.cpp | ?ReqLeagueBoard@CLeagueProcess@@QEAA_NAEAVXPacket@@@Z | 0x1404EF5B0 | implemented | IDA decompile | yes | Handle guild board request |
 | XGameServer | GocLeague.cpp | ?ReqLeagueApplicantAccept@CLeagueProcess@@QEAA_NAEAVXPacket@@@Z | 0x1404EFB10 | implemented | IDA decompile | yes | Handle guild applicant acceptance |
 | XGameServer | GocLeague.cpp | ?ReqLeagueApplicantReject@CLeagueProcess@@QEAA_NAEAVXPacket@@@Z | 0x1404EFFD0 | implemented | IDA decompile | yes | Handle guild applicant rejection |
-| XGameServer | GocLeague.cpp | ?ResLeagueOverlapName@CLeagueProcess@@QEAA_NAEAVXPacket@@@Z | 0x1404F0380 | implemented | IDA decompile | yes | Handle guild name overlap check response |
-| XGameServer | GocLeague.cpp | ?ReqLeagueList@CLeagueProcess@@QEAA_NAEAVXPacket@@@Z | 0x1404F0780 | implemented | IDA decompile | yes | Handle guild list request |
-| XGameServer | GocLeague.cpp | ?ReqLeagueAuthChange@CLeagueProcess@@QEAA_NAEAVXPacket@@@Z | 0x1404F0B10 | implemented | IDA decompile | yes | Handle guild authority change request |
-| XGameServer | GocLeague.cpp | ?ReqLeagueNoticeChange@CLeagueProcess@@QEAA_NAEAVXPacket@@@Z | 0x1404F0F90 | implemented | IDA decompile | yes | Handle guild notice change request |
-| XGameServer | GocLeague.cpp | ?CheckNameChangeItem@CLeagueProcess@@QEAAHUPS_ITEM_SLOT_INFO@@AEAUPS_RES_STORAGE_INFO@@@Z | 0x1404F1470 | implemented | IDA decompile | yes | Check if item can be used for name change |
-| XGameServer | GocLeague.cpp | ?SendLeagueNameChangeMsg@CLeagueProcess@@QEAAXHUPS_REQ_LEAGUE_NAME_CHANGE@@@Z | 0x1404F1910 | implemented | IDA decompile | yes | Send guild name change message |
-| XGameServer | GocLeague.cpp | ?ReqLeagueNameChange@CLeagueProcess@@QEAA_NAEAVXPacket@@@Z | 0x1404F1AA0 | implemented | IDA decompile | yes | Handle guild name change request |
-| XGameServer | GocLeague.cpp | ?ReqLeagueCardChange@CLeagueProcess@@QEAA_NAEAVXPacket@@@Z | 0x1404F25E0 | implemented | IDA decompile | yes | Handle guild card change request |
-| XGameServer | GocLeague.cpp | ?ReqLeaguePositionNameChange@CLeagueProcess@@QEAA_NAEAVXPacket@@@Z | 0x1404F30C0 | implemented | IDA decompile | yes | Handle guild position name change request |
-| XGameServer | GocLeague.cpp | ?ReqLeagueMemberPositionChange@CLeagueProcess@@QEAA_NAEAVXPacket@@@Z | 0x1404F36A0 | implemented | IDA decompile | yes | Handle guild member position change request |
-| XGameServer | GocLeague.cpp | ?ReqLeagueOpenOrNot@CLeagueProcess@@QEAA_NAEAVXPacket@@@Z | 0x1404F3AC0 | implemented | IDA decompile | yes | Handle guild open/close toggle request |
-| XGameServer | GocLeague.cpp | ?ReqLeagueRecruitNotice@CLeagueProcess@@QEAA_NAEAVXPacket@@@Z | 0x1404F3E40 | implemented | IDA decompile | yes | Handle guild recruit notice request |
-| XGameServer | GocLeague.cpp | ?CheckNpc@CLeagueProcess@@QEAA_NKEH@Z | 0x1404F4380 | implemented | IDA decompile | yes | Check if NPC is within distance |
-| XGameServer | GocLeague.cpp | ?ReqLeagueDelegate@CLeagueProcess@@QEAA_NAEAVXPacket@@@Z | 0x1404F4570 | implemented | IDA decompile | yes | Handle guild leader delegation request |
-| XGameServer | GocLeague.cpp | ?ReqLeagueSkillLearn@CLeagueProcess@@QEAA_NAEAVXPacket@@@Z | 0x1404F4A40 | implemented | IDA decompile | yes | Handle guild skill learn request |
-| XGameServer | GocLeague.cpp | ?ReqLeagueInventoryMove@CLeagueProcess@@QEAA_NAEAVXPacket@@@Z | 0x1404F5250 | implemented | IDA decompile | yes | Handle guild inventory move request |
-| XGameServer | GocLeague.cpp | ?ReqLeagueInventoryInfo@CLeagueProcess@@QEAA_NAEAVXPacket@@@Z | 0x1404F62C0 | implemented | IDA decompile | yes | Handle guild inventory info request |
-| XGameServer | GocLeague.cpp | ?CheckLeagueInventoryIn@CLeagueProcess@@QEAAHUPS_REQ_ITEM_MOVE_LEAGUE_INVEN@@AEAUSTItem@@AEAUPS_ITEM_MOVE_LEAGUE_INVEN_FOR_GAME@@@Z | 0x1404F6C40 | implemented | IDA decompile | yes | Check if item can be moved into guild inventory |
-| XGameServer | GocLeague.cpp | ?CheckLeagueInventoryOut@CLeagueProcess@@QEAA_NUPS_REQ_ITEM_MOVE_LEAGUE_INVEN@@@Z | 0x1404F72A0 | implemented | IDA decompile | yes | Check if item can be moved out of guild inventory |
-| XGameServer | GocLeague.cpp | ?CheckLeagueInventoryInMove@CLeagueProcess@@QEAA_NUPS_REQ_ITEM_MOVE_LEAGUE_INVEN@@@Z | 0x1404F75E0 | implemented | IDA decompile | yes | Check if item can be moved within guild inventory |
-| XGameServer | GocLeague.cpp | ?DBLeagueParse@CLeagueProcess@@QEAA_NAEAVXPacket@@@Z | 0x1404F0330 | implemented | IDA decompile | yes | Parse database response for guild operations |
+| XGameServer | GocLeague.cpp | ?ResLeagueOverlapName@CLeagueProcess@@QEAA_NAEAVXPacket@@@Z | 0x1404F0380 | implemented | IDA decompile + landed source | no | - |
+| XGameServer | GocLeague.cpp | ?ReqLeagueList@CLeagueProcess@@QEAA_NAEAVXPacket@@@Z | 0x1404F0780 | implemented | IDA decompile + landed source | no | - |
+| XGameServer | GocLeague.cpp | ?ReqLeagueAuthChange@CLeagueProcess@@QEAA_NAEAVXPacket@@@Z | 0x1404F0B10 | implemented | IDA decompile + landed source | no | - |
+| XGameServer | GocLeague.cpp | ?ReqLeagueNoticeChange@CLeagueProcess@@QEAA_NAEAVXPacket@@@Z | 0x1404F0F90 | implemented | IDA decompile + landed source | no | - |
+| XGameServer | GocLeague.cpp | ?CheckNameChangeItem@CLeagueProcess@@QEAAHUPS_ITEM_SLOT_INFO@@AEAUPS_RES_STORAGE_INFO@@@Z | 0x1404F1470 | implemented | IDA decompile + landed source | no | - |
+| XGameServer | GocLeague.cpp | ?SendLeagueNameChangeMsg@CLeagueProcess@@QEAAXHUPS_REQ_LEAGUE_NAME_CHANGE@@@Z | 0x1404F1910 | implemented | IDA decompile + landed source | no | - |
+| XGameServer | GocLeague.cpp | ?ReqLeagueNameChange@CLeagueProcess@@QEAA_NAEAVXPacket@@@Z | 0x1404F1AA0 | implemented | IDA decompile + landed source | no | - |
+| XGameServer | GocLeague.cpp | ?ReqLeagueCardChange@CLeagueProcess@@QEAA_NAEAVXPacket@@@Z | 0x1404F25E0 | implemented | IDA decompile + landed source | no | - |
+| XGameServer | GocLeague.cpp | ?ReqLeaguePositionNameChange@CLeagueProcess@@QEAA_NAEAVXPacket@@@Z | 0x1404F30C0 | implemented | IDA decompile + landed source | no | - |
+| XGameServer | GocLeague.cpp | ?ReqLeagueMemberPositionChange@CLeagueProcess@@QEAA_NAEAVXPacket@@@Z | 0x1404F36A0 | implemented | IDA decompile + landed source | no | - |
+| XGameServer | GocLeague.cpp | ?ReqLeagueOpenOrNot@CLeagueProcess@@QEAA_NAEAVXPacket@@@Z | 0x1404F3AC0 | implemented | IDA decompile + landed source | no | - |
+| XGameServer | GocLeague.cpp | ?ReqLeagueRecruitNotice@CLeagueProcess@@QEAA_NAEAVXPacket@@@Z | 0x1404F3E40 | implemented | IDA decompile + landed source | no | - |
+| XGameServer | GocLeague.cpp | ?CheckNpc@CLeagueProcess@@QEAA_NKEH@Z | 0x1404F4380 | implemented | IDA decompile + landed source | no | - |
+| XGameServer | GocLeague.cpp | ?ReqLeagueDelegate@CLeagueProcess@@QEAA_NAEAVXPacket@@@Z | 0x1404F4570 | implemented | IDA decompile + landed source | no | - |
+| XGameServer | GocLeague.cpp | ?ReqLeagueSkillLearn@CLeagueProcess@@QEAA_NAEAVXPacket@@@Z | 0x1404F4A40 | implemented | IDA decompile + landed source | no | - |
+| XGameServer | GocLeague.cpp | ?ReqLeagueInventoryMove@CLeagueProcess@@QEAA_NAEAVXPacket@@@Z | 0x1404F5250 | implemented | IDA decompile + landed source | no | - |
+| XGameServer | GocLeague.cpp | ?ReqLeagueInventoryInfo@CLeagueProcess@@QEAA_NAEAVXPacket@@@Z | 0x1404F62C0 | implemented | IDA decompile + landed source | no | - |
+| XGameServer | GocLeague.cpp | ?CheckLeagueInventoryIn@CLeagueProcess@@QEAAHUPS_REQ_ITEM_MOVE_LEAGUE_INVEN@@AEAUSTItem@@AEAUPS_ITEM_MOVE_LEAGUE_INVEN_FOR_GAME@@@Z | 0x1404F6C40 | implemented | IDA decompile + landed source | no | - |
+| XGameServer | GocLeague.cpp | ?CheckLeagueInventoryOut@CLeagueProcess@@QEAA_NUPS_REQ_ITEM_MOVE_LEAGUE_INVEN@@@Z | 0x1404F72A0 | implemented | IDA decompile + landed source | no | - |
+| XGameServer | GocLeague.cpp | ?CheckLeagueInventoryInMove@CLeagueProcess@@QEAA_NUPS_REQ_ITEM_MOVE_LEAGUE_INVEN@@@Z | 0x1404F75E0 | implemented | IDA decompile + landed source | no | - |
+| XGameServer | GocLeague.cpp | ?DBLeagueParse@CLeagueProcess@@QEAA_NAEAVXPacket@@@Z | 0x1404F0330 | implemented | IDA decompile + landed source | no | - |
 | XGameServer | GocLeague.cpp | ?SendLeagueWealth@CGocRecode@@QEAAXFH@Z | 0x1401588F0 | implemented | IDA decompile | yes | Send guild wealth contribution to community server |
 | XGameServer | GocAttribute.cpp | ?CALCULATE_STAT_SG_MAX@@YAMHHH@Z | 0x1402D6E90 | implemented | IDA decompile | yes | Calculate max Soul Gauge based on class type and level |
 | XGameServer | GocAttribute.cpp | ?CALCULATE_STAT_SG_REG@@YAMHHHM@Z | 0x1402D71A0 | implemented | IDA decompile | yes | Calculate SG regeneration rate based on class type and level |
@@ -58082,18 +58085,18 @@ yes | ?????????? |
 | XGameServer | GocHelper.cpp | ?Reset@CGocHelper@@QEAAXXZ | 0x140092080 | implemented | IDA decompile | yes | Reset helper state |
 | XGameServer | GocHelper.cpp | ?SetHelperList@CGocHelper@@QEAA_NAEAUPS_HELPER_LIST_RES@@@Z | 0x1400920C0 | implemented | IDA decompile | yes | Set helper list from DB |
 | XGameServer | GocHelper.cpp | ?SendHelperList@CGocHelper@@QEAAXXZ | 0x140092560 | implemented | IDA decompile | yes | Send helper list to client |
-| XGameServer | GocHelper.cpp | ?GetHelperInfo@CGocHelper@@QEAA_NKAEAUST_HELPER_INFO@@@Z | 0x140092700 | implemented | IDA decompile | yes | Get helper info by ID |
+| XGameServer | actor/component/GreenDamTan_GocHelperLink.cpp | ?GetHelperInfo@CGocHelper@@QEAA_NKAEAUST_HELPER_INFO@@@Z | 0x140092700 | implemented | IDA decompile + source/build check | no | Precise body landed in GreenDamTan link unit |
 | XGameServer | GocHelper.cpp | ?FindHelper@CGocHelper@@QEAA_NK@Z | 0x1400928A0 | implemented | IDA decompile | yes | Check if helper exists |
 | XGameServer | GocHelper.cpp | ?AddMyHelper@CGocHelper@@QEAA_NAEAUST_HELPER_INFO@@_N@Z | 0x140092900 | implemented | IDA decompile | yes | Add new helper |
 | XGameServer | GocHelper.cpp | ?HelperProcess@CGocHelper@@QEAAXAEAUPS_HELPER_SUMMON_REQ@@@Z | 0x140093080 | implemented | IDA decompile | yes | Process summon/release request |
 | XGameServer | GocHelper.cpp | ?HelperSummon@CGocHelper@@QEAA_NK@Z | 0x140093410 | implemented | IDA decompile | yes | Summon helper monster |
-| XGameServer | GocHelper.cpp | ?HelperRelease@CGocHelper@@QEAA_NK@Z | 0x140094300 | implemented | IDA decompile | yes | Release summoned helper |
+| XGameServer | actor/component/GreenDamTan_GocHelperLink.cpp | ?HelperRelease@CGocHelper@@QEAA_NK@Z | 0x140094300 | implemented | IDA decompile + source/build check | no | Precise body landed in GreenDamTan link unit |
 | XGameServer | GocHelper.cpp | ?HelperWarp@CGocHelper@@QEAA_NK@Z | 0x140094130 | implemented | IDA decompile | yes | Warp helper to owner |
 | XGameServer | GocHelper.cpp | ?CheckAllHelperSummon@CGocHelper@@QEAAXXZ | 0x1400948A0 | implemented | IDA decompile | yes | Auto-summon all helpers |
-| XGameServer | GocHelper.cpp | ?AllHelperRelease@CGocHelper@@QEAAXXZ | 0x140094AF0 | implemented | IDA decompile | yes | Release all helpers |
+| XGameServer | actor/component/GreenDamTan_GocHelperLink.cpp | ?AllHelperRelease@CGocHelper@@QEAAXXZ | 0x140094AF0 | implemented | IDA decompile + source/build check | no | Precise body landed in GreenDamTan link unit; converge to GocHelper.cpp later |
 | XGameServer | GocHelper.cpp | ?AllHelperWarp@CGocHelper@@QEAAXXZ | 0x140094C10 | implemented | IDA decompile | yes | Warp all helpers |
 | XGameServer | GocHelper.cpp | ?OtherHelperClear@CGocHelper@@QEAAXXZ | 0x140094D30 | implemented | IDA decompile | yes | Clear other player helpers |
-| XGameServer | GocHelper.cpp | ?GetSummonedHelper@CGocHelper@@QEAAPEAVCMonster@@K@Z | 0x140092AD0 | implemented | IDA decompile | yes | Get summoned helper instance |
+| XGameServer | actor/component/GreenDamTan_GocHelperLink.cpp | ?GetSummonedHelper@CGocHelper@@QEAAPEAVCMonster@@K@Z | 0x140092AD0 | implemented | IDA decompile + source/build check | no | Precise body landed in GreenDamTan link unit |
 | XGameServer | GocHelper.cpp | ?GetSummonedHelperList@CGocHelper@@QEAAXAEAV?@KKU?@K@std@@V?@U?@CBKK@std@@@2@@std@@@Z | 0x140092B40 | implemented | IDA decompile | yes | Get all summoned helpers |
 | XGameServer | GocHelper.cpp | ?SyncSummonedInfo@CGocHelper@@QEAAXXZ | 0x140096060 | implemented | IDA decompile | yes | Sync summoned info to client |
 | XGameServer | GocHelper.cpp | ?CalcHelperStatsALL@CGocHelper@@QEAAXAEAUST_HELPER_INFO@@H@Z | 0x140095280 | implemented | IDA decompile | yes | Calculate all helper stats |
@@ -58105,7 +58108,6 @@ yes | ?????????? |
 | XGameServer | GocHelper.cpp | ?GetSupportTypeRate@CGocHelper@@QEAAME@Z | 0x140096500 | implemented | IDA decompile | yes | Get support bonus rate |
 | XGameServer | GocHelper.cpp | ?GetSupportTypeValue@CGocHelper@@QEAAME@Z | 0x140096540 | implemented | IDA decompile | yes | Calculate support value |
 | XGameServer | GocHelper.cpp | ?SetMySupportInfo@CGocHelper@@QEAAXAEAUPS_HELPER_SUPPORT_INFO_RES@@@Z | 0x140096660 | implemented | IDA decompile | yes | Set support info |
-| XGameServer | GocHelper.cpp | ?HelperSupportRelease@CGocHelper@@QEAAXXZ | 0x1400966D0 | implemented | IDA decompile | yes | Release support |
 | XGameServer | GocHelper.cpp | ?ReqHelperSupportInfo@CGocHelper@@QEAAXXZ | 0x1400968F0 | implemented | IDA decompile | yes | Request support info from DB |
 | XGameServer | GocHelper.cpp | ?ReqHelperSupportRegister@CGocHelper@@QEAAXAEAUPS_HELPER_SUPPORT_REGISTER_REQ@@@Z | 0x140096A10 | implemented | IDA decompile | yes | Register for support |
 | XGameServer | GocHelper.cpp | ?ReqHelperSupportReward@CGocHelper@@QEAAXXZ | 0x140096BE0 | implemented | IDA decompile | yes | Claim support reward |
@@ -58131,13 +58133,13 @@ yes | ?????????? |
 | XGameServer | GocHelper.cpp | ?IsAutoSummon@CGocHelper@@QEAA_NXZ | 0x140091DC0 | implemented | IDA decompile | yes | Check auto-summon enabled |
 | XGameServer | GocHelper.cpp | ?SetHelperSummonTime@CGocHelper@@QEAAXXZ | 0x140091DF0 | implemented | IDA decompile | yes | Set last summon time |
 | XGameServer | GocHelper.cpp | ?GetFamilyID@CGocHelper@@SAHXZ | 0x140039020 | implemented | IDA decompile | yes | IDA精确还原 |
-| XGameServer | GocHelper.cpp | ?SetHelperSummonState@CGocHelper@@QEAAXK_N@Z | 0x140092C20 | implemented | IDA decompile | yes | Update helper summon state |
+| XGameServer | actor/component/GreenDamTan_GocHelperLink.cpp | ?SetHelperSummonState@CGocHelper@@QEAAXK_N@Z | 0x140092C20 | implemented | IDA decompile + source/build check | no | Precise body landed in GreenDamTan link unit |
 | XGameServer | GocHelper.cpp | ?CheckHelperSummonDelay@CGocHelper@@QEAA_NXZ | 0x140092CA0 | implemented | IDA decompile | yes | Check summon cooldown |
 | XGameServer | GocHelper.cpp | ?CheckSummonHelper@CGocHelper@@QEAA_NK@Z | 0x140092D10 | implemented | IDA decompile | yes | Validate helper can be summoned |
 | XGameServer | GocHelper.cpp | ?CheckReleaseHelper@CGocHelper@@QEAA_NK@Z | 0x140092DC0 | implemented | IDA decompile | yes | Validate helper can be released |
 | XGameServer | GocHelper.cpp | ?CheckSummonHelperCount@CGocHelper@@QEAA_NXZ | 0x140092E70 | implemented | IDA decompile | yes | Verify summoned count |
 | XGameServer | GocHelper.cpp | ?GetMyHelperStatsALL@CGocHelper@@QEAAXAEAUPS_HELPER_STAT_UPDATE@@@Z | 0x140095170 | implemented | IDA decompile | yes | Get total stats from all helpers |
-| XGameServer | GocHelper.cpp | ?HelperSupportRelease@CGocHelper@@QEAAXK@Z | 0x140096750 | implemented | IDA decompile | yes | Release specific support |
+| XGameServer | actor/component/GreenDamTan_GocHelperLink.cpp | ?HelperSupportRelease@CGocHelper@@QEAAXK@Z | 0x140096750 | implemented | IDA decompile + source/build check | no | Precise body landed in GreenDamTan link unit |
 | XGameServer | WorldProcess.cpp | ?ReqWorldSkipInTutorial02@CWorldProcess@@QEAA_NAEAVXPacket@@@Z | 0x140632240 | implemented | IDA decompile | yes | Skip tutorial phase 2 |
 | XGameServer | Maze.cpp | ?GetTutorial@XMaze@@QEAA_NXZ | 0x140638B50 | implemented | IDA decompile | yes | Check if maze is tutorial type |
 | XGameServer | User.cpp | ?GetBlockType@CUser@@QEAAEXZ | 0x140082D90 | implemented | IDA decompile | yes | - |
@@ -58577,17 +58579,7 @@ yes | ?????????? |
 | XGameServer | GocInventory.cpp | CGocInventory::ClearInven | 0x1400A0000 | implemented | IDA decompile | yes | Precise restoration - clears all currency values |
 | XGameServer | GocInventory.cpp | CGocInventory::SetLock | 0x1400A7020 | implemented | IDA decompile | yes | Exact IDA routing to equip/inven SetLock |
 | XGameServer | GocInventory.cpp | CGocInventory::Equip | 0x1400A5960 | implemented | IDA decompile | yes | Exact IDA with set items and network |
-| XGameServer | Maze.cpp | ?MoveActor@XMaze@@UEAAGPEAVXActor@@AEAUXVec3@@M_N@Z | 0x140315750 | blocked | IDA decompile | no | Fixed TODO - RTDynamicCast + SetPosInfo (EXACT IDA) |
-| XGameServer | Maze.cpp | ?CreateNavMesh@XMaze@@QEAA_NPEBD@Z | 0x14031F120 | blocked | IDA decompile | no | Fixed TODO - Full NavMesh loading with locks (EXACT IDA) |
-| XGameServer | Maze.cpp | ?CreateScriptInst@XMaze@@QEAA_NPEBD@Z | 0x14031F2C0 | blocked | IDA decompile | no | Fixed TODO - Script system initialization (EXACT IDA) |
-| XGameServer | Maze.cpp | ?CreateNpc@XMaze@@QEAAPEAVCNpc@@TUXMapID@@HHUXVec3@@MW4E_SEND_INFO_TYPE@IXArea@@@Z | 0x14031A250 | blocked | IDA decompile | no | Fixed TODO - Sector lookup + CreateNpc (EXACT IDA) |
-| XGameServer | Maze.cpp | ?NotifyMonsterDelete@XMaze@@QEAAXPEAVCMonster@@@Z | 0x14031A0D0 | blocked | IDA decompile | no | Fixed TODO - Broadcast + GetActorID (EXACT IDA) |
-| XGameServer | Maze.cpp | ?DeleteNpc@XMaze@@QEAAXPEAVCNpc@@@Z | 0x14031A430 | blocked | IDA decompile | no | Fixed TODO - ExitGameObject + DeleteNpc (EXACT IDA) |
-| XGameServer | Maze.cpp | ?CreateAkashicObject@XMaze@@QEAAPEAVCAkashicObject@@TUXMapID@@HUXVec3@@MKW4E_SEND_INFO_TYPE@IXArea@@@Z | 0x14031A4A0 | blocked | IDA decompile | no | Fixed TODO - TB_AKASHIC_RECORDS check (EXACT IDA) |
-| XGameServer | Maze.cpp | ?DeleteAkashicObject@XMaze@@QEAAXPEAVCAkashicObject@@@Z | 0x14031A5E0 | blocked | IDA decompile | no | Fixed TODO - ExitGameObject + Delete (EXACT IDA) |
-| XGameServer | Maze.cpp | ?SetParty@XMaze@@QEAAXV?@VCParty@@@tr1@std@@@Z | 0x140315C40 | blocked | IDA decompile | no | Fixed TODO - shared_ptr operators (EXACT IDA) |
-| XGameServer | Maze.cpp | ?SetForce@XMaze@@QEAAXV?@VCForce@@@tr1@std@@@Z | 0x140315D50 | blocked | IDA decompile | no | Fixed TODO - shared_ptr operators (EXACT IDA) |
-| XGameServer | Maze.cpp | ?GetCurUserCount@XMaze@@QEAAHXZ | 0x140324AF0 | blocked | IDA decompile | no | Fixed TODO - m_objectScanner.size() (EXACT IDA) |
+| XGameServer | Maze.cpp | ?GetCurUserCount@XMaze@@QEAAHXZ | 0x140324AF0 | implemented | IDA decompile + landed source | no | returns (int)m_objectScanner.size() (mapPlayerList.size()); body landed Maze.cpp; stale blocked row updated; duplicate of lowercase-addr row |
 | XGameServer | Mover.cpp | CMover::GetArea | - | implemented | IDA CGocNetwork::SendBroadCast* + XActor::GetArea | yes | Restored local bridge to return embedded XActor(+872).m_pArea; no original public CMover::GetArea symbol found. |
 | XGameServer | GocQuest.cpp | ?SetQuestAddObject@CGocQuest@@QEAA_NKPEAEPEAK@Z | 0x140138F20 | implemented | IDA decompile | yes | Precise IDA restoration |
 | XGameServer | GocQuest.cpp | ?SetQuestAddObject@CGocQuest@@QEAA_NKAEAUPS_RES_STORAGE_INFO@@0@Z | 0x1401392C0 | implemented | IDA decompile | yes | Precise IDA restoration |

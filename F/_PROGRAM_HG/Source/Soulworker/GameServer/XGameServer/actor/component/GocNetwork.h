@@ -118,4 +118,16 @@ public:
      * @return true if pObject is not null
      */
     static bool SendErrorMessage(CMover* pObject, std::uint8_t ucMainCmd, std::uint8_t ucSubCmd, std::uint16_t xErrorCode);
+
+    /**
+     * @brief Send error message with extra payload (need-item ID 等)
+     * IDA: ?SendErrorMessage@CGocNetwork@@SA_NPEAVCMover@@EEGK@Z (PDB publics [0001:00102E60])
+     * @param pObject Target mover (must be CUser)
+     * @param ucMainCmd Main command
+     * @param ucSubCmd Sub command
+     * @param xErrorCode Error code
+     * @param dwParam Extra payload (XForceProcess 匹配链用于 nNeedItemID)
+     */
+    static bool SendErrorMessage(CMover* pObject, std::uint8_t ucMainCmd, std::uint8_t ucSubCmd,
+                                 std::uint16_t xErrorCode, std::uint32_t dwParam);
 };

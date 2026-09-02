@@ -129,6 +129,21 @@ struct PS_ENTER_MAP_REQ {
 };
 
 /**
+ * @brief 区域传送请求 (ReqWorldDistrictTransport 上行结构)。
+ * PDB UDT 0x481b4, Size 104:
+ *   stEnterMap (PS_ENTER_MAP_REQ, +0) / dwNpcID (ulong, +88) /
+ *   wTransportID (ushort, +92) / dwTransportItemID (ulong, +96)
+ * 反序列化算子定义于本文件尾部 (PS_ENTER_MAP_REQ operator>> 之后)。
+ */
+struct PS_DISTRICT_TRANSPORT_REQ {
+    PS_ENTER_MAP_REQ stEnterMap{};
+    std::uint32_t dwNpcID = 0;
+    std::uint16_t wTransportID = 0;
+    std::uint32_t dwTransportItemID = 0;
+    std::uint8_t _pad0[4] = {};
+};
+
+/**
  * @brief 迷宫创建请求中的单个进入成员。
  */
 struct ST_ENTER_MAZE_MEMBER_INFO {
@@ -433,6 +448,14 @@ inline void operator>>(XPacket& packet, PS_ENTER_MAP_REQ& value) {
     packet >> value.vNextPos;
 }
 
+// PS_DISTRICT_TRANSPORT_REQ 反序列化 (Per IDA operator>> @ 0x14074C8C0)
+inline void operator>>(XPacket& packet, PS_DISTRICT_TRANSPORT_REQ& value) {
+    packet >> value.stEnterMap;
+    packet.XParse >> value.dwNpcID;
+    packet.XParse >> value.wTransportID;
+    packet.XParse >> value.dwTransportItemID;
+}
+
 // PS_REQ_CHANGE_SERVER 序列化
 inline XPacket& operator<<(XPacket& packet, const PS_REQ_CHANGE_SERVER& value) {
     packet.XParse << value.dwActorID;
@@ -673,6 +696,14 @@ static_assert(offsetof(PS_ENTER_MAP_REQ, uxMapID) == 0x40,
               "PS_ENTER_MAP_REQ.uxMapID offset mismatch");
 static_assert(offsetof(PS_ENTER_MAP_REQ, byChangeType) == 0x48,
               "PS_ENTER_MAP_REQ.byChangeType offset mismatch");
+static_assert(sizeof(PS_DISTRICT_TRANSPORT_REQ) == 104,
+              "PS_DISTRICT_TRANSPORT_REQ size must match PDB UDT 0x481b4");
+static_assert(offsetof(PS_DISTRICT_TRANSPORT_REQ, dwNpcID) == 88,
+              "PS_DISTRICT_TRANSPORT_REQ.dwNpcID offset mismatch");
+static_assert(offsetof(PS_DISTRICT_TRANSPORT_REQ, wTransportID) == 92,
+              "PS_DISTRICT_TRANSPORT_REQ.wTransportID offset mismatch");
+static_assert(offsetof(PS_DISTRICT_TRANSPORT_REQ, dwTransportItemID) == 96,
+              "PS_DISTRICT_TRANSPORT_REQ.dwTransportItemID offset mismatch");
 static_assert(sizeof(ST_CREATE_MAZE) == 0x2B8, "ST_CREATE_MAZE size must match PDB");
 static_assert(offsetof(ST_CREATE_MAZE, stPartyInfo) == 0x25C,
               "ST_CREATE_MAZE.stPartyInfo offset mismatch");

@@ -1131,6 +1131,22 @@ inline XPacket& operator<<(XPacket& packet, const PS_ITEM_PACKAGE_LIST& value) {
     }
     return packet;
 }
+
+// 镂刻序列号列表 - PDB UDT 0x13b6e, 32 bytes: vecInfo = vector<int64>
+struct PS_BROACH_SERIAL_LIST {
+    std::vector<std::int64_t> vecInfo;
+};
+
+// PS_BROACH_SERIAL_LIST XPacket 序列化
+inline XPacket& operator<<(XPacket& packet, const PS_BROACH_SERIAL_LIST& value) {
+    // 对齐 IDA SendBroachUpdate (0x1400C0910): 使用 int nCount
+    std::int32_t nCount = static_cast<std::int32_t>(value.vecInfo.size());
+    packet.XParse << nCount;
+    for (const auto& biSerial : value.vecInfo) {
+        packet.XParse << biSerial;
+    }
+    return packet;
+}
 // ============================================================================
 // static_assert 验证（确保结构体大小与 PDB 匹配）
 // ============================================================================

@@ -1250,8 +1250,8 @@ int CGocAkashicRecord::ChangeDeckName(PS_DECK_NAME_VEC& stChange)
         }
 
         // Check name filter
-        XGameServer* pGameServer = TXSingleton<XGameServer>::Instance();
-        if (!UtilFunc::IsUsableNameFilter(psInfo.szDeckName, pGameServer->GetResourceMgr()))
+        // Per IDA 0x140020CA0: UtilFunc::IsUsableNameFilter(psInfo.szDeckName)
+        if (!UtilFunc::IsUsableNameFilter(psInfo.szDeckName))
         {
             LogHelper::LogError("game.contents", "ChangeDeckName error - IsUsableNameFilter[UCID:%d]", dwUCID);
             return 58412;

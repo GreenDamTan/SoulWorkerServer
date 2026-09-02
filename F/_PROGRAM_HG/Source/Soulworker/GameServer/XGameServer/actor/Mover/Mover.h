@@ -473,6 +473,9 @@ public:
     float GetCurSuperArmorGage() const;
     // IDA: ?SetCurSuperArmorGage@CMover@@QEAAXM@Z @ 0x140353C60
     void SetCurSuperArmorGage(float fCurSuperArmorGage);
+    // IDA: ?GetRecoverySuperArmorTime@CMover@@QEAAMXZ (0x140353FE0)
+    // 精确还原: return m_fRecoverySuperArmorTime
+    float GetRecoverySuperArmorTime();
     // IDA: ?GetCreatePos@CMover@@QEAAAEAVhkvVec3@@XZ @ 0x1402752B0
     hkvVec3& GetCreatePos();
     void SetCreatePos(const hkvVec3& vPos);
@@ -780,6 +783,8 @@ public:
     void send_eSUB_CMD_MOVE_UPDATE_DIR(CMover* pMover, bool bDirect);
     // IDA: ?send_eSUB_CMD_MOVE_DROP@CMover@@QEAAXPEAV1@_N@Z @ 0x140370570
     void send_eSUB_CMD_MOVE_DROP(CMover* pMover, bool bSync);
+    // IDA: ?SyncMove@CMover@@QEAAXXZ @ 0x14036EA30
+    void SyncMove();
     // IDA: ?send_eSUB_CMD_MOVE_GRAP@CMover@@QEAAXPEAV1@VhkvVec3@@@Z @ 0x1403706E0
     void send_eSUB_CMD_MOVE_GRAP(CMover* pMover, hkvVec3 vPos);
     // IDA: ?send_eSUB_CMD_MOVE_ATTACED_BT@CMover@@QEAAXPEAV1@0VhkvVec3@@M@Z @ 0x140370800
@@ -1002,6 +1007,12 @@ public:
     tagBUFF_STATE* GetBuffStatus();
     // IDA: ?GetBuffStatus@CMover@@QEAAPEAUtagBUFF_STATE@@H@Z (0x14070AB00)
     tagBUFF_STATE* GetBuffStatus(int nVal);
+
+    // IDA: ?GetPositionXVec3@CMover@@QEAAAEAUXVec3@@XZ @ 0x1402A5080
+    // 返回 &m_vPosition (hkvVec3 布局与 XVec3 等价: 3 floats)
+    XVec3& GetPositionXVec3() {
+        return *reinterpret_cast<XVec3*>(&m_vPosition);
+    }
 
 protected:
     // IDA: offset 976, size 4
@@ -1850,7 +1861,11 @@ public:
     void CheckPassiveSkill(std::uint8_t byTargetType, std::uint8_t byCondition);
 
     // Position methods
-    void SetPositionXVec3(const hkvVec3& vPos);
+    // IDA 真实 vtable ABI: ?SetPositionXVec3@CMover@@UEAAXAEAUXVec3@@@Z (0x1401893C0)
+    // 真签名为 virtual (XVec3&)，CMoverEx 无 override（IDA names 无记录）。
+    // 早前在此层臆造的 const hkvVec3& 声明已删除，调用统一走 CMover 基类实现。
+    // TODO: 需人工审查 - CMover 层签名仍是恢复期 const hkvVec3&，
+    //   完整 vtable 槽位 (XVec3&) ABI 修正留给独立 Mover 批次。
 
     // System actor methods
     int IsSystemActor();
@@ -2098,6 +2113,16 @@ public:
 
     // IDA: ?GetHitPartsInfo@CMoverEx@@QEAAAEAUSHitPartsInfo@@H@Z (0x14052850)
     SHitPartsInfo& GetHitPartsInfo(int nIndex);
+
+    // IDA: ?SetHitPartsInfo@CMoverEx@@QEAAXHKEHH@Z (0x140399CC0)
+    // 精确还原: iIndex<2 时写 m_sHitParts[iIndex].dwTableID/byPartsID
+    //   + SetHitPartsHP(iIndex, iCurHP, iMaxHP)
+    void SetHitPartsInfo(int iIndex, unsigned int dwTableID, unsigned char byPartsID,
+                         int iCurHP, int iMaxHP);
+
+    // IDA: ?SetHitPartsHP@CMoverEx@@QEAAXHHH@Z
+    // (SetHitPartsInfo 尾部调用; HP 写入 m_sHitParts[iIndex].iCurHP/iMaxHP)
+    void SetHitPartsHP(int iIndex, int iCurHP, int iMaxHP);
 
     // IDA: ?GetAddMoneyFromOptionEffect@CMoverEx@@QEAAHXZ (0x140F9000)
     int GetAddMoneyFromOptionEffect();

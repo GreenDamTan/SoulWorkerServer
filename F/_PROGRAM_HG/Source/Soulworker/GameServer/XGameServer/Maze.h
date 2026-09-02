@@ -73,30 +73,37 @@ private:
     __int64 m_nMapID;
 };
 
-// STInfiniteTowerInfo - Infinite Tower state (IDA confirmed)
-struct STInfiniteTowerInfo {
-    int m_nFloor;
-    int m_nMaxFloor;
-    int m_nRewardState;
-    std::uint64_t m_dwEnterTime;
-
-    STInfiniteTowerInfo() : m_nFloor(0), m_nMaxFloor(0), m_nRewardState(0), m_dwEnterTime(0) {}
+// STInfiniteTowerInfo - Infinite Tower state
+// PDB UDT 0x6D6F6 (fieldlist 0x6D6F5), Size = 12:
+//   m_nChapter(int) +0, m_nStage(int) +4, m_wNextMaze(ushort) +8
+// (此前恢复期臆造的 m_nFloor/m_nMaxFloor/m_nRewardState/m_dwEnterTime
+//  已按 PDB 删除; ProcessReward 0x140324E10 使用 m_nChapter/m_nStage)
+struct ST_INFINITE_TOWER_INFO {
+    int m_nChapter = 0;      // +0
+    int m_nStage = 0;        // +4
+    std::uint16_t m_wNextMaze = 0;  // +8
 };
+static_assert(sizeof(ST_INFINITE_TOWER_INFO) == 12, "ST_INFINITE_TOWER_INFO size must match PDB (12)");
 
-// STMonsterKillScoreMode - Monster Kill Score Mode state (IDA confirmed)
+// 旧别名保留 (活跃代码引用名)
+using STInfiniteTowerInfo = ST_INFINITE_TOWER_INFO;
+
+// STMonsterKillScoreMode - Monster Kill Score Mode state
+// PDB UDT 0x6970D (fieldlist 0x6970C), Size = 8:
+//   dwLeftTickCount(ulong) +0, nPoint(int) +4
+// (此前恢复期臆造的 m_nScore/m_nTeamScore/m_nKillCount/m_nDeathCount
+//  已按 PDB 删除; PDB 有 VANILLA ctor 0x2A4DE 与 Init 0x2A4DF)
 struct STMonsterKillScoreMode {
-    int m_nScore;
-    int m_nTeamScore;
-    int m_nKillCount;
-    int m_nDeathCount;
+    std::uint32_t dwLeftTickCount = 0;  // +0
+    int nPoint = 0;                     // +4
 
+    // PDB fieldlist 0x6970C list[3]: Init (VANILLA, index 0x2A4DF)
     static void Init(STMonsterKillScoreMode* pThis) {
-        pThis->m_nScore = 0;
-        pThis->m_nTeamScore = 0;
-        pThis->m_nKillCount = 0;
-        pThis->m_nDeathCount = 0;
+        pThis->dwLeftTickCount = 0;
+        pThis->nPoint = 0;
     }
 };
+static_assert(sizeof(STMonsterKillScoreMode) == 8, "STMonsterKillScoreMode size must match PDB (8)");
 
 // IVScriptInstance - Vision Engine Script Interface
 class IVScriptInstance {
@@ -146,18 +153,19 @@ struct ST_MAZE_GAME_STATE {
 };
 
 // ST_ESCORT_MONSTER - Escort monster info
-// IDA: Fields from SetEscortMonster/SetEscortCondition function analysis
+// PDB UDT 0x6A89F (fieldlist 0x6A89E), Size = 152:
+//   nMonsterID(int) +0, dwEpisodeID(ulong) +4, nConditionID(int) +8,
+//   pMonster(CMonster*) +16, szMonsterDieAnim(char[128]) +24
+// (此前恢复期臆造的 dwActorID/nEscortID/fHP 字段已按 PDB 删除)
 struct ST_ESCORT_MONSTER {
-    int nMonsterID;                              // Monster ID (parsed from string)
-    std::uint32_t dwEpisodeID;                   // Episode ID
-    char szMonsterDieAnim[128];                  // Die animation name
-    int nConditionID;                            // Condition ID (for escort quest)
-    std::uint32_t dwActorID;                     // Actor ID (runtime)
-    int nEscortID;                               // Escort ID (runtime)
-    float fHP;                                   // HP (runtime)
+    int nMonsterID = 0;                          // +0
+    std::uint32_t dwEpisodeID = 0;               // +4
+    int nConditionID = 0;                        // +8
+    CMonster* pMonster = nullptr;                // +16
+    char szMonsterDieAnim[128] = {};             // +24
 };
 
-// Alias for compatibility
+// Alias for compatibility (PDB class name STEscortMonster)
 using STEscortMonster = ST_ESCORT_MONSTER;
 
 // ============================================================================
@@ -325,20 +333,78 @@ struct MAZE_OBJECT_SCANNER {
 };
 
 // ============================================================================
+// tagWARP_POTAL_INFO - Warp Portal 信息结构
+// PDB UDT 0x6A2AB, Size = 40
+// +0x00 nMapID, +0x04 nJumpID, +0x08 nPortalID, +0x10 lstUsers(list<unsigned long>)
+// ============================================================================
+struct tagWARP_POTAL_INFO {
+    // Per IDA ctor 0x140718B10: 仅 list 默认构造, 三个 int 字段保持未初始化
+    // (原始 operator new(0x28) + ctor 不做值初始化; 唯一创建点 AddWarpPotal
+    //  new 后立即填三字段, 故无未初始化读取)
+    int nMapID;
+    int nJumpID;
+    int nPortalID;
+    std::list<unsigned long> lstUsers;
+
+    // IDA: ??0tagWARP_POTAL_INFO@@QEAA@XZ (0x140718B10)
+    // 精确还原: 仅 list 默认构造, int 字段不写
+    tagWARP_POTAL_INFO();
+    // IDA: ??1tagWARP_POTAL_INFO@@QEAA@XZ (0x1407188E0)
+    // 精确还原: 仅 ~list
+    ~tagWARP_POTAL_INFO();
+};
+
+// ============================================================================
 // CWarpPotal - Warp Portal class
-// IDA: ?Init@CWarpPotal@@QEAAXPEAVXMaze@@@Z (0x140718730)
+// PDB UDT 0x690C2, Size = 72 (0x48)
+// +0x00 m_vecWarpInfo(vector<tagWARP_POTAL_INFO*>)
+// +0x20 m_pMaze, +0x28 m_pCurInfo(tagWARP_POTAL_INFO*)
+// +0x30 m_bReCheck, +0x34 m_fWarpTime
+// +0x38 m_nSendTimeSec, +0x3C m_bWarpTimeCheck, +0x40 m_nJumpID
 // ============================================================================
 class CWarpPotal {
 public:
-    CWarpPotal() : m_bReCheck(false), m_bWarpTimeCheck(false), m_fWarpTime(0.0f),
-                   m_nSendTimeSec(0), m_pCurInfo(nullptr), m_pMaze(nullptr), m_nJumpID(0) {}
-    ~CWarpPotal() = default;
+    // IDA: ??0CWarpPotal@@QEAA@XZ (0x1407186C0)
+    // 精确还原: vector 默认构造 + bReCheck/bWarpTimeCheck/fWarpTime/nSendTimeSec/pMaze/pCurInfo 清零
+    // 注意: 原始 ctor 不初始化 m_nJumpID(+0x40)，此前内联列表里的 m_nJumpID(0) 属多余写入
+    CWarpPotal();
+
+    // IDA: ??1CWarpPotal@@QEAA@XZ (0x140194630)
+    // 精确还原: 仅 ~vector (不调 WarpInfoClear)
+    ~CWarpPotal();
 
     // IDA: ?Init@CWarpPotal@@QEAAXPEAVXMaze@@@Z (0x140718730)
     void Init(class XMaze* pMaze);
 
     // IDA: ?Update@CWarpPotal@@QEAAXM@Z (0x1407191e0)
     void Update(float fElapsedTime);
+
+    // IDA: ?WarpInfoClear@CWarpPotal@@QEAAXXZ (0x140717790)
+    void WarpInfoClear();
+
+    // IDA: ?AddWarpPotal@CWarpPotal@@QEAAXKHHH@Z (0x140717900)
+    void AddWarpPotal(unsigned long dwUserID, int nMapID, int nJumpID, int nPortalID);
+
+    // IDA: ?RemoveWarpPotal@CWarpPotal@@QEAAXK@Z (0x140718B40)
+    void RemoveWarpPotal(unsigned long dwUserID);
+
+    // IDA: ?SendWarpPotal@CWarpPotal@@QEAAXPEAUtagWARP_POTAL_INFO@@@Z (0x140718D80)
+    // 全员传送: GetPortalPos -> AllUserWarp -> (4,0xE) 广播 STWarp
+    // -> SetActiveSectorID/CheckCutsceneState -> ClearPortalUser -> ClosePortal
+    void SendWarpPotal(tagWARP_POTAL_INFO* pInfo);
+
+    // IDA: ?SendWarpMessage@CWarpPotal@@QEAAXH@Z (0x140719130)
+    // (4,0xF): nTimeSec 广播 (传送倒计时消息)
+    void SendWarpMessage(int nTimeSec);
+
+    // IDA: ?ClosePortal@CWarpPotal@@QEAAXHH@Z (0x140718FE0)
+    // GetResource -> SearchFromID(nPortalID) -> eEventObjectType_Box 时
+    // nBoxID=iID，SetPotalFlag(nBoxID, false)
+    void ClosePortal(int nPortalID, int nMapID);
+
+    // IDA: ?ClearPortalUser@CWarpPotal@@QEAAXH@Z (0x140719240)
+    // 遍历 m_vecWarpInfo 找 nPortalID 匹配项并清其 lstUsers
+    void ClearPortalUser(int nPortalID);
 
     // Accessors
     bool IsReCheck() const { return m_bReCheck; }
@@ -355,19 +421,20 @@ public:
     void SetJumpID(int nID) { m_nJumpID = nID; }
 
 private:
-    // IDA: ?CheckWarp@CWarpPotal@@QEAAXXZ
+    // IDA: ?CheckWarp@CWarpPotal@@QEAAXXZ (0x140718C00, publics RVA 0x717C00 经 OMAP 重映射)
     void CheckWarp();
 
-    // IDA: ?ProcessTimeCount@CWarpPotal@@QEAAXM@Z
+    // IDA: ?ProcessTimeCount@CWarpPotal@@QEAAXM@Z (0x140719090, publics RVA 0x718090 经 OMAP 重映射)
     void ProcessTimeCount(float fElapsedTime);
 
-    bool m_bReCheck;
-    bool m_bWarpTimeCheck;
-    float m_fWarpTime;
-    int m_nSendTimeSec;
-    void* m_pCurInfo;  // TODO: STMagePotalBox* or similar
-    class XMaze* m_pMaze;
-    int m_nJumpID;
+    std::vector<tagWARP_POTAL_INFO*> m_vecWarpInfo;  // +0x00
+    class XMaze* m_pMaze;                            // +0x20
+    tagWARP_POTAL_INFO* m_pCurInfo;                  // +0x28
+    bool m_bReCheck;                                 // +0x30
+    float m_fWarpTime;                               // +0x34
+    int m_nSendTimeSec;                              // +0x38
+    bool m_bWarpTimeCheck;                           // +0x3C
+    int m_nJumpID;                                   // +0x40
 };
 
 // ============================================================================
@@ -406,6 +473,12 @@ public:
     // IDA: ?GetHelperCount@XMaze@@QEAAHXZ (0x140328690)
     int GetHelperCount() const { return static_cast<int>(m_listSummonedHelper.size()); }
 
+    // IDA: ?AddHelper@XMaze@@QEAAXPEAVCMonster@@@Z (0x1403282C0)
+    void AddHelper(CMonster* pMonster);
+
+    // IDA: ?DeleteHelper@XMaze@@QEAAXPEAVCMonster@@@Z (0x140328300)
+    void DeleteHelper(CMonster* pMonster);
+
     // IDA: ?GetCutSceneMgr@XMaze@@QEAAPEAVCCutsceneManager@@XZ (0x140068310)
     CCutsceneManager* GetCutSceneMgr() { return m_pCutSceneManager; }
 
@@ -428,6 +501,9 @@ public:
 
     // IDA: ?FinishMazeTime@XMaze@@QEAAXXZ (0x140311BD0)
     void FinishMazeTime();
+
+    // IDA: ?ReleaseHelperSupportEquip@XMaze@@QEAAXXZ (0x140327770 publics RVA)
+    void ReleaseHelperSupportEquip();
 
     // IDA: ?MazePlayTime_Now@XMaze@@QEAAIXZ (0x140311C10)
     std::uint32_t MazePlayTime_Now();
@@ -514,7 +590,9 @@ public:
     int GetPartyMemberCount() const;
 
     // === Unique ID ===
-    std::uint32_t GetUniqueID(int nSectorID);
+    // IDA: ?GetUniqueID@XMaze@@QEAAHH@Z (0x14032E3D0)
+    // (批11 修正: uint32 臆造返回类型改 PDB 真 ABI int)
+    int GetUniqueID(int nSectorID);
 
     // === Broadcast ===
     // IDA: ?SendBroadCast@XMaze@@UEAAXAEAVXSendPacket@@PEAVXActor@@W4E_BROADCAST_TYPE@IXArea@@@Z (0x1403265E0)
@@ -1094,7 +1172,9 @@ public:
 
     // === Quest Respawn Functions ===
     // IDA: ?SetQuestRespawn@XMaze@@QEAAXKHHPEBUVMonsterSpawnInfo@@@Z (0x1403301E0)
-    void SetQuestRespawn(unsigned int dwActorID, int nTableID, int nType, const void* pMonsterSpawn);
+    // (批10 修正: 参数类型从 const void* 修正为 PDB 真签名 const VMonsterSpawnInfo*)
+    void SetQuestRespawn(unsigned int dwActorID, int nTableID, int nType,
+                         const VMonsterSpawnInfo* pMonsterSpawn);
 
     // === Hidden Event Cheat Functions ===
     // IDA: ?CheatSetHiddenEvent@XMaze@@QEAAXGK@Z (0x140330F70)
@@ -1394,7 +1474,27 @@ public:
 
     // === Helper Functions ===
     int GetLastSectorID() const;
-    bool AllUserWarp(XVec3* vPos, float fRot, int nType);
+
+    // IDA: ?AllUserWarp@XMaze@@QEAA_NAEAUXVec3@@M_N@Z (0x140323680)
+    // PDB 真签名: (XVec3&, float fRot, bool bRunAI) -> bool
+    // 遍历玩家表 MoveActor+SetDedicatedMonsterID(0)+SetDirectionYaw(2)+SetPosition+MoveingValueClear
+    // -> AllMonsterWarp -> bRunAI ? RunSectorAI : SetLastSectorID+SetBossSector
+    bool AllUserWarp(XVec3& vPos, float fRot, bool bRunAI);
+
+    // IDA: ?AllUserWarp@XMaze@@QEAAXH@Z (0x140323980)
+    // PDB 真签名: (int nType) 重载
+    void AllUserWarp(int nType);
+
+    // IDA: ?AllMonsterWarp@XMaze@@QEAAXAEAUXVec3@@M@Z (0x140323D60)
+    // 遍历 NPC/怪物表: Type==2 的 CMonster 且 IsFollower 时
+    // MoveActor + SetDirectionYaw(2) + MoveingValueClear + ChangeMotion(1)
+    void AllMonsterWarp(XVec3& vPos, float fRot);
+
+    // IDA: ?SetPotalFlag@XMaze@@QEAAXH_N@Z (0x14031FBC0)
+    // m_mapPotalBox 查 iBoxUniqueID -> bOpen!=bFlag 时翻转并 (4,9) 广播
+    // bOpen 时 SpawnSectorMonsterForOpt(m_iNextSectorID)+nEnterUserCount=0
+    // +m_iMaxTimeCount>0 时 nCloseTime=1000*MaxTimeCount+GetTickCount64
+    void SetPotalFlag(int nBoxIndex, bool bFlag);
 
 protected:
     // === IDA confirmed member variables ===
@@ -1521,9 +1621,12 @@ protected:
     // Enter District Position - IDA confirmed (uses global STPosInfo from PSCommon.h)
     STPosInfo m_stEnterDistrictPos;
 
+public:
     // IDA: ?GetRoguelikeNextMap@XMaze@@QEAA_NPEAVCUser@@AEAHAEAUSTPosInfo@@@Z (0x1403447f0)
+    // PDB publics: QEAA (public 成员；此前误归 protected 段，按符号修正)
     bool GetRoguelikeNextMap(CUser* pUser, int& nNextMapID, STPosInfo& stPosInfo);
 
+protected:
     // IDA: ?SetEscortMonster@XMaze@@QEAAXKPEBD0@Z (0x14032bf00)
     void SetEscortMonster(unsigned long dwEpisodeID, const char* szMonsterID, const char* szAnimName);
 
@@ -1560,7 +1663,8 @@ protected:
     std::list<void*> m_lstSilhouetteObject;  // TODO: hkaiPointCloudSilhouetteGenerator*
     std::list<VMonsterSpawnInfo*> m_listMonsterSpawnInfo;
     std::list<VSafeAreaBoxInfo*> m_listSectorStartBox;
-    std::list<std::uint32_t> m_listSummonedHelper;
+    // PDB UDT 0x2A89A: std::list<CMoverEx*>（此前误写为 list<uint32_t>，按 PDB 布局修正）
+    std::list<class CMoverEx*> m_listSummonedHelper;
     std::list<void*> m_listWaitForRecvInfo;  // TODO: proper type
 
     // Logic Timers (IDA confirmed)

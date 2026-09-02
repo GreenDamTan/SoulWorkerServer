@@ -2,16 +2,14 @@
 // Restored from IDA GameServer.exe
 
 #include "GocNpcCredit.h"
-#include "Soulworker/GameServer/XGameServer/XGameServer.h"
+#include "Soulworker/GameServer/XGameServer/GameServer.h"
 #include "Soulworker/GameServer/XGameServer/User.h"
-#include "Soulworker/GameServer/XGameServer/Actor/Mover.h"
-#include "Soulworker/GameServer/XGameServer/Actor/Component/GocNetwork.h"
-#include "Soulworker/GameServer/XGameServer/Actor/Component/GocPost.h"
-#include "Soulworker/GameServer/XGameServer/Actor/Component/GocAchieve.h"
-#include "Soulworker/GameServer/XGameServer/XSCommon/Table/DBLoadTable.h"
-#include "Soulworker/GameServer/XGameServer/Packet/XSendPacket.h"
-#include "Soulworker/GameServer/XGameServer/Packet/XSendDBPacket.h"
-#include "Soulworker/Common/XNet/XCommon/XPacket.h"
+#include "Soulworker/GameServer/XGameServer/Mover.h"
+#include "Soulworker/GameServer/XGameServer/actor/component/GocNetwork.h"
+#include "Soulworker/GameServer/XGameServer/actor/component/GocPost.h"
+#include "Soulworker/GameServer/XGameServer/actor/component/GocAchieve.h"
+#include "Soulworker/GameServer/XSCommon/Table/DBLoadTable.h"
+#include "Soulworker/Common/XNet/XIOCPBase/Packet.h"
 #include <algorithm>
 
 // ============================================================================

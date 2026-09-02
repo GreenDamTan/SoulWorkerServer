@@ -294,3 +294,21 @@ bool CGocNetwork::SendErrorMessage(CMover* pObject, std::uint8_t ucMainCmd, std:
     }
     return true;
 }
+
+// ============================================================================
+// SendErrorMessage 5-param (PDB publics ?SendErrorMessage@CGocNetwork@@SA_NPEAVCMover@@EEGK@Z
+// [0001:00102E60]) - 带额外 payload (XForceProcess 匹配链 nNeedItemID)
+// 结构与 4 参版一致: 空指针返回 false，dynamic_cast 后转 CUser 4 参重载。
+bool CGocNetwork::SendErrorMessage(CMover* pObject, std::uint8_t ucMainCmd, std::uint8_t ucSubCmd,
+                                   std::uint16_t xErrorCode, std::uint32_t dwParam)
+{
+    if (!pObject) {
+        return false;
+    }
+
+    CUser* pUser = dynamic_cast<CUser*>(pObject);
+    if (pUser) {
+        pUser->SendErrorMessage(ucMainCmd, ucSubCmd, xErrorCode, dwParam);
+    }
+    return true;
+}

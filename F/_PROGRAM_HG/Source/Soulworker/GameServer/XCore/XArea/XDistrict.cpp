@@ -63,8 +63,9 @@ bool XDistrict::Create(TB_DISTRICT* pDistrict) {
     XGameServer* pServer = XGameServer::Instance();
     
     // IDA: m_pObjectResource = XWorldResMgr::GetResource(&pServer->m_xWorldResMgr, pDistrict->District_ID)
-    m_pObjectResource = static_cast<VEventObjectResource*>(
-        XWorldResMgr::GetResource(&pServer->GetWorldResMgr(), pDistrict->District_ID));
+    // PDB: GetResource 为非静态成员, 返回 VEventObjectResource*, 参数 int16
+    m_pObjectResource = pServer->GetWorldResMgr().GetResource(
+        static_cast<std::int16_t>(pDistrict->District_ID));
     
     if (!m_pObjectResource) {
         LogHelper::LogError("game.system", 

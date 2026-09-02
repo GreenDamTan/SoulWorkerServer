@@ -92,6 +92,7 @@ class DohHavokResourceManager;
 // Include UXMapID from PSCommon.h instead of forward declaring
 #include "Soulworker/Common/XNet/XCommon/PSCommon.h"
 #include "Soulworker/Common/XNet/XCommon/PSServer/PSServerLeague.h"
+#include "Soulworker/Common/XNet/XCommon/PSServer/PSServerChat.h"
 #include "Soulworker/Common/XNet/XCommon/PSServer/PSServerMyroom.h"
 
 struct XVec3;
@@ -102,10 +103,16 @@ struct ST_CHANNEL_INFO;
 struct ST_LEAGUE_MEMBER_EX;
 struct ST_LEAGUE_INFO_UPDATE;
 struct ST_LEAGUE_MEMBER_UPDATE;
+struct ST_LEAGUE_NOTICE;
 struct ST_LEAGUE_APPLICANT;
 struct ST_LEAGUE_BOARD;
 struct ST_LEAGUE_INFO;
+struct ST_LEAGUE_RECRUIT_NOTICE;
+struct ST_LEAGUE_RECORD;
 struct ST_LEAGUE_AUTH_CHANGE;
+struct ST_LEAGUE_POSITION_NAME_CHANGE;
+struct ST_LEAGUE_MEMBER_POSITION;
+struct PS_REQ_LEAGUE_CARD;
 struct SS_REPORT_POOL_INFO;
 class XSendPacket;
 class XClient;
@@ -302,11 +309,64 @@ public:
     // IDA @ 0x1406D7240 - Leave league member
     void LeaveLeagueMember(CUser* pUser);
 
+    // IDA @ 0x1406D74A0 - Delete league member entry (by league id + UCID)
+    void DeleteLeague(unsigned int nLeagueID, unsigned int dwUCID);
+
+    // IDA @ 0x1406D7540 - Broadcast league apply to thread-local members
+    void SendLeagueApply(ST_LEAGUE_APPLICANT& stApplicant);
+
+    // IDA @ 0x1406D97C0 - Broadcast league member kickout to thread-local members
+    void SendLeagueKickout(unsigned int nLeagueID, int dwReqUCID, unsigned int dwKickoutUCID,
+                           ST_LEAGUE_INFO_UPDATE& stUpdateInfo, int nSyncCount);
+
+    // IDA @ 0x1406D7750 - Broadcast league info change to thread-local members
+    void LeagueInfoChange(ST_LEAGUE_INFO stInfo);
+
+    // IDA @ 0x1406D7B10 - Update league member info for the thread-local league
+    void UpdateLeagueMember(ST_LEAGUE_MEMBER_UPDATE stUpdate);
+
+    // IDA @ 0x1406D9540 - Broadcast league notice change to thread-local members
+    void SendLeagueNoticeChangeToMember(ST_LEAGUE_NOTICE stNotice, unsigned int dwReqUCID);
+
+    // IDA @ 0x1406D7800 - Broadcast league auth change to thread-local members
+    void ChangeLeagueAuth(ST_LEAGUE_AUTH_CHANGE stChange, int nLeagueID, int nSyncCount);
+
+    // IDA @ 0x1406D7980 - Update member position in thread-local league
+    void UpdateMemberPosition(ST_LEAGUE_MEMBER_POSITION stPosition, unsigned int nLeagueID,
+                              unsigned int dwActorID, int nSyncCount);
+
+    // IDA @ 0x1406D7BC0 - Broadcast league chat message to thread-local members
+    void SendLeagueMsg(PS_CHAT_LEAGUE psChatInfo, PS_CHAT_ITEM_LINK_FOR_SERVER psLinkItemInfo);
+
+    // IDA @ 0x1406D7CC0 - Update league applicant list per thread
+    void LeagueApplicantUpdate(ST_LEAGUE_APPLICANT_CHECK_LIST& stUpdateList, unsigned int dwUCID);
+
+    // IDA @ 0x1406D7300 - Broadcast applicant join to thread-local league members
+    void SendLeagueJoinUser_Apply(ST_LEAGUE_MEMBER_EX stMemberEx,
+                                  ST_LEAGUE_INFO_UPDATE stInfoUpdate, int nSyncCount);
+
+    // IDA @ 0x1406D96C0 - Broadcast invited join to thread-local league members
+    void SendLeagueJoinUser_Invite(ST_LEAGUE_MEMBER_EX stMemberEx,
+                                   ST_LEAGUE_INFO_UPDATE stInfoUpdate,
+                                   unsigned char byApplyState, int nSyncCount);
+
+    // IDA @ 0x1406D78D0 - Broadcast league position name change to thread-local members
+    void ChangePositionName(ST_LEAGUE_POSITION_NAME_CHANGE stChange, int nLeagueID);
+
+    // IDA @ 0x1406D9940 - Broadcast league card change to thread-local members
+    void SendLeagueCardChange(PS_REQ_LEAGUE_CARD psCardInfo, int nSyncCount);
+
     // IDA @ 0x1406D2960 - Create matching maze with force info
     void CreateMatchingMaze(ST_CREATE_MAZE& stCreateMaze, PS_FORCE_INFO& stForceInfo, unsigned long dwMatchingID);
 
     // IDA @ 0x1406D3340 - Create matching mode maze
     void CreateMatchingModeMaze(ST_CREATE_MODE_MAZE& stCreateMaze);
+
+    // IDA @ 0x1406D9600 - Broadcast league recruit notice to thread-local members
+    void SendLeagueRecruitNoticeToMember(ST_LEAGUE_RECRUIT_NOTICE& stRecruitNoticeInfo, __int64 biRemainTime);
+
+    // IDA @ 0x1406D9890 - Broadcast league record update to thread-local members
+    void SendLeagueRecordUpdate(ST_LEAGUE_RECORD& stRecordInfo);
 
     // IDA @ 0x1406DA1B0 - Send league delegate
     void SendLeagueDelegate(PS_RES_LEAGUE_DELEGATE& psDelegateRes, unsigned int dwDelegatedUCID, int nSyncCount);

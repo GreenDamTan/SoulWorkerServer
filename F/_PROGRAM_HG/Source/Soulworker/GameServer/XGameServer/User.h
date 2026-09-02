@@ -75,6 +75,83 @@ public:
                         PS_REQ_TICKCOUNT& psReqTick,
                         std::uint64_t dwRecvTick);
     void GetResultTick(int nTicknum, PS_TICKCOUNT_INFO& psTick);
+
+    // === League ===
+    // IDA: ?SetLeagueInfo@CUser@@QEAAXAEAUST_LEAGUE_INFO_EX@@UST_LEAGUE_INFO_FOR_GAME@@@Z @ 0x140700950
+    void SetLeagueInfo(ST_LEAGUE_INFO_EX& stInfo,
+                       ST_LEAGUE_INFO_FOR_GAME stLeagueInfoForGame);
+    // IDA: ?SetLeagueInfo@CUser@@QEAAXAEAUST_LEAGUE_INFO_EX@@@Z @ 0x140700A40 (单参重载)
+    void SetLeagueInfo(ST_LEAGUE_INFO_EX& stInfo);
+
+    // IDA: ?GetLeagueSyncFlag@CUser@@QEAA_NXZ @ 0x14028D3C0
+    bool GetLeagueSyncFlag();
+
+    // IDA: ?GetLeagueSyncCount@CUser@@QEAAHXZ @ 0x14028D3A0
+    int GetLeagueSyncCount();
+
+    // IDA: ?UpdateLeagueSyncFlag@CUser@@QEAAX_N@Z @ 0x14025D060
+    void UpdateLeagueSyncFlag(bool bSyncFlag);
+
+    // IDA: ?UpdateLeagueSyncCount@CUser@@QEAAXH@Z @ 0x14025DB90
+    void UpdateLeagueSyncCount(int nUpdateCount);
+
+    // IDA: ?ClearLeagueInfo@CUser@@QEAAXXZ @ 0x1406FB440
+    void ClearLeagueInfo();
+
+    // IDA: ?SetLeagueSkill@CUser@@QEAAXEE@Z @ 0x140700B30
+    void SetLeagueSkill(std::uint8_t byGroupID, std::uint8_t bySkillLevel);
+
+    // IDA: ?SetLeagueLevel@CUser@@QEAAXE@Z @ 0x140700B60
+    void SetLeagueLevel(std::uint8_t byLevel);
+
+    // IDA: ?SetLeagueCard@CUser@@QEAAXK@Z @ 0x1407008F0
+    void SetLeagueCard(unsigned int dwCardInfo);
+
+    // IDA: ?SetLeagueName@CUser@@QEAAXPEA_W@Z @ 0x14025CAB0
+    void SetLeagueName(wchar_t* szName);
+
+    // IDA: ?SetLeagueAuth@CUser@@QEAAXUST_LEAGUE_AUTH_CHANGE@@@Z @ 0x140700AE0
+    void SetLeagueAuth(ST_LEAGUE_AUTH_CHANGE stAuthInfo);
+
+    // IDA: ?SetLeaguePosition@CUser@@QEAAXE@Z @ 0x140700930
+    void SetLeaguePosition(std::uint8_t byPosition);
+
+    // IDA: ?SetLeagueMaster@CUser@@QEAAXK@Z @ 0x140700910
+    void SetLeagueMaster(unsigned int dwUCID);
+
+    // IDA: ?UpdateLeagueInventorySyncCount@CUser@@QEAAXH@Z @ 0x14025CFC0
+    void UpdateLeagueInventorySyncCount(int nUpdateCount);
+
+    // IDA: ?GetLeagueInventorySyncCount@CUser@@QEAAHXZ @ 0x14028D380
+    int GetLeagueInventorySyncCount();
+
+    // IDA: ?SetLeagueInventoryTime@CUser@@QEAAX_J@Z @ 0x14025CFE0
+    void SetLeagueInventoryTime(std::int64_t biTime);
+
+    // IDA: ?GetLeagueInfo@CUser@@QEAAXAEAUST_LEAGUE_INFO_EX@@@Z @ 0x1406FB3A0
+    void GetLeagueInfo(ST_LEAGUE_INFO_EX& stInfo);
+
+    // IDA: ?GetLeagueInfo@CUser@@QEAAXAEAUST_LEAGUE_INFO_FOR_GAME@@@Z @ 0x140503F40
+    void GetLeagueInfo(ST_LEAGUE_INFO_FOR_GAME& stLeagueInfo);
+
+    // IDA: ?SetLeagueInventorySend@CUser@@QEAAX_N@Z @ 0x14025D9E0
+    void SetLeagueInventorySend(bool bSend);
+
+    // IDA: ?GetLeagueInventoryTime@CUser@@QEAA_JXZ @ 0x140503D60
+    std::int64_t GetLeagueInventoryTime();
+
+    // IDA: ?CheckSendLeagueInventoryInfo@CUser@@QEAA_NXZ @ 0x140503D80
+    bool CheckSendLeagueInventoryInfo();
+
+    // IDA: ?IsLeagueAuth@CUser@@QEAA_NEW4E_LEAGUE_AUTH@@@Z @ 0x1407007E0
+    bool IsLeagueAuth(std::uint8_t byPosition, E_LEAGUE_AUTH eAuth);
+
+    // IDA: ?EnterWorldToOther@CUser@@QEAAXHHUSTPosInfo@@K@Z @ 0x1406F8800
+    void EnterWorldToOther(int nMapID, int nJumpID, STPosInfo& stPosInfo,
+                           std::uint32_t dwTargetID);
+
+    // IDA: ?SetLeagueDeletePenalty@CUser@@QEAAX_J@Z @ 0x14025D900
+    void SetLeagueDeletePenalty(std::int64_t biPenalty);
     void ChangeBattlePose(int nPose);
     void SetInfo();
     void InitStoreSuboInputPacket();
@@ -99,6 +176,8 @@ public:
     std::uint32_t GetActiveBroachEffect();
     void SetActiveBroachEffect(std::uint32_t dwEffect);
     std::int32_t GetLeagueID();
+    // IDA: ?GetLeagueDeletePenalty@CUser@@QEAA_JXZ @ 0x140504340
+    std::int64_t GetLeagueDeletePenalty();
     std::uint16_t GetMaxComboCount();
     
     // === Combo System Functions (IDA) ===
@@ -138,6 +217,8 @@ public:
     void ChangeBooster(E_BOOSTER_TYPE eType, std::uint16_t wIndex);
     // IDA: ?IsLeagueSkill@CUser@@QEAA_NH@Z @ 0x1407007A0
     bool IsLeagueSkill(int nSkill);
+    // IDA: ?GetLeagueSkillEffectValue@CUser@@QEAAHH@Z @ 0x140700830
+    std::int32_t GetLeagueSkillEffectValue(int nSkill);
 
     // 其他方法
     // GetFP: IDA 0x140048FB0 - 返回 unsigned short 扩展到 int64
@@ -164,9 +245,27 @@ public:
     // IDA: return this->m_stCharInfo.byGMPower != 0
     bool IsGM() const;
 
+    // === SetDedicatedMonsterID: IDA 0x1402C7CA0 ===
+    // IDA: ?SetDedicatedMonsterID@CUser@@QEAAXK@Z
+    // 单行 setter: this->m_dwDedicatedMonsterID = dwActorID
+    void SetDedicatedMonsterID(std::uint32_t dwActorID);
+
     // === IsStatus: IDA 0x140026C30 ===
     // IDA: return dwStatus & this->m_dwStatus
     bool IsStatus(std::uint32_t dwStatus) const;
+
+    // === IsUserStatus: IDA 0x140353AB0 ===
+    // IDA: return dwStatus & this->m_stCharInfo.dwStatus
+    bool IsUserStatus(std::uint32_t dwStatus);
+
+    // === GetValidMapInsID: IDA 0x140701610 ===
+    // IDA: ?GetValidMapInsID@CUser@@QEAA?ATUXMapID@@XZ (按值返回 UXMapID)
+    // GetArea 非空时 XActor::GetMapInsID (m_pPosInfo->uxMapID), 否则 UXMapID(0)
+    UXMapID GetValidMapInsID();
+
+    // === SendResWarp: IDA 0x1406E9AE0 ===
+    // 传送结果包 (4,8): GetQuestID + STWarp 广播
+    void SendResWarp(std::uint8_t byResult, XVec3& xPos, float fRot);
 
     // === GetUAID: IDA 0x14070AF80 ===
     // IDA: return this->m_stCharInfo.dwUAID
@@ -471,9 +570,29 @@ public:
     // IDA: ?CheckMazeEnterCount@CUser@@QEAA_NPEAUTB_MAZE_INFO@@AEAH@Z @ 0x140700C30
     bool CheckMazeEnterCount(struct TB_MAZE_INFO* pMazeData, int& nErrorID);
 
+    // SetLogChangeMap - 设置换图日志标志，true 时清空延迟/ Tick 日志缓冲
+    // IDA: ?SetLogChangeMap@CUser@@QEAAX_N@Z @ 0x140700500
+    void SetLogChangeMap(bool bChange);
+
+    // GetEnterDistrictPos - 取上次进入普通区的位置
+    // IDA: ?GetEnterDistrictPos@CUser@@QEAAXAEAUSTPosInfo@@@Z @ 0x1401ACFD0
+    void GetEnterDistrictPos(STPosInfo& stPos);
+
     // IsMaze - 是否处于迷宫区域
     // IDA: ?IsMaze@CUser@@QEAA_NXZ @ 0x1406F1940
     bool IsMaze() { return GetArea() && GetArea()->IsMaze(); }
+
+    // IsEnableEscapeWorld - 逃脱冷却已到才能再次逃脱
+    // IDA: ?IsEnableEscapeWorld@CUser@@QEAA_NXZ @ 0x1406FA020
+    bool IsEnableEscapeWorld();
+
+    // SetNextEscapeTime - 设置下次可用逃脱时间 (当前 tick + 60000ms)
+    // IDA: ?SetNextEscapeTime@CUser@@QEAAXXZ @ 0x1406FA590
+    void SetNextEscapeTime();
+
+    // IsBattleState - 是否处于战斗状态 (m_fBattleStateTime > 0)
+    // IDA: ?IsBattleState@CUser@@QEAA_NXZ @ 0x1403E1770
+    bool IsBattleState();
 
     // GetWorldType - 获取所在区域世界类型
     // IDA: ?GetWorldType@CUser@@QEAAHXZ @ 0x140439D50
@@ -725,6 +844,10 @@ private:
 
     // === IDA 0x1401ADC50 CUser::IsPVPPenalty 使用 ===
     bool m_bPVPPenalty;
+
+    // === IDA 0x1406FA020 CUser::IsEnableEscapeWorld / 0x1406FA590 SetNextEscapeTime 使用 ===
+    // PDB: CUser m_nEnableEscapeTime (T_UQUAD @193216)
+    std::uint64_t m_nEnableEscapeTime;
 
     // === IDA 0x1401ADC70 CUser::SetFullStat / 0x1401ADCA0 CUser::IsFullStat 使用 ===
     bool m_bFirstWorldEnter;

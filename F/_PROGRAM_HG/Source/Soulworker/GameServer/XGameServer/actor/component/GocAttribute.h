@@ -509,8 +509,8 @@ public:
     // Stat broadcast helpers (IDA 0x140041CC0)
     bool IsShouldSyncStatBroadcast(int nStat);
 
-    // World enter stat setup (IDA 0x140041D10)
-    void SetStartStatEnterWorld(int nWorldType);
+    // World enter stat setup (IDA 0x140041D10, publics ?QEAAXH_N: two-param)
+    void SetStartStatEnterWorld(int nWorldType, bool bFirstEnter);
 
     // Sync stat flag (IDA 0x1403A1B60)
     void SetSyncStatFlag(int iIndex, int eSyncStatType);

@@ -1663,9 +1663,9 @@ bool XRelayServer::PrepareBlockListAdd(PS_REQ_FRIEND_BLOCK_ADD& stBlock) {
     // 对齐 IDA 0x1400B77B0: 黑名单添加处理
     CFAutoSlimReadLock autolock(&m_rwLock);
 
-    const std::shared_ptr<CUserObject> pReqUser = GetUser(stBlock.dwReqUCID);
+    const std::shared_ptr<CUserObject> pReqUser = GetUserByUAID(stBlock.dwReqUAID);
     if (!pReqUser) {
-        KickOutUser(stBlock.dwReqUCID, 0xCu);
+        KickOutUser(stBlock.dwReqUAID, 0xCu);
         LogHelper::LogError("game.relay", "<KICKOUT> XRelayServer::PrepareBlockListAdd");
         return false;
     }
@@ -1703,9 +1703,9 @@ bool XRelayServer::PrepareBlockListDel(PS_REQ_FRIEND_BLOCK_DELETE& stBlock) {
     // 对齐 IDA 0x1400B7E90: 黑名单删除处理
     CFAutoSlimReadLock autolock(&m_rwLock);
 
-    const std::shared_ptr<CUserObject> pReqUser = GetUser(stBlock.dwReqUCID);
+    const std::shared_ptr<CUserObject> pReqUser = GetUserByUAID(stBlock.dwReqUAID);
     if (!pReqUser) {
-        KickOutUser(stBlock.dwReqUCID, 0xCu);
+        KickOutUser(stBlock.dwReqUAID, 0xCu);
         LogHelper::LogError("game.relay", "<KICKOUT> XRelayServer::PrepareBlockListDel");
         return false;
     }
@@ -1715,7 +1715,7 @@ bool XRelayServer::PrepareBlockListDel(PS_REQ_FRIEND_BLOCK_DELETE& stBlock) {
         // 目标不在黑名单中
         PS_RES_BLOCKLIST_DELETE psBlockRes{};
         psBlockRes.nResult = 55109;
-        psBlockRes.dwReqUAID = stBlock.dwReqUCID;
+        psBlockRes.dwReqUAID = stBlock.dwReqUAID;
         wcscpy_s(psBlockRes.strTargetName, stBlock.strTargetName);
         XSendPacket xSendPacket(0xF5u, 8u);
         xSendPacket.XParse << pReqUser->GetMatchingID();
@@ -1735,16 +1735,16 @@ bool XRelayServer::RecommandFriend(PS_RES_FRIEND_RECOMMAND& stRecommand) {
     // 对齐 IDA 0x1400B9AA0: 好友推荐处理
     CFAutoSlimReadLock autolock(&m_rwLock);
 
-    const std::shared_ptr<CUserObject> pReqUser = GetUser(stRecommand.dwReqUCID);
+    const std::shared_ptr<CUserObject> pReqUser = GetUser(stRecommand.dwUCID);
     if (!pReqUser) {
-        KickOutUser(stRecommand.dwReqUCID, 0xCu);
+        KickOutUser(stRecommand.dwUCID, 0xCu);
         LogHelper::LogError("game.relay", "<KICKOUT> XRelayServer::RecommandFriend");
         return false;
     }
 
     // 对齐 IDA: 获取推荐好友列表
     PS_RES_FRIEND_RECOMMAND psRecommand{};
-    psRecommand.dwReqUCID = stRecommand.dwReqUCID;
+    psRecommand.dwUCID = stRecommand.dwUCID;
     m_RecommandManager.GetFriendRecommandList(pReqUser, 3, psRecommand.vecFriends);
 
     // 对齐 IDA: 记录每个推荐好友的日志

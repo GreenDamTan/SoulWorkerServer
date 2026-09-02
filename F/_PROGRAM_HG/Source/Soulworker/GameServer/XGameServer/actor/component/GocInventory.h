@@ -730,8 +730,9 @@ public:
                   bool bTool);
 
     // SendSocketUpdate - 0x1400C0830
+    // PDB: ?SendSocketUpdate@CGocInventory@@QEAAXUPS_ITEM_SOCKET_LIST@@@Z
     // Sends socket update to client (main=8, sub=0x61)
-    void SendSocketUpdate(/*PS_ITEM_SOCKET_LIST*/ void* stSocketList);
+    void SendSocketUpdate(PS_ITEM_SOCKET_LIST stSocketList);
 
     // === Item add/reduce functions (IDA verified) ===
 
@@ -887,14 +888,16 @@ public:
     // === Broach update functions (IDA verified) ===
 
     // SendBroachUpdate - 0x1400C0910
+    // PDB: ?SendBroachUpdate@CGocInventory@@QEAAXUPS_ITEM_BROACH_LIST@@@Z
     // Sends broach update packet to client (main=8, sub=0x62)
-    void SendBroachUpdate(/*PS_ITEM_BROACH_LIST*/ void* stBroachList);
+    void SendBroachUpdate(PS_ITEM_BROACH_LIST stBroachList);
 
     // === Package info functions (IDA verified) ===
 
     // SendPackageInfo - 0x1400C0A30
+    // PDB: ?SendPackageInfo@CGocInventory@@QEAAXUPS_ITEM_PACKAGE_LIST@@@Z
     // Sends package info packet to client (main=8, sub=0x72)
-    void SendPackageInfo(/*PS_ITEM_PACKAGE_LIST*/ void* psPackageList);
+    void SendPackageInfo(PS_ITEM_PACKAGE_LIST psPackageList);
 
     // === GM Cheat functions (IDA verified) ===
 
@@ -1062,8 +1065,9 @@ public:
     // === League inventory functions ===
 
     // MoveItemToLeagueInven - 0x1400C8DD0
+    // PDB: ?MoveItemToLeagueInven@CGocInventory@@QEAA_NUPS_ITEM_MOVE_LEAGUE_INVEN_FOR_GAME@@@Z
     // Moves item to/from league inventory (complex function with 3 types)
-    bool MoveItemToLeagueInven(/*PS_ITEM_MOVE_LEAGUE_INVEN_FOR_GAME*/ void* psItemMoveForServer);
+    bool MoveItemToLeagueInven(PS_ITEM_MOVE_LEAGUE_INVEN_FOR_GAME& psItemMoveForServer);
 
     // === Cash Mileage functions ===
 

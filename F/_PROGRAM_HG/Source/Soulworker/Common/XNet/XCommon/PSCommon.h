@@ -310,6 +310,7 @@ union UXMapID {
     std::int64_t nMapID;
 
     constexpr UXMapID() : nMapID(0) {}
+    constexpr explicit UXMapID(std::int64_t n) : nMapID(n) {}
 
     // 对齐 IDA: 用于 std::map 键
     constexpr bool operator<(const UXMapID& rhs) const {
@@ -320,6 +321,11 @@ union UXMapID {
     }
     constexpr bool operator!=(const UXMapID& rhs) const {
         return nMapID != rhs.nMapID;
+    }
+    // PDB fieldlist 0xE4B6 list[10]: operator __int64 (VANILLA, index 0xE21D,
+    // 返回 T_QUAD) - UXMapID 可隐式转换为 int64
+    constexpr operator std::int64_t() const {
+        return nMapID;
     }
 };
 
@@ -3854,21 +3860,34 @@ inline void operator>>(XPacket& packet, ST_MOVE_IGNORE_MOTION_DELTA& value) {
  * @brief 传送信息结构
  * 用于 main=4, sub=8 (eMAIN_CMD_MOVE, eSUB_CMD_WARP)
  * IDA: CUser::Warp @ 0x1406E9C40
+ * PDB UDT 0x25D28, Size = 24:
+ *   byResult +0x00 (uchar), xPos +0x04 (XVec3), fRot +0x10, nSectorID +0x14
+ * 内嵌枚举 RESULT_WARP { RESULT_WARP_SUCCESS=0, RESULT_WARP_FAILED=1 }
  */
 struct STWarp {
-    std::uint8_t byResult = 0;      // 传送结果 (0=成功)
-    float fPosX = 0.0f;             // X坐标
-    float fPosY = 0.0f;             // Y坐标
-    float fPosZ = 0.0f;             // Z坐标
-    float fRot = 0.0f;              // 旋转角度
-    int nSectorID = 0;              // 区域ID (可选)
+    enum RESULT_WARP {
+        RESULT_WARP_SUCCESS = 0,
+        RESULT_WARP_FAILED = 1,
+    };
+
+    std::uint8_t byResult = 0;      // 传送结果 (0=SUCCESS, 1=FAILED)
+    std::uint8_t _pad0[3] = {};    // 对齐 padding (+0x01..0x03)
+    XVec3 xPos{};                   // 传送目标坐标 (+0x04)
+    float fRot = 0.0f;              // 旋转角度 (+0x10)
+    int nSectorID = 0;              // 区域ID (+0x14)
 };
+
+static_assert(sizeof(STWarp) == 24, "STWarp size must match PDB (24)");
+static_assert(offsetof(STWarp, byResult) == 0x0, "STWarp.byResult offset mismatch");
+static_assert(offsetof(STWarp, xPos) == 0x4, "STWarp.xPos offset mismatch");
+static_assert(offsetof(STWarp, fRot) == 0x10, "STWarp.fRot offset mismatch");
+static_assert(offsetof(STWarp, nSectorID) == 0x14, "STWarp.nSectorID offset mismatch");
 
 inline XPacket& operator<<(XPacket& packet, const STWarp& value) {
     packet.XParse << value.byResult;
-    packet.XParse << value.fPosX;
-    packet.XParse << value.fPosY;
-    packet.XParse << value.fPosZ;
+    packet.XParse << value.xPos.x;
+    packet.XParse << value.xPos.y;
+    packet.XParse << value.xPos.z;
     packet.XParse << value.fRot;
     packet.XParse << value.nSectorID;
     return packet;
@@ -3876,9 +3895,9 @@ inline XPacket& operator<<(XPacket& packet, const STWarp& value) {
 
 inline void operator>>(XPacket& packet, STWarp& value) {
     packet.XParse >> value.byResult;
-    packet.XParse >> value.fPosX;
-    packet.XParse >> value.fPosY;
-    packet.XParse >> value.fPosZ;
+    packet.XParse >> value.xPos.x;
+    packet.XParse >> value.xPos.y;
+    packet.XParse >> value.xPos.z;
     packet.XParse >> value.fRot;
     packet.XParse >> value.nSectorID;
 }

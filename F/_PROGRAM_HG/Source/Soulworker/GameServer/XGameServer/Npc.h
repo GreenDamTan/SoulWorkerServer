@@ -43,6 +43,9 @@ public:
     // IDA: ?GetID@CNpc@@UEAAKXZ @ 0x1403a3470
     std::uint64_t GetID() const;
 
+    // IDA: ?GetTableID@CNpc@@UEAAHXZ @ 0x1403a42e0
+    int GetTableID() const;
+
     // IDA: ?GetActionResourceFN@CNpc@@UEAA?AVVString@@XZ @ 0x1403a3490
     VString GetActionResourceFN() const;
 

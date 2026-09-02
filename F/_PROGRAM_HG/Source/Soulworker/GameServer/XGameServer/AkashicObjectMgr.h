@@ -16,7 +16,8 @@
 // Forward declarations
 class CAkashicObject;
 class VType;
-struct UXMapID;
+// 注意: UXMapID 在 PSCommon.h 中为 union (PDB LF_UNION 0xE4B7), 前向声明须用 union
+union UXMapID;
 struct XVec3;
 struct TB_AKASHIC_RECORDS;
 

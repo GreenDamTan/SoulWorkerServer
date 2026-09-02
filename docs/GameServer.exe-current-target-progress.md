@@ -1,4 +1,4 @@
-
+﻿
 ---
 
 [2026-06-15 14:24 UTC]
@@ -16979,3 +16979,683 @@ Validate the current GameServer.exe reconstruction worktree before the user-auth
 - Ledgers: func-index 3 rows updated (ReqForceInvite implemented; IsMaze/GetWorldType implemented). type-index: no changes this round. path-recovery-index: no changes this round.
 - Remaining in this task: ReqForceAccept (0x1404319F0), ReqForceLeave (0x140432D40), ReqForceCancel (0x140432370), ReqForceChangeMaster, ReqForceKickOut, ReqForceMatchingEnter/Exit/Check, CheckForceMatchingEnter (10 stubs total still blocked).
 - Next batch: ReqForceAccept and the small no-arg handlers (ReqForceLeave/ReqForceMatchingExit) likely share the invite dispatch pattern; restore together.
+
+---
+
+[2026-09-02 15:50 +08:00] [gpt-5.6-terra]
+
+- Scope: XForceProcess ReqForceAccept/ReqForceCancel/ReqForceKickOut/ReqForceLeave batch (task #119). Frontier: ForceProcess.cpp remaining client-request handlers after the ReqForceInvite batch.
+- Evidence: IDA port 10004 decompiles. ReqForceAccept (0x1404319F0) dispatch parses dwMasterID then posts lambda2 body (0x140431BD0); ReqForceCancel (0x140432370) dispatch parses dwReqID + dwErrorID then posts lambda4 body (0x140432580); ReqForceKickOut (0x140432A20) dispatch parses dwActorID then posts lambda8 body (0x140432C10); ReqForceLeave (0x140432D40, no-arg) posts lambda10 body (0x140432EF0). Cross-checked xrefs and the ICF-folded lambda ctor symbols; disasm of 0x140432370 confirmed the two-int parse order (dwReqID, dwErrorID).
+- Files changed: F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/Process/ForceProcess.cpp.
+- Functions completed (4): XForceProcess::ReqForceAccept (0x1404319F0) - IsMaze 53102 / IsMatching 53131 / battlefield WorldType==2 non-safety-zone rejection (PS_FORCE_REJECT 53119 via (0xFA,0xD) SendCheck + error 53133) / Force_Use 53147 / GocForce IsParty 53104 / self-accept 53134 / GocParty IsParty 53004 / pass -> PS_RES_FORCE_INVITE{dwAcceptID,0} + UAID + level via (0xFA,0xC) SendCmd(0x2E,2); XForceProcess::ReqForceCancel (0x140432370) - PS_FORCE_REJECT{self, reqActor, name, dwErrorID} via (0xFA,0xD) SendCheck; XForceProcess::ReqForceKickOut (0x140432A20) - IsMatchingDate -> (0x12,4,53152) else CGocForce::KickOut; XForceProcess::ReqForceLeave (0x140432D40) - IsMatchingDate -> (0x2E,5,53152) else CGocForce::Leave(). All four follow the original IncrementJobCount + DoJob(mapInsID) + lambda192 decrement dispatch shape.
+- Verification: cmake --build build --target GameServer -j8 clean (57 pre-existing warnings, 0 errors). Source-to-IDA comparison done per function during landing (lambda bodies matched field-by-field); func-index kept verified=no pending a dedicated comparison pass.
+- Ledgers: func-index 4 rows updated (blocked->implemented, mangled names normalized from the earlier duplicated XForceProcess@XForceProcess form to the real decorated symbols). type-index: no changes this round. path-recovery-index: no changes this round.
+- Blockers: none for this batch.
+- Backlog (discovered, not yet started): XForceProcess::ReqForceChangeMaster (0x140432790), ReqForceMatchingEnter (0x140432FD0), ReqForceMatchingExit (0x140433B90), ReqForceMatchingCheck (0x140433F20), CheckForceMatchingEnter (0x1404342A0) remain documented STUBs; CCommunitySocket league Recv* handlers (task #107) still TODO; ThreadLocalData full 0x1450 layout (task #87) still blocks CreateMatchingMaze real body.
+- Next: restore XForceProcess::ReqForceChangeMaster (0x140432790) and the matching trio (Enter/Exit/Check) to finish the XForceProcess handler set.
+
+---
+
+[2026-09-02 16:06 +08:00] [gpt-5.6-terra]
+
+- Scope: XForceProcess ChangeMaster/Matching batch (task #120) - final five XForceProcess handlers. Frontier: closes the ForceProcess.cpp handler set opened in tasks #117-119.
+- Evidence: IDA port 10004 decompiles. ReqForceChangeMaster (0x140432790) dispatch parses dwMasterID then posts lambda6 (0x140432980): GocForce ChangeMaster(dwMasterID). ReqForceMatchingEnter (0x140432FD0) dispatch parses dwMapID+dwPortalID then posts lambda12 (0x140433250): full matching chain - IsMatching 53131, maze table 55003, GetStartPortalID 55003, CheckMazeOpenTime 55060, Maze_Type==9 && Admission_Member==5 gate 55003, CanEnterPortal 55007, XRelaySocket::IsReady 50003, CheckForceMatchingEnter, success (0xFA,0x13) PS_SERVER_FORCE_MATCHING_ENTER + master MEMBER via SendCmd(0x2E,0x30); failure LogError(514) + 5-param CGocNetwork::SendErrorMessage (4,0x41,0xD6FB,nNeedItemID) or (0x2E,0x30,nErrorID). ReqForceMatchingExit (0x140433B90, no-arg) posts lambda14 (0x140433D30): GetMatchingState != 1 -> (0xFA,0x14) actorID+0+UAID+level via SendCmd(0x2E,0x31). ReqForceMatchingCheck (0x140433F20) parses byCheck, posts lambda16 (0x140434100): GocForce null-gate, PS_SERVER_FORCE_MATCHING_CHECK{nError=0} via (0xFA,0x15) SendCmd(0x2E,0x32). CheckForceMatchingEnter (0x1404342A0): caller user check + Party chain (byGroupType=1) and Force chain (byGroupType=2) member walks with per-member CheckForceMatchingEnterUser and PS_SERVER_FORCE_MATCHING_ENTER_MEMBER collection. GetProfilePhotoID confirmed as PDB S_GPROC32 [0001:00061270] Cb=56 (IDA boundary merged into EventNetCafeItemBuy, cannot decompile standalone); CGocNetwork 5-param SendErrorMessage confirmed via PDB publics [0001:00102E60] EEGK decoration; CGocForce::GetMatchingState (0x1403B0280) decompiled as return m_byMatchingState.
+- Files changed: Process/ForceProcess.cpp (5 stubs -> full bodies); actor/component/GocEntity.h + GocEntity.cpp (GetProfilePhotoID added, partial restore with TODO); actor/component/GocNetwork.h + GocNetwork.cpp (5-param SendErrorMessage overload added); actor/component/GocForce.cpp (GetMatchingState implemented, exact); XWorldResMgr.h (GetStartPortalID/CanEnterPortal active-boundary stubs added per existing GetPortalPos pattern); GameSockets.h (XRelaySocket::IsReady active-boundary stub).
+- Functions completed (5): XForceProcess::ReqForceChangeMaster, ReqForceMatchingEnter, ReqForceMatchingExit, ReqForceMatchingCheck, CheckForceMatchingEnter. Plus dependencies: CGocEntity::GetProfilePhotoID (partial), CGocNetwork::SendErrorMessage 5-param, CGocForce::GetMatchingState (exact).
+- Verification: cmake --build build --target GameServer -j8 clean; smoke run GREENDAMTAN_AUTOSTOP_MS=5000: "Complete Server Init", maze server start, ticks, clean auto-shutdown exit.
+- Ledgers: func-index 5 rows updated (blocked->implemented, mangled names normalized). type-index: no changes this round. path-recovery-index: no changes this round.
+- Blockers: none for this batch. Active-boundary stubs (XWorldResMgr GetStartPortalID/CanEnterPortal, XRelaySocket::IsReady) return false so the matching-enter chain rejects with 55003/55007/50003 until VEventObjectResource/VMap and relay connection management are restored - documented in headers.
+- Backlog: CCommunitySocket league Recv* handlers (task #107) still TODO stubs; ThreadLocalData full 0x1450 layout (task #87) still blocks CreateMatchingMaze real body; XForceProcess handler set now complete - Parse dispatch (0x140430BF0) fully live.
+- Next: task #107 league handlers (RecvCreateLeague chain) or task #87 ThreadLocalData layout, whichever the user prioritizes.
+
+---
+
+[2026-09-02 16:33 +08:00] [gpt-5.6-terra]
+
+- Scope: CCommunitySocket::RecvCreateLeague first league handler (task #121) + its full dependency chain. Frontier: league Recv* handlers (task #107 backlog).
+- Evidence: IDA port 10004. RecvCreateLeague (0x1401FC4C0) disasm proved the 5-part parse order: ST_LEAGUE_INFO >> ST_LEAGUE_MEMBER_EX >> dwActorID(int) >> ST_LEAGUE_INFO_EX >> ST_LEAGUE_INFO_FOR_GAME, with operator>> addresses 0x140755240/0x1407557C0/0x140756EC0/0x140757EE0 (calibrated PDB-RVA+0x140001000 mapping confirmed against two known functions). lambda47 (0x1401FC960) decompiled: SetLeagueInfo + AddMoney(-100000, 0x31, nLeagueID, 0, 0) + (0x22,1) send + (0x22,0x44) broadcast with dwUCID=actorID&0x1FFFFFFF + ThreadLocalData::AddLeagueMember + ST_LOG_GAME(15,1,comment=szLeagueName) SendDBLog + CGocClassEvent event-8 notice (IDA mislabels CItem::CanBroachEquip; left TODO). Dependencies decompiled: CUser::SetLeagueInfo 2-param (0x140700950, m_stCharInfo.stLeagueInfo writes + m_stLeagueInfo copy), GetLeagueSyncFlag (0x14028D3C0), GetLeagueSyncCount (0x14028D3A0), UpdateLeagueSyncFlag (0x14025D060), UpdateLeagueSyncCount (0x14025DB90), ClearLeagueInfo (0x1406FB440), SetLeagueSkill (0x140700B30), SetLeagueLevel (0x140700B60); CLeagueMember::CompareSyncCount (0x14028CC30), SendSyncLeagueInfo (0x14028CCE0 -> PS_SYNC_LEAGUE_INFO via (0xF6,0x58) SendCmd(0x22,7)); ThreadLocalData::AddLeagueMember (0x1406D70A0).
+- Key discovery: PDB cvdump modules 0042 proves CLeagueMember originally belongs to an independent XGameServer/LeagueMember.obj - not GocLeague.obj. The historical root XGameServer/GocLeague.h/cpp (which held CLeagueMember + CLeagueProcess + CGocLeague together, not in the build set, broken relative includes) was left untouched after a repair attempt collided with PSServerLeague.h struct redefinitions; instead a new LeagueMember.h/cpp was created per PDB ownership with PDB-exact layout (UDT 0xad5b, 40 bytes: m_mapUser +0x00, m_nSyncCount +0x20, m_nInventorySyncCount +0x24). Windows case-insensitive path note documented: CMake 'actor/component/GocLeague.cpp' actually resolves to Actor/component/GocLeague.cpp (component CGocLeague), distinct from the root legacy file.
+- Files changed: GameSockets.cpp (RecvCreateLeague full body, GocClassEvent.h include); User.h/User.cpp (7 league methods + SetLeagueInfo); PSServerLeague.h (operator>> for ST_LEAGUE_INFO_EX @0x140756EC0 and ST_LEAGUE_INFO_FOR_GAME @0x140757EE0); new LeagueMember.h/cpp (class per PDB layout; exact: ctor/Clear/AddLeagueMember/JoinLeagueUser/KickoutLeagueMember/Wealth/Levelup/UpdateSyncCount/UpdateInventorySyncCount/CompareSyncCount/SendSyncLeagueInfo - migrated from legacy GocLeague.cpp plus this round's decompiles; 20 methods documented stubs); ThreadLocalData_Stub.cpp (AddLeagueMember landed, LeagueMember.h/User.h includes); XGameServer/CMakeLists.txt (LeagueMember.cpp wired).
+- Verification: cmake --build build --target GameServer -j8 clean; smoke GREENDAMTAN_AUTOSTOP_MS=5000: "[MAZE] Information", "Complete Server Init", "MAZE server Start!", clean auto-shutdown.
+- Ledgers: func-index updated (RecvCreateLeague row expanded; SetLeagueInfo/ClearLeagueInfo/SetLeagueSkill/SetLeagueLevel blocked->implemented; 7 CLeagueMember rows re-owned GocLeague.cpp->LeagueMember.cpp; ThreadLocalData::AddLeagueMember mojibake note column fixed). type-index: CLeagueMember row added (40 bytes, decompiled). path-recovery-index: LeagueMember.cpp entry added (PDB module 0042); also fixed a merged-line format defect from a previous append.
+- Blockers: none for this batch.
+- Backlog: remaining league Recv* handlers (RecvLeagueInfo 0x1401FB930, RecvLeagueLogin 0x1401F51A0, RecvLeagueMemberUpdate 0x1401F4320, RecvLeagueNoticeChange 0x1401F44A0, RecvLeagueDelete 0x1401FAFB0 and the blocked lambda handlers needing SendLeagueApply/SendLeagueRecruitNoticeToMember/SendLeagueRecordUpdate); ~20 CLeagueMember stub methods; root legacy GocLeague.h/cpp should eventually be dissolved (CLeagueProcess -> LeagueProcess.cpp per PDB module 0073, CGocLeague stays in Actor/component).
+- Next: continue task #121 with RecvLeagueDelete (0x1401FAFB0) and the small league Recv handlers sharing the DoJob dispatch pattern.
+
+---
+
+[2026-09-02 16:41 +08:00] [gpt-5.6-terra]
+
+- Scope: league delete/kick handler batch (task #121 continuation). Frontier: RecvLeagueDelete + RecvLeagueMemberKick and their ThreadLocalData/CLeagueMember/CUser dependency chains.
+- Evidence: IDA port 10004. RecvLeagueDelete (0x1401FAFB0): nErrorCode<=0 -> lambda43 (0x1401FB5B0): SetLeagueInventorySend(0) + (0x22,2){nErrorCode} + SetLeagueDeletePenalty(biPenalty) + ThreadLocalData::DeleteLeague(nLeagueID,dwActorID) + ClearLeagueInfo + GetLeagueInfo(EX) with dwUCID=actorID&0x1FFFFFFF + (0x22,0x44) broadcast + ST_LOG_GAME(15,2,L"해체"); nErrorCode>0 -> lambda41 (0x1401FB410): (0x22,2){nErrorCode} only. RecvLeagueMemberKick (0x1401F8B70): requester lambda27 (0x1401F91A0) UpdateLeagueSyncCount + (0x22,0x28){dwTargetActorID} + (0x22,0x43) + ST_LOG_GAME(15,10,L"추방",comment2=league name); kicked-user lambda29 (0x1401F94C0) SetLeagueInventorySend(0) + UpdateLeagueSyncCount + ClearLeagueInfo/GetLeagueInfo + (0x22,0x44) broadcast + (0x22,0xF); all-thread lambda31 (0x1401F97A0) -> ThreadLocalData::SendLeagueKickout. Dependencies decompiled: CUser::GetLeagueInfo(EX) 0x1406FB3A0, GetLeagueInfo(FOR_GAME) 0x140503F40, SetLeagueInventorySend 0x14025D9E0, SetLeagueDeletePenalty 0x14025D900; ThreadLocalData::DeleteLeague 0x1406D74A0, SendLeagueKickout 0x1406D97C0; CLeagueMember::DeleteLeagueMember 0x14028B880 (stub->exact: plain map erase).
+- Files changed: GameSockets.cpp (2 handler bodies), User.h/User.cpp (4 methods), ThreadLocalData.h/ThreadLocalData_Stub.cpp (2 methods), LeagueMember.cpp (DeleteLeagueMember stub->exact).
+- Functions completed (2 handlers + 7 dependencies): CCommunitySocket::RecvLeagueDelete, RecvLeagueMemberKick; CUser::GetLeagueInfo x2 overloads, SetLeagueInventorySend, SetLeagueDeletePenalty; ThreadLocalData::DeleteLeague, SendLeagueKickout; CLeagueMember::DeleteLeagueMember.
+- Verification: cmake --build build --target GameServer -j8 clean; smoke: "Complete Server Init" + clean auto-shutdown.
+- Ledgers: func-index 5 rows updated (2 blocked->implemented handlers, GetLeagueInfo(EX) blocked->implemented, 2 ThreadLocalData rows mojibake notes fixed with active-layer qualifier, DeleteLeagueMember already-implemented row confirmed). type-index: no changes this round. path-recovery-index: no changes this round.
+- Blockers: none for this batch.
+- Backlog: remaining league Recv* stubs (RecvLeagueInfo 0x1401FB930, RecvLeagueLogin 0x1401F51A0, RecvLeagueMemberUpdate 0x1401F4320, RecvLeagueNoticeChange 0x1401F44A0, RecvLeagueInfoChange 0x1401F49E0); SendLeague* family in ThreadLocalData (SendLeagueApply/SendLeagueRecruitNoticeToMember/SendLeagueRecordUpdate still missing, blocking 3 lambda handlers).
+- Next: continue task #121 - RecvLeagueInfoChange (0x1401F49E0, DoJobAllThread pattern) and RecvLeagueInfo (0x1401FB930).
+
+---
+
+[2026-09-02 16:45 +08:00] [gpt-5.6-terra]
+
+- Scope: RecvLeagueInfoChange batch (task #121 continuation). Frontier: DoJobAllThread-family league handler.
+- Evidence: IDA port 10004. RecvLeagueInfoChange (0x1401F49E0): parse ST_LEAGUE_INFO then DoJobAllThread(lambda4 0x1401F4AE0) -> per-thread ThreadLocalData::LeagueInfoChange (0x1406D7750: per-league lookup in m_mapLeagueMember + by-value copy to CLeagueMember::SendLeagueInfo). CLeagueMember::SendLeagueInfo (0x14028B210) disasm: 0x66-byte function that only iterates m_mapUser reading each member pointer with no side-effect call - send path appears trimmed by optimization/linker; landed exactly per disasm with a TODO to restore the member-send once packet evidence identifies the command.
+- Files changed: GameSockets.cpp (RecvLeagueInfoChange full body), ThreadLocalData.h/ThreadLocalData_Stub.cpp (LeagueInfoChange), LeagueMember.cpp (SendLeagueInfo stub->exact-per-disasm).
+- Functions completed (3): CCommunitySocket::RecvLeagueInfoChange, ThreadLocalData::LeagueInfoChange, CLeagueMember::SendLeagueInfo.
+- Verification: cmake --build build --target GameServer -j8 clean; smoke: "Complete Server Init" + clean auto-shutdown.
+- Ledgers: func-index 3 rows updated (RecvLeagueInfoChange blocked->implemented, LeagueInfoChange mojibake note fixed, SendLeagueInfo verification note expanded). type-index: no changes this round. path-recovery-index: no changes this round.
+- Blockers: none for this batch.
+- Backlog: remaining league Recv* stubs (RecvLeagueInfo 0x1401FB930, RecvLeagueLogin 0x1401F51A0, RecvLeagueMemberUpdate 0x1401F4320, RecvLeagueNoticeChange 0x1401F44A0); SendLeague* family (SendLeagueApply/SendLeagueRecruitNoticeToMember/SendLeagueRecordUpdate) still missing, blocking 3 lambda handlers.
+- Next: continue task #121 - RecvLeagueNoticeChange (0x1401F44A0) and RecvLeagueMemberUpdate (0x1401F4320) which share the all-thread/DoJob patterns.
+
+---
+
+[2026-09-02 17:01 +08:00] [gpt-5.6-terra]
+
+- Scope: RecvLeagueMemberUpdate + RecvLeagueNoticeChange batch (task #121 continuation). Frontier: DoJobAllThread-family league handlers.
+- Evidence: IDA port 10004. RecvLeagueMemberUpdate (0x1401F4320): parse ST_LEAGUE_MEMBER_UPDATE via operator>> (0x140756BE0: nLeagueID, dwActorID, bLogin, byLevel, sWorld, biPlayDate, GetWString(szName,21), byChannel, byAwaken, dwProfilePhotoID), then lambda152 (0x1401F4460) DoJobAllThread -> ThreadLocalData::UpdateLeagueMember (0x1406D7B10: by-LeagueID lookup + by-value copy). CLeagueMember::UpdateLeagueMember (0x14028B8F0): iterate m_mapUser, skip sync-flagged, broadcast (0x22,0x22); PDB decoration confirms 1-param signature (IDA float a3 is stack pollution). RecvLeagueNoticeChange (0x1401F44A0): parse ST_LEAGUE_NOTICE + dwActorID(int); if user online lambda1 (0x1401F47B0) DoJob (liveness gate then (0x22,0x36)+notice to requester) + lambda192 (0x140427E60) decrement; unconditionally lambda3 (0x1401F4990) DoJobAllThread -> ThreadLocalData::SendLeagueNoticeChangeToMember (0x1406D9540) -> CLeagueMember::SendLeagueNotice (0x14028B280: skip writer UCID via GetActorID compare and sync-flagged, broadcast (0x22,0x29)).
+- Files changed: GameSockets.cpp (2 stubs -> full bodies); ThreadLocalData.h + ThreadLocalData_Stub.cpp (UpdateLeagueMember, SendLeagueNoticeChangeToMember landed; ST_LEAGUE_NOTICE forward decl added); LeagueMember.cpp (2 stubs -> exact bodies); PSServerLeague.h (operator>> for ST_LEAGUE_MEMBER_UPDATE @0x140756BE0 added).
+- Functions completed (2 handlers + 5 dependencies): CCommunitySocket::RecvLeagueMemberUpdate, RecvLeagueNoticeChange; ThreadLocalData::UpdateLeagueMember, SendLeagueNoticeChangeToMember; CLeagueMember::UpdateLeagueMember, SendLeagueNotice; operator>>(XPacket&, ST_LEAGUE_MEMBER_UPDATE&). Lambda1/lambda3/lambda152 ctors+operators restored as inlined std::function captures.
+- Verification: cmake --build build --target GameServer -j8 clean; smoke GREENDAMTAN_AUTOSTOP_MS=5000: "Complete Server Init", "MAZE server Start!", ticks, clean auto-shutdown.
+- Ledgers: func-index 8 rows updated (2 handlers blocked->implemented, lambda1/3/152 ctors+operators blocked->implemented with inline-capture note, operator>> 0x140756BE0 blocked->implemented, ThreadLocalData UpdateLeagueMember/SendLeagueNoticeChangeToMember notes fixed with active-layer qualifier, CLeagueMember UpdateLeagueMember/SendLeagueNotice rows re-owned to LeagueMember.cpp with restore notes). type-index: no changes this round. path-recovery-index: no changes this round.
+- Blockers: none for this batch.
+- Backlog: remaining league Recv* stubs (RecvLeagueInfo 0x1401FB930, RecvLeagueLogin 0x1401F51A0); SendLeague* family (SendLeagueApply/SendLeagueRecruitNoticeToMember/SendLeagueRecordUpdate) still missing, blocking 3 lambda handlers; ~18 CLeagueMember stub methods remain.
+- Next: continue task #121 - RecvLeagueLogin (0x1401F51A0, largest remaining league handler with applicant/board/record list parses) or the smaller RecvLeagueInfo (0x1401FB930).
+
+---
+
+[2026-09-02 17:09 +08:00] [gpt-5.6-terra]
+
+- Scope: RecvLeagueLogin batch (task #121 continuation). Frontier: the largest remaining league login handler plus its list-parse operator>> corrections.
+- Evidence: IDA port 10004. RecvLeagueLogin (0x1401F51A0): 11-part parse order proven by disasm - bLogin(u8) >> ST_LEAGUE_MEMBER_UPDATE (0x140756BE0) >> ST_LEAGUE_INFO (0x140755240) >> ST_LEAGUE_MEMBER_LIST (0x1407565A0) >> ST_LEAGUE_APPLICANT_LIST (0x140754CA0) >> ST_LEAGUE_BOARD_LIST (0x140755BD0) >> byState(u8) >> ST_LEAGUE_INFO_EX (0x140756EC0) >> ST_LEAGUE_RECORD_LIST (0x140757460) >> ST_LEAGUE_INFO_FOR_GAME (0x140757EE0) >> nSyncCount(int). User lookup by stUpdate.dwActorID; null -> return 0. bLogin branch (requires GetArea): lambda8 (0x1401F5920) DoJob - liveness+area gate, SetLeagueInfo(stInfoEx, stLeagueInfoForGame), stInfoEx.dwUCID=actorID&0x1FFFFFFF, UpdateLeagueSyncCount(nSyncCount), (0x22,7) with stInfo+memberList+applicantList+boardList+recordList+byState, then (0x22,0x44) stInfoEx BroadcastNearby; lambda192 decrement DoJob; lambda152 DoJobAllThread -> ThreadLocalData::UpdateLeagueMember. !bLogin: CUser::ClearLeagueInfo only. KEY FIX: the four list operator>> were previously landed as nCount-only stubs; IDA decompiles prove per-item expansion loops (local cCount, per-item ctor + element operator>> + push_back, nCount NOT written back) - all four corrected in PSServerLeague.h.
+- Files changed: GameSockets.cpp (RecvLeagueLogin stub -> full body); PSServerLeague.h (4 list operator>> corrected from nCount-only to per-item expansion loops per IDA 0x1407565A0/0x140755BD0/0x140754CA0/0x140757460).
+- Functions completed (1 handler + 4 operator corrections + lambda8/lambda152 inline restores): CCommunitySocket::RecvLeagueLogin; operator>>(MEMBER_LIST/APPLICANT_LIST/BOARD_LIST/RECORD_LIST).
+- Verification: cmake --build build --target GameServer -j8 clean; smoke GREENDAMTAN_AUTOSTOP_MS=5000: Complete Server Init, MAZE server Start, ticks, clean auto-shutdown. RelayServer target has pre-existing friend-field errors (PS_REQ_FRIEND_BLOCK_ADD dwReqUCID vs dwReqUAID etc.) unrelated to this batch - verified zero PSServerLeague/ST_LEAGUE mentions in its error output.
+- Ledgers: func-index 7 rows updated (RecvLeagueLogin blocked->implemented, 4 list operator>> blocked->implemented with per-item note, lambda8 ctor+operator() blocked->implemented as inline captures). type-index: no changes this round. path-recovery-index: no changes this round.
+- Blockers: none for this batch.
+- Backlog: remaining league Recv* stubs (RecvLeagueInfo 0x1401FB930 and the SendLeague*-dependent lambda handlers); ~18 CLeagueMember stub methods; RelayServer pre-existing friend-field errors (separate target scope, not touched).
+- Next: continue task #121 - RecvLeagueInfo (0x1401FB930), then the remaining small league handlers sharing the DoJob/DoJobAllThread dispatch pattern.
+
+---
+
+[2026-09-02 17:27 +08:00] [gpt-5.6-terra]
+
+- Scope: League Recv handler batch 3/4 - RecvLeagueInfo + PositionNameChange/CardChange dependency chain
+- Files changed:
+  - GameSockets.cpp: landed RecvLeagueInfo (0x1401FB930), RecvLeaguePositionNameChange (0x140209840), RecvLeagueCardChange (0x14020D340)
+  - LeagueMember.cpp: replaced stubs ChangeLeaguePositionName (0x14028B590), CardChange (0x14028C350) with exact implementations
+  - ThreadLocalData_Stub.cpp / ThreadLocalData.h: landed ChangePositionName (0x1406D78D0), SendLeagueCardChange (0x1406D9940)
+  - User.cpp / User.h: added SetLeagueCard (0x1407008F0) - was blocked, 2-line UDT assign
+- Functions completed: 9 (3 handlers + 2 CLeagueMember + 2 ThreadLocalData + 1 CUser + lambda35/45/146/170 inlined)
+- Evidence: IDA decompile port 10004; lambda35 word_140B75CC0 decoded via raw bytes AC B9 F8 AD 20 00 -> UTF-16LE "LEAGUE " (Korean); ST_LOG_GAME filled with _nUAID/_nUCID from target user per lambda35
+- Notes:
+  - RecvLeagueInfo: 8-part parse; no-user -> "[LEAUGE]" LogError return true; in-area -> lambda45 DoJob SetLeagueInfo + (0x22,7) send; not-in-area -> return false
+  - RecvLeaguePositionNameChange: lambda35 uses IsLive+GetArea gate (not IsAlive - CUser has no IsAlive); lambda146 DoJobAllThread always runs regardless of online state
+  - CardChange: dwUCID taken from member ActorID without 0x1FFFFFFF mask (differs from lambda8/43 mask convention)
+  - PSServerLeague.h PS_REQ_LEAGUE_CARD operator>> already existed; no header change needed this round
+- Verification: cmake --build build --target GameServer -j8 passed; GREENDAMTAN_AUTOSTOP_MS=5000 smoke run reached world init and clean shutdown, no reconstruction crash
+- func-index: 12 rows updated (RecvLeagueInfo, RecvLeaguePositionNameChange, RecvLeagueCardChange, lambda35/45/146/170, ChangeLeaguePositionName, CardChange, ChangePositionName, SendLeagueCardChange, SetLeagueCard)
+- type-index: no changes this round (no new types; PS_REQ_LEAGUE_CARD/ST_LEAGUE_POSITION_NAME_CHANGE already defined)
+- path-index: no changes this round (all landed in existing owned files)
+- Blockers: RecvLeagueNameChange (0x14021A620) + lambda253 pending - heavy CGocInventory chain (SetReqLeagueNameChange/UnLockList/UpdateItemEnd/SendUpdateItem)
+- Backlog: RecvLeagueCardChangeRes (lambda171 chain), SendLeague* family gaps blocking 3 lambda handlers, ~16 CLeagueMember stubs, RecvLeagueMemberPositionChange
+- Next: decompile and land RecvLeagueNameChange (0x14021A620) with lambda253 CGocInventory chain
+
+---
+
+[2026-09-02 17:35 +08:00] [gpt-5.6-terra]
+
+- Scope: League Recv handler batch 4 - RecvLeagueNameChange full chain with CGocInventory dependency
+- Files changed:
+  - GameSockets.cpp: landed RecvLeagueNameChange (0x14021A620) with lambda253/255 inlined
+  - LeagueMember.cpp: replaced ChangeName stub (0x14028D080) with exact implementation
+  - ThreadLocalData_Stub.cpp: landed SendLeagueChangeName (0x1406DA280)
+  - User.cpp / User.h: added SetLeagueName (0x14025CAB0) - was note-only placeholder
+  - PSServerLeague.h: corrected PS_RES_LEAGUE_NAME_CHANGE layout from wrong 50-byte szOldName/szNewName form to PDB UDT 0x242b4 truth (28 bytes: nLeagueID +0x00, szLeagueName[10] wchar +0x04, nResult +0x18); added XSendPacket operator<< for it
+- Functions completed: 6 (handler + 2 lambdas + ChangeName + SendLeagueChangeName + SetLeagueName)
+- Evidence: PDB cvdump types 0x242b3/0x242b4 field list proves single szLeagueName array (PDB array type 0x65e6 = wchar_t[10], 20 bytes); IDA decompile of lambda253/ChangeName both access psResChangeName.szLeagueName single-array form, confirming the old szOldName/szNewName source layout was wrong
+- Notes:
+  - lambda253: GetGOC<CGocInventory> null -> return; SetReqLeagueNameChange(false); nResult!=0 -> UnLockList; nResult==0 -> UpdateItemEnd(0x78) with ST_LOG_GAME{22}, fail -> LogError(5041) + UnLockList + nResult=52011 + (0x22,0x58) early return, success -> SendUpdateItem + SetLeagueName + (0x22,0x44) BroadcastNearby + ST_LOG_GAME{15,16} with szComment=old name/szComment2=new name, per-item nParam1=nItemID/nParam6=xSerial SendDBLog; final (0x22,0x58) send
+  - lambda255: only when nResult==0, per-thread SendLeagueChangeName with nSysnCount
+  - RecvLeagueNameChange returns false when user offline/not-in-area (unlike PositionNameChange which returns true)
+  - func-index prior address note: 0x14028BA60 was SendLeagueMsg's real address, ChangeName is actually 0x14028D080 (func-index row already had correct address)
+- Verification: cmake --build build --target GameServer -j8 passed; GREENDAMTAN_AUTOSTOP_MS=5000 smoke run clean (only pre-existing table-data errors InitQuestTable/InitDefaultPhotoItemID, unrelated to this batch)
+- func-index: 6 rows updated (RecvLeagueNameChange, lambda253, lambda255, SetLeagueName, ChangeName@CLeagueMember, SendLeagueChangeName)
+- type-index: 1 row added - PS_RES_LEAGUE_NAME_CHANGE verified at 28 bytes per PDB UDT 0x242b4, old 50-byte layout corrected
+- path-index: no changes this round (all landed in existing owned files)
+- Blockers: none for this chain
+- Backlog: RecvLeagueCardChangeRes (lambda171 chain), SendLeague* family gaps blocking 3 lambda handlers, ~14 CLeagueMember stubs, RecvLeagueMemberPositionChange, RecvLeagueAuthChange
+- Next: continue league handler stubs - RecvLeagueAuthChange (light) then RecvLeagueMemberPositionChange
+
+---
+
+[2026-09-02 17:48 +08:00] [gpt-5.6-terra]
+
+- Scope: League Recv handler batch 5 - RecvLeagueAuthChange + RecvLeagueMemberPositionChange full chains
+- Files changed:
+  - GameSockets.cpp: landed RecvLeagueAuthChange (0x140209190) with lambda30/143 inlined; landed RecvLeagueMemberPositionChange (0x14020A160) with lambda148/150 inlined
+  - LeagueMember.cpp: replaced ChangeLeagueAuth stub (0x14028B410) and ChangeLeagueMemberPosition stub (0x14028B6D0) with exact implementations
+  - ThreadLocalData_Stub.cpp / ThreadLocalData.h: landed ChangeLeagueAuth (0x1406D7800) and UpdateMemberPosition (0x1406D7980); added missing declarations
+  - User.cpp / User.h: added SetLeagueAuth (0x140700AE0) and SetLeaguePosition (0x140700930) - both were blocked
+- Functions completed: 10 (2 handlers + 4 lambdas inlined + 2 CLeagueMember + 2 ThreadLocalData + 2 CUser setters)
+- Evidence: lambda30 belongs to namespace A0x60d956b0 (ctor 0x1404F0D50, operator() 0x1404F0DB0) - located via disasm call-target extraction; word_140B562D0 decoded to L"LEAGUE " (same CP949 bytes AC B9 F8 AD 20 00 as word_140B75CC0)
+- Notes:
+  - RecvLeagueAuthChange: 8x ST_LOG_GAME{15,11} loop with nParam3=index (0-7), nParam4=nAuth[index], szComment="LEAGUE "; the log loop runs on the calling thread outside DoJob
+  - lambda30 forwards auth packet (0xF6,0x28) to RelayServer via CommunitySocket::SendCmd(0x22,0x32) when GetLeagueID!=0, else SendErrorMessage(0x22,0x28,57016)
+  - RecvLeagueMemberPositionChange: parse includes byPrevPosition(char) and ST_LEAGUE_INFO_FOR_GAME that are read but not forwarded; lambda148 fires only when nResult>0; dwUAID read but unused (preserved as pUser->GetUAID() call per binary)
+  - ChangeLeagueMemberPosition: SetLeaguePosition only when member ActorID matches stPosition.dwActorID; (0x22,0x39) broadcast to all non-sync-flagged members regardless
+  - ChangeLeagueAuth: SetLeagueAuth receives a local copy while the packet broadcast uses the original stAuthChange (per binary qmemcpy before SetLeagueAuth, original pointer passed to operator<<)
+- Verification: cmake --build build --target GameServer -j8 passed; GREENDAMTAN_AUTOSTOP_MS=5000 smoke run clean (only pre-existing resource-missing errors, unrelated)
+- func-index: 12 rows updated (both handlers, lambda30/143/148/150, ChangeLeagueAuth@CLeagueMember, ChangeLeagueMemberPosition@CLeagueMember, ChangeLeagueAuth@ThreadLocalData, UpdateMemberPosition@ThreadLocalData, SetLeagueAuth, SetLeaguePosition)
+- type-index: no changes this round (ST_LEAGUE_AUTH_CHANGE / ST_LEAGUE_MEMBER_POSITION already defined and verified)
+- path-index: no changes this round (all landed in existing owned files)
+- Blockers: none for these chains
+- Backlog: RecvLeagueCardChangeRes (lambda171 chain), SendLeague* family gaps blocking 3 lambda handlers, ~12 CLeagueMember stubs (SendLeagueBoard/SendLeagueApply/SendLeagueRecruitNotice/LoginLeagueMember/LeagueApplicantDelete/Record/SkillLearn/Delegate/InventoryMove/WithDrawLeagueMember/SendLeagueMsg), RecvLeagueMessage + RecvLeagueApplicantUpdate + RecvLeagueMemberLogOut + RecvLeagueApplicantJoinUser + RecvLeagueInviteJoinUser
+- Next: continue remaining league handler stubs - RecvLeagueMessage (0x14020?) or decompile CLeagueMember::SendLeagueMsg chain first
+
+
+---
+
+[2026-09-02 17:53 +08:00] [gpt-5.6-terra]
+
+- Scope: League Recv handler batch 6 - final five league handler stubs (Message/ApplicantUpdate/MemberLogOut/ApplicantJoinUser/InviteJoinUser)
+- Files changed:
+  - GameSockets.cpp: landed RecvLeagueMessage (0x140209E50), RecvLeagueApplicantUpdate (0x14020A800), RecvLeagueMemberLogOut (0x14020A9E0), RecvLeagueApplicantJoinUser (0x1401F6C40), RecvLeagueInviteJoinUser (0x1401F7B10) with lambda16/17/21/22/30/147/151/152 inlined
+  - LeagueMember.cpp: replaced SendLeagueMsg (0x14028BA30) and UpdateApplicantList (0x14028BC70) stubs with exact implementations; added PSServerChat.h include
+  - ThreadLocalData_Stub.cpp / ThreadLocalData.h: landed SendLeagueMsg (0x1406D7BC0), LeagueApplicantUpdate (0x1406D7CC0), SendLeagueJoinUser_Apply (0x1406D7300), SendLeagueJoinUser_Invite (0x1406D96C0); added PSServerChat.h include to header
+- Functions completed: 13 (5 handlers + 8 lambdas inlined + 2 CLeagueMember + 4 ThreadLocalData)
+- Evidence:
+  - lambda30 master-kick chain located in namespace A0x492caa09 (operator() 0x1403B6BE0) via disasm call-target extraction; IsBit_OR(0xC0) = eStateChangeServer|eStateChangeWorld per E_NET_STATE enum (64|128)
+  - word_140B75C60 = L"LEAGUE " and word_140B75C70 = L"LEAGUE APPLICANT " decoded via UTF-16LE codepoint analysis (U+B9AC U+ADF8 = LEAGUE; U+C9C0 U+C6D0 U+C790 = APPLICANT)
+  - lambda30 master-branch field mapping: stCreateItem.vecItem._Myfirst = stMemberEx.stMember.nLeagueID (offset 0), HIDWORD(_Mylast) = stMemberEx.sWorldID slot
+- Notes:
+  - SendLeagueMsg sends (7,1) raw-field chat packet: dwActorID + literal 4 + szMsg + byItemLinkCount + per-item links (not a struct serialize)
+  - RecvLeagueApplicantJoinUser: joined-user-offline + byClass==6 branch kicks the old master via PS_KICK_USER_INFO{byKickType=39} when master map-instance/server-ID mismatch
+  - CGocClassEvent 8-event calls in lambda17/22 kept as TODO comments consistent with prior RecvLeagueLogin convention (IDA template-expansion mislabels them as CItem::CanBroachEquip(8,0))
+  - RecvLeagueMemberLogOut reuses lambda152/ThreadLocalData::UpdateLeagueMember landed in batch 1
+- Verification: cmake --build build --target GameServer -j8 passed (3 error-fix iterations: E_NET_STATE scoping via XClient:: qualifier, PS_RES const-qualifier in lambda capture); GREENDAMTAN_AUTOSTOP_MS=5000 smoke run clean (no FATAL/assert/crash)
+- func-index: 18 rows updated (5 handlers, lambda16/17/21/22/30/147/151, SendLeagueMsg@CLeagueMember, UpdateApplicantList@CLeagueMember, SendLeagueMsg/LeagueApplicantUpdate/SendLeagueJoinUser_Apply/SendLeagueJoinUser_Invite@ThreadLocalData)
+- type-index: no changes this round (PS_CHAT_LEAGUE / PS_CHAT_ITEM_LINK_FOR_SERVER / ST_LEAGUE_APPLICANT_CHECK_LIST already defined)
+- path-index: no changes this round (all landed in existing owned files)
+- Blockers: none - all CCommunitySocket league Recv* handlers are now landed
+- Backlog: RecvLeagueCardChangeRes (0x14020D4D0, lambda171 chain), ~10 CLeagueMember stubs (SendLeagueBoard/SendLeagueApply/SendLeagueRecruitNotice/LoginLeagueMember/LeagueApplicantDelete/Record/SkillLearn/Delegate/InventoryMove/WithDrawLeagueMember), CGocClassEvent event-8 interface verification
+- Next: RecvLeagueCardChangeRes handler or CLeagueMember remaining broadcast stubs (SendLeagueBoard/SendLeagueApply/SendLeagueRecruitNotice cluster)
+
+
+---
+
+[2026-09-02 18:02 +08:00] [gpt-5.6-terra]
+
+- Scope: CLeagueMember broadcast-method batch 7 - all remaining stubs replaced with exact IDA implementations
+- Files changed:
+  - LeagueMember.cpp: replaced 10 stubs - WithDrawLeagueMember (0x14028A6A0), SendLeagueApply (0x14028AC50), SendLeagueBoard (0x14028B0D0), SendLeagueRecruitNotice (0x14028BDB0), LoginLeagueMember (0x14028ADE0), LeagueApplicantDelete (0x14028AF80), Record (0x14028C210), SkillLearn (0x14028C8F0), Delegate (0x14028CA60), InventoryMove (0x14028CE30), CompareInventorySyncCount (0x14028CFC0)
+  - User.cpp / User.h: added SetLeagueMaster (0x140700910), UpdateLeagueInventorySyncCount (0x14025CFC0), GetLeagueInventorySyncCount (0x14028D380) - latter two were note-only placeholders
+  - PSServerLeague.h: added operator<<(XPacket&, PS_RES_ITEM_MOVE_LEAGUE_INVEN&) per IDA 0x140758040 (nLeagueID, nSrcItemID, nDestItemID, shSrcSlotPos, shDestSlotPos, byType, stItem, psItemSocketList, psItemBroachList, psItemPackageList)
+- Functions completed: 14 (11 CLeagueMember + 3 CUser setters/getters)
+- Evidence: all extracted from IDA decompile port 10004; InventoryMove packet serialization order recovered from disasm call target 0x140758040 then decompiled; PS_RES_ITEM_MOVE_LEAGUE_INVEN had no prior operator<< in tree
+- Notes:
+  - WithDrawLeagueMember: broadcast (0x22,9)+dwUCID + (0x22,0x43) then erase self entry - first implementation with member removal among broadcast methods
+  - SendLeagueBoard: dwWriterUCID unused in binary loop body (kept per PDB sig with (void) cast)
+  - InventoryMove: only method that does NOT skip sync-flagged members; sends to all except requester (ActorID != dwReqUCID); uses m_nInventorySyncCount not m_nSyncCount
+  - Delegate: source comment had wrong address 0x14028BA60 (that is SendLeagueMsg region); real symbol 0x14028CA60; local-copy qmemcpy before operator<< preserved
+  - LoginLeagueMember: binary uses UXActorID::operator== (full struct compare), mapped to wrapped UXActorID local since ST_LEAGUE_MEMBER_UPDATE.dwActorID is a plain u32 field
+  - Multiple prior rows had implemented status but stub bodies; this round made bodies exact
+- Verification: cmake --build build --target GameServer -j8 passed (2 error-fix iterations: UXActorID ambiguous operator== resolved with explicit wrapped local; PS_RES_ITEM_MOVE_LEAGUE_INVEN missing operator<< resolved by decompiling 0x140758040); GREENDAMTAN_AUTOSTOP_MS=5000 smoke run clean (0 FATAL/assert/crash)
+- func-index: 14 rows updated (11 CLeagueMember methods + 3 CUser accessors)
+- type-index: no changes this round (PS_RES_ITEM_MOVE_LEAGUE_INVEN already defined at 240 bytes)
+- path-index: no changes this round (all landed in existing owned files)
+- Blockers: none - CLeagueMember class is now fully restored (all methods exact, no stubs remain)
+- Backlog: RecvLeagueCardChangeRes (0x14020D4D0, lambda171 chain), RecvLeagueInventoryInfo (0x140210170, lambda181 chain - now unblocked since UpdateLeagueInventorySyncCount landed), CGocClassEvent event-8 interface verification
+- Next: RecvLeagueCardChangeRes handler or RecvLeagueInventoryInfo (both now unblocked by this batch's CUser accessor landing)
+
+---
+
+[2026-09-02 18:11 +08:00] [GLM-5]
+
+- Scope: League final three DB-response handlers (task #123) - RecvLeagueDelegate, RecvLeagueCardChangeRes, RecvLeagueInventoryInfo - plus the single-arg CUser::SetLeagueInfo overload discovered on their dependency chain.
+- Evidence: IDA decompile 0x14020CD00 (handler) + lambda167 0x14020D0F0 + lambda169 0x14020D2E0; 0x14020D4D0 + lambda171 0x14020D8C0; 0x140210170 + lambda181 0x140210640; single-arg SetLeagueInfo 0x140700A40 confirmed by both IDA decompile and PDB publics RVA 0x6FFA40 (S_PUB32 [0001:006FFA40] ?SetLeagueInfo@CUser@@QEAAXAEAUST_LEAGUE_INFO_EX@@@Z) - PDB shows TWO SetLeagueInfo overloads, the single-arg one only touches m_stCharInfo.stLeagueInfo.
+- Files changed: GameSockets.cpp (3 handler bodies replacing one-line stubs), User.h/User.cpp (single-arg SetLeagueInfo overload), PSServerLeague.h (new operator>> for PS_RES_LEAGUE_DELEGATE using GetWString per project convention)
+- Functions completed (7): RecvLeagueDelegate (0x14020CD00), RecvLeagueCardChangeRes (0x14020D4D0), RecvLeagueInventoryInfo (0x140210170), SetLeagueInfo single-arg overload (0x140700A40), lambda167/169/171/181 inlined as std::function bodies
+- Key semantics per IDA:
+  - RecvLeagueDelegate: online requester lambda167 DoJob (0x22,0x49) send; nResult==0 lambda169 DoJobAllThread -> ThreadLocalData::SendLeagueDelegate; requester offline skips lambda167 but lambda169 still runs
+  - RecvLeagueCardChangeRes: requester offline/no-area returns false; lambda171 three-branch (NULL inventory LogError 3360 / nErrorCode!=0 LogError 3368 + UnLockList + (0x22,0x50) / nResult send; nResult==0 SendUpdateItem + UpdateLeagueSyncCount + GetLeagueInfo -> dwLeagueCard -> dwUCID unmasked -> single-arg SetLeagueInfo + (0x22,0x44) BroadcastNearby)
+  - RecvLeagueInventoryInfo: requester offline/no-area returns false; lambda181 IsLive+GetArea gate -> SetLeagueInventoryTime(GetCurDate()) -> UpdateLeagueInventorySyncCount -> (0x22,0x56) four struct copies serialized
+- Verification: cmake --build build --target GameServer -- -j8 passed (1 error-fix iteration: bare *xPacket >> scalar has no overload, corrected to xPacket->XParse >> per project convention); GREENDAMTAN_AUTOSTOP_MS=5000 smoke run reached full init stage and clean autostop, 0 FATAL/Assertion/crash lines
+- func-index: 15 rows updated (3 handlers + lambda167/169/171/181 ctor+call+dtor rows + single-arg SetLeagueInfo), all promoted blocked -> implemented with verified=no
+- type-index: no changes this round (no new types; PS_RES_LEAGUE_DELEGATE already indexed)
+- path-index: no changes this round (all landed in existing owned files)
+- Blockers: none
+- Backlog: RecvLeagueInventoryMove (0x1402109D0, lambda183/185, blocked on CGocInventory::MoveItemToLeagueInven void* placeholder), CGocClassEvent event-8 interface verification, league LeagueApplicantList/JoinUser reply handlers already landed in prior batches
+- Next: RecvLeagueInventoryMove handler or move to next module frontier (league GameSockets handlers now fully landed except InventoryMove)
+
+---
+
+[2026-09-02 18:34 +08:00] [GLM-5]
+
+- Scope: RecvLeagueInventoryMove handler chain (task #124) - the last league GameSockets handler - plus its full dependency chain: CGocInventory::MoveItemToLeagueInven (was void* placeholder stub), SendSocketUpdate/SendBroachUpdate/SendPackageInfo (were void* empty stubs), ThreadLocalData::SendLeagueInventoryMove (active stub adapter), and the PS_ITEM_MOVE_LEAGUE_INVEN_FOR_GAME protocol layout.
+- Evidence: IDA decompile 0x1402109D0 (handler) + lambda183 0x140210DE0 + lambda185 0x140211090; MoveItemToLeagueInven 0x1400C8DD0 3-type branch; SendSocketUpdate 0x1400C0830, SendBroachUpdate 0x1400C0910, SendPackageInfo 0x1400C0A30; SendLeagueInventoryMove 0x1406DA3C0. Wire operators: PS_REQ_ITEM_MOVE_LEAGUE_INVEN >> 0x140739AD0 / << 0x140739990; PS_RES_ITEM_MOVE_LEAGUE_INVEN >> 0x140758150; FOR_GAME >> 0x140758330 / << 0x140758260. PDB UDT 0x24533 (592 bytes) proves psItemLogList@504 is PS_LEAGUE_INVENTORY_FOR_LOG_LIST (PDB UDT 0x71745, vector<PS_LEAGUE_INVENTORY_FOR_LOG>); PDB UDT 0x13b6e defines PS_BROACH_SERIAL_LIST { vector<int64> } for SendBroachUpdate.
+- Files changed: GameSockets.cpp (handler body), GocInventory.cpp/.h (MoveItemToLeagueInven full 3-type implementation + 3 send helpers with real types), ThreadLocalData_Stub.cpp (SendLeagueInventoryMove adapter), PSServerLeague.h (PS_ITEM_MOVE_LEAGUE_INVEN_FOR_GAME rewritten from raw[32] placeholder to PDB-proven 592-byte layout with static_assert; new operators >>/<< for PS_REQ_ITEM_MOVE_LEAGUE_INVEN and PS_RES_ITEM_MOVE_LEAGUE_INVEN; FOR_GAME operators rewritten from raw-bytes to structured field order; removed an unused XSendDBPacket<< FOR_GAME overload with no PDB symbol), PSServerCore.h (new PS_BROACH_SERIAL_LIST + operator<<)
+- Key IDA findings this round: lambda183 error branch does SetLock by byType (0->src slot, 1->dest slot) + SendErrorMessage(0x22,0x54,0xDEDC) + LogError 3764; success branch nErrorCode<=0 calls MoveItemToLeagueInven. byType==2 log loop nParam9 reads offset 24 = nItemTitleID (IDA label nCurIndex was overlap mislabel). CItem vtable calls proved: socket loop = SetSocketItem (vtable+0x38, bLoad=0), broach loop = SetBroach (vtable+0xA8) via raw vtable byte reads at 0x140B713C8.
+- Verification: cmake --build build --target GameServer -- -j8 passed (2 fix iterations: header declaration order for FOR_GAME operators + Kickout pointer/shared_ptr/vecInfo member-name corrections); GREENDAMTAN_AUTOSTOP_MS=5000 smoke run reached full init stage and clean autostop, 0 FATAL/Assertion lines
+- func-index: 9 rows updated (RecvLeagueInventoryMove + lambda183/185 ctor+invoke rows + MoveItemToLeagueInven + SendSocketUpdate/SendBroachUpdate/SendPackageInfo), all promoted blocked -> implemented with verified=no
+- type-index: 2 rows appended (PS_ITEM_MOVE_LEAGUE_INVEN_FOR_GAME 592 verified layout, PS_BROACH_SERIAL_LIST 32)
+- path-index: no changes this round (all landed in existing owned files)
+- Blockers: none - league GameSockets DB-response handlers are now fully landed
+- Backlog: CLeagueProcess request-side handlers (CheckLeagueInventoryIn already implemented), CGocClassEvent event-8 interface verification, remaining non-league pending/blocked entries across the func-index
+- Next: CLeagueProcess league request handler chain (client-facing Req* side) or next module frontier per func-index blocked cluster
+
+---
+
+[2026-09-02 19:16 +08:00] [gpt-5.6-terra / Claude Code]
+
+- Scope: Batch 10 continuation of task #125 — CLeagueProcess request-side handler chain, plus cross-target UtilFunc/TB_NAMEFILTER ABI corrections triggered by ReqLeagueOverlapName dependencies.
+- Files changed:
+  - F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/GocLeague.cpp
+  - F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/UtilFunc.h / UtilFunc.cpp
+  - F/_PROGRAM_HG/Source/Soulworker/GameServer/XSCommon/Table/TB_NAMEFILTER.h
+  - F/_PROGRAM_HG/Source/Soulworker/GameServer/XSCommon/Table/DBLoadTable.h
+  - F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/actor/component/GocAkashicRecord.cpp
+  - F/_PROGRAM_HG/Source/Soulworker/GameServer/XLoginServer/CharacterProcess.cpp
+  - F/_PROGRAM_HG/Source/Soulworker/GameServer/XRelayServer/RelayServer.cpp
+  - F/_PROGRAM_HG/Source/Soulworker/GameServer/XDBAgent/SQLProcessImpl.cpp
+  - docs/GameServer.exe-func-index.md, docs/GameServer.exe-type-index.md, docs/GameServer.exe-path-recovery-index.md
+- Functions completed (this round, all landed with full bodies replacing TODO stubs):
+  - ReqLeagueInviteAccept (0x1404EECF0) + lambda16 (0x1404EEFB0): parse ST_REQ_LEAGUE_INVITE_ACCEPT, biJoinDate=GetCurDate captured, lambda job: already-joined -> LogDebug "Aleady Joined League" + 57008; else XSendPacket(0xF6,0xD) << stInvite << biJoinDate -> SendCmd(0x22,0x14); standard IncrementJobCount/DoJob/lambda192 decrement.
+  - ReqLeagueInviteReject (0x1404EF150) + lambda18 (0x1404EF370): parse ST_REQ_LEAGUE_INVITE_REJECT, lambda job: dwTargetUCID==0 -> LogDebug "Not Exist Target" + 51006; else szTargetName overwritten with requester own name, (0xF6,0x10) -> SendCmd(0x22,0x15).
+  - ReqLeagueBoard (0x1404EF5B0) + lambda20 (0x1404EF8E0): parse ST_LEAGUE_BOARD, lambda job: nLeagueID==0 -> 57005 + LogDebug "Not League Member"; else biEnrollDate=GetCurDate, (0xF6,0x14) << board << dwActorID << nLeagueID -> SendCmd(0x22,8).
+  - ReqLeagueApplicantAccept (0x1404EFB10) + lambda22 (0x1404EFDF0): parse ST_REQ_LEAGUE_APPLICANT_ACCEPT, lambda job: nLeagueID==0 -> LogError code 615 + 57016; else biJoinDate=GetCurDate, (0xF6,0x16) << st << dwActorID -> SendCmd(0x22,0x18).
+  - ReqLeagueApplicantReject (0x1404EFFD0) + lambda24 (0x1404F01C0): parse ST_REQ_LEAGUE_APPLICANT_REJECT, lambda job: dwUCID=pUser->GetActorID().dwActorID, (0xF6,0x17) -> SendCmd(0x22,0x19).
+  - ReqLeagueOverlapName (0x1404EC460): GetWString(szLeagueName,10); len<2 or >8 -> LogError 172 + 57033; IsUsableNameFilter fail -> LogError 180 + 57035; CheckValidString(nationType) fail -> LogError 189 + 57035; pass -> XSendDBPacket(pUser,7,0x12) << wstring -> SendDBGame. First landed body (previously dispatch-only).
+  - UtilFunc::IsUsableNameFilter (0x1400187F0): PDB publics proved single-param wchar_t* signature (prior source was a speculative 2-param XResourceMgr& rewrite). Re-landed exact: wstring copy towupper, walk XGameServer singleton m_xResourceMgr.m_mapTB_NAMEFILTER (offset 46520+4552 verified), MultiByteToWideChar(CP_ACP) widen Filter_Word + towupper, Filter_Type==1 wcscmp exact else wcsstr substring; return false on hit.
+  - UtilFunc::CheckValidString (0x1404529A0): KOR digit/upper/lower/hangul AC00-D7A3; JPN adds hiragana 3040-309F, katakana 30A0-30FF, CJK 4E00-9FFF, and 20 whitelisted symbol codepoints; short-circuit on first invalid char.
+  - UtilFunc::_CheckValidString (0x1403E1E90): narrow-char digit/upper/lower only.
+- ABI/layout corrections (PDB-driven):
+  - TB_NAMEFILTER.h: storage unordered_map -> std::map<unsigned int, TB_NAMEFILTER>; member renamed nameFilterRows_ -> m_mapTB_NAMEFILTER (PDB UDT 0x501C8 = std::map<unsigned long,TB_NAMEFILTER>, XResourceMgr offset 4552); getter renamed GetTB_NAMEFILTERRows -> GetTB_NAMEFILTER; DBLoadTable.h clear chain synced.
+  - PDB publics RVA->VA delta confirmed as +0x1000 via GetLeagueID (RVA 0x164500 -> VA 0x140165500); IsUsableNameFilter RVA 0x177F0 -> VA 0x1400187F0.
+  - GocAkashicRecord.cpp ChangeDeckName call fixed to single-param IsUsableNameFilter per IDA 0x140020CA0.
+  - LoginServer CharacterProcess.cpp local IsUsableNameFilter rewritten to IDA 0x140001DD0 semantics (same utility.h provenance, XLoginServer singleton map); stale ToUpperWide/WidenFilterWord helpers removed.
+  - Cross-target compile repairs (pre-existing field-name drift, PDB verified): RelayServer.cpp PrepareBlockListAdd/PrepareBlockListDel/RecommandFriend + SQLProcessImpl.cpp ReqAddBlockList/ReqDeleteBlockList/AddBlockList/DeleteBlockList now use dwReqUAID (BLOCK_ADD/DELETE) / dwUCID (RECOMMAND) per RelayServer PDB UDT 0x58f1/0x58ef/0x5908 and IDA 0x1400B77B0/0x1400453E0.
+- Verification:
+  - cmake --build build --target GameServer -j8: success (0 errors).
+  - cmake --build build --target LoginServer -j8: success. RelayServer -j8: success. ControlServer -j8: success. DBAgent -j8: success (0 errors after 4 SQLProcessImpl field fixes).
+  - IDA/PDB comparison: all six handler bodies compared line-by-line against decompile of main functions and lambda operator() bodies; signature/mode/field names verified against PDB publics decorations.
+- Ledger updates:
+  - func-index: 14 rows updated (6 decorated Req* rows + 5 lambda operator() rows + 3 UtilFunc rows); verified=yes stale claims replaced with verified=no + evidence notes; IsUsableNameFilter ownership corrected CharacterProcess.cpp -> UtilFunc.cpp.
+  - type-index: added TB_NAMEFILTER row (516 bytes, std::map storage correction).
+  - path-index: added utility.h (shared-layer, PDB lines evidence) and UtilFunc.cpp (current-target) rows.
+- Blockers: none for this slice.
+- Backlog (not yet landed, discovered): CLeagueProcess remaining TODO stubs — ResLeagueOverlapName (0x1404F0380), ReqLeagueList (0x1404F0780), ReqLeagueAuthChange (0x1404F0B10), ReqLeagueNoticeChange (0x1404F0F90), CheckNameChangeItem (0x1404F1470), SendLeagueNameChangeMsg (0x1404F1910), ReqLeagueNameChange (0x1404F1AA0), ReqLeagueCardChange (0x1404F25E0), ReqLeaguePositionNameChange (0x1404F30C0), ReqLeagueMemberPositionChange (0x1404F36A0), ReqLeagueOpenOrNot (0x1404F3AC0), ReqLeagueRecruitNotice (0x1404F3E40), CheckNpc (0x1404F4380), ReqLeagueDelegate (0x1404F4570), ReqLeagueSkillLearn (0x1404F4A40), ReqLeagueInventoryMove (0x1404F5250), ReqLeagueInventoryInfo (0x1404F62C0), CheckLeagueInventoryIn/Out/InMove, DBLeagueParse (0x1404F0330). Note: 58001-58031 region func-index rows for these still carry stale implemented|yes from the pre-batch inventory; they are TODO stubs in source and must not be trusted until landed and re-verified.
+- Next: continue task #125 with ResLeagueOverlapName (0x1404F0380) and ReqLeagueList (0x1404F0780), then the NameChange/CardChange chain; batch ledger sync after ~10 more functions.
+
+---
+
+[2026-09-02 19:55 +08:00] [glm-5]
+
+- Scope: closed task #125 (CLeagueProcess request-side handler batch, final slice). Landed the whole backlog recorded in the previous entry: ResLeagueOverlapName (0x1404F0380 + lambda26 0x1404F05D0), ReqLeagueList (0x1404F0780 + lambda28 0x1404F0A10), ReqLeagueAuthChange (0x1404F0B10 + lambda30 0x1404F0DB0), ReqLeagueNoticeChange (0x1404F0F90 + lambda32 0x1404F1230), CheckNameChangeItem (0x1404F1470), SendLeagueNameChangeMsg (0x1404F1910), ReqLeagueNameChange (0x1404F1AA0 + lambda34 0x1404F1D30), ReqLeagueCardChange (0x1404F25E0 + lambda36 0x1404F27E0), ReqLeaguePositionNameChange (0x1404F30C0 + lambda38 0x1404F32E0), ReqLeagueMemberPositionChange (0x1404F36A0 + lambda40 0x1404F3890), ReqLeagueOpenOrNot (0x1404F3AC0 + lambda44 0x1404F3CB0), ReqLeagueRecruitNotice (0x1404F3E40 + lambda46 0x1404F4100), CheckNpc (0x1404F4380), ReqLeagueDelegate (0x1404F4570 + lambda48 0x1404F4780), ReqLeagueSkillLearn (0x1404F4A40 + lambda50 0x1404F4C40), ReqLeagueInventoryMove (0x1404F5250 + lambda52 0x1404F54D0), ReqLeagueInventoryInfo (0x1404F62C0 + lambda54 0x1404F64D0), CheckLeagueInventoryIn (0x1404F6C40), CheckLeagueInventoryOut (0x1404F72A0), CheckLeagueInventoryInMove (0x1404F75E0), DBLeagueParse (0x1404F0330).
+- Files changed: GocLeague.cpp/GocLeague.h, User.h/User.cpp, ThreadLocalData_Stub.cpp, Item/CItem.h, Item/CItem.cpp, Common PSServerLeague.h.
+- Key evidence and fixes this slice:
+  - E_LEAGUE_AUTH enum recovered from GameServer PDB UDT 0x3916c fieldlist (eJoinAuth=1 ... eRecruitNotice=256) and landed in PSServerLeague.h; CUser::IsLeagueAuth (PDB ?QEAA_NEW4E_LEAGUE_AUTH@@@Z, real VA 0x1407007E0 via cvdump publics RVA 0x6FF7E0) landed: master UCID bypass OR (eAuth & m_stLeagueInfo.nAuth[byPosition]).
+  - CUser::GetLeagueInventoryTime (0x140503D60) and CUser::CheckSendLeagueInventoryInfo (0x140503D80, returns !m_bSendLeagueInventoryCheck) declared and landed in User.h/User.cpp.
+  - ThreadLocalData::CompareLeagueInventoryCount (0x1406DA820) landed in the active ThreadLocalData_Stub.cpp adapter (m_mapLeagueMember void* placeholder preserved, forward to CLeagueMember::CompareInventorySyncCount).
+  - CheckLeagueInventory* ABI correction: header previously declared bool returns; PDB publics prove int (?QEAAH...) for Out/InMove; all three signatures corrected in GocLeague.h. Publics RVA-to-VA is OMAP-shifted for In (publics 0x4F5C40 -> real VA 0x1404F6C40, verified by call target in lambda52 disasm); Out/InMove RVAs match VA directly.
+  - lambda54 throttle logic recovered from disasm (0x1404F6543-0x1404F6612): bSync=1; if !CheckSendLeagueInventoryInfo and CompareLeagueInventoryCount -> bSync=0; bSync==0 and GetLeagueInventoryTime()-5 > GetCurDate -> silent return (cooldown); otherwise full validation. First draft inverted this condition and was corrected against the assembly.
+  - lambda52 byType dispatch recovered: 0 = store-in (dest must be 15, CheckLeagueInventoryIn fills stItem/broach/socket/package then locks src), 1 = take-out (dest in {2,13,4}, CheckLeagueInventoryOut locks dest), else in-move (src and dest both 15, CheckLeagueInventoryInMove); common tail copies captured PS_REQ_ITEM_MOVE_LEAGUE_INVEN into psReqItemMoveInfo and sends (0xF6,0x61)<<UCID<<st via SendCmd(0x22,0x54).
+  - CItem::GetSocketList (PDB ?GetSocketList@CItem@@UEAAXAEAUPS_ITEM_SOCKET_LIST@@@Z @ 0x14018E110) declared virtual + landed as base no-op in CItem.h/CItem.cpp (CItemEquip has the real fill); CheckLeagueInventoryIn uses GetBroachList/GetSocketList/GetPackageInfo/IsResealPackage/IsResealPackageCount exactly as decompiled.
+  - DBLeagueParse (0x1404F0330) is a 2-line router: SubCmd==18 -> ResLeagueOverlapName, else true.
+- Verification:
+  - cmake --build build --target GameServer -- -j8: success (0 errors, [12/12] and [77/77] link passes during the slice).
+  - IDA/PDB comparison: every landed body compared against main-function decompile plus lambda operator() decompile; CheckNpc 3-arg form, error codes (51001/52001/52002/52004/52010/52011/52012/52024/52044, 0xCB21/0xCB2C, 0xDEAD/0xDEAE/0xDEB7/0xD6..0xDEDA/0xDED1), branch order, packet routes (0xF6,0x60)/(0xF6,0x61)/(0xF6,0x53) verified.
+  - Known intentional divergence: lambda job bodies are expressed as inline std::function captures in C++ source (original binaries emit separate lambda operator() symbols); Npc.cpp still excluded from build, CNpc::GetTableID remains hosted in Monster_Extended.cpp.
+- Ledger updates:
+  - func-index: 48 rows updated in one batch (21 decorated CLeagueProcess rows + 21 stale 58xxx duplicate rows + lambda52/lambda54 + CUser GetLeagueInventoryTime/CheckSendLeagueInventoryInfo/IsLeagueAuth + ThreadLocalData CompareLeagueInventoryCount), all reset to implemented|verified=no with landed-source evidence; 1 new row inserted for CItem::GetSocketList (0x14018E110).
+  - type-index: added E_LEAGUE_AUTH (PDB 0x3916c, 9 fields) and PS_REQ_LEAGUE_NAME_CHANGE (PDB 0x2f4b0, 28 bytes) rows.
+  - path-index: no changes this round (all touched files already indexed).
+- Blockers: none for task #125; batch complete.
+- Backlog: Npc.cpp still excluded from build (18+ incomplete-type errors, CSector/XMaze/IVScriptInstance/CWayPoint interfaces missing); 58xxx-region stale rows outside the CLeagueProcess/UtilFunc families may still exist and should be spot-checked when those modules are next touched.
+- Next: task #125 closed. Pick the next CLeagueProcess/GameSockets pending frontier or begin the Npc.cpp build-boundary repair batch per user direction.
+
+---
+
+[2026-09-02 20:22 +08:00] [glm-5]
+
+- Scope: task #126 — unblocked and landed the four CCommunitySocket handlers previously marked blocked on ThreadLocalData manager dependencies, plus ported their three ThreadLocalData league methods into the active stub layer.
+- Files changed: GameSockets.cpp, ThreadLocalData.h, ThreadLocalData_Stub.cpp.
+- Functions completed:
+  - ThreadLocalData::SendLeagueApply (0x1406D7540), SendLeagueRecruitNoticeToMember (0x1406D9600), SendLeagueRecordUpdate (0x1406D9890): ported from excluded ThreadLocalData.cpp into active ThreadLocalData_Stub.cpp after per-function IDA comparison (find nLeagueID in m_mapLeagueMember, then forward a by-value copy to the corresponding CLeagueMember method: SendLeagueApply / SendLeagueRecruitNotice / Record). Declarations added to ThreadLocalData.h with ST_LEAGUE_RECRUIT_NOTICE/ST_LEAGUE_RECORD forward declarations.
+  - CCommunitySocket::RecvLeagueApplicantAdd (0x1401F5070 + lambda7 0x1401F5160): parse ST_LEAGUE_APPLICANT, DoJobAllThread forwards copy to SendLeagueApply.
+  - CCommunitySocket::RecvLeagueRecruitNotice (0x14020C4C0 + lambda163 0x14020C8B0 + lambda165 0x14020CA80): parse notice + biRemainTime + dwUCID; online user (FindActorIDToUser + GetArea gate) gets DoJob (0x22,0x47)<<notice<<biRemainTime via CGocNetwork::Send plus lambda192 decrement; unconditional DoJobAllThread forwards to SendLeagueRecruitNoticeToMember.
+  - CCommunitySocket::RecvLeagueRecordUpdate (0x14020CBC0 + lambda166 0x14020CCB0): parse ST_LEAGUE_RECORD, DoJobAllThread forwards copy to SendLeagueRecordUpdate.
+  - CCommunitySocket::RecvPartyMazeClear (0x1402076C0 + lambda128 0x140207740): parse dwPartyID, DoJobAllThread dispatches to XPartyManager::RecvPartyMazeClear. Blocked reason (m_xPartyMgr unavailable) resolved by initializing m_xPartyMgr = new XPartyManager() in the active ThreadLocalData constructor (released in destructor, same pattern as m_xMonsterMgr); original binary embeds the manager by value, active layer keeps pointer-plus-null-guard divergence consistent with the existing adapter boundary.
+- Verification:
+  - cmake --build build --target GameServer -- -j8: success (0 errors) at each checkpoint (methods port, m_xPartyMgr init, four handlers).
+  - IDA comparison: each handler body and each lambda operator() decompiled and compared against the landed source; by-value copy semantics, DoJob vs DoJobAllThread split, packet route (0x22,0x47), and return paths match.
+- Ledger updates:
+  - func-index: 12 rows updated from blocked to implemented (4 handler rows + 5 lambda rows + 3 ThreadLocalData method rows), all verified=no with active-layer evidence notes.
+  - type-index: no changes this round (only reused existing ST_LEAGUE_* definitions).
+  - path-index: no changes this round (no new files).
+- Blockers: none for this slice.
+- Backlog: remaining GameSockets.cpp blocked rows are only RecvPartyRecruitApplyAcceptCheck (lambda179 giant validation chain) and RecvPartyMatchingMaze (lambda109 giant maze-entry chain); both need CGocParty/force/XArea dependency batches first.
+- Next: task #126 closed. Next frontier candidates: lambda179/lambda109 dependency chains, or the 46 remaining TODO markers in GameSockets.cpp control-socket section, per user direction.
+
+---
+
+[2026-09-02 20:52 +08:00] [glm-5]
+
+- Scope: task #127 — restored the CUser::EnterWorldToOther -> CWorldProcess::ReqWorldEnterToOther -> CGameControlSocket::RecvFindUser chain, landing the previously missing CWorldProcess class (original owner process/worldprocess.cpp, PDB cvdump WorldProcess.obj MD5 3DD7FD4089D879CFE722CC61A40CA3D7).
+- Files changed: new Process/WorldProcess.h + Process/WorldProcess.cpp, User.h/User.cpp (EnterWorldToOther), GameSockets.cpp (RecvFindUser rewrite), actor/Mover/Mover.cpp (send_eSUB_CMD_MOVE_INFO), XGameServer CMakeLists.txt (Process/WorldProcess.cpp wired).
+- Functions completed:
+  - GetWorldType (0x1406281E0): global free function, nMapID>=1000 ? nMapID/10000-1 : 0.
+  - CWorldProcess ctor (0x140628210, SetCmd(4)+SetName) / dtor (0x1406282D0) / Parse (0x140628300, full subcmd dispatch 1/0x41->ReqWorldEnter, 4,6,7,0xB,0xD,0x19,0x31,0x33,0x40,0x61).
+  - CWorldProcess::ReqWorldEnterToOther (0x14062CE60 + lambda12 0x14062D1B0): full giant job body — IsLive/GetArea gate, LogDebug enter log, GetWorldType 3-branch portal validation (maze: GetStartPortalID fail -> LogError 961 + (4,1,0xD6DB); myroom: nJumpID==0 portal lookup fail -> LogError 948; district: TB_DISTRICT missing -> LogError 925 + 55003, portal fail -> LogError 935), SetState(eStateChangeWorld), party/force group info fill (byGroupType 1=party 2=force with GetPartyID), (0xF2,0x54)<<stEnterMap<<stPosInfo<<dwTargetID via control socket SendCmd(4,1). Eleven other ReqWorld* handlers landed as documented STUBs with TODO markers for the next WorldProcess batch.
+  - CUser::EnterWorldToOther (0x1406F8800, real VA confirmed via IDA; publics RVA 0x6F7800 is OMAP-shifted): PS_ENTER_MAP_REQ fill + GetProcessPtr<CWorldProcess>(4) + (4,1)<<st<<pos<<dwTargetID + SetUsIndex(2) + ReqWorldEnterToOther.
+  - CMover::send_eSUB_CMD_MOVE_INFO (0x14036FEF0): (5,0xD)<<questID<<dwType<<dwVal + SendBroadCastAfterLoading(this,packet,0); was declared but undefined, blocked the link.
+  - CGameControlSocket::RecvFindUser (0x1401CA880 + lambda0 0x1401CAE90 + lambda2 0x1401CB080): replaced the previous GreenDamTan_log placeholder version with the exact dual-state body — state1: target pos -> pUser DoJob (IsLive -> SetInvisible(1,4,4,0,0,0,0) + send_eSUB_CMD_MOVE_INFO(pUser,2,1) + EnterWorldToOther(nMapID,0,stPos,dwUCID)); state2 mirrors against pTarget; both with lambda192 decrement.
+- ABI corrections this slice: CUser base-class access written as static_cast<CMover*>(pUser) instead of IDA's &pUser->CMoverEx subobject syntax (3 sites in lambda12 body); EnterWorldToOther real VA is 0x1406F8800 not RVA+base 0x1406F7800 (OMAP).
+- Verification:
+  - cmake --build build --target GameServer -- -j8: success (0 errors) after include-path fixes (LogicThreadProcessor.h path, XSendPacket.h under Common/XNet/XCommon/Packet) and the send_eSUB_CMD_MOVE_INFO link fix.
+  - IDA comparison: every landed body compared against main-function decompile and lambda operator() decompile; dispatch table, error codes (55003/0xD6DB), branch order, packet routes verified.
+- Ledger updates:
+  - func-index: 11 rows updated from blocked/implemented-stale to implemented|verified=no with evidence notes (EnterWorldToOther, RecvFindUser, lambda0/lambda2, GetWorldType, CWorldProcess ctor/dtor/Parse/ReqWorldEnterToOther, lambda12, send_eSUB_CMD_MOVE_INFO).
+  - type-index: no changes this round (PS_ENTER_MAP_REQ/STPosInfo already indexed).
+  - path-index: added WorldProcess.cpp (confirmed, PDB OBJ+MD5 evidence) and WorldProcess.h (header implied by same OBJ) rows.
+- Blockers: none for this slice.
+- Backlog: WorldProcess.cpp contains 11 documented STUB handlers (ReqWorldEnter, ReqWorldVersion, ReqWorldObjectInfo, ReqWorldWarp, ReqWorldCheckSector, ReqWorldWarpOut, ReqWorldMoverInfo, ReqWorldEscape, ReqGameOut, ReqWorldDistrictTransport, ReqWorldEnterByForce, ReqWorldSkipInTutorial02) + CheckAdmissionMember/IsEnterTheThingEvent/GetEventJumpID; each carries IDA address + TODO for the next WorldProcess batch. CWorldProcess is not yet registered into CUser's process composite (original registers via TXProcess registration path); wiring point to be verified when a caller path needs it.
+- Next: continue task #127 closure or start the WorldProcess Req* batch (11 stubs, each with known IDA address).
+
+---
+
+[2026-09-02 21:04 +08:00] [gpt-5.6-terra]
+
+- Scope: CWorldProcess::ReqWorldEnter full-body restoration (the giant handler the user explicitly forbade skipping), plus its complete compile-blocking dependency closure: CGocHelper summon/release chain and XMaze::AddHelper/DeleteHelper.
+- Frontier resumed from: task #128 (WorldProcess first Req* batch). ReqWorldVersion/ReqWorldCheckSector landed earlier this session; this record closes the ReqWorldEnter lambda14 giant body.
+- Files changed:
+  - Process/WorldProcess.cpp: ReqWorldEnter (0x1406284D0) full landing - parse PS_ENTER_MAP_REQ; lambda14 captures [CUser*&, PS_ENTER_MAP_REQ const&, CWorldProcess*]; gates: IsBit_OR(0xE0)/IsMatching(55003)/social cardmatch(55093)/GetTradeState(55003)/IsCanSend(50010)/same-map; 21111->21112 episode 0x186A2 force-complete chain + ST_LOG_GAME(6,10); GetWorldType 3-branch: MyRoom (CheckEnterMapPortalPos/GetJumpID/30031 Thing event/SoulWeapon 0xD6E8), maze (GetStartPortalID 348/SoulWeapon/TB_MAZE_INFO 0xD6E0/CheckMazeOpenTime 0xD714/CheckAdmissionMember 386/Req_Min_Lv via CGocAttribute::GetLevel 396/IsClearMaze 55003/party (0xF2,0x32)/force (0xF2,0x32)/roguelike 13-19 (0xF2,0x77)/CheckEnterMapPortalPos 451/NeedQuest 461 0xD6FD/CheckMazeEnterCount 471/CanUseFP 0xD704/NeedItem count scan 517 0xD6FB), normal (CheckEnterMapPortalPos 240/maze-area exit GetExitDistrictID+GetRestartState 0xD71C/TB_DISTRICT 286 55003/NeedQuest 296 55037/wMapID==0 fallback via GetEnterDistrictPos 277); tail: SetState(eStateChangeWorld)+SetLogChangeMap(1); wMapID/10000==2 -> ST_CREATE_MAZE (0xF2,0x21) with bNoMoveServer nCreateType=2; else (0xF2,0x31) with party/force group info and Force_Use==1 leave; SendCmd failure clears state. Includes expanded.
+  - User.h/User.cpp: CUser::SetLogChangeMap (0x140700500) and CUser::GetEnterDistrictPos (0x1401ACFD0) landed with IDA-verified OMAP-shift RVAs.
+  - actor/Mover/Mover.h/Mover.cpp: CMover::SyncMove (0x14036EA30) landed (m_stMovePos.IsZero gate -> IsStatus(0x100) -> send_eSUB_CMD_MOVE).
+  - XCore/XArea/XActor.h: XActor::SetInfoPacket base virtual no-op added (PDB ?UEAAXAEAVXSendPacket@@@Z @ 0x14018E110, folded COMDAT shared with CItem::GetSocketList).
+  - XWorldResMgr.h: XWorldResMgr::CheckEnterMapPortalPos (0x140720C60) and GetJumpID (0x140721A70) landed as precise signatures with active-layer stub bodies (VEventObjectResource/VMap subsystem unrecovered; TODO markers per house rule).
+  - Maze.h: XMaze::AddHelper/DeleteHelper declarations added; m_listSummonedHelper member type corrected list<uint32_t> -> list<CMoverEx*> per PDB UDT 0x2A89A; GetRoguelikeNextMap moved to public per PDB publics QEAA.
+  - actor/component/GreenDamTan_GocHelperLink.cpp (new manual unit, CMake wired): XMaze::AddHelper (0x1403282C0), XMaze::DeleteHelper (0x140328300), CGocHelper::GetSummonedHelper (0x140092AD0), CGocHelper::GetHelperInfo (0x140092700), CGocHelper::SetHelperSummonState (0x140092C20), CGocHelper::HelperSupportRelease(K overload, 0x140096750), CGocHelper::HelperRelease (0x140094300), CGocHelper::AllHelperRelease (0x140094AF0) - all precise IDA bodies; original ownership stays actor/component/GocHelper.cpp (PDB OBJ gochelper.obj) which is still not compile-ready.
+  - PSServerFriend.h: PS_HELPER_SUMMON_RES added per PDB UDT 0x5A03/0x5A04 (dwUCID/dwActorID/bSummon/stHelper, 488 bytes) with serializer order verified from IDA 0x14074A560.
+  - CMakeLists.txt: GreenDamTan_GocHelperLink.cpp wired.
+- Functions completed: 11 this record (ReqWorldEnter, SetLogChangeMap, GetEnterDistrictPos, SyncMove, SetInfoPacket(XActor), CheckEnterMapPortalPos, GetJumpID, AddHelper, DeleteHelper, GetSummonedHelper, GetHelperInfo, SetHelperSummonState, HelperSupportRelease, HelperRelease, AllHelperRelease - 15 rows updated in func-index).
+- OMAP note: publics RVA -> VA is NOT uniformly +0x1000; GetEnterDistrictPos RVA 0x1ABFD0 -> VA 0x1401ACFD0 (+0x1000), GetMazeType RVA 0x59BD0 -> VA 0x14005ABD0 (moved to low segment), HelperSummon RVA 0x92410 -> VA 0x140093410 (+0x1000) while HelperRelease RVA 0x94300 -> VA 0x140094300 (+0). Cross-verified every address by call-target disasm from a known caller.
+- Verification: cmake --build build --target GameServer -- -j8 PASSED (clean, no work remaining after full rebuild); bounded smoke GREENDAMTAN_AUTOSTOP_MS=5000: init reached DB-agent Connect Success stage, no reconstruction crash.
+- IDA comparison: lambda14 body compared line-by-line against 62,996-byte decompile dump; bCheckItem fallthrough structure (NeedItem_ID==0 || bNoMoveServer || no TB item/classify/inventory -> skip item check and proceed) and LABEL_182 duplication across three normal-branch tails preserved as in binary; CGameWorldMode::GetState folded-COMDAT identity resolved as CGocAttribute::GetLevel (same mov eax,[rcx+N] body, log context is 'wrong Level').
+- Ledger sync: func-index 20 rows updated + XActor::SetInfoPacket row added (all verified=no until next full review); type-index PS_HELPER_SUMMON_RES + ST_HELPER_INFO rows added; path-index GreenDamTan_GocHelperLink.cpp manual-addition row added.
+- Blockers: none for this batch.
+- Backlog: WorldProcess remaining stubs (ReqWorldObjectInfo 0x14062A250 note - its giant lambda0 is actually ReqWorldEnter's body which is now landed; the stub at 0x14062A250 itself still needs its own true body restored - it is the object-info variant), ReqWorldWarp (0x14062B770), ReqWorldWarpOut (0x14062C1A0), ReqWorldMoverInfo (0x14062C8F0), ReqWorldEscape (0x14062EC90), ReqGameOut (0x14062F500), ReqWorldDistrictTransport (0x14062F910), ReqWorldEnterByForce (0x14062DA90), ReqWorldSkipInTutorial02 (0x140632240), CheckAdmissionMember (0x140632770), IsEnterTheThingEvent (0x140632B10), GetEventJumpID (0x140632D70). GocHelper.cpp original file full repair remains; VEventObjectResource/VMap subsystem remains unrecovered (XWorldResMgr stubs return false/0 by design).
+- Next: continue WorldProcess batch with ReqWorldWarpOut (0x14062C1A0) + ReqWorldMoverInfo (0x14062C8F0) + ReqWorldEscape (0x14062EC90) as the next small-to-medium batch.
+
+---
+
+[2026-09-02 21:27 +08:00] [glm-5]
+
+- Scope: WorldProcess small batch round 2 - ReqWorldWarpOut (0x14062C1A0), ReqWorldMoverInfo (0x14062C8F0), ReqWorldEscape (0x14062EC90) plus full dependency closure.
+- Files changed:
+  - F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/Process/WorldProcess.cpp
+  - F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/Maze.h
+  - F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/Maze.cpp
+  - F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/User.h
+  - F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/User.cpp
+  - F/_PROGRAM_HG/Source/Soulworker/GameServer/XCore/XArea/XArea.h
+- Functions completed:
+  - CWorldProcess::ReqWorldWarpOut (0x14062C1A0): parse-free dispatcher; lambda6 ctor 0x140632F50 runs before pUser null check; GetArea gate; IncrementJobCount; DoJob lambda6 (WarpOut body at 0x14062C340: pUser/IsLive/GetArea gate -> XMaze cast -> GetActorID().dwActorID -> GetWarpPotal -> RemoveWarpPotal); lambda7 DecrementJobCount DoJob.
+  - CWorldProcess::ReqWorldMoverInfo (0x14062C8F0): parse nActorID; gates; DoJob lambda10 (body 0x14062CAF0: GetMoverObject(nActorID) -> PC (4,0x21)/NPC (4,0x23)+SyncMove/Monster (4,0x22), each <<1 + SetInfoPacket + BridgeSend); lambda11 decrement DoJob.
+  - CWorldProcess::ReqWorldEscape (0x14062EC90): parse-free; gates; DoJob lambda16 (body 0x14062EE70: IsEnableEscapeWorld else error 0xD705; (pMaze && TBMapID==22061) || !IsBattleState else error 0xD712; XArea::EscapeActor virtual -> success (4,0x33)<<1 + BridgeSend + SetNextEscapeTime / fail error 0xD706); lambda17 decrement DoJob.
+  - CWarpPotal::WarpInfoClear (0x140718790), AddWarpPotal (0x140718900), RemoveWarpPotal (0x140718B40) landed precisely in Maze.cpp.
+  - CUser::IsEnableEscapeWorld (0x1406FA020), SetNextEscapeTime (0x1406FA590), IsBattleState (0x1403E1770) landed in User.cpp; PDB m_nEnableEscapeTime (T_UQUAD @193216) added.
+  - XArea::EscapeActor base virtual (publics RVA 0x8EFC60, ICF body 0x1408F0C60 return true) landed inline in XArea.h; derived overrides verified: XMaze 0x1402914C0, XDistrict 0x1402CBD60, XMyRoom 0x1402AFFE0 (vtable slot [8]).
+- ICF findings (important for future rounds):
+  - CWarpPotal tail "XWorldManager::ReqWorldInfo(this)" in AddWarpPotal/RemoveWarpPotal is actually CWarpPotal::SetReCheck: publics bind both ?SetReCheck@CWarpPotal@@QEAAXXZ and ?ReqWorldInfo@XWorldManager@@QEAAXXZ to RVA 0x7183D0; body writes this+0x30 = 1 (m_bReCheck for CWarpPotal, m_bReqWorldIInfo for XWorldManager at +0x30).
+  - WorldProcess lambda mapping resolved: even-numbered lambdas have own operator() bodies (0/2/4/6/8/10/12/14/16/18/20/22/24 at 0x140628740..0x140632430); odd-numbered lambdas (7/9/11/13/15/17/19/21/23) all ICF-fold to the shared DecrementJobCount body 0x1403D5900 (_Do_call).
+  - ReqWorldMoverInfo's real work lambda belongs to namespace A0x52d13233::_lambda8_ (ctor 0x14055AFF0, op() 0x14050C670: ExcuteCheckEventSpawnBox chain) - that is ReqCheckEventSpawnBox's lambda, NOT MoverInfo's; MoverInfo's std::function ctor thunks at 0x140632FB0/0x140633060 select _lambda10_/_lambda11_ instantiations by capture layout.
+- Type/layout findings:
+  - CWarpPotal rebuilt from PDB UDT 0x690C2 (Size 72): m_vecWarpInfo +0x00, m_pMaze +0x20, m_pCurInfo +0x28, m_bReCheck +0x30, m_fWarpTime +0x34, m_nSendTimeSec +0x38, m_bWarpTimeCheck +0x3C, m_nJumpID +0x40. Previous header shape (scalars first, no vector) was wrong vs PDB.
+  - tagWARP_POTAL_INFO (PDB UDT 0x6A2AB, Size 40): nMapID/nJumpID/nPortalID + lstUsers(list<unsigned long>) +0x10; landed in Maze.h.
+- Verification:
+  - cmake --build build --target GameServer -- -j8: SUCCESS (71/71, link OK, pre-existing warnings only).
+  - Ledger sync: func-index 13 rows updated/added (3 handlers, 3 lambda bodies, 3 CUser methods, 3 CWarpPotal methods, XArea::EscapeActor); type-index +2 rows (tagWARP_POTAL_INFO, CWarpPotal); path-index +2 rows (xscommon/area.cpp -> XCore/XArea/XArea.cpp with shared-layer tag, xgameserver/maze.cpp).
+- Blockers: none for this batch.
+- Backlog: WorldProcess remaining stubs: ReqWorldObjectInfo (0x14062A250 true body), ReqWorldWarp (0x14062B770), ReqGameOut (0x14062F500), ReqWorldDistrictTransport (0x14062F910 + lambda22), ReqWorldEnterByForce (0x14062DA90), ReqWorldSkipInTutorial02 (0x140632240), CheckAdmissionMember (0x140632770), IsEnterTheThingEvent (0x140632B10), GetEventJumpID (0x140632D70); CWarpPotal::CheckWarp/ProcessTimeCount/SendWarpPotal/SendWarpMessage/ClosePortal/ClearPortalUser still pending.
+- Next: continue WorldProcess batch 3 with ReqWorldWarp (0x14062B770) + ReqWorldSkipInTutorial02 (0x140632240) + IsEnterTheThingEvent (0x140632B10) as the next small batch.
+
+---
+
+[2026-09-02 21:44 +08:00] [glm-5]
+
+- Scope: WorldProcess batch 3 - ReqWorldWarp (0x14062B770 + lambda4 0x14062B9C0), ReqWorldSkipInTutorial02 (0x140632240 + lambda24 0x140632430), IsEnterTheThingEvent (0x140632B10) plus ABI corrections surfaced by the build.
+- Files changed:
+  - F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/Process/WorldProcess.cpp
+  - F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/User.h / User.cpp
+  - F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/actor/Mover/Mover.h / Mover.cpp
+  - F/_PROGRAM_HG/Source/Soulworker/GameServer/XCore/XArea/XArea.h
+  - F/_PROGRAM_HG/Source/Soulworker/Common/XNet/XCommon/PSCommon.h
+- Functions completed:
+  - CWorldProcess::ReqWorldWarp (0x14062B770) + lambda4 body: GM/IsUserStatus(0x2000) gate 667; world check 55014/674; maze branch WarpPortal else error; 30031+10012 special exit (GetEnterDistrictPos, 30021 revive point, 10002->10031, GetStartPortalID fail -> hardcoded 10003 (10228,10058,90) control send (0xF2,0x31), success -> PS_ENTER_MAP_REQ control send); normal portal GetPortalPos -> MoveActor + MoveingValueClear + ChangeMotion(1,1,16) + SendResWarp(0, GetPositionXVec3(), GetPosInfo()->fRot), fail -> LogError 744 + SendResWarp(1,...,0.0).
+  - CWorldProcess::ReqWorldSkipInTutorial02 (0x140632240) + lambda24 body: gates; GM 1804; world check 55014/1811; XMaze GetTutorial && TBMapID 21112 -> CGocQuest chain (!IsCompleteEpisode 0x186A7 -> (!Find/IsComplete 0x186A5 -> MoveNpcToWayPoint(101001,4109)) + ResetQuestAll() [no-arg per QEAAXXZ; decompile args were ICF artifacts] + Accept/CompleteQuestByForce 0x186A7) + MoveNextSector(pUser,2); else LogError 1824.
+  - CWorldProcess::IsEnterTheThingEvent (0x140632B10): TB_MAZE_INFO 0x754F null -> LogError MapID + 55002; Req_Min_Lv > GetLevel -> 55062; world type 0/2/3 + (!CBattleZone || (IsInSafetyZone && type2 && TBMapID!=30031)) -> true; else 55063.
+  - CUser::IsUserStatus (0x140353AB0): dwStatus & m_stCharInfo.dwStatus.
+  - CUser::SendResWarp (0x1406E9AE0): (4,8) STWarp + GetQuestID + SendBroadCast(eAll).
+  - CUser::Warp (0x1406E9C40): precise body replacing approximate one - GetArea -> MoveActor(this,pos) -> STWarp{0, pos, m_pPosInfo->fRot} + GetQuestID -> SendBroadCast(eAll).
+  - CMover::GetPositionXVec3 (0x1402A5080): return &m_vPosition as XVec3&.
+  - XArea::MoveActor base (vtable slot [10]): signature corrected hkvVec3* -> XVec3& per publics ?MoveActor@XArea@@UEAAGPEAVXActor@@AEAUXVec3@@M_N@Z; call sites CUser::Revive (User.cpp) and CMover::Move (Mover.cpp) updated to match.
+- Type/layout findings:
+  - STWarp (PDB UDT 0x25D28, 24B): byResult +0, xPos(XVec3) +4, fRot +0x10, nSectorID +0x14; nested RESULT_WARP enum. Previous PSCommon.h flat fPosX/Y/Z layout was wrong vs PDB; rebuilt with static_asserts.
+  - ICF findings: "CVaccumManager::GetArea" call in lambda4 is actually XActor::GetPosInfo (publics bind both names to RVA 0x3535A0; body reads this+0x1C); CMoverEx::ChangeMotion is vtable+1304 slot; XMaze::MoveActor is XArea vtable slot [10].
+- Verification:
+  - cmake --build build --target GameServer -- -j8: SUCCESS (final run: no work to do after clean link; intermediate type errors fixed in 3 iterations - MoveActor XVec3& migration, GetWorldResMgr vs GetResourceMgr for portal lookups, GetPositionXVec3 declaration).
+  - Ledger sync: func-index 10 rows updated/added; type-index +1 row (STWarp); path-index no new rows (all touched files already covered: worldprocess.cpp, user.cpp, mover.cpp, pscommon.h, xarea.cpp via area.cpp row).
+- Blockers: none.
+- Backlog: WorldProcess remaining stubs: ReqWorldObjectInfo (0x14062A250 true body), ReqGameOut (0x14062F500), ReqWorldDistrictTransport (0x14062F910 + lambda22), ReqWorldEnterByForce (0x14062DA90), CheckAdmissionMember (0x140632770), GetEventJumpID (0x140632D70); CWarpPotal::CheckWarp/ProcessTimeCount/SendWarpPotal/SendWarpMessage/ClosePortal/ClearPortalUser pending.
+- Next: WorldProcess batch 4 - ReqWorldDistrictTransport (0x14062F910 + lambda22 0x14062FBF0) + ReqGameOut (0x14062F500 + lambda20 0x14062F6A0) + ReqWorldEnterByForce (0x14062DA90 + lambda14 already landed) as the next batch.
+
+---
+
+[2026-09-02 23:15 +08:00] [glm-5]
+
+- Scope: WorldProcess batch 4 closure - ReqGameOut (0x14062F500 + lambda20), ReqWorldDistrictTransport (0x14062F910 + lambda22 0x14062FBF0), ReqWorldEnterByForce (0x14062DA90 + lambda14 0x14062DD90 true body third rewrite) plus the full ByForce dependency closure.
+- Files changed:
+  - F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/Process/WorldProcess.cpp
+  - F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/CParty.h / CParty.cpp
+  - F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/CForce.h / CForce.cpp
+  - F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/GameSockets.h / GameSockets.cpp
+  - F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/User.h / User.cpp
+  - F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/actor/component/GocForce.cpp
+  - F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/actor/component/GreenDamTan_GocNpcCreditLink.cpp (new)
+  - F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/actor/component/GocNpcCredit.cpp (include paths only, still excluded)
+  - F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/CMakeLists.txt
+  - F/_PROGRAM_HG/Source/Soulworker/Common/XNet/XCommon/PSServer/PSServerMapMaze.h
+  - F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/actor/component/GocBooster.h
+- Functions completed:
+  - CWorldProcess::ReqWorldEnterByForce (0x14062DA90): third rewrite of the embedded lambda to the true ByForce body (0x14062DD90). Earlier state wrongly held a copy of the ReqWorldEnter lambda. True body: quadruple gate (!pUser/!IsLive/!GetArea/!GetArea), stEnterMap copy + dwActorID=GetQuestID overwrite, LogDebug "<WORLD> %d ", GetWorldType 3-branch: district (TB_DISTRICT gate 1042/55003, nJumpID==0 -> GetStartPortalID 1052/0xD6DB), maze (GetStartPortalID 1087/0xD6DB -> CGocParty IsParty -> CParty::EnterMazeByForce(posInfo.uxMapID) -> SetEnterMazeResponse==1 -> GetEnterMazeRequest()->stMazeInfo.wMapID vs GetTB_MAZE_INFO 1106/55003 -> CreateMazeReq; else CGocForce IsParty -> same chain with independent CForce bodies 1132), MyRoom (30031 && !IsEnterTheThingEvent -> 1065; GetTBMapID -> GetJumpID -> GetStartPortalID fallback); LABEL_48 tail: SetState(eStateChangeWorld)+SetLogChangeMap(true), wMapID/10000==2 -> ST_CREATE_MAZE + (0xF2,0x21) else party/force group-type fill + (0xF2,0x31), both SendCmd(0x11,0x41).
+  - CParty::EnterMazeByForce (0x1403AAED0): invalid user 1670, existing maze forward (0xF3,0x16), no MapID 1688/55002, table/Maze_Type 5/11 1681/55001, master check 1714/55004, CanEnterPortal 1722/55003, GetPortalPos(&m_stNextMovePos) 1730, member loop (empty member 1740, login split 55041/55040, WorldID 1751/55041, level 1758/55013, soul weapon 1765/55017, clear maze 1773/55048, quest 1783/55055, fatigue 55044), readiness push + non-master agree insert, SetEnterMazeRequst, >1 members -> SetPartyMemberState(2)+SetEnterMazeResponse.
+  - CForce::EnterMazeByForce (0x1401BC080): independent Force body (publics RVA 0x1BB080) - different error codes (1673/1684/0xD6D9, 1691/0xD6DA, 1711/1718/0xCF97, 1736/0xD6DB, 1746/0xD6DB, 0xCF95/0xCF91, 1757/0xCF91, 1764/0xCF8F, 1771/0xCF90, 1779/0xCF92, 1789/0xCF93, 0xD704), forward packet (0xF3,0x20) with m_dwForceID, member map m_mapForceMember, NO CanEnterPortal check (unlike CParty).
+  - CParty::SetEnterMazeResponse (0x1403AA360) / CForce::SetEnterMazeResponse (0x1401BB340, independent RVA 0x1BA340): wMapID gate, empty-set gate, find/erase, empty->true else AgreeEnterMaze + false.
+  - CParty::AgreeEnterMaze (0x1403AA1F0, sub-cmd 0x4A) / CForce::AgreeEnterMaze (0x1401BB1D0, sub-cmd 0x4F): iterate m_vecReadyToMazeMember, FindActorIDToUser, (0x11,sub) packet with dwAgreeActor, CGocNetwork::Send.
+  - CParty::SetEnterMazeRequst (0x1401B9EF0, CParty/CForce COMDAT): stMazeInfo store + dwEndTime=GetTickCount64()+60000.
+  - CParty::GetEnterMazeRequest (publics RVA 0x2E250, CParty/CForce COMDAT): returns &m_stEnterMazeRequst; landed inline in CParty.h; IDA lambda call site is ICF-folded 0x14002F250.
+  - CParty::CreateMazeReq (0x1403AAD60, byGroupType=1/m_dwPartyID) / CForce::CreateMazeReq (0x1401BBC90, byGroupType=2/m_dwForceID): ST_CREATE_MAZE from m_stEnterMazeRequst, dwUserID overwritten to master, vecEnterMember assigned, sent via XRelaySocket::SendCreateMazeReq.
+  - CForce::CancelEnterMaze (0x1401BB030): wMapID=0, (0x11,0x4D) dwCancelActor broadcast, clear ready list.
+  - XRelaySocket::SendCreateMazeReq (0x14077C390): XSendPacket(eCMD_SERVER, eSUB_CMD_SERVER_CREATE_MAZE_REQ)=(0xF2,0x21), serialize ST_CREATE_MAZE, XIOCPClient::Send.
+  - CGocForce::IsForce/GetForceID (CGocParty::IsParty 0x140091E20 / GetPartyID 0x14009F760 COMDAT delegation): landed in GocForce.cpp.
+  - CUser::GetLeagueSkillEffectValue (0x140700830): bySkillInfo[nSkill] lookup, TB_LEAGUE_SKILL scan (League_Skill_Type==nSkill+1 && level match), returns League_Skill_Apply_Value.
+  - CGocNpcCredit::GetNpcCreditBenefit (0x1401063D0), UpdateNpcCredit 2-param (0x140105640) + 5-param core (0x140105B30): landed in new GreenDamTan_GocNpcCreditLink.cpp because GocNpcCredit.cpp is a legacy half-finished non-compiling draft (excluded from build; CMake comment documents the fold-back plan to PDB OBJ gocnpccredit.obj).
+- Type/layout findings:
+  - PS_DISTRICT_TRANSPORT_REQ (PDB UDT 0x481b4, 104B): stEnterMap+0, dwNpcID+88, wTransportID+92, dwTransportItemID+96, _pad0[4]; operator>> 0x14074C8C0 order confirmed; landed in PSServerMapMaze.h with static_asserts.
+  - ST_EnterMazeRequst (PDB UDT 0x730ab, 96B): rebuilt as stMazeInfo(PS_ENTER_MAP_REQ)+0 + dwEndTime(uint64)+88; previous flat layout was wrong.
+  - E_BOOSTER_EFFECTTYPE (PDB UDT 0x55e6, int32 base, 21 enumerators): full rebuild with true names (ReduceDec=3 etc.); previous 8-item uint8 enum was invented.
+  - publics cross-check: CForce SetEnterMazeRequst shares CParty COMDAT at RVA 0x1B9EF0; CForce AgreeEnterMaze/SetEnterMazeResponse/CreateMazeReq/EnterMazeByForce are independent bodies; IDA names for lambda internals misbind publics RVAs (e.g. 0x14002F250 "CSector::GetActor" is the GetEnterMazeRequest ICF; 0x1401BA1F0 in IDA is CForce::EnterMaze interior, real AgreeEnterMaze publics RVA is 0x1BA1D0 -> 0x1401BB1D0).
+- Verification:
+  - cmake --build build --target GameServer -- -j8: SUCCESS after fixes (missing includes CParty.h/CForce.h/GocRecode/GocAttribute/GocEntity/XSWCommand.h; CParty::CreateMazeReq declaration). Final log: 0 errors, link OK, build/bin/GameServer.exe 35.7MB.
+  - Smoke: GREENDAMTAN_AUTOSTOP_MS=5000 run: INIT Complete, port 15011 bind, MAZE server start, XWorldManager init, 3-thread TICK loop, clean autostop + Clear; no reconstruction-layer crash.
+  - Ledger sync: func-index 20 rows updated/added (lambda14/lambda22 rows, CParty/CForce maze chain rows with true ownership, CGocNpcCredit 3 rows moved to GreenDamTan_GocNpcCreditLink.cpp with mojibake notes replaced by English, GetLeagueSkillEffectValue, SendCreateMazeReq, SetEnterMazeRequst@CParty + GetEnterMazeRequest new rows); type-index +3 rows (PS_DISTRICT_TRANSPORT_REQ, ST_EnterMazeRequst, E_BOOSTER_EFFECTTYPE); path-index +2 rows (GreenDamTan_GocNpcCreditLink.cpp manual-addition, GocNpcCredit.cpp excluded status).
+- Blockers: GocNpcCredit.cpp remains excluded (legacy half-finished: GetXResourceMgr misname, XSendDBPacket partial ctor, IXObject ambiguous cast); its three precise bodies live in GreenDamTan_GocNpcCreditLink.cpp until the original file is repaired.
+- Backlog: WorldProcess remaining stubs: ReqWorldObjectInfo (0x14062A250 true body), CheckAdmissionMember (0x140632770), GetEventJumpID (0x140632D70); CWarpPotal remaining methods; GocHelper.cpp / GocNpcCredit.cpp full repair; CWorldProcess registration into CUser process composite still pending.
+- Next: WorldProcess batch 5 - ReqWorldObjectInfo (0x14062A250) + CheckAdmissionMember (0x140632770) + GetEventJumpID (0x140632D70) as the next small batch.
+
+---
+
+[2026-09-02 23:29 +08:00] [glm-5]
+
+- Scope: WorldProcess batch 5 - ReqWorldObjectInfo (true body), CheckAdmissionMember (0x140632770), GetEventJumpID (0x140632D70), plus ABI corrections surfaced by the dependency chain.
+- Files changed:
+  - F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/Process/WorldProcess.cpp / WorldProcess.h
+  - F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/actor/component/GocAttribute.h / GocAttribute.cpp
+  - F/_PROGRAM_HG/Source/Soulworker/GameServer/XCore/XArea/XArea.h
+- Functions completed:
+  - CWorldProcess::ReqWorldObjectInfo (0x14062B250): address correction - publics RVA 0x62A250 is a duplicate mapping inside lambda0_'s IDA range; true function bounds are 0x14062B250-0x14062B3EF. Body: gates -> IncrementJobCount -> DoJob(lambda2) + DoJob(lambda192 decrement). lambda2 (0x14062B3F0): quadruple gate, SetClientLoadComplete(true), SetLogChangeMap(false), GetArea()->SendObjectInfo virtual dispatch (vtable+136), IsDistirct (vtable+192) -> dynamic_cast<XDistrict> -> SetObjectInfoReq, CGocAkashicRecord SetUserLoad(true) + ThinkAkashicPassive, CGocAttribute chain: IsFullStat + GetArea()->GetWorldType -> SetStartStatEnterWorld(worldType, isFullStat) -> SetFullStat(false) -> SetStartRegStat(true) -> SendOriginStatAll -> SendStatAll -> SetEchelonLevelBooster.
+  - CWorldProcess::CheckAdmissionMember (0x140632770): full type ladder - 1 solo (in-party -> 55032), 2 must-party (55033), 3 join (55033, full && !bBreakInto -> 55051), 4 reject (55052), 5 Force (53156, GetForceUserCount<4 -> 53126); tail (nType!=5) in-Force -> 55067; else true.
+  - CWorldProcess::GetEventJumpID (0x140632D70): single-param switch table (10003/10051/10002->3002101, 10021/10061->3002102, 10031->3002103, 10041/11001/30021->3002104, else 0). Call site (ReqWorldEnter lambda14) corrected to pass (GetMapInsID().nMapID<<16)>>48. Previous two-param signature was wrong.
+  - CGocAttribute::SetStartStatEnterWorld (0x140041D10): ABI correction - publics ?QEAAXH_N@Z proves two params (int nWorldType, bool bFirstEnter); old single-param implementation was invented and replaced. Precise body: !nWorldType or (==2 && bFirstEnter) -> SetFullStat + SetStat(16) (fValue argument is a register residue in the binary - marked with human-review TODO); ==2 && !bFirstEnter -> SetStat(1/2/3) with stMyCharInfoEx->stAbility.nCurAbility[0]/[1]/[2] (struct offsets +0x58/+0x5C/+0x64); else SetStartStat.
+  - XArea base virtuals: added vtable+136 slot (SendObjectInfo(XActor*), default true, ICF-shared body with IsValidPosition) and vtable+192 slot (IsDistirct(), default false) so lambda2's base-pointer virtual dispatch compiles; XDistrict/XMyRoom overrides already declared. Original-engine spelling "IsDistirct" (typo) preserved.
+- ICF/COMDAT findings:
+  - CGocAkashicRecord::SetUserLoad(bool) shares COMDAT RVA 0x19C1D0 with CItem::SetUseCount(uint8) - lambda2's apparent CItem::SetUseCount call is actually SetUserLoad(true).
+  - ReqWorldObjectInfo publics RVA 0x62A250 points inside ??R_lambda0_'s IDA range (0x140628740-0x14062B24F); the real function entry is 0x14062B250.
+  - XArea vtable slot +136 resolves to IsValidPosition's body in the base class (ICF merge) while XDistrict/XMyRoom/CBattleZone override it with SendObjectInfo; slot +192 is IsDistirct in XDistrict/CBattleZone.
+- Verification:
+  - cmake --build build --target GameServer -- -j8: SUCCESS (fixed missing GocAkashicRecord.h include); 0 errors, link OK, build/bin/GameServer.exe 35.7MB at 23:26.
+  - Smoke: GREENDAMTAN_AUTOSTOP_MS=5000 run: MAZE server start, XWorldManager init, 3-thread TICK loop, clean autostop + Clear; no reconstruction-layer crash.
+  - Ledger sync: func-index 4 rows updated (ReqWorldObjectInfo true-body + lambda2 note, CheckAdmissionMember, GetEventJumpID single-param note, SetStartStatEnterWorld two-param precise body replacing mojibake note); type-index no changes this round (no new types; XArea additions are methods not types); path-index no changes this round (all touched files already covered by existing rows).
+- Blockers: none.
+- Backlog: CWarpPotal remaining methods (CheckWarp/ProcessTimeCount/SendWarpPotal/SendWarpMessage/ClosePortal/ClearPortalUser); GocHelper.cpp / GocNpcCredit.cpp full repair (bodies currently in GreenDamTan_ link files); CWorldProcess registration into CUser process composite still pending.
+- Next: WorldProcess batch 6 - CWarpPotal::CheckWarp/ProcessTimeCount/SendWarpPotal chain (Maze.cpp region) as the next small batch.
+
+---
+
+[2026-09-03 00:41 +08:00] [gpt-5.6-terra]
+
+- Scope: WorldProcess batch 6 - CWarpPotal full method set (WarpPotal.cpp PDB ownership) + XMaze sector-warp support chain.
+- Evidence: IDA port 10004 decompile of all six CWarpPotal bodies at OMAP-corrected VAs (CheckWarp 0x140718C00, SendWarpPotal 0x140718D80, ClosePortal 0x140718FE0, ProcessTimeCount 0x140719090, SendWarpMessage 0x140719130, ClearPortalUser 0x140719240); publics RVA values 0x717C00..0x719240 must not be used as VA directly (0x140717C00 decompiles to VisPathNode_cl::EvalPoint - OMAP remap confirmed); support chains XMaze::AllUserWarp (0x140323680, PDB true signature (XVec3&,float,bool) - previous (XVec3*,float,int) declaration was wrong), AllMonsterWarp (0x140323D60), SetPotalFlag (0x14031FBC0), SpawnSectorMonster (0x14031F900), SpawnSectorMonsterForOpt (0x14031F9B0), CUser::SetDedicatedMonsterID (0x1402C7CA0), VEventObjectResource::SearchFromID (0x140760A80), XWorldResMgr::GetResource (0x140720370, PDB non-static short-param returning VEventObjectResource*).
+- Path ownership: PDB module 00A0 (XGameServer/WarpPotal.obj) + cvdump lines (warppotal.cpp, MD5 940DB8B21E2DFF4AD27CA8E22048363C) + embedded log string in SendWarpPotal prove CWarpPotal's original file is WarpPotal.cpp; current active landing stays in Maze.cpp, recorded in path-index.
+- Files changed: F/_PROGRAM_HG/Source/Soulworker/GameServer/XGameServer/Maze.cpp (six CWarpPotal bodies fill two stubs + four new methods; AllUserWarp/AllMonsterWarp/SetPotalFlag/SpawnSectorMonster/SpawnSectorMonsterForOpt landed; GetResource call-site ABI fix), Maze.h (CWarpPotal four new declarations, AllUserWarp signature fix, AllUserWarp(int) overload, AllMonsterWarp/SetPotalFlag declarations), User.h/User.cpp (SetDedicatedMonsterID), InteractionObject.h (eEventObjectType/eEventBoxType replaced by PDB enums; VEventObjectInfo rebuilt from PDB fieldlist 0x74D05 with pack(4) - invented GetID/GetType virtuals removed, PDB Clone/Load/InitPlane slots kept as TODO stubs; VPortalBoxInfo 524B landed with static_asserts; VEventObjectResource interface-level class), XWorldResMgr.h (GetResource corrected to non-static VEventObjectResource* GetResource(short)), XMyRoom.cpp/XDistrict.cpp (GetResource call sites updated), VaccumGroup.cpp/VaccumCube.cpp (invented pInfo->GetID() calls corrected to PDB iID field), Mover.h (CMoverEx invented SetPositionXVec3 declaration removed; IDA true vtable ABI is CMover::SetPositionXVec3(XVec3&) 0x1401893C0, CMoverEx has no override).
+- Key finding: PDB sizes 160/164/524/296/468 for Vision event-object types are NOT 8-rounded; clang-cl MSVC ABI rounds polymorphic base subobjects to 8, producing +4 drift. pragma pack(push,4) reproduces the original VS2010 layout exactly (probe-verified: VPortalBoxInfo 524B, m_iNextSectorID +448, m_iMaxTimeCount +520).
+- Verification: cmake --build build --target GameServer -- -j1 -> [2/2] Linking CXX executable bin/GameServer.exe, zero errors. Smoke: GREENDAMTAN_AUTOSTOP_MS=5000 run reached full init (ActionManager/AkashicManager/3 worker threads/DBAgentMgr/communitySocket/controlSocket/CALCULATE_STATUS/CASH_SHOP/CURL/SGStove), [MAZE] server Start, 3-thread TICK loop, clean auto-stop, exit=0.
+- Comparison: All six CWarpPotal bodies and five XMaze support bodies compared line-by-line against IDA pseudocode; residual-register parameter notes preserved as TODO (SetDirectionYaw fYaw residue in AllUserWarp/AllMonsterWarp); CTextDBLog::AddLog call in SetPotalFlag kept commented matching existing active-layer pattern (subsystem not restored); SpawnSectorMonsterForOpt m_iRelativeSectorID nEnd-correction branch documented as TODO pending CSector PDB layout alignment (m_pSectorStartBox PDB type is VSectorBoxInfo* 468B; active CSector layout not aligned; landing deferred, VSectorBoxInfo row added to type-index as blocked).
+- func-index: 6 CWarpPotal rows updated (CheckWarp/ProcessTimeCount blocked->implemented; SendWarpPotal/ClosePortal/SendWarpMessage/ClearPortalUser ownership WarpPotal.cpp + verification no), SpawnSectorMonster/ForOpt/SetPotalFlag/AllUserWarp(bool)/AllMonsterWarp rows re-verified with active-landing notes, AllUserWarp(int) marked blocked STUB.
+- type-index: +7 rows (eEventObjectType, eEventBoxType, VEventObjectInfo, VEventBoxInfo, VInterActionBoxInfo, VPortalBoxInfo, VEventObjectResource, VSectorBoxInfo).
+- path-recovery-index: +1 row (warppotal.cpp -> WarpPotal.cpp, PDB module 00A0 + lines MD5 + embedded log string).
+- Blockers: none.
+- Backlog: CWarpPotal ctor/dtor (0x1407186C0/0x140194630) still blocked; AllUserWarp(int) full body (0x140323980); CMover vtable SetPositionXVec3(XVec3&) full-chain ABI fix (Mover.h still declares const hkvVec3& - independent Mover batch); CSector PDB layout alignment (352B) + VSectorBoxInfo landing; CTextDBLog::AddLog subsystem; VMap/VEventObjectResource full 2320B layout; GocHelper.cpp/GocNpcCredit.cpp full repair; CWorldProcess registration into CUser process composite.
+- Next: continue with CWarpPotal ctor/dtor or pick the next Maze.cpp region frontier (Maze 0x140326xxx broadcast chain) as a small batch.
+
+---
+
+[2026-09-03 01:04 +08:00] [gpt-5.6-terra]
+
+- Scope: WorldProcess batch 7 (task #133) - CWarpPotal ctor/dtor, XMaze::AllUserWarp(int) true body, VEventObjectInfo::GetCenter, VCommonPositionBoxInfo PDB type landing.
+- Evidence: IDA port 10004 decompile of ??0CWarpPotal (0x1407186C0, zero-init six members only, original ctor does NOT write m_nJumpID +0x40), ??1CWarpPotal (0x140194630, body is only std::vector<tagWARP_POTAL_INFO*>::~vector on m_vecWarpInfo), ?AllUserWarp@XMaze@@QEAAXH@Z (0x140323980 full chain), ?GetCenter@VEventObjectInfo@@QEBA?AVhkvVec3@@XZ (0x140763A30, PDB fieldlist 0x74D05 VANILLA non-virtual: x/y midpoint of PosTopLeft/PosBottomRight, z = PosTopLeft.z). VCommonPositionBoxInfo from PDB UDT 0x77D8F (fieldlist 0x77D8E): 176B, inherits VEventBoxInfo(164), m_eTarget +164, m_iEntityID +168, m_iGroup +172.
+- SetReCheck resolution: publics RVA 0x7183D0 folds with hkvQuat::getAsEulerAngles (ICF/COMDAT); no independent IDA symbol exists. True semantics (assembly: mov [rcx+0x30], 1 i.e. m_bReCheck=1) already preserved by existing inline SetReCheck(bool); decision: keep inline, no separate func-index row (AddWarpPotal/RemoveWarpPotal notes already document the ICF fold).
+- Files changed: Maze.cpp (CWarpPotal ctor/dtor landed before Init; AllUserWarp(int) STUB replaced by true body: GetBatchLayerLevel -> VEventObjectInfo::GetEventUniqueID -> m_mapCommonPostionBox lookup -> GetCenter -> per-player MoveActor/SetDedicatedMonsterID(0)/SetDirectionYaw(0.0f,2)/SetPositionXVec3/MoveingValueClear/ChangeMotion(1,1,18)/SendResWarp(0,curPos,fRot) -> AllMonsterWarp(vPos,fRot) -> RunSectorAI(hkvRunPos,true) -> GetSectorIDFromPos -> SetActiveSectorID + CheckCutsceneState(1,nSectorID)); Maze.h (ctor/dtor declarations with IDA address comments); InteractionObject.h (GetCenter inline in pack(4) block; VCommonPositionBoxInfo 176B with static_assert); VisionEngineTypes.h (old invented simplified VCommonPositionBoxInfo with m_nID/m_vMin/m_vMax/m_byType fake fields DELETED, replaced by forward declaration - canonical definition converges to InteractionObject.h pack(4) block; old GetCenter z-midpoint formula was also wrong vs PDB).
+- Compilation fix during batch: VCommonPositionBoxInfo redefinition (InteractionObject.h vs VisionEngineTypes.h invented struct) surfaced by build; resolved by PDB-evidence convergence (delete invented, keep precise), not by renaming.
+- Verification: cmake --build build --target GameServer -- -j1 -> [51/51] Linking CXX executable bin/GameServer.exe, zero errors, 19 warnings (pre-existing). Smoke: GREENDAMTAN_AUTOSTOP_MS=5000 run reached XWorldManager init (CreatChannleDistrict/CreatChannleBattleCry), 3-thread TICK loop, clean auto-stop; no reconstruction-layer crash.
+- Comparison: ctor/dtor/AllUserWarp(int)/GetCenter compared line-by-line against IDA pseudocode. SetDirectionYaw(0.0f,2) in AllUserWarp(int) is an explicit immediate in the original decompile (not residue, unlike AllUserWarp(bool) chain); ChangeMotion(1,1,18) verified as 3-param (nMotionClass=1, bResetPlay=1, iCallPos=18).
+- func-index: 4 rows updated (??0CWarpPotal blocked->implemented with no-m_nJumpID-write note; ??1CWarpPotal blocked->implemented vector-only body; ?AllUserWarp@XMaze@@QEAAXH@Z blocked->implemented full chain note; ?GetCenter@VEventObjectInfo ownership InteractionObject.h + PDB fieldlist source, verification reset to no pending explicit compare gate).
+- type-index: +1 row (VCommonPositionBoxInfo 176B, PDB UDT 0x77D8F, invented-VisionEngineTypes-simplified-struct-replacement note).
+- path-recovery-index: +1 row (actor/interactionobject/interactionobject.cpp PDB module 001E + cvdump lines MD5 59C16015506ECE88AA42C843C3E082F1 -> landed as XGameServer/InteractionObject.h type header; original .cpp body still pending).
+- Blockers: none.
+- Backlog: CMover vtable SetPositionXVec3(XVec3&) full-chain ABI fix (Mover.h const hkvVec3& signature pending independent Mover batch); CSector PDB layout alignment (352B) + VSectorBoxInfo landing; CTextDBLog::AddLog subsystem; VMap/VEventObjectResource full 2320B layout; GocHelper.cpp/GocNpcCredit.cpp full repair; CWorldProcess registration into CUser process composite; InteractionObject.cpp original body (PDB module 001E, landed types only).
+- Next: Maze.cpp next frontier around 0x140326xxx broadcast chain, or the pending CWarpPotal::Init true body (0x140718730 still blocked) if its XMaze member dependencies are now satisfiable.
+
+---
+
+[2026-09-03 01:36 +08:00] [gpt-5.6-terra]
+
+- Scope: batch 8 (task #134) - CWarpPotal::Init unlock, tagWARP_POTAL_INFO ctor/dtor, XMaze SetParty/SetForce/CreateNpc/DeleteNpc/CreateAkashicObject/DeleteAkashicObject/NotifyMonsterDelete precision fixes, GetScanner row fix, ThreadLocalData Akashic adapter stubs, UXMapID operator __int64 PDB landing.
+- Evidence: IDA port 10004 decompile of ??0tagWARP_POTAL_INFO (0x140718B10 - ctor only list-constructs, no int field writes), ??1tagWARP_POTAL_INFO (0x1407188E0), ??_G scalar deleting dtor (0x1407188A0), AddWarpPotal (0x140718900 - raw operator new(0x28) + ctor, NO value-init; sole creation point fills nMapID/nJumpID/nPortalID immediately), SetParty (0x140315C40), SetForce (0x140315D50 - both have NO reset-of-other-shared_ptr and NO null else-branch; SetMazeID uses this->m_uxMapID), CreateNpc (0x14031A250 - NO pSector null check after find; qmemcpy vPos local; ThreadLocalData::CreateNpc(this,ux,nSector,nNpc,&v17,fRot,0); EnterGameObject fail -> DeleteNpc; SetSector/UpdateSectorID/SetCollisionEnable(1,0)), DeleteNpc (0x14031A430 - ExitGameObject both null/non-null branches + ThreadLocalData::DeleteNpc), CreateAkashicObject (0x14031A4A0 - GetTB_AKASHIC_RECORDS gate; NO sector lookup; EnterGameObject fail -> DeleteAkashicObject; SetCollisionEnable(0,0)), DeleteAkashicObject (0x14031A5E0), NotifyMonsterDelete (0x14031A0D0 - NO early null return; packet(0x17,0x13); CQuestCondition::GetQuestID(VBitmask*) unresolved subsystem; SendBroadCast(pMonster?XActor:nullptr,eAll); second GetActorID + LogDebug), GetScanner (0x1403264D0), CNpc::UpdateSectorID (0x1403A3200), ThreadLocalData::CreateAkashicObject (0x1406D8FB0 - XAkashicObjectMgr::Create + vftable SetArea), ThreadLocalData::DeleteAkashicObject (0x1406D9070 - XMonsterMgr::Delete(&m_xAkashicMgr)).
+- PDB finding: UXMapID (unique name TUXMapID@@, UDT 0xE4B7, LF_UNION 8B) fieldlist 0xE4B6 list[10] has operator __int64 (index 0xE21D, return T_QUAD, VANILLA). Landed as implicit constexpr operator std::int64_t in PSCommon.h. XArea::m_uxMapID is PDB type 0x5C91 = this same UXMapID; the active XArea.h TUXMapID (wMapID/wInstanceID/_pad) is a recovery-era stand-in layout divergence - SetParty/SetForce bridge via UXMapID(m_uxMapID.nMapID) with comment; full XArea.h alignment deferred to an XArea layout batch.
+- Files changed: Maze.cpp (tagWARP_POTAL_INFO ctor/dtor explicit bodies; SetParty/SetForce recovery-era reset+null-else branches removed per IDA + nMapID bridge; CreateNpc true body replacing stub-comment block - recovery-era pSector null check removed; DeleteNpc ThreadLocalData::DeleteNpc now live; CreateAkashicObject true body replacing stub-comment block; DeleteAkashicObject ThreadLocalData::DeleteAkashicObject now live; NotifyMonsterDelete recovery-era early null return removed + second GetActorID + GetQuestID TODO note; AkashicObject.h include added), Maze.h (tagWARP_POTAL_INFO: NSDMI removed per IDA ctor semantics, explicit ctor/dtor declared), PSCommon.h (UXMapID explicit int64 ctor + operator __int64 per PDB fieldlist 0xE4B6), AkashicObject.h (GetTypeId override removed - active CMoverEx has no GetTypeId virtual slot, matches Monster.h pattern), AkashicObjectMgr.h (UXMapID forward decl struct->union tag fix), AkashicObject.cpp (unused invented helper CreateAndRegisterGOComponent declaration removed; invented CAkashicObject_GetID helper removed; classCAkashicObject static VType definition commented per Monster.cpp nullptr pattern), ThreadLocalData_Stub.cpp (CreateAkashicObject/DeleteAkashicObject adapter stubs with IDA chain documented + TODO), new GreenDamTan_NpcLink.cpp (CNpc::UpdateSectorID exact body; Npc.cpp excluded legacy draft), CMakeLists.txt (GreenDamTan_NpcLink.cpp wired; AkashicObject.cpp/AkashicObjectMgr.cpp attempt documented as excluded half-finished).
+- AkashicObjectMgr.h structural finding: file contains an invented local template specialization TXObjectMgr<CAkashicObject> that conflicts with IXObject.h main template (280B static_assert). The file was never compiled. AkashicObjectMgr batch should rewrite it after XMonsterMgr self-contained-class pattern. ThreadLocalData::Create/DeleteAkashicObject landed as adapter stubs (nullptr / no-op) with full IDA chain documented.
+- Verification: cmake --build build --target GameServer: link OK zero errors (final state [2/2] after full serial rebuild). Smoke: GREENDAMTAN_AUTOSTOP_MS=5000 run reached XWorldManager init (CreatChannleDistrict/CreatChannleBattleCry), 3-thread TICK loop, clean auto-stop.
+- Comparison: all batch-8 bodies compared line-by-line against fresh IDA pseudocode this round. Recovery-era divergences found and removed: SetParty/SetForce extra reset() + null else-branches; CreateNpc extra pSector null check; NotifyMonsterDelete early null return; tagWARP_POTAL_INFO NSDMI value-init vs raw-new ctor semantics. AddWarpPotal call site new{} value-init downgraded to raw new() per IDA.
+- func-index: 11 decorated rows updated (??0/??1/??_G tagWARP_POTAL_INFO, Init@CWarpPotal stale blocked->implemented, SetParty, SetForce, NotifyMonsterDelete, CreateNpc, DeleteNpc, CreateAkashicObject, DeleteAkashicObject); 7 stale duplicate uppercase-addr rows removed (58590-58596 block) keeping canonical lowercase rows; GetCurUserCount stale blocked row updated to implemented; GetScanner stale blocked row updated to implemented (body pre-existed Maze.cpp:816); ThreadLocalData CreateAkashicObject/DeleteAkashicObject rows re-sourced to active-adapter stub with original chain note.
+- type-index: tagWARP_POTAL_INFO row updated (NSDMI removal note, status implemented, verified=no pending re-compare). UXMapID itself has no row (pre-existing shared protocol type, not newly introduced this round).
+- path-recovery-index: +1 row (manual addition GreenDamTan_NpcLink.cpp, original ownership Npc.cpp fold-back note).
+- Blockers: none.
+- Backlog: XArea.h TUXMapID stand-in vs PDB UXMapID layout alignment (XArea batch); AkashicObjectMgr.h rewrite per XMonsterMgr pattern (AkashicMgr batch); Npc.cpp legacy draft repair (12+ errors) then fold back GreenDamTan_NpcLink.cpp; CQuestCondition::GetQuestID subsystem; VType complete type; CreateNavMesh/CreateScriptInst minor divergences (extra null checks, g_strCurPath naming, XPRINT vs GreenDamTan_log) pending Havok/script batch; InteractionObject.cpp not wired (VType same reason); MoveActor(UXActorID) 0x140315800 row check pending.
+- Next: Maze.cpp continuation - CreateMonster (0x140318F20) / DeleteMonster (0x140319AC0) chain compare, or SpawnGenerateMonster (0x140317750) broadcast chain as batch 9.
+
+---
+
+[2026-09-03 01:52 +08:00] [gpt-5.6-terra]
+
+- Scope: batch 9 (task #135) - XMaze::CreateMonster (0x140318F20) precision upgrade + XMaze::DeleteMonster (0x140319AC0) full body + three CMover/CMoverEx support methods (GetRecoverySuperArmorTime 0x140353FE0, SetHitPartsInfo 0x140399CC0, SetHitPartsHP 0x140399D30) + two PDB type corrections (SHitPartsInfo, ST_ESCORT_MONSTER).
+- Evidence: fresh IDA port 10004 decompile of CreateMonster revealed six recovery-era gaps in the previously-landed body: missing XActionResMgr::SetHitCollisionDataToActor + SetTraceBoneNameDataToActor calls; Roguelike (Maze_Type 15) chain was a TODO shell (real chain: mapPlayerList scan -> CUser RTDynamicCast -> GetGOC<CGocEntity>(0) -> GetRoguelikeTotalStep>0 -> GetTB_COMMON(0x7919) -> GetGOC<CGocAttribute>(0) -> UpdateScaleStat(0x15/0x0A/0x18,fFinalStat,1) + Finalize + GetStat(0x0A) -> SetHpEx); Monster_Type 11 broken-parts chain was a TODO shell (real chain: Monster_Parts_ID_02/03 -> GetTB_MONSTER_BROKEN_PARTS -> SetHitPartsInfo(0/1, ID, Type, GetHP()*Pct*0.000099999997f, same)); GetRecoverySuperArmorTime was hardcoded 0; m_stEscortMonster assigned invented dwActorID instead of pMonster. DeleteMonster decompile revealed the landed body was an empty shell (ExitGameObject commented, no ThreadLocalData::DeleteMonster, no respawn/sector/boss/silhouette chain at all).
+- PDB type findings: SHitPartsInfo (UDT 0x2B186, fieldlist 0x2B185) is LF_STRUCTURE PACKED Size=13: dwTableID(ulong)+0, byPartsID(uchar)+4, iCurHP(int)+5, iMaxHP(int)+9 - the landed layout (m_byHitPartType/m_byHitPartIndex/m_fHitPartHeight/m_fHitPartRadius/m_reserved) was entirely invented and is replaced. ST_ESCORT_MONSTER / STEscortMonster (UDT 0x6A89F, fieldlist 0x6A89E) Size=152: nMonsterID+0, dwEpisodeID+4, nConditionID+8, pMonster(CMonster*)+16, szMonsterDieAnim(char[128])+24 - invented dwActorID/nEscortID/fHP fields removed. GOComponent PDB fieldlist 0x3F9A confirms Finalize is INTRODUCING VIRTUAL (vtable slot 1, publics RVA 0x1AB740) - declared on GOComponent; full vtable slot alignment deferred because 26 derived components override the recovery-era invented Initialize/Shutdown/Update slots (GOComponent ABI batch).
+- Files changed: Maze.cpp (CreateMonster six gaps filled; DeleteMonster full body: Maze_Group74/Faction25 gate, TB_MONSTER lookup, Type0/3-no-clear or Type11 sector chain with m_mapRespawnBox.find->SetQuestRespawn, DeleteActor(&bBossDie,bCheckMonsterCount), bBossDie -> UpdateClearMazeCondition(1,nTableID)+m_mapProcessSpawnBox cleanup loop(GroutonBoxID skip, delete+erase)+DieMonsters(0,1)+TerminateSpawn, Maze_Type7+IsComplete -> UpdateClearMazeCondition(3,1), silhouette chain setEnabled(0)+m_nDestroySilhouetes+++m_lstSilhouetteObject.push_back, tail NotifyMonsterDelete+ExitGameObject+GetSilhoutte-gated ThreadLocalData::DeleteMonster), Maze.h (ST_ESCORT_MONSTER rebuilt per PDB), SHitPartsInfo.h (PACKED 13B rebuild with static_asserts), Mover.h (GetRecoverySuperArmorTime/SetHitPartsInfo/SetHitPartsHP declarations), MoverLinkStubs.cpp (three exact bodies), GOComponent.h (Finalize virtual declared with PDB slot note).
+- Bridge notes: CreateMonster AddActor key and DeleteMonster SetQuestRespawn/DeleteActor key use CQuestCondition::GetQuestID per IDA; subsystem unrestored, dwActorID stand-in with TODO noted at both sites. m_mapRespawnBox active value type is VSafeAreaBoxInfo* stand-in (PDB decompile shows VMonsterSpawnInfo*); reinterpret_cast bridge with comment. GetGOC calls use the active GetGOC_Entity(false)/GetGOC_Attribute(false) specialization names matching IDA GetGOC<T>(0) semantics.
+- Verification: cmake --build build --target GameServer: zero errors, link OK. Smoke: GREENDAMTAN_AUTOSTOP_MS=5000 run reached XWorldManager init + clean auto-stop.
+- func-index: 5 rows updated (CreateMonster, DeleteMonster, GetRecoverySuperArmorTime, SetHitPartsInfo, SetHitPartsHP - all re-sourced to IDA decompile + landed source with verified=no, full chain notes).
+- type-index: +2 rows (SHitPartsInfo PACKED 13B, ST_ESCORT_MONSTER 152B PDB rebuild).
+- path-recovery-index: no changes this round (SHitPartsInfo.h is an XCore VisionEngineTypes split fragment with no independent PDB OBJ evidence; its parent header family has no row yet - deferred to a VisionEngineTypes path batch).
+- Blockers: none.
+- Backlog: CQuestCondition::GetQuestID subsystem (CreateMonster AddActor / DeleteMonster SetQuestRespawn/DeleteActor keys); GOComponent vtable slot alignment (26 derived overrides of invented Initialize/Shutdown/Update); m_mapRespawnBox value type VSafeAreaBoxInfo* vs PDB VMonsterSpawnInfo*; VType complete type; XArea.h TUXMapID alignment (prior batch); AkashicObjectMgr rewrite (prior batch); Npc.cpp repair (prior batch).
+- Next: batch 10 - XMaze::OnUpdate (0x14031C330) already partially landed, verify its body against IDA, or SetQuestRespawn (0x1403301E0) + UpdateClearMazeCondition (0x14031C700-adjacent) chain now that DeleteMonster consumes them.
+
+---
+
+[2026-09-03 01:57 +08:00] [gpt-5.6-terra]
+
+- Scope: batch 10 (task #136) - XMaze::SetQuestRespawn (0x1403301E0) full body + XMaze::UpdateClearMazeCondition (0x140324D50) precision rewrite + VMonsterSpawnInfo PDB tail-field landing.
+- Evidence: IDA port 10004 decompile of SetQuestRespawn (gate chain: mapPlayerList non-empty -> pMonsterSpawn non-null -> m_RespawnTime>0.0 && m_eRespawnType==1 -> first player GetGOC<CGocQuest>(0) -> FindCondition(m_iRespawnCondition)==1 -> RegisterQuestMonster(dwActorID,nTableID,nType,nCondition,pMonsterSpawn) -> GetEventUniqueID(pSpawn->m_iSectorID, GetBatchLayerLevel()) -> m_mapSector.find -> AddRespawnBoxID(pSpawn->iUniqueID)). PDB fieldlist 0x72694 for VMonsterSpawnInfo (Size=772, 38 members, VEventBoxInfo base 164B with iUniqueID +12): tail fields m_ProtectionTarget +620, m_RespawnTime +624, m_iStep +628, m_eRespawnType +632, m_iRespawnCondition +636, m_CreationEffectFile(0x4CE1,128B) +640, m_iGroupID +768, plus Clone/Load virtuals. UpdateClearMazeCondition IDA original uses pointer arithmetic *(&Clear_Con_Type_01+i)/(&Clear_Con_Value_01+i) over 3 slots; landed body had a local-cache-array rewrite.
+- Findings: the previously landed UpdateClearMazeCondition body was semantically equivalent but structurally rewritten (local conTypes/conValues arrays); replaced with IDA-original pointer-arithmetic loop after verifying TB_MAZE_INFO layout contiguity (Clear_Con_Type_01/02/03 contiguous uint8; Clear_Con_Value_01/02/03 contiguous uint). SetQuestRespawn was an empty shell. Maze.h declared it with invented const void* parameter; corrected to PDB const VMonsterSpawnInfo*.
+- Files changed: Maze.cpp (SetQuestRespawn full body; UpdateClearMazeCondition IDA-original loop; DeleteMonster call-site reinterpret bridge updated to VMonsterSpawnInfo* with stand-in note), Maze.h (SetQuestRespawn signature corrected), BattleZone.h (VMonsterSpawnInfo: iUniqueID inherited-semantics field + batch-10 tail fields m_ProtectionTarget/m_iStep/m_eRespawnType/m_iRespawnCondition/m_CreationEffectFile added; active struct remains a flat stand-in, full PDB-offset rebuild deferred).
+- Verification: cmake --build build --target GameServer: zero errors, link OK. Smoke: GREENDAMTAN_AUTOSTOP_MS=5000 run reached XWorldManager init + clean auto-stop.
+- Comparison: both bodies compared line-by-line against fresh IDA pseudocode. SetQuestRespawn FindCondition consumed as bool (active CGocQuest::FindCondition returns bool; IDA shows ==1 comparison, equivalent). GetGOC_Quest(false) matches IDA GetGOC<CGocQuest>(0).
+- func-index: 2 rows updated (SetQuestRespawn, UpdateClearMazeCondition - full chain notes, verified=no).
+- type-index: +1 row (VMonsterSpawnInfo PDB full 38-member layout documented; active flat stand-in status recorded; tail-field landing noted).
+- path-recovery-index: no changes this round (Maze.cpp/BattleZone.h rows already exist).
+- Blockers: none.
+- Backlog: VMonsterSpawnInfo full PDB-offset rebuild (active is flat stand-in; consumers use field names not offsets); CQuestCondition::GetQuestID (prior batch); VType complete type (prior); GOComponent vtable alignment (prior); m_mapRespawnBox value-type stand-in vs PDB VMonsterSpawnInfo* (prior).
+- Next: batch 11 - XMaze::ProcessReward (0x140324E10) body verify (partially landed, AND/OR clear-calc logic), or GetUniqueID (0x14032E3D0) chain consumed by DeleteMonster.
+
+---
+
+[2026-09-03 02:08 +08:00] [gpt-5.6-terra]
+
+- Scope: batch 11 (task #137) - XMaze::ProcessReward (0x140324E10, 2.8KB giant) full body + XMaze::ReleaseHelperSupportEquip (0x140328770) full body + XMaze::GetUniqueID (0x14032E3D0) precision fix + CGocHelper::HelperSupportRelease() no-arg overload (0x1400966D0) + two PDB type corrections (ST_INFINITE_TOWER_INFO, STMonsterKillScoreMode).
+- Evidence: IDA port 10004 full decompile of ProcessReward (three-branch clear-calc AND/OR/MazeType7; post-complete chain: CTextDBLog::AddLog(4,0,0,"") + GetLastSectorID->AllDestroySectorMonster + FinishMazeTime + CheckHiddenEventState + ReleaseHelperSupportEquip; MazeType 14/18/19 kill-score player loop with MonsterKillScoreReward(nPoint, GetMazeType(), dwMazePlayTime); MazeType 7 infinite-tower with GM+Status(0x2000) skip, RewardInfinteTower(m_nChapter, m_nStage, dwPlayTime/100), NPC purge SetDieReason(0xC,HP)+SetDie(GetDeathMotion(),1) for Type!=1&&2&&!IsSystemActor; non-Roguelike branch: party->CParty::MazeReward / force->CForce::MazeReward / per-user CGocRecode::MazeReward(dwPlayTime,1,1) with <REWARD> ProcessReward log, TB_MAZEREWARD_ITEM(GetTBMapID) grouton draw nSpawnRate=(10*nHighRank+50)*Mob_Rate/100 then /100 vs nRand(1,10000) -> m_dwWaitGroutonSpawnTime=GetTickCount64()+15000, player invincible loop). ReleaseHelperSupportEquip decompile (player loop GetGOC<CGocHelper>(0)->HelperSupportRelease()). GetUniqueID decompile: invented (level<<16)|id formula was WRONG - real body is VEventObjectInfo::GetEventUniqueID(nID, GetBatchLayerLevel()). HelperSupportRelease() no-arg decompile (m_mapSummonedHelper iterate -> K-overload per key).
+- PDB type findings: ST_INFINITE_TOWER_INFO (UDT 0x6D6F6, Size=12): m_nChapter +0, m_nStage +4, m_wNextMaze(ushort) +8 - the active struct (m_nFloor/m_nMaxFloor/m_nRewardState/m_dwEnterTime) was invented and is rebuilt. STMonsterKillScoreMode (UDT 0x6970D, fieldlist 0x6970C, Size=8): dwLeftTickCount +0, nPoint +4, plus VANILLA ctor 0x2A4DE and Init 0x2A4DF - invented m_nScore/m_nTeamScore/m_nKillCount/m_nDeathCount layout is rebuilt (static Init kept, body zero-fills both real fields).
+- Files changed: Maze.cpp (ProcessReward full 100+ line body replacing 3-branch stub with TODO tail; ReleaseHelperSupportEquip full body; GetUniqueID formula fix), Maze.h (ST_INFINITE_TOWER_INFO rebuilt; STMonsterKillScoreMode rebuilt; ReleaseHelperSupportEquip declared; GetUniqueID return type uint32_t->int per PDB QEAAH), GreenDamTan_GocHelperLink.cpp (HelperSupportRelease() no-arg overload landed).
+- Bridge notes: CTextDBLog::AddLog kept commented with TODO (subsystem backlog, existing active-layer pattern). GetGOC calls use active specialization names (GetGOC_Recode(false)/GetGOC_Helper(false)) matching IDA GetGOC<T>(0). SetDie(nMotion,1) maps IDA SetDie_2 2-param overload. CForce::MazeReward inherits CParty COMDAT body.
+- Verification: cmake --build build --target GameServer: zero errors, link OK. Smoke: GREENDAMTAN_AUTOSTOP_MS=5000 run reached XWorldManager init + clean auto-stop.
+- func-index: 4 rows updated (ProcessReward, ReleaseHelperSupportEquip, GetUniqueID, HelperSupportRelease-noarg), 1 duplicate HelperSupportRelease-noarg row deleted (kept canonical lowercase-addr row).
+- type-index: +2 rows (ST_INFINITE_TOWER_INFO 12B, STMonsterKillScoreMode 8B PDB rebuilds).
+- path-recovery-index: no changes this round (all touched files already have rows).
+- Blockers: none.
+- Backlog: CTextDBLog::AddLog subsystem; CQuestCondition::GetQuestID (prior); VType (prior); GOComponent vtable (prior); VMonsterSpawnInfo offset-faithful rebuild (prior); XArea TUXMapID (prior); AkashicObjectMgr rewrite (prior); Npc.cpp repair (prior).
+- Next: batch 12 - Maze.cpp 0x14032Cxxx region (CheckFollowMonster 0x14032C690 verify + neighbors) or FinishMazeTime/StartMazeTime pair verify, continuing the XMaze OnUpdate-adjacent chain.
+
+---
+
+[2026-09-03 02:14 +08:00] [gpt-5.6-terra]
+
+- Scope: batch 12 (task #138) - verification batch: CheckFollowMonster (0x14032C690), StartMazeTime (0x140311B70), FinishMazeTime (0x140311BD0), SetMazeState (0x140312FB0), RunSectorAI both overloads (0x14031F780 hkvVec3 / 0x14031F7C0 int) fresh IDA compare; three stale blocked rows (MoveActor 0x140315750, CreateNavMesh 0x14031F120, CreateScriptInst 0x14031F2C0) corrected.
+- Evidence: all six target bodies compared line-by-line against fresh IDA decompile - all PASS with exact match. SetMazeState tail ICF noise call identified as folded xSendPacket dtor. RunSectorAI(int) AddLog(19,...)/LogDebug remain commented per active-layer CTextDBLog/LogHelper pattern (LogDebug one is odd - LogHelper IS available; left as-is since semantic difference is a log-only call, recorded here). MoveActor/CreateNavMesh/CreateScriptInst rows were stale blocked entries from an earlier sweep whose bodies had landed in batch-7 era; rows now reflect implemented status with active-divergence notes (Havok/script stub layers).
+- Files changed: none (pure verification batch - all bodies already exact). func-index only.
+- Note: 0x140315750 has two decorated names in func-index (XActor* version + UXActorID fold); the row at 14786 carries the UXActorID-folded symbol name but the address-note content is correct; fold documented in note.
+- Verification: cmake --build build --target GameServer: no work to do (no source change this batch). Smoke: clean auto-stop reached.
+- func-index: 9 rows updated (6 verified PASS with batch-12 compare notes; 3 stale blocked -> implemented); 7 duplicate rows removed during dedup (6 batch-12 dup + 1 StartMazeTime dup).
+- type-index: no changes this round (function-chain verification only; no new type findings).
+- path-recovery-index: no changes this round (no new path ownership evidence).
+- Blockers: none.
+- Backlog: unchanged (CTextDBLog::AddLog, CQuestCondition::GetQuestID, VType, GOComponent vtable, VMonsterSpawnInfo offset-faithful rebuild, XArea TUXMapID, AkashicObjectMgr rewrite, Npc.cpp repair). RunSectorAI LogDebug-comment worth revisiting when LogHelper usage in Maze.cpp is normalized.
+- Next: batch 13 - XMaze::OnUpdate (0x14031C330) full-chain IDA compare (the largest remaining landed-but-unverified Maze.cpp body), or ExcuteEventSpawn/ExcuteCheckEventSpawnBox (0x140317A40/0x140317B60) verify.
+
+---
+
+[2026-09-03 02:42 +08:00] [gpt-5.6-terra]
+
+- Scope: batch 13 (task #139) - XMaze::OnUpdate (0x14031C330, 5.8KB, largest landed-but-unverified Maze.cpp body) full-chain rework against fresh IDA decompile, plus CUser::GetValidMapInsID (0x140701610) new landing required by the rework. This batch closes the reconstruction goal per user instruction; no new batch will be opened.
+- Evidence: full IDA decompile of OnUpdate (end_ea 0x14031D841) compared segment-by-segment against the previous landed body. The old body had 5 missing/incorrect regions: (1) m_listWaitForRecvInfo gate was a no-op TODO - real body checks UserDB bits 4/8/0x10 (bLoadQuest/bLoadSoulmetry/bLoadWorld per STMyCharInfoEx_UserDBBits) then virtual-dispatches LoadComplete and erases; (2) CRespawnManager::Update(this) was TODO-commented out; (3) the m_mapActor invalid-user cleanup chain (XClient::IsBit_OR(eStateInGame=5) + CUser::GetValidMapInsID().nMapID vs GetInstanceID().nMapID gate, GetScanner erase, listDeleteUser collection, TXMap::RemoveKey loop with two LogError formats) was entirely missing; (4) m_lstDestoryObject dispatch had DeleteNpc/DeleteAkashicObject commented out and stepSilhouettes missing its XGameServer m_rwMapLock write-lock + m_pNavMeshInstance->GetUpdateFunc chain; (5) tail chain: CCutsceneManager::OnUpdate() (no-arg, 0x1401B2090) was commented, m_pWarpPotal pointer-vs-embedded divergence documented. GetValidMapInsID real body: GetArea() ? XActor::GetMapInsID() : UXMapID(0); publics RVA 0x700610 -> VA 0x140701610 via get_name_ea; signature QEAA?ATUXMapID@@XZ (by-value return). XActor vtable inspection (??_7XActor@@6B@) confirmed no OnUpdate slot exists in the binary vtable (ICF-folded slot noise); CUser::OnUpdate (0x1406ED290) is dispatched via CUser-side vtable, so the OnUpdate call uses a CUser* direct call with TODO note. CSector::GetGroupID gate (monster/NPC branches) is not yet recovered in active CSector - existence-check substitute with TODO, recorded as backlog.
+- Files changed: Maze.cpp (OnUpdate full-body rework, ~340 lines: UserDB gate + LoadComplete erase loop, RespawnManager::Update, interaction-box nested-null compare, invalid-user cleanup chain, destroy-object dispatch with Npc/Akashic restored + write-locked stepSilhouettes, change-monster vector loop, tail chain with CCutsceneManager::OnUpdate()); User.h (GetValidMapInsID declaration); User.cpp (GetValidMapInsID exact body).
+- Build fix during batch: dynamic_cast<CUser*> stored into XClient* hid GetValidMapInsID (CUser-only member); resolved by using CUser* for both the gate and the OnUpdate dispatch.
+- Verification: cmake --build build --target GameServer -j1: zero errors (initial 2 errors fixed as above). Smoke: GREENDAMTAN_AUTOSTOP_MS=5000 run reached XWorldManager init + 3-thread TICK + clean auto-stop, exit 0, no OnUpdate-related crash.
+- func-index: 2 rows updated (?OnUpdate@XMaze@@UEAAXM@Z 0x14031c330 batch13 full-chain compare note; ?GetValidMapInsID@CUser 0x140701610 blocked -> implemented with exact-body note). LoadComplete row unchanged (only called, body untouched this batch).
+- type-index: no changes this round (no new type findings; STMyCharInfoEx_UserDBBits/UXMapID/XClient::E_NET_STATE are pre-existing definitions).
+- path-recovery-index: no changes this round (Maze.cpp/User.cpp ownership rows pre-existing; no new path evidence).
+- Blockers: none.
+- Backlog (carried): CSector::GetGroupID gate restore; CQuestCondition::GetQuestID subsystem (scanner key + SetQuestRespawn/DeleteActor keys still dwActorID substitutes); CTextDBLog::AddLog; XActor OnUpdate vtable slot alignment (ICF-folded slot); VType; GOComponent vtable; VMonsterSpawnInfo offset-faithful rebuild; XArea TUXMapID; AkashicObjectMgr rewrite; Npc.cpp repair; Maze embedded-member ABI convergence (m_xWarpPotal/m_cutSceneManager pointer stand-ins).
+- Goal closure: per user instruction the GameServer reconstruction goal ends with this batch. ExcuteEventSpawn/ExcuteCheckEventSpawnBox (0x140317A40/0x140317B60) remain as recorded candidates for any future resumption, along with the backlog above.

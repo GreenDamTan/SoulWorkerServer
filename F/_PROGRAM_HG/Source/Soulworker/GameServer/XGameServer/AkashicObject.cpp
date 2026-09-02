@@ -35,12 +35,7 @@
 // Forward declarations
 struct TB_MONSTER;
 class CGocNpcAttribute;
-
-// Helper for GOComponent creation (simplified)
-namespace {
-    template<typename T>
-    void CreateAndRegisterGOComponent(std::tr1::shared_ptr<T>* result, CNpc* pOwner);
-}
+class CNpc;
 
 // ============================================================================
 // CAkashicObject::CAkashicObject - Constructor
@@ -195,16 +190,6 @@ void __fastcall CAkashicObject_SetInfo(CAkashicObject* self)
     // This creates the skill list component for the Akashic object
     // and initializes it with the actor reference
     // TODO: Requires CMySkillList implementation
-}
-
-// ============================================================================
-// CAkashicObject::GetID - Get Akashic ID
-// IDA @ 0x14019a5c0
-// ============================================================================
-unsigned int __fastcall CAkashicObject_GetID(CAkashicObject* self)
-{
-    // IDA: return LODWORD(this->m_pCurDivergenceTableRef)
-    return static_cast<unsigned int>(reinterpret_cast<uintptr_t>(self->m_pCurDivergenceTableRef));
 }
 
 // ============================================================================
@@ -424,15 +409,15 @@ CAkashicObject* CAkashicObject::CreateObject()
 // ============================================================================
 // CAkashicObject::GetTypeId - Get type ID for RTTI
 // IDA @ 0x14019B760
+// 状态: 部分还原 - VType 子系统未还原, 按 Monster.cpp 同型暂返 nullptr
+// TODO: 需人工审查 - VType (Vision 类型系统) 完整定义落地后
+//   恢复 return &CAkashicObject::classCAkashicObject;
 // ============================================================================
 VType* CAkashicObject::GetTypeId() const
 {
-    // IDA code:
-    // VType *__fastcall CAkashicObject::GetTypeId(CAkashicObject *this)
-    // {
-    //   return &CAkashicObject::classCAkashicObject;
-    // }
-    return &classCAkashicObject;
+    // IDA 0x14019B760 精确还原:
+    // return &CAkashicObject::classCAkashicObject;
+    return nullptr;
 }
 
 // ============================================================================
@@ -452,4 +437,6 @@ __int64 CAkashicObject::IsCanHit(int nDownAttack, int bNormalAttack)
 }
 
 // Static type info for RTTI
-VType CAkashicObject::classCAkashicObject;
+// TODO: 需人工审查 - VType 完整类型未还原, classCAkashicObject 静态成员
+// 定义暂缺 (CMonster::GetTypeId 同型处理); VType 批次落地后恢复:
+// VType CAkashicObject::classCAkashicObject;

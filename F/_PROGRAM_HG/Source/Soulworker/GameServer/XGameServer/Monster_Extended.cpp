@@ -155,6 +155,12 @@ void CMonster::ProcessSkill(float fDeltaTime) {
 // These are stub implementations to resolve linker errors until Npc.cpp is fixed
 // ============================================================================
 
+// IDA: ?GetTableID@CNpc@@UEAAHXZ @ 0x1403a42e0
+// 已精确还原 - 返回 m_stNpcInfo.nTableID
+int CNpc::GetTableID() const {
+    return m_stNpcInfo.nTableID;
+}
+
 // IDA: ?MoveToWayPoint@CNpc@@QEAAXH@Z @ 0x1403a4010
 // 精确还原: NPC移动到路径点
 void CNpc::MoveToWayPoint(int nWayPointID) {

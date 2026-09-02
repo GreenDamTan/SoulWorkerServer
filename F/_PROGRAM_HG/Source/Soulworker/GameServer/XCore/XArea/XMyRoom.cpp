@@ -116,8 +116,7 @@ bool XMyRoom::Init() {
 
     std::uint16_t tbMapID = GetTBMapID();
     XGameServer* pServer = XGameServer::Instance();
-    m_pObjectResource = static_cast<VEventObjectResource*>(
-        XWorldResMgr::GetResource(&pServer->GetWorldResMgr(), tbMapID));
+    m_pObjectResource = pServer->GetWorldResMgr().GetResource(static_cast<std::int16_t>(tbMapID));
     if (!m_pObjectResource) {
         return false;
     }

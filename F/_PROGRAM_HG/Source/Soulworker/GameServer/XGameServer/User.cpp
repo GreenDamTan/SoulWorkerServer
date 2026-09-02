@@ -23,6 +23,7 @@
 #include "Soulworker/GameServer/XGameServer/Process/CharacterProcess.h"
 #include "Soulworker/GameServer/XGameServer/Process/MonsterProcess.h"
 #include "Soulworker/GameServer/XGameServer/Process/ItemProcess.h"
+#include "Soulworker/GameServer/XGameServer/Process/WorldProcess.h"
 #include <new>
 
 // 构造函�?IDA 0x1406E2FA0
@@ -390,6 +391,79 @@ bool CUser::CheckMazeEnterCount(TB_MAZE_INFO* pMazeData, int& nErrorID) {
     return true;
 }
 
+// SetLogChangeMap - IDA: ?SetLogChangeMap@CUser@@QEAAX_N@Z @ 0x140700500
+// 已精确还原 - 置 m_bChangeMap；bChange 时清空 Ping/Tick 日志缓冲
+void CUser::SetLogChangeMap(bool bChange) {
+    m_bChangeMap = bChange;
+    if (bChange) {
+        m_vecPingLog.clear();
+        m_vecTickLog.clear();
+    }
+}
+
+// GetEnterDistrictPos - IDA: ?GetEnterDistrictPos@CUser@@QEAAXAEAUSTPosInfo@@@Z @ 0x1401ACFD0
+// 已精确还原 - 拷贝 m_stEnterDistrictPos
+void CUser::GetEnterDistrictPos(STPosInfo& stPos) {
+    stPos = m_stEnterDistrictPos;
+}
+
+// IsEnableEscapeWorld - IDA: ?IsEnableEscapeWorld@CUser@@QEAA_NXZ @ 0x1406FA020
+// 已精确还原 - m_nEnableEscapeTime <= GetTickCount64()
+bool CUser::IsEnableEscapeWorld() {
+    return m_nEnableEscapeTime <= GetTickCount64();
+}
+
+// SetNextEscapeTime - IDA: ?SetNextEscapeTime@CUser@@QEAAXXZ @ 0x1406FA590
+// 已精确还原 - m_nEnableEscapeTime = GetTickCount64() + 60000
+void CUser::SetNextEscapeTime() {
+    m_nEnableEscapeTime = GetTickCount64() + 60000;
+}
+
+// IsBattleState - IDA: ?IsBattleState@CUser@@QEAA_NXZ @ 0x1403E1770
+// 已精确还原 - m_fBattleStateTime > 0.0f
+bool CUser::IsBattleState() {
+    return m_fBattleStateTime > 0.0f;
+}
+
+// IsUserStatus - IDA: ?IsUserStatus@CUser@@QEAAHK@Z @ 0x140353AB0
+// 已精确还原 - dwStatus & m_stCharInfo.dwStatus
+bool CUser::IsUserStatus(std::uint32_t dwStatus) {
+    return (dwStatus & m_stCharInfo.dwStatus) != 0;
+}
+
+// GetValidMapInsID - IDA: ?GetValidMapInsID@CUser@@QEAA?ATUXMapID@@XZ @ 0x140701610
+// 已精确还原 - GetArea 非空时 XActor::GetMapInsID (m_pPosInfo->uxMapID),
+// 否则返回 UXMapID(0) (原始 UXMapID::UXMapID(result, 0))
+UXMapID CUser::GetValidMapInsID() {
+    if (GetArea()) {
+        return GetMapInsID();
+    }
+    return UXMapID();
+}
+
+// SetDedicatedMonsterID - IDA: ?SetDedicatedMonsterID@CUser@@QEAAXK@Z @ 0x1402C7CA0
+// 已精确还原 - 单行 setter: this->m_dwDedicatedMonsterID = dwActorID
+void CUser::SetDedicatedMonsterID(std::uint32_t dwActorID) {
+    m_dwDedicatedMonsterID = dwActorID;
+}
+
+// SendResWarp - IDA: ?SendResWarp@CUser@@QEAAXEAEAUXVec3@@M@Z @ 0x1406E9AE0
+// 已精确还原 - (4,8): STWarp{byResult, xPos, fRot} + GetQuestID 广播
+void CUser::SendResWarp(std::uint8_t byResult, XVec3& xPos, float fRot) {
+    XSendPacket xSendPacket(4, 8);
+    STWarp warpInfo;
+    warpInfo.byResult = byResult;
+    warpInfo.xPos = xPos;
+    warpInfo.fRot = fRot;
+
+    UXActorID actorID = GetActorID();
+    int nQuestID = CQuestCondition::GetQuestID(actorID);
+    xSendPacket.XParse << nQuestID;
+    xSendPacket << warpInfo;
+
+    CGocNetwork::SendBroadCast(this, xSendPacket, E_BROADCAST_TYPE::eAll);
+}
+
 // SendChatNotify - IDA 0x1406FA5C0
 // 精确还原: 发送聊天通知 (main 7, sub 5)
 void CUser::SendChatNotify(int nType, int nValue) {
@@ -652,6 +726,211 @@ void CUser::SetRequestTick(std::uint8_t byType,
     m_mpTickInfo.insert({psReqTick.nTicknum, psInfo});
 }
 
+// ============================================================================
+// SetLeagueInfo (0x140700950) - 已精确还原
+// 写入 m_stCharInfo.stLeagueInfo (nLeagueID/nCard/szLeagueName) 与
+// m_stLeagueInfo (整体拷贝 ST_LEAGUE_INFO_FOR_GAME)。
+// PDB publics 装饰名证实第二参数按值传递 (UST_LEAGUE_INFO_FOR_GAME@@ 无引用)。
+void CUser::SetLeagueInfo(ST_LEAGUE_INFO_EX& stInfo,
+                          ST_LEAGUE_INFO_FOR_GAME stLeagueInfoForGame) {
+    m_stCharInfo.stLeagueInfo.nLeagueID = stInfo.nLeagueID;
+    m_stCharInfo.stLeagueInfo.uCard.nCard = stInfo.dwLeagueCard;
+    const wchar_t* szSrc = stInfo.szLeagueName;
+    wchar_t* szDst = m_stCharInfo.stLeagueInfo.szLeagueName;
+    do {
+        *szDst = *szSrc;
+        ++szSrc;
+        ++szDst;
+    } while (*szSrc);
+    m_stLeagueInfo = stLeagueInfoForGame;
+}
+
+// ============================================================================
+// SetLeagueInfo (单参重载, 0x140700A40) - 已精确还原
+// 仅写入 m_stCharInfo.stLeagueInfo (nLeagueID/nCard/szLeagueName)，
+// 不触及 m_stLeagueInfo。
+// PDB publics: ?SetLeagueInfo@CUser@@QEAAXAEAUST_LEAGUE_INFO_EX@@@Z (RVA 0x6FFA40)
+void CUser::SetLeagueInfo(ST_LEAGUE_INFO_EX& stInfo) {
+    m_stCharInfo.stLeagueInfo.nLeagueID = stInfo.nLeagueID;
+    m_stCharInfo.stLeagueInfo.uCard.nCard = stInfo.dwLeagueCard;
+    const wchar_t* szSrc = stInfo.szLeagueName;
+    wchar_t* szDst = m_stCharInfo.stLeagueInfo.szLeagueName;
+    do {
+        *szDst = *szSrc;
+        ++szSrc;
+        ++szDst;
+    } while (*szSrc);
+}
+
+// IDA: ?GetLeagueSyncFlag@CUser@@QEAA_NXZ @ 0x14028D3C0
+// 已精确还原 - 返回 League 同步标志
+bool CUser::GetLeagueSyncFlag() {
+    return m_bLeagueSyncFlag;
+}
+
+// IDA: ?GetLeagueSyncCount@CUser@@QEAAHXZ @ 0x14028D3A0
+// 已精确还原 - 返回 League 同步计数
+int CUser::GetLeagueSyncCount() {
+    return m_nLeagueSyncCount;
+}
+
+// IDA: ?UpdateLeagueSyncFlag@CUser@@QEAAX_N@Z @ 0x14025D060
+// 已精确还原 - 设置 League 同步标志
+void CUser::UpdateLeagueSyncFlag(bool bSyncFlag) {
+    m_bLeagueSyncFlag = bSyncFlag;
+}
+
+// IDA: ?UpdateLeagueSyncCount@CUser@@QEAAXH@Z @ 0x14025DB90
+// 已精确还原 - 设置 League 同步计数
+void CUser::UpdateLeagueSyncCount(int nUpdateCount) {
+    m_nLeagueSyncCount = nUpdateCount;
+}
+
+// IDA: ?ClearLeagueInfo@CUser@@QEAAXXZ @ 0x1406FB440
+// 已精确还原 - 清空用户 League 信息
+void CUser::ClearLeagueInfo() {
+    m_stCharInfo.stLeagueInfo.nLeagueID = 0;
+    m_stCharInfo.stLeagueInfo.uCard.nCard = 0;
+    m_stCharInfo.stLeagueInfo.szLeagueName[0] = 0;
+    std::memset(&m_stLeagueInfo, 0, sizeof(m_stLeagueInfo));
+}
+
+// IDA: ?SetLeagueSkill@CUser@@QEAAXEE@Z @ 0x140700B30
+// 已精确还原 - 设置 League 技能槽位
+void CUser::SetLeagueSkill(std::uint8_t byGroupID, std::uint8_t bySkillLevel) {
+    m_stLeagueInfo.bySkillInfo[byGroupID] = bySkillLevel;
+}
+
+// IDA: ?SetLeagueLevel@CUser@@QEAAXE@Z @ 0x140700B60
+// 已精确还原 - 设置 League 等级
+void CUser::SetLeagueLevel(std::uint8_t byLevel) {
+    m_stLeagueInfo.byLeagueLevel = byLevel;
+}
+
+// IDA: ?SetLeagueCard@CUser@@QEAAXK@Z @ 0x1407008F0
+// 已精确还原 - 设置 League 卡片
+void CUser::SetLeagueCard(unsigned int dwCardInfo) {
+    m_stCharInfo.stLeagueInfo.uCard.nCard = dwCardInfo;
+}
+
+// IDA: ?SetLeagueName@CUser@@QEAAXPEA_W@Z @ 0x14025CAB0
+// 已精确还原 - 设置 League 名称
+void CUser::SetLeagueName(wchar_t* szName) {
+    wcscpy_s(m_stCharInfo.stLeagueInfo.szLeagueName, szName);
+}
+
+// IDA: ?SetLeagueAuth@CUser@@QEAAXUST_LEAGUE_AUTH_CHANGE@@@Z @ 0x140700AE0
+// 已精确还原 - 拷贝 9 项权限到 m_stLeagueInfo.nAuth
+void CUser::SetLeagueAuth(ST_LEAGUE_AUTH_CHANGE stAuthInfo) {
+    for (int i = 0; i < 9; ++i) {
+        m_stLeagueInfo.nAuth[i] = stAuthInfo.nAuth[i];
+    }
+}
+
+// IDA: ?SetLeaguePosition@CUser@@QEAAXE@Z @ 0x140700930
+// 已精确还原 - 设置 League 职位
+void CUser::SetLeaguePosition(std::uint8_t byPosition) {
+    m_stLeagueInfo.byPosition = byPosition;
+}
+
+// IDA: ?SetLeagueMaster@CUser@@QEAAXK@Z @ 0x140700910
+// 已精确还原 - 设置 League 会长 UCID
+void CUser::SetLeagueMaster(unsigned int dwUCID) {
+    m_stLeagueInfo.dwMasterUCID = dwUCID;
+}
+
+// IDA: ?UpdateLeagueInventorySyncCount@CUser@@QEAAXH@Z @ 0x14025CFC0
+// 已精确还原 - 设置 League 物品栏同步计数
+void CUser::UpdateLeagueInventorySyncCount(int nUpdateCount) {
+    m_nLeagueInventorySyncCount = nUpdateCount;
+}
+
+// IDA: ?GetLeagueInventorySyncCount@CUser@@QEAAHXZ @ 0x14028D380
+// 已精确还原 - 查询 League 物品栏同步计数
+int CUser::GetLeagueInventorySyncCount() {
+    return m_nLeagueInventorySyncCount;
+}
+
+// IDA: ?SetLeagueInventoryTime@CUser@@QEAAX_J@Z @ 0x14025CFE0
+// 已精确还原 - 设置 League 物品栏访问时间
+void CUser::SetLeagueInventoryTime(std::int64_t biTime) {
+    m_biLeagueInventoryTime = biTime;
+}
+
+// IDA: ?GetLeagueInfo@CUser@@QEAAXAEAUST_LEAGUE_INFO_EX@@@Z @ 0x1406FB3A0
+// 已精确还原 - 读出 m_stCharInfo.stLeagueInfo 到 ST_LEAGUE_INFO_EX
+void CUser::GetLeagueInfo(ST_LEAGUE_INFO_EX& stInfo) {
+    stInfo.nLeagueID = m_stCharInfo.stLeagueInfo.nLeagueID;
+    stInfo.dwLeagueCard = m_stCharInfo.stLeagueInfo.uCard.nCard;
+    const wchar_t* szSrc = m_stCharInfo.stLeagueInfo.szLeagueName;
+    wchar_t* szDst = stInfo.szLeagueName;
+    do {
+        *szDst = *szSrc;
+        ++szSrc;
+        ++szDst;
+    } while (*szSrc);
+}
+
+// IDA: ?GetLeagueInfo@CUser@@QEAAXAEAUST_LEAGUE_INFO_FOR_GAME@@@Z @ 0x140503F40
+// 已精确还原 - 拷贝 m_stLeagueInfo
+void CUser::GetLeagueInfo(ST_LEAGUE_INFO_FOR_GAME& stLeagueInfo) {
+    stLeagueInfo = m_stLeagueInfo;
+}
+
+// IDA: ?SetLeagueInventorySend@CUser@@QEAAX_N@Z @ 0x14025D9E0
+// 已精确还原 - 设置 League 物品栏发送标志
+void CUser::SetLeagueInventorySend(bool bSend) {
+    m_bSendLeagueInventoryCheck = bSend;
+}
+
+// IDA: ?GetLeagueInventoryTime@CUser@@QEAA_JXZ @ 0x140503D60
+// 已精确还原 - 查询 League 物品栏访问时间
+std::int64_t CUser::GetLeagueInventoryTime() {
+    return m_biLeagueInventoryTime;
+}
+
+// IDA: ?CheckSendLeagueInventoryInfo@CUser@@QEAA_NXZ @ 0x140503D80
+// 已精确还原 - 检查是否未发送过 League 物品栏（取反发送标志）
+bool CUser::CheckSendLeagueInventoryInfo() {
+    return !m_bSendLeagueInventoryCheck;
+}
+
+// IDA: ?IsLeagueAuth@CUser@@QEAA_NEW4E_LEAGUE_AUTH@@@Z @ 0x1407007E0
+// 已精确还原 - 盟主恒有权限；否则按职位权限位按位与判断
+bool CUser::IsLeagueAuth(std::uint8_t byPosition, E_LEAGUE_AUTH eAuth) {
+    return m_stLeagueInfo.dwMasterUCID == m_stCharInfo.uxActorID.dwActorID
+        || (eAuth & m_stLeagueInfo.nAuth[byPosition]) != 0;
+}
+
+// IDA: ?EnterWorldToOther@CUser@@QEAAXHHUSTPosInfo@@K@Z @ 0x1406F8800
+// 已精确还原 - 填 PS_ENTER_MAP_REQ{dwActorID,wMapID,nJumpID} ->
+// GetProcessPtr<CWorldProcess>(4) 空则返回；
+// (4,1) << stEnterMap << stPosInfo << dwTargetID -> SetUsIndex(2) ->
+// CWorldProcess::ReqWorldEnterToOther。
+void CUser::EnterWorldToOther(int nMapID, int nJumpID, STPosInfo& stPosInfo,
+                              std::uint32_t dwTargetID) {
+    PS_ENTER_MAP_REQ stEnterMap{};
+    stEnterMap.dwActorID = GetActorID().dwActorID;
+    stEnterMap.wMapID = static_cast<std::uint16_t>(nMapID);
+    stEnterMap.nJumpID = nJumpID;
+
+    CWorldProcess* pProcess = GetProcessPtr<CWorldProcess>(4);
+    if (pProcess) {
+        XSendPacket xSendPacket(4, 1);
+        xSendPacket << stEnterMap;
+        xSendPacket << stPosInfo;
+        xSendPacket.XParse << dwTargetID;
+        xSendPacket.XParse.SetUsIndex(2);
+        pProcess->ReqWorldEnterToOther(xSendPacket);
+    }
+}
+
+// IDA: ?SetLeagueDeletePenalty@CUser@@QEAAX_J@Z @ 0x14025D900
+// 已精确还原 - 设置 League 解散惩罚截止时间
+void CUser::SetLeagueDeletePenalty(std::int64_t biPenalty) {
+    m_biLeagueDeletePenalty = biPenalty;
+}
+
 // IDA: 0x1406FFA40
 void CUser::GetResultTick(int nTicknum, PS_TICKCOUNT_INFO& psTick) {
     const auto iter = m_mpTickInfo.find(nTicknum);
@@ -849,6 +1128,11 @@ std::int32_t CUser::GetLeagueID() {
     return m_stCharInfo.stLeagueInfo.nLeagueID;
 }
 
+std::int64_t CUser::GetLeagueDeletePenalty() {
+    // IDA 0x140504340: return this->m_biLeagueDeletePenalty
+    return m_biLeagueDeletePenalty;
+}
+
 std::uint16_t CUser::GetMaxComboCount() {
     // IDA 0x140165270: return this->m_nMaxContinousAttackHit
     return static_cast<std::uint16_t>(m_nMaxContinousAttackHit);
@@ -1035,6 +1319,30 @@ void CUser::ChangeBooster(E_BOOSTER_TYPE eType, std::uint16_t wIndex) {
 bool CUser::IsLeagueSkill(int nSkill) {
     // IDA: return this->m_stLeagueInfo.bySkillInfo[nSkill] != 0;
     return m_stLeagueInfo.bySkillInfo[nSkill] != 0;
+}
+
+// ============================================================================
+// CUser::GetLeagueSkillEffectValue (0x140700830)
+// 已精确还原 - 按 m_stLeagueInfo.bySkillInfo[nSkill] 的等级，遍历
+// TB_LEAGUE_SKILL 全表找 League_Skill_Type == nSkill+1 且
+// League_Get_Skill_Level == bySkillLevel 的行，返回其
+// League_Skill_Apply_Value；找不到返回 0。
+// ============================================================================
+std::int32_t CUser::GetLeagueSkillEffectValue(int nSkill) {
+    std::uint8_t bySkillLevel = m_stLeagueInfo.bySkillInfo[nSkill];
+    std::int32_t nEffectRate = 0;
+
+    const auto& mapSkill = XGameServer::Instance()
+        ->GetResourceMgr().GetTB_LEAGUE_SKILL_Map();
+    for (const auto& kv : mapSkill) {
+        const TB_LEAGUE_SKILL& row = kv.second;
+        if (row.League_Skill_Type == static_cast<unsigned int>(nSkill + 1)
+            && row.League_Get_Skill_Level == bySkillLevel) {
+            nEffectRate = static_cast<std::int32_t>(
+                row.League_Skill_Apply_Value);
+        }
+    }
+    return nEffectRate;
 }
 
 std::int64_t CUser::GetFP() {
@@ -2275,7 +2583,7 @@ void CUser::Revive(std::uint32_t dwOwnerID, int nType, int bBroadcast, std::uint
         if (!pServer->GetWorldResMgr().GetPortalPos(nMapID, m_nRevivePoint, &stMovePos)) {
             pServer->GetWorldResMgr().GetStartPortalPos(static_cast<int>(pArea->GetTBMapID()), &stMovePos);
         }
-        if (pArea->MoveActor(this, reinterpret_cast<hkvVec3*>(&stMovePos.vPos))) {
+        if (pArea->MoveActor(this, stMovePos.vPos)) {
             XActor::SetStatus(dwOldStatus);
             return;
         }
@@ -3466,42 +3774,30 @@ float CUser::GetPublicTransportTime() const {
 // ============================================================================
 void CUser::Warp(XVec3* pPos)
 {
-    if (!pPos)
-        return;
-
     // IDA: Get area and check validity
     XArea* pArea = GetArea();
     if (!pArea)
         return;
 
-    // IDA: Call area's WarpPosition to update navigation mesh
-    // TODO: XArea::WarpPosition not implemented - need to add to XArea
-    // pArea->WarpPosition(static_cast<XActor*>(this), pPos);
+    // IDA: vtable[10] 虚调用即 XArea::MoveActor(XActor*, XVec3&, float)
+    pArea->MoveActor(static_cast<XActor*>(this), *pPos);
 
     // IDA: Send warp packet to broadcast
     XSendPacket xSendPacket(4, 8);  // main=4, sub=8 (eMAIN_CMD_MOVE, eSUB_CMD_WARP)
     STWarp warpInfo;
     warpInfo.byResult = 0;
-    warpInfo.fPosX = pPos->x;
-    warpInfo.fPosY = pPos->y;
-    warpInfo.fPosZ = pPos->z;
-    warpInfo.fRot = 0.0f;  // TODO: Get rotation from m_pPosInfo->fRot
+    warpInfo.xPos = *pPos;
+    warpInfo.fRot = m_pPosInfo->fRot;
 
     // IDA: Get quest ID from actor ID
     UXActorID actorID = GetActorID();
-    int nQuestID = 0;  // TODO: CQuestCondition::GetQuestID(actorID)
+    int nQuestID = CQuestCondition::GetQuestID(actorID);
 
     xSendPacket.XParse << nQuestID;
     xSendPacket << warpInfo;
 
-    // IDA: Broadcast to all nearby players via CGocNetwork
-    auto pNetwork = GetGOC<CGocNetwork>();
-    if (pNetwork) {
-        pNetwork->SendBroadCast(this, xSendPacket, E_BROADCAST_TYPE::eAll);
-    }
-
-    // IDA: Update navigation/sector data
-    // TODO: hkaiGraphBuilder::extraPositionData for navigation mesh update
+    // IDA: Broadcast to all nearby players via CGocNetwork (eAll=0)
+    CGocNetwork::SendBroadCast(this, xSendPacket, E_BROADCAST_TYPE::eAll);
 }
 
 // ============================================================================

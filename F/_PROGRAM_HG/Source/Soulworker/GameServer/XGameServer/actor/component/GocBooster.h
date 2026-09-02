@@ -14,21 +14,36 @@ struct TB_BOOSTER;
 /**
  * @brief E_BOOSTER_EFFECTTYPE - Booster effect type enumeration
  *
- * IDA verified from CGocBooster::GetTotalValue and GetTotalRate
+ * PDB UDT 0x55E6 (LF_ENUM, underlying T_INT4), 21 members.
+ * 旧还原的成员名为臆造 (ExpRate/DropRate/Attack/Defense/HP/MP/SoulJamil)，
+ * 本轮按 PDB 枚举员真名整体修正。
  */
-enum E_BOOSTER_EFFECTTYPE : std::uint8_t {
+enum E_BOOSTER_EFFECTTYPE : std::int32_t {
     eBooster_Effect_None = 0,
-    eBooster_Effect_ExpRate = 1,
-    eBooster_Effect_DropRate = 2,
-    eBooster_Effect_Attack = 3,
-    eBooster_Effect_AddFP = 4,      // FP (Fatigue Point) boost
-    eBooster_Effect_Defense = 5,
-    eBooster_Effect_HP = 6,
-    eBooster_Effect_MP = 7,
-    eBooster_Effect_SoulJamil = 8,
-    eBooster_Effect_Special = 9,    // Special stat change (apply/clear)
-    eBooster_Effect_Max
+    eBooster_Effect_IncExp = 1,
+    eBooster_Effect_IncItemDrop = 2,
+    eBooster_Effect_ReduceDec = 3,
+    eBooster_Effect_AddFP = 4,       // FP (Fatigue Point) boost
+    eBooster_Effect_IncUpgradeItem = 5,
+    eBooster_Effect_IncGoldDrop = 6,
+    eBooster_Effect_IncEtherDrop = 7,
+    eBooster_Effect_IncBattlePoint = 8,
+    eBooster_Effect_Status = 9,      // Special stat change (apply/clear)
+    eBooster_Effect_Maze_Reward_IncExp = 10,
+    eBooster_Effect_Maze_Reward_IncMoney = 11,
+    eBooster_Effect_Hidden_Event = 12,
+    eBooster_Effect_Fatigue_Decrease = 13,
+    eBooster_Effect_IncExchangeCount = 14,
+    eBooster_Effect_FreeExchangeCommission = 15,
+    eBooster_Effect_IncExchangeExpire = 16,
+    eBooster_Effect_IncGroutonRate = 17,
+    eBooster_Effect_ReduceExchangeCommission = 18,
+    eBooster_Effect_Complete_Quest_IncExp = 19,
+    eBooster_Effect_Max = 20
 };
+
+// 兼容旧引用: GocBooster.cpp 以 eBooster_Effect_Special 表示 Status(9)
+constexpr E_BOOSTER_EFFECTTYPE eBooster_Effect_Special = eBooster_Effect_Status;
 
 /**
  * @brief E_BOOSTER_TYPE - Booster type enumeration

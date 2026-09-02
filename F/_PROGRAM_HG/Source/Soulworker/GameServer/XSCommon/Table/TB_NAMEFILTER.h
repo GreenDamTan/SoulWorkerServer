@@ -13,22 +13,22 @@ static_assert(sizeof(TB_NAMEFILTER) == 0x204, "TB_NAMEFILTER size must match PDB
 #endif
 
 #if defined(GREENDAMTAN_TB_XRES_PUBLIC_DECL_SECTION)
-    const std::unordered_map<unsigned int, TB_NAMEFILTER>& GetTB_NAMEFILTERRows() const ;
+    const std::map<unsigned int, TB_NAMEFILTER>& GetTB_NAMEFILTER() const ;
     void SetTB_NAMEFILTER(unsigned int index, const TB_NAMEFILTER& row) ;
 #endif
 
 #if defined(GREENDAMTAN_TB_XRES_PRIVATE_DECL_SECTION)
     std::int64_t LoadTBNameFilterDB() ;
-    std::unordered_map<unsigned int, TB_NAMEFILTER> nameFilterRows_;
+    std::map<unsigned int, TB_NAMEFILTER> m_mapTB_NAMEFILTER;
 #endif
 
 #if defined(GREENDAMTAN_TB_XRES_IMPL_SECTION)
-const std::unordered_map<unsigned int, TB_NAMEFILTER>& XResourceMgr::GetTB_NAMEFILTERRows() const {
-        return nameFilterRows_;
+const std::map<unsigned int, TB_NAMEFILTER>& XResourceMgr::GetTB_NAMEFILTER() const {
+        return m_mapTB_NAMEFILTER;
     }
 
 void XResourceMgr::SetTB_NAMEFILTER(unsigned int index, const TB_NAMEFILTER& row) {
-        nameFilterRows_[index] = row;
+        m_mapTB_NAMEFILTER[index] = row;
     }
 
 std::int64_t XResourceMgr::LoadTBNameFilterDB() {
@@ -40,7 +40,7 @@ std::int64_t XResourceMgr::LoadTBNameFilterDB() {
             return executeResult;
         }
 
-        nameFilterRows_.clear();
+        m_mapTB_NAMEFILTER.clear();
         std::int64_t fetchResult = xDBBinder.Fetch();
         while ((fetchResult & ~1LL) == 0) {
             TB_NAMEFILTER row{};

@@ -15,7 +15,11 @@ add_executable(GameServer
     Physics.cpp
     Monster.cpp
     Monster_Extended.cpp
-    # Npc.cpp - TODO: Fix incomplete type errors (TB_NPC, ThreadLocalData, XArea, SetSocketActive)
+    # Npc.cpp - TODO: Fix incomplete type errors (TB_NPC, ThreadLocalData, XArea, SetSocketActive; UpdateSectorID exact body available)
+    GreenDamTan_NpcLink.cpp
+    # AkashicObject.cpp / AkashicObjectMgr.cpp - TODO: AkashicObjectMgr.h 半成品
+    # (自造 TXObjectMgr<CAkashicObject> 局部特化与 IXObject.h 主模板 280B 布局冲突,
+    #  VType 完整类型未还原); 待 AkashicMgr 批次按 XMonsterMgr 自足类模式重写
     Ai.cpp
     MySkillList.cpp
     RespawnManager.cpp
@@ -57,6 +61,7 @@ add_executable(GameServer
     Process/MonsterProcess.cpp
     Process/ItemProcess.cpp
     Process/ForceProcess.cpp
+    Process/WorldProcess.cpp
     actor/component/gocattribute.cpp
     actor/component/gocskill.cpp
     actor/component/gocinventory.cpp
@@ -70,12 +75,23 @@ add_executable(GameServer
     actor/component/gocbooster.cpp
     actor/component/GocNetwork.cpp
     actor/component/GocForce.cpp
+    # actor/component/GocNpcCredit.cpp - TODO: 历史遗留半成品文件未达编译标准
+    # (GetXResourceMgr 误名、XSendDBPacket 构造半成品、IXObject 歧义转换);
+    # lambda22/ReqWorldDistrictTransport 所需的 UpdateNpcCredit(uint32,int) 与
+    # GetNpcCreditBenefit(uint32,uint8) 已按 IDA 精确还原于
+    # GreenDamTan_GocNpcCreditLink.cpp，待旧文件整体修复后按 PDB OBJ
+    # gocnpccredit.obj 归属收敛回去。
+    actor/component/GreenDamTan_GocNpcCreditLink.cpp
     actor/component/GocLeague.cpp
+    LeagueMember.cpp
     actor/component/GocDailyMission.cpp
     actor/component/GocRecode.cpp
     actor/component/GocNpcAttribute.cpp
     # actor/component/GocMyRoom.cpp - TODO: Fix many compilation errors
     # actor/component/GocHelper.cpp - TODO: Fix GetGOC calls, UpdateStat, Finalize issues
+    # (召唤/释放链已按 IDA 精确落地于 GreenDamTan_GocHelperLink.cpp，待旧文件
+    #  整体修复后按 PDB OBJ gochelper.obj 归属收敛回去)
+    actor/component/GreenDamTan_GocHelperLink.cpp
     actor/component/CFriend.cpp
     PvPSystem.cpp
     actor/component/Skill.cpp

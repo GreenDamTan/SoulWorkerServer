@@ -47,7 +47,8 @@ public:
 
     // GetTypeId - Get type ID for RTTI
     // IDA: ?GetTypeId@CAkashicObject@@UEBAPEAUVType@@XZ @ 0x14019B760
-    virtual VType* GetTypeId() const override;
+    // 注: 活跃 CMoverEx 层未声明 GetTypeId 虚槽, 与 Monster.h 同型不加 override
+    virtual VType* GetTypeId() const;
 
     // IsCanHit - Check if can be hit (always returns 0 for Akashic objects)
     // IDA: ?IsCanHit@CAkashicObject@@UEAAHHH@Z @ 0x14019B8F0

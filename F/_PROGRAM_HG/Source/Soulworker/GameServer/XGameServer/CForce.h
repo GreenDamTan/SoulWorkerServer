@@ -160,6 +160,29 @@ public:
     // IDA: ?SendEnterMaze@CForce@@QEAAXAEAUPS_ENTER_MAP_RES@@@Z @ 0x1401BB420
     void SendEnterMaze(PS_ENTER_MAP_RES* stEnterMapRes);
 
+    // === Force Maze Enter (ByForce 链，lambda14 0x14062DD90 调用) ===
+
+    // EnterMazeByForce - 强制进入迷宫 (Force 侧独立体，非 CParty COMDAT)
+    // IDA: ?EnterMazeByForce@CForce@@QEAA_NPEAVCUser@@TUXMapID@@AEAUPS_ENTER_MAP_REQ@@@Z
+    //      @ 0x1401BC080
+    bool EnterMazeByForce(CUser* pReqUser, UXMapID uxMazeID, PS_ENTER_MAP_REQ* stEnterMap);
+
+    // SetEnterMazeResponse - 登记进入迷宫响应 (Force 侧独立体，0x11/0x4F 广播)
+    // IDA: ?SetEnterMazeResponse@CForce@@QEAA_NK@Z @ 0x1401BB340
+    bool SetEnterMazeResponse(std::uint32_t dwAgreeActor);
+
+    // AgreeEnterMaze - 广播同意进入迷宫 (0x11, 0x4F) 给全部已准备成员
+    // IDA: ?AgreeEnterMaze@CForce@@QEAAXK@Z @ 0x1401BB1D0
+    void AgreeEnterMaze(std::uint32_t dwAgreeActor);
+
+    // CreateMazeReq - 构造 ST_CREATE_MAZE 并经控制服转发创建请求
+    // IDA: ?CreateMazeReq@CForce@@QEAAXXZ @ 0x1401BBC90
+    void CreateMazeReq();
+
+    // CancelEnterMaze - 取消进入迷宫：清请求并广播 (0x11, 0x4D) 给已准备成员
+    // IDA: ?CancelEnterMaze@CForce@@QEAAXK@Z @ 0x1401BB030
+    void CancelEnterMaze(std::uint32_t dwCancelActor);
+
 protected:
     // === IDA confirmed member variables ===
     // Inherited from CParty:

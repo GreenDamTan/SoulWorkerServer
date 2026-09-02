@@ -7136,7 +7136,7 @@ std::int32_t XSQLFriendProcess::ReqAddBlockList(XDBStmt* pDBStmt, XPacket& xPack
 
     // 添加黑名�
     PS_RES_DB_FRIEND_BLOCK stResult;
-    stResult.dwReqUAID = stBlock.dwReqUCID;  // 使用 dwReqUCID 作为 UAID
+    stResult.dwReqUAID = stBlock.dwReqUAID;
 
     int nError = AddBlockList(pDBStmt, &stBlock, &stResult.stBlock);
     if (nError) {
@@ -7163,7 +7163,7 @@ std::int32_t XSQLFriendProcess::ReqDelBlockList(XDBStmt* pDBStmt, XPacket& xPack
 
     PS_RES_BLOCKLIST_DELETE psResult;
     psResult.nResult = 0;
-    psResult.dwReqUAID = stBlock.dwReqUCID;  // 使用 dwReqUCID 作为 UAID
+    psResult.dwReqUAID = stBlock.dwReqUAID;
     wcscpy_s(psResult.strTargetName, 21, stBlock.strTargetName);
 
     if (DeleteBlockList(pDBStmt, &stBlock, psResult.dwTargetUCID)) {
@@ -7188,7 +7188,7 @@ std::int32_t XSQLFriendProcess::AddBlockList(XDBStmt* pDBStmt, PS_REQ_FRIEND_BLO
     int nError = -1;
 
     XDBBinder xDBBinder(pDBStmt);
-    xDBBinder.SetData(&stBlock->dwReqUCID, 1);
+    xDBBinder.SetData(&stBlock->dwReqUAID, 1);
     xDBBinder.SetWString(stBlock->strTargetName, 21, &cbTID, 1);
     xDBBinder.SetData(&nError, 4);
 
@@ -7224,7 +7224,7 @@ bool XSQLFriendProcess::DeleteBlockList(XDBStmt* pDBStmt, PS_REQ_FRIEND_BLOCK_DE
     dwTargetUCID = 0;
 
     XDBBinder xDBBinder(pDBStmt);
-    xDBBinder.SetData(&stBlock->dwReqUCID, 1);
+    xDBBinder.SetData(&stBlock->dwReqUAID, 1);
     xDBBinder.SetWString(stBlock->strTargetName, 21, &cbTID, 1);
     xDBBinder.SetData(&dwTargetUCID, 4);
 

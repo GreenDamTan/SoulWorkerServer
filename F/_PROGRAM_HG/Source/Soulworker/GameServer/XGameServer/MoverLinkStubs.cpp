@@ -30,6 +30,39 @@ float CMover::GetCurSuperArmorGage() const
     return m_fCurSuperArmorGage;
 }
 
+// IDA: ?GetRecoverySuperArmorTime@CMover@@QEAAMXZ (0x140353FE0)
+// 已精确还原 - return m_fRecoverySuperArmorTime
+float CMover::GetRecoverySuperArmorTime()
+{
+    return m_fRecoverySuperArmorTime;
+}
+
+// IDA: ?SetHitPartsInfo@CMoverEx@@QEAAXHKEHH@Z (0x140399CC0)
+// 已精确还原 - iIndex<2 时写 m_sHitParts[iIndex].dwTableID/byPartsID
+//   + SetHitPartsHP(iIndex, iCurHP, iMaxHP)
+void CMoverEx::SetHitPartsInfo(int iIndex, unsigned int dwTableID, unsigned char byPartsID,
+                               int iCurHP, int iMaxHP)
+{
+    if (iIndex < 2) {
+        m_sHitParts[iIndex].dwTableID = dwTableID;
+        m_sHitParts[iIndex].byPartsID = byPartsID;
+        SetHitPartsHP(iIndex, iCurHP, iMaxHP);
+    }
+}
+
+// IDA: ?SetHitPartsHP@CMoverEx@@QEAAXHHH@Z (0x140399D30)
+// 已精确还原 - iIndex<2 时 iCurHP 钳制到 iMaxHP 后写入 iCurHP/iMaxHP
+void CMoverEx::SetHitPartsHP(int iIndex, int iCurHP, int iMaxHP)
+{
+    if (iIndex < 2) {
+        if (iCurHP > iMaxHP) {
+            iCurHP = iMaxHP;
+        }
+        m_sHitParts[iIndex].iCurHP = iCurHP;
+        m_sHitParts[iIndex].iMaxHP = iMaxHP;
+    }
+}
+
 // IDA: ?SetCurSuperArmorGage@CMover@@QEAAXM@Z @ 0x140353C60
 void CMover::SetCurSuperArmorGage(float fCurSuperArmorGage)
 {

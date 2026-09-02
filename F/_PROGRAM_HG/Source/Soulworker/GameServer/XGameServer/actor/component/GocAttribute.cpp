@@ -2523,19 +2523,34 @@ std::uint32_t CGocAttribute::FindEquipedOptionIndex() const
 
 // ============================================================================
 // SetStartStatEnterWorld - IDA 0x140041D10
-// Verified: Sets start stat when entering world based on world type
+// 已精确还原 (publics ?QEAAXH_N@Z 两参签名，旧单参实现为臆造简写)
+// nWorldType==0 或 (==2 且 bFirstEnter): SetFullStat + SetStat(16);
+// nWorldType==2 且 !bFirstEnter: 按 stMyCharInfoEx->stAbility.nCurAbility
+//   [0]/[1]/[2] 恢复 SetStat(1/2/3) (偏移 +0x58/+0x5C/+0x64);
+// 其他: SetStartStat。
 // ============================================================================
-void CGocAttribute::SetStartStatEnterWorld(int nWorldType)
+void CGocAttribute::SetStartStatEnterWorld(int nWorldType, bool bFirstEnter)
 {
-    // World type 0 or 2: SetFullStat, otherwise SetStartStat
-    if (nWorldType == 0 || nWorldType == 2)
-    {
+    if (!nWorldType || (nWorldType == 2 && bFirstEnter)) {
         SetFullStat();
+        // Per IDA: mov edx,10h 后 xmm2/r8b 为寄存器残留未显式赋值，
+        // bSync 残留值按反编译第 4 参恒为 0 (false)；fValue 按满血语义取 0。
+        // TODO: 需人工审查 - fValue 原始实参未在汇编中显式出现
+        SetStat(16, 0.0f, false);
+        return;
     }
-    else
-    {
-        SetStartStat();
+    if (nWorldType == 2) {
+        // Per IDA: 非首次进入 District 时按角色信息恢复 HP/FP/SG
+        CUser* pUser = dynamic_cast<CUser*>(GetOwnerGO());
+        if (pUser) {
+            STMyCharInfoEx* pInfo = pUser->stMyCharInfoEx();
+            SetStat(1, static_cast<float>(pInfo->stAbility.nCurAbility[0]), false);
+            SetStat(2, static_cast<float>(pInfo->stAbility.nCurAbility[1]), false);
+            SetStat(3, static_cast<float>(pInfo->stAbility.nCurAbility[2]), false);
+        }
+        return;
     }
+    SetStartStat();
 }
 
 // ============================================================================

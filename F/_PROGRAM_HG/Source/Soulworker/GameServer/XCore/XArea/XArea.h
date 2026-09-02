@@ -123,6 +123,14 @@ public:
     // Virtual - returns nullptr in base class, overridden by XDistrict
     virtual class DohHavokNavMeshInstance* GetNavMeshInstance() { return nullptr; }
 
+    // IDA: ?EscapeActor@XArea@@UEAA_NPEAVXActor@@@Z (publics RVA 0x8EFC60,
+    // ICF 体 @ 0x1408F0C60 - base returns true; overridden by XMaze/XDistrict/XMyRoom)
+    // 逃脱区域，基类恒返回 true
+    virtual bool EscapeActor(XActor* pActor) {
+        (void)pActor;
+        return true;
+    }
+
     // IDA: ?GetTBMapID@XArea@@QEAAGXZ (0x1400492D0)
     // 返回表格地图ID (从 64 位 nMapID 中提取高 16 位)
     std::uint16_t GetTBMapID() const {
@@ -154,6 +162,19 @@ public:
         (void)pAtk; (void)fExp; (void)nMonsterLv;
     }
 
+    // IDA: vtable+136 槽 (?SendObjectInfo@XDistrict@@UEAA_NPEAVXActor@@@Z 0x1402CB960 /
+    //      ?SendObjectInfo@XMyRoom@@... 0x1402AE780 覆盖)；基类默认返回 true
+    //      (ICF 与 IsValidPosition 0x1405052E0 共体)。ReqWorldObjectInfo
+    //      lambda2 (0x14062B3F0) 经 GetArea() 虚分派调用。
+    virtual bool SendObjectInfo(XActor* pActor) {
+        (void)pActor;
+        return true;
+    }
+
+    // IDA: vtable+192 槽 (?IsDistirct@XDistrict@@UEAA_NXZ 0x1402DF5F0 覆盖)；
+    //      基类默认返回 false (小体 ICF)。原工程拼写即 IsDistirct。
+    virtual bool IsDistirct() { return false; }
+
     // IDA: ?MoveActor@XArea@@UEAAGTUXActorID@@AEAUXVec3@@M@Z (0x1401ACFB0)
     // Move actor in area (stub - returns 0)
     virtual std::uint16_t MoveActor(UXActorID uxActorID, XVec3& vPos, float fRot) {
@@ -163,7 +184,8 @@ public:
 
     // IDA: ?MoveActor@XMaze@@UEAAGPEAVXActor@@AEAUXVec3@@M_N@Z (0x140315750)
     // Move actor with XActor pointer - virtual, overridden by XMaze/XDistrict
-    virtual std::uint16_t MoveActor(XActor* pActor, hkvVec3* vNextPos, float fRot = 0.0f) {
+    // (PDB/publics: 参数为 XVec3& 而非 hkvVec3*; vtable slot [10])
+    virtual std::uint16_t MoveActor(XActor* pActor, XVec3& vNextPos, float fRot = 0.0f) {
         (void)pActor; (void)vNextPos; (void)fRot;
         return 0;
     }

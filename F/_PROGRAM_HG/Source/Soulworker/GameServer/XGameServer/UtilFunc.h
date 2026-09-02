@@ -1,26 +1,16 @@
 #pragma once
 
+// 原始归属（PDB lines）：common/xnet/xutil/utility.h（共享 XUtil 层）
+// GameServer.exe 中 UtilFunc::IsUsableNameFilter / CheckValidString /
+// _CheckValidString 三函数由该共享头承载，每服务各编译一份实例。
+
 #include <cwchar>
+#include "Soulworker/GameServer/XCore/XServer/Option.h"
 
-// Forward declarations
-class XResourceMgr;
-struct TB_NAMEFILTER;
-
-/**
- * @brief UtilFunc - 工具函数命名空间
- *
- * 包含各种游戏服务器通用工具函数
- */
 namespace UtilFunc {
 
-/**
- * @brief 检查名称是否通过过滤器
- *
- * @param wszString 要检查的名称字符串
- * @param resourceMgr 资源管理器引用
- * @return true 如果名称可用（未命中过滤器）
- * @return false 如果名称被过滤
- */
-bool IsUsableNameFilter(wchar_t* wszString, class XResourceMgr& resourceMgr);
+bool IsUsableNameFilter(wchar_t* wszString);
+bool CheckValidString(wchar_t* wszString, NATION_TYPE eNationType);
+bool _CheckValidString(char* szString);
 
 } // namespace UtilFunc

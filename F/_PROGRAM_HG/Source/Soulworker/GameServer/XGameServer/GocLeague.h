@@ -192,10 +192,14 @@ public:
     // Helper functions
     int CheckNameChangeItem(struct PS_ITEM_SLOT_INFO psSlotInfo, struct PS_RES_STORAGE_INFO& psResInfo);
     void SendLeagueNameChangeMsg(int nResult, struct PS_REQ_LEAGUE_NAME_CHANGE psNameChange);
-    bool CheckNpc(unsigned int dwActorID, int nNpcID, int nDistance);
+    // PDB: ?CheckNpc@CLeagueProcess@@QEAA_NKEH@Z @ 0x1404F4380
+    bool CheckNpc(unsigned int dwNpcID, unsigned char byNpcType, int nNpcFunID);
+    // PDB: ?CheckLeagueInventoryIn@CLeagueProcess@@QEAAHUPS_REQ_ITEM_MOVE_LEAGUE_INVEN@@AEAUSTItem@@AEAUPS_ITEM_MOVE_LEAGUE_INVEN_FOR_GAME@@@Z @ 0x1404F6C40
     int CheckLeagueInventoryIn(struct PS_REQ_ITEM_MOVE_LEAGUE_INVEN psReq, struct STItem& stItem, struct PS_ITEM_MOVE_LEAGUE_INVEN_FOR_GAME& psMove);
-    bool CheckLeagueInventoryOut(struct PS_REQ_ITEM_MOVE_LEAGUE_INVEN psReq);
-    bool CheckLeagueInventoryInMove(struct PS_REQ_ITEM_MOVE_LEAGUE_INVEN psReq);
+    // PDB: ?CheckLeagueInventoryOut@CLeagueProcess@@QEAAHUPS_REQ_ITEM_MOVE_LEAGUE_INVEN@@@Z @ 0x1404F72A0
+    int CheckLeagueInventoryOut(struct PS_REQ_ITEM_MOVE_LEAGUE_INVEN psReq);
+    // PDB: ?CheckLeagueInventoryInMove@CLeagueProcess@@QEAAHUPS_REQ_ITEM_MOVE_LEAGUE_INVEN@@@Z @ 0x1404F75E0
+    int CheckLeagueInventoryInMove(struct PS_REQ_ITEM_MOVE_LEAGUE_INVEN psReq);
     
 private:
     // Internal data

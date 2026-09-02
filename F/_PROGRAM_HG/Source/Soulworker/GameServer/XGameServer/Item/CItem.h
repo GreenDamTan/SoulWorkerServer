@@ -103,6 +103,9 @@ public:
     // no-op COMDAT at +0xC0 (0x14018F110), and GetSetBuffID shares the
     // zero-return COMDAT at +0x110 (0x1400FA340).
     virtual void GetBroachList(PS_ITEM_BROACH_LIST& stBroachList);
+    // PDB: ?GetSocketList@CItem@@UEAAXAEAUPS_ITEM_SOCKET_LIST@@@Z @ 0x14018E110
+    // 基类为空实现（与 GetBroachList 共享 no-op COMDAT）；CItemEquip 才有真实填充。
+    virtual void GetSocketList(PS_ITEM_SOCKET_LIST& stSocketList);
     virtual std::uint32_t GetSetBuffID(int nIndex);
 
     // SetEnduranceEffect - 0x140281D50

@@ -685,3 +685,27 @@ void CGocForce::SetForce(std::shared_ptr<CForce> pForce)
 void CGocForce::SetMatchingState(std::uint8_t byState) {
     m_byMatchingState = byState;
 }
+
+// IDA: ?GetMatchingState@CGocForce@@QEAAEXZ @ 0x1403B0280
+// 已精确还原 - 返回匹配状态字节
+std::uint8_t CGocForce::GetMatchingState() const {
+    return m_byMatchingState;
+}
+
+// ============================================================================
+// CGocForce::IsForce - 检查是否在 Force 中
+// Per IDA/publics: 无独立符号，原始二进制中直接复用基类
+// ?IsParty@CGocParty@@QEAA_NXZ (0x140091E20) 的 COMDAT 体。
+// ============================================================================
+bool CGocForce::IsForce() const {
+    return IsParty();
+}
+
+// ============================================================================
+// CGocForce::GetForceID - 获取 Force ID
+// Per IDA/publics: 无独立符号，原始二进制中直接复用基类
+// ?GetPartyID@CGocParty@@QEAAHXZ (0x14009F760) 的 COMDAT 体。
+// ============================================================================
+std::uint32_t CGocForce::GetForceID() const {
+    return GetPartyID();
+}

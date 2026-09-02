@@ -204,6 +204,14 @@ public:
     bool IsLoadNetCafe() const;
     bool IsRoguelikeState() const;
 
+    // IDA: ?GetProfilePhotoID@CGocEntity@@QEAAKXZ (PDB S_GPROC32 [0001:00061270], Cb=56)
+    // 说明: IDA 数据库中该地址被并入 EventNetCafeItemBuy 大函数体，未能单独反编译；
+    // PDB 证实为独立 56 字节无参 getter。调用方（XForceProcess 匹配链）读取的正是
+    // 角色 stMyCharInfoEx()->stBaseInfo.dwProfilePhotoID，与 ResChangeProfilePhoto
+    // 落地路径一致 (GocEntity.cpp 先例)。
+    // TODO: 需人工审查：若后续 IDA 边界拆分成功，按反编译结果复核此实现。
+    std::uint32_t GetProfilePhotoID() const;
+
     // Roguelike system
     void UpdateRoguelikeStep();
     int GetRoguelikeNextMap(bool bNext);

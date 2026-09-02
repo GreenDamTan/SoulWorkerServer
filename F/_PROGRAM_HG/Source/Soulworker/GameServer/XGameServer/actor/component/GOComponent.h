@@ -50,6 +50,14 @@ public:
     virtual void Shutdown() {}
     virtual void Update(float fDeltaTime) { (void)fDeltaTime; }
 
+    // PDB fieldlist 0x3F9A list[6]: Finalize INTRODUCING VIRTUAL (vfptr offset 8,
+    // publics ?Finalize@GOComponent@@UEAAXXZ RVA 0x1AB740), PDB vtable 槽 1。
+    // 原始 vtable: slot0=~GOComponent(vecDelDtor), slot1=Finalize。
+    // 注意: 活跃工程此前的 Initialize/Shutdown/Update 臆造虚槽被 26 个子类
+    // override 依赖, 全量 vtable 槽位对齐留待 GOComponent ABI 批次统一处理,
+    // 此处追加声明保证 CreateMonster/GocHelper 链的 Finalize 调用可编译。
+    virtual void Finalize() {}
+
     // Owner actor (CMover in GameServer)
     CMover* GetOwnerGO() const { return m_pOwner; }
     void SetOwnerGO(CMover* pOwner) { m_pOwner = pOwner; }

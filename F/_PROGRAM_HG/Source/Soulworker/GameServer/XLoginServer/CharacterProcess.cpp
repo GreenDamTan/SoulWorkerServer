@@ -119,54 +119,44 @@ bool CheckValidString(wchar_t* wszString, NATION_TYPE eNationType) {
     return valid;
 }
 
-std::wstring ToUpperWide(const wchar_t* value) {
-    if (!value) {
-        return {};
-    }
-
-    std::wstring result(value);
-    for (wchar_t& ch : result) {
-        ch = static_cast<wchar_t>(std::towupper(ch));
-    }
-    return result;
-}
-
-std::wstring WidenFilterWord(const char* value) {
-    if (!value) {
-        return {};
-    }
-
-    std::wstring result;
-    while (*value != '\0') {
-        result.push_back(static_cast<unsigned char>(*value));
-        ++value;
-    }
-    return result;
-}
-
 bool IsUsableNameFilter(wchar_t* wszString) {
+    // Per IDA LoginServer.exe 0x140001DD0（原始归属 common/xnet/xutil/utility.h）：
+    // 1. wstring 副本逐字符 towupper
+    // 2. 遍历 XLoginServer 单例的 m_xResourceMgr.m_mapTB_NAMEFILTER（std::map）
+    // 3. Filter_Word 经 MultiByteToWideChar 转宽后大写化
+    // 4. Filter_Type==1 完全匹配，否则 wcsstr 包含匹配
     if (!wszString) {
         return false;
     }
 
-    const std::wstring upperName = ToUpperWide(wszString);
-    const auto& rows = TXSingleton<XLoginServer>::Instance()->GetResourceMgr().GetTB_NAMEFILTERRows();
-    for (const auto& entry : rows) {
-        const TB_NAMEFILTER& row = entry.second;
-        const std::wstring upperFilter = ToUpperWide(WidenFilterWord(row.Filter_Word).c_str());
-        if (upperFilter.empty()) {
-            continue;
+    std::wstring wstrCharacterName(wszString);
+    for (auto& ch : wstrCharacterName) {
+        ch = static_cast<wchar_t>(std::towupper(ch));
+    }
+
+    const std::map<unsigned int, TB_NAMEFILTER>& mapFilter =
+        TXSingleton<XLoginServer>::Instance()->GetResourceMgr().GetTB_NAMEFILTER();
+
+    std::wstring wstrFilterString;
+    for (const auto& entry : mapFilter) {
+        const TB_NAMEFILTER* pTB_NameFilter = &entry.second;
+
+        wchar_t szFilterWord[512] = {};
+        MultiByteToWideChar(0, 0, pTB_NameFilter->Filter_Word, -1,
+                            szFilterWord, 511);
+        wstrFilterString = szFilterWord;
+        for (auto& ch : wstrFilterString) {
+            ch = static_cast<wchar_t>(std::towupper(ch));
         }
 
-        if (row.Filter_Type == 1) {
-            if (upperName == upperFilter) {
+        if (pTB_NameFilter->Filter_Type == 1) {
+            if (wcscmp(wstrFilterString.c_str(), wstrCharacterName.c_str()) == 0) {
                 return false;
             }
-            continue;
-        }
-
-        if (upperName.find(upperFilter) != std::wstring::npos) {
-            return false;
+        } else {
+            if (wcsstr(wstrCharacterName.c_str(), wstrFilterString.c_str())) {
+                return false;
+            }
         }
     }
 

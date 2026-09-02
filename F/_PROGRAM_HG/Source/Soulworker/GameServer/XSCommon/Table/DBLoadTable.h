@@ -1860,7 +1860,7 @@ private:
         m_mapTB_MYROOM_FURNITURE.clear();
         m_mapTB_MYROOM_GREED.clear();
         m_mapTB_MYROOM_INFO.clear();
-        nameFilterRows_.clear();
+        m_mapTB_NAMEFILTER.clear();
         m_mapTB_NPC.clear();
         m_mapTB_NPC_PARTS.clear();
         m_mapTB_OPERATION_INFO.clear();

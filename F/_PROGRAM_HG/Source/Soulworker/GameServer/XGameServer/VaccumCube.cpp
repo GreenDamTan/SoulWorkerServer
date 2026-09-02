@@ -395,7 +395,7 @@ void CVaccumCube::BuildInfoPacket(PS_VACCUM_CUBE_IN& stInfo) {
     // }
     stInfo.byInType = 1;
     stInfo.nTableID = m_pInterActionBoxInfo ? m_pInterActionBoxInfo->m_iInteractionID : 0;
-    stInfo.nID = m_pInterActionBoxInfo ? m_pInterActionBoxInfo->GetID() : 0;
+    stInfo.nID = m_pInterActionBoxInfo ? m_pInterActionBoxInfo->iID : 0;
 }
 
 // Per IDA 0x1401916F0: SetInfoPacket
@@ -434,7 +434,7 @@ void CVaccumCube::SetInfoLeavePacket(XSendPacket& xSendPacket, bool bDestroy) {
     // }
 
     PS_VACCUM_CUBE_OUT stInfo;
-    stInfo.nID = m_pInterActionBoxInfo ? m_pInterActionBoxInfo->GetID() : 0;
+    stInfo.nID = m_pInterActionBoxInfo ? m_pInterActionBoxInfo->iID : 0;
     stInfo.byOutType = !bDestroy ? 1 : 0;
     xSendPacket.XParse << stInfo.nID;
     xSendPacket.XParse << static_cast<bool>(stInfo.byOutType);

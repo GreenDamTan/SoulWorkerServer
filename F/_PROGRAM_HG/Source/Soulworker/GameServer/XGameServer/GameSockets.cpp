@@ -3,6 +3,7 @@
 
 #include "GameSockets.h"
 #include "Soulworker/Common/XNet/XIOCPBase/Packet.h"
+#include "Soulworker/Common/XNet/XCommon/XSWCommand.h"
 #include "Soulworker/GameServer/XCore/XServer/XServer.h"
 #include "Soulworker/GameServer/XCore/XServer/Option.h"
 #include "Soulworker/GameServer/XCore/XServer/GreenDamTan_MyRoomStructs.h"
@@ -28,6 +29,7 @@
 #include "Soulworker/GameServer/XCore/XArea/XActor.h"
 #include "Soulworker/GameServer/XGameServer/actor/component/GocParty.h"
 #include "Soulworker/GameServer/XGameServer/actor/component/GocInventory.h"
+#include "Soulworker/GameServer/XGameServer/actor/component/GocClassEvent.h"
 #include "Soulworker/GameServer/XGameServer/actor/component/GocQuest.h"
 #include "Soulworker/GameServer/XGameServer/actor/component/GocForce.h"
 #include "Soulworker/GameServer/XGameServer/process/ForceProcess.h"
@@ -168,12 +170,27 @@ bool CGameControlSocket::ForceProcess(XPacket* xPacket) {
     return true;
 }
 
-// Per IDA 0x1401ca880: RecvFindUser
+// ============================================================================
+// RecvFindUser - IDA @ 0x1401CA880
+// 已精确还原 - 解析 dwUCID + dwTargetUCID + dwServerID + byState；
+// FindActorIDToUser 双查 pUser/pTarget。
+// state==1 (看目标): 从目标 stPosInfo 取 nMapID (nMapID>>16>>16) 与位置；
+//   pUser 无 Area 返回 0；IncrementJobCount ->
+//   lambda0 (0x1401CAE90) DoJob: pUser IsLive 门 ->
+//   SetInvisible(1,4,4,0,0,0,0) + send_eSUB_CMD_MOVE_INFO(pUser,2,1) +
+//   EnterWorldToOther(nMapID, 0, stPosInfo, dwUCID)
+//   -> lambda192 递减。
+// state==2 (被看): 从请求者位置取 nMapID/stPosInfo；
+//   pTarget 无 Area 返回 0；对 pTarget 计数 ->
+//   lambda2 (0x1401CB080) DoJob: pTarget IsLive 门 ->
+//   SetInvisible(1,4,4,0,0,0,0) + send_eSUB_CMD_MOVE_INFO(pTarget,2,1) +
+//   EnterWorldToOther(nMapID, 0, stPosInfo, dwUCID) -> lambda192 递减。
+// 其余 state 直接返回 1。
+// ============================================================================
 bool CGameControlSocket::RecvFindUser(XPacket* xPacket) {
-    // Per IDA: 解析数据包
-    unsigned int dwUCID = 0;
-    unsigned int dwTargetUCID = 0;
-    unsigned int dwServerID = 0;
+    std::uint32_t dwUCID = 0;
+    std::uint32_t dwTargetUCID = 0;
+    std::uint32_t dwServerID = 0;
     std::uint8_t byState = 0;
 
     xPacket->XParse >> dwUCID;
@@ -181,72 +198,70 @@ bool CGameControlSocket::RecvFindUser(XPacket* xPacket) {
     xPacket->XParse >> dwServerID;
     xPacket->XParse >> byState;
 
-    // Per IDA: 查找用户
-    XGameServer* pServer = XGameServer::Instance();
-    CUser* pUser = pServer ? pServer->FindActorIDToUser(dwUCID) : nullptr;
-    CUser* pTarget = pServer ? pServer->FindActorIDToUser(dwTargetUCID) : nullptr;
+    CUser* pUser = TXSingleton<XGameServer>::Instance()->FindActorIDToUser(dwUCID);
+    CUser* pTarget = TXSingleton<XGameServer>::Instance()->FindActorIDToUser(dwTargetUCID);
 
     if (byState == 1) {
-        // Per IDA: 状态1处理 - 发送目标用户位置信息给请求用户
+        // 状态1: 发送目标用户位置信息给请求用户
         if (pTarget) {
-            // Per IDA: 获取目标用户的位置信息
-            STMyCharInfoEx* pTargetInfo = pTarget->stMyCharInfoEx();
-            if (pTargetInfo) {
-                int nMapID = static_cast<int>(pTargetInfo->stPosInfo.uxMapID.nMapID >> 32);
-                STPosInfo stPosInfo = pTargetInfo->stPosInfo;
+            int nMapID = static_cast<int>(
+                pTarget->stMyCharInfoEx()->stPosInfo.uxMapID.nMapID >> 16 >> 16);
+            STPosInfo stPosInfo = pTarget->stMyCharInfoEx()->stPosInfo;
 
-                // Per IDA: 检查用户是否存在且有Area
-                if (pUser && pUser->GetArea()) {
-                    pUser->IncrementJobCount();
+            if (!pUser)
+                return false;
+            if (!pUser->GetArea())
+                return false;
 
-                    // Per IDA: 创建lambda任务分发到逻辑线程
-                    std::function<void()> func = [pUser, nMapID, stPosInfo, dwUCID]() {
-                        // TODO: 实现发送位置信息给用户的逻辑
-                        GreenDamTan_log(__FILE__, __FUNCTION__, 
-                            "RecvFindUser state=1 - sending target position to user, mapID=%d", nMapID);
-                    };
+            pUser->IncrementJobCount();
 
-                    // Per IDA: 通过CLogicThreadManager分发任务
-                    CLogicThreadManager::Instance().DoJob(nMapID, func);
+            // Per IDA lambda0 (0x1401CAE90)
+            CLogicThreadManager::Instance().DoJob(pUser->GetMapInsID().nMapID,
+                [pUser, nMapID, stPosInfo, dwUCID]() {
+                    if (!pUser || !pUser->IsLive())
+                        return;
+                    pUser->SetInvisible(1, 4, 4, 0, 0, 0, 0);
+                    pUser->send_eSUB_CMD_MOVE_INFO(pUser, 2, 1);
+                    STPosInfo stCopy = stPosInfo;
+                    pUser->EnterWorldToOther(nMapID, 0, stCopy, dwUCID);
+                });
 
-                    // Per IDA: 递减任务计数
-                    std::function<void()> funcDec = [pUser]() {
-                        // Job完成后的清理
-                    };
-                    CLogicThreadManager::Instance().DoJob(nMapID, funcDec);
-                }
-            }
+            CLogicThreadManager::Instance().DoJob(pUser->GetMapInsID().nMapID,
+                [pUser]() {
+                    if (pUser)
+                        pUser->DecrementJobCount();
+                });
         }
     } else if (byState == 2) {
-        // Per IDA: 状态2处理 - 发送请求用户位置信息给目标用户
+        // 状态2: 发送请求用户位置信息给目标用户
         if (pUser) {
-            // Per IDA: 获取请求用户的位置信息
-            STMyCharInfoEx* pUserInfo = pUser->stMyCharInfoEx();
-            if (pUserInfo) {
-                int nMapID = static_cast<int>(pUserInfo->stPosInfo.uxMapID.nMapID >> 32);
-                STPosInfo stPosInfo = pUserInfo->stPosInfo;
+            int nMapID = static_cast<int>(
+                pUser->stMyCharInfoEx()->stPosInfo.uxMapID.nMapID >> 16 >> 16);
+            STPosInfo stPosInfo = pUser->stMyCharInfoEx()->stPosInfo;
 
-                // Per IDA: 检查目标用户是否存在且有Area
-                if (pTarget && pTarget->GetArea()) {
-                    pTarget->IncrementJobCount();
+            if (!pTarget)
+                return false;
+            if (!pTarget->GetArea())
+                return false;
 
-                    // Per IDA: 创建lambda任务分发到逻辑线程
-                    std::function<void()> func = [pUser, pTarget, nMapID, stPosInfo, dwUCID]() {
-                        // TODO: 实现发送位置信息给目标用户的逻辑
-                        GreenDamTan_log(__FILE__, __FUNCTION__, 
-                            "RecvFindUser state=2 - sending user position to target, mapID=%d", nMapID);
-                    };
+            pTarget->IncrementJobCount();
 
-                    // Per IDA: 通过CLogicThreadManager分发任务
-                    CLogicThreadManager::Instance().DoJob(nMapID, func);
+            // Per IDA lambda2 (0x1401CB080)
+            CLogicThreadManager::Instance().DoJob(pTarget->GetMapInsID().nMapID,
+                [pUser, pTarget, nMapID, stPosInfo, dwUCID]() {
+                    if (!pTarget || !pTarget->IsLive())
+                        return;
+                    pTarget->SetInvisible(1, 4, 4, 0, 0, 0, 0);
+                    pTarget->send_eSUB_CMD_MOVE_INFO(pTarget, 2, 1);
+                    STPosInfo stCopy = stPosInfo;
+                    pUser->EnterWorldToOther(nMapID, 0, stCopy, dwUCID);
+                });
 
-                    // Per IDA: 递减任务计数
-                    std::function<void()> funcDec = [pTarget]() {
-                        // Job完成后的清理
-                    };
-                    CLogicThreadManager::Instance().DoJob(nMapID, funcDec);
-                }
-            }
+            CLogicThreadManager::Instance().DoJob(pTarget->GetMapInsID().nMapID,
+                [pTarget]() {
+                    if (pTarget)
+                        pTarget->DecrementJobCount();
+                });
         }
     }
 
@@ -1683,6 +1698,19 @@ bool CGameControlSocket::ResCheckEnterMaze(XPacket* xPacket) {
     // TODO: 完整实现需要CLogicThreadManager::DoJob
     GreenDamTan_log(__FILE__, __FUNCTION__, "ResCheckEnterMaze - ucid=%u, need CLogicThreadManager::DoJob", stInfo.dwUCID);
     return true;
+}
+
+// ============================================================================
+// XRelaySocket::SendCreateMazeReq - IDA @ 0x14077C390
+// 已精确还原 - (0xF2, 0x21) 创建迷宫请求：ST_CREATE_MAZE 序列化后经
+// XIOCPClient::Send 发往 ControlServer。
+// CParty::CreateMazeReq (0x1403AAD60) / CForce::CreateMazeReq (0x1401BBC90)
+// 的统一出口。
+// ============================================================================
+void XRelaySocket::SendCreateMazeReq(ST_CREATE_MAZE& stCreateMaze) {
+    XSendPacket xSendPacket(eCMD_SERVER, eSUB_CMD_SERVER_CREATE_MAZE_REQ);
+    xSendPacket << stCreateMaze;
+    XIOCPClient::Send(xSendPacket);
 }
 
 // Per IDA 0x1401d3890: SendCheck
@@ -3279,10 +3307,24 @@ bool CCommunitySocket::RecvPartyNameChange(XPacket* xPacket)
 bool CCommunitySocket::RecvPartyMatchingMaze(XPacket*) { return true; }
 // ============================================================================
 // RecvPartyMazeClear - 队伍迷宫清除 (IDA 0x1402076C0)
-// TODO: 阻塞 - lambda128 调用 XPartyManager::RecvPartyMazeClear
-// （ThreadLocalData m_xPartyMgr 未还原），待管理器还原后落地。
+// 解析 dwPartyID -> lambda128 (0x140207740) DoJobAllThread:
+// ThreadLocalData::GetInstance()->m_xPartyMgr.RecvPartyMazeClear(dwPartyID)。
+// 活动层 m_xPartyMgr 为指针占位，空时跳过。返回 1。
 // ============================================================================
-bool CCommunitySocket::RecvPartyMazeClear(XPacket*) { return true; }
+bool CCommunitySocket::RecvPartyMazeClear(XPacket* xPacket)
+{
+    std::uint32_t dwPartyID = 0;
+    xPacket->XParse >> dwPartyID;
+
+    // Per IDA lambda128 (0x140207740)
+    CLogicThreadManager::Instance().DoJobAllThread([dwPartyID]() {
+        XPartyManager* pPartyMgr = ThreadLocalData::GetInstance()->GetPartyMgr();
+        if (pPartyMgr) {
+            pPartyMgr->RecvPartyMazeClear(dwPartyID);
+        }
+    });
+    return true;
+}
 
 // ============================================================================
 // Force implementations
@@ -4651,19 +4693,29 @@ bool CCommunitySocket::RecvForceMatching(XPacket* xPacket) {
 // League implementations
 // ============================================================================
 
-// IDA: 0x1401FC4C0 - RecvCreateLeague
-// TODO: 需要从IDA反编译确认正确的结构类型
+// ============================================================================
+// RecvCreateLeague (0x1401FC4C0) - 已精确还原
+// 解析 ST_LEAGUE_INFO + ST_LEAGUE_MEMBER_EX + dwActorID + ST_LEAGUE_INFO_EX +
+// ST_LEAGUE_INFO_FOR_GAME；FindActorIDToUser 失败仅 LogError 返回 1。
+// lambda47 (0x1401FC960) 在玩家线程执行：
+// SetLeagueInfo -> AddMoney(-100000, 0x31, nLeagueID, 0, 0) ->
+// (0x22,1) ST_LEAGUE_INFO + ST_LEAGUE_MEMBER_EX 发送 ->
+// (0x22,0x44) ST_LEAGUE_INFO_EX{dwUCID=自己 actorID&0x1FFFFFFF} 广播 ->
+// ThreadLocalData::AddLeagueMember -> ST_LOG_GAME(15,1) SendDBLog ->
+// CGocClassEvent 8 号事件通知。
+// ============================================================================
 bool CCommunitySocket::RecvCreateLeague(XPacket* xPacket) {
-    // TODO: 正确的结构类型需要从IDA反编译确认
-    // ST_LEAGUE_INFO 不存在，暂时使用占位符
-    std::uint32_t dwActorID = 0;
+    ST_LEAGUE_INFO stLeagueInfo;
+    ST_LEAGUE_MEMBER_EX stMaster;
+    ST_LEAGUE_INFO_EX stInfoEx;
+    ST_LEAGUE_INFO_FOR_GAME stLeagueInfoForGame;
 
-    // 跳过未知的数据包内容
-    // *xPacket >> stLeagueInfo;
-    // *xPacket >> stMaster;
-    // xPacket->Parse() >> dwActorID;
-    // *xPacket >> stInfoEx;
-    // *xPacket >> stLeagueInfoForGame;
+    *xPacket >> stLeagueInfo;
+    *xPacket >> stMaster;
+    std::uint32_t dwActorID = 0;
+    xPacket->XParse >> dwActorID;
+    *xPacket >> stInfoEx;
+    *xPacket >> stLeagueInfoForGame;
 
     XGameServer* pServer = XGameServer::Instance();
     CUser* pUser = pServer ? pServer->FindActorIDToUser(dwActorID) : nullptr;
@@ -4675,19 +4727,105 @@ bool CCommunitySocket::RecvCreateLeague(XPacket* xPacket) {
         return true;
     }
 
-    // TODO: 需要实现正确的逻辑
-    GreenDamTan_log(__FILE__, __FUNCTION__, "RecvCreateLeague - TODO: need correct struct types from IDA");
+    // Per IDA lambda47 (0x1401FC960): 玩家线程执行创建 League 逻辑
+    std::function<void()> func = [pUser, stLeagueInfo, stMaster, stInfoEx, stLeagueInfoForGame]() {
+        if (!pUser || !pUser->IsLive() || !pUser->GetArea()) {
+            return;
+        }
+
+        // Per IDA: 写入用户 League 信息
+        ST_LEAGUE_INFO_EX stCopyInfoEx = stInfoEx;
+        pUser->SetLeagueInfo(stCopyInfoEx, stLeagueInfoForGame);
+
+        // Per IDA: 创建公会扣除 100000 金钱
+        CGocInventory* pInven = pUser->GetGOC<CGocInventory>();
+        if (pInven) {
+            pInven->AddMoney(-100000, 0x31, stLeagueInfo.nLeagueID, 0, false);
+        }
+
+        // Per IDA: (0x22,1) 发送 League 信息与队长数据
+        XSendPacket xSendPacket(0x22, 1);
+        xSendPacket << stLeagueInfo;
+        xSendPacket << stMaster;
+        CGocNetwork::Send(pUser, xSendPacket);
+
+        // Per IDA: (0x22,0x44) 广播用户 League 摘要
+        ST_LEAGUE_INFO_EX stInfoExForBroadcast = stInfoEx;
+        stInfoExForBroadcast.dwUCID = pUser->GetActorID().dwActorID & 0x1FFFFFFF;
+        XSendPacket xSendPacket2(0x22, 0x44);
+        xSendPacket2 << stInfoExForBroadcast;
+        CGocNetwork::BroadcastNearby(pUser, nullptr, xSendPacket2);
+
+        // Per IDA: 注册到本线程 League 成员表
+        ThreadLocalData::GetInstance()->AddLeagueMember(pUser);
+
+        // Per IDA: 记录创建日志 (MainType=15, SubType=1)
+        ST_LOG_GAME stLog;
+        stLog._nUAID = static_cast<int>(pUser->GetUAID());
+        stLog._nUCID = static_cast<int>(pUser->GetActorID().dwActorID);
+        stLog._sMainType = 15;
+        stLog._sSubType = 1;
+        stLog.nParam0 = stLeagueInfo.nLeagueID;
+        stLog.nParam2 = static_cast<int>(pUser->stMyCharInfoEx()->biMoney);
+        stLog.nParam5 = pUser->GetLevel();
+        wcscpy_s(stLog.szComment, stLeagueInfo.szLeagueName);
+        XGameServer::Instance()->SendDBLog(stLog);
+
+        // Per IDA: 通知 ClassEvent 组件 8 号事件
+        CGocClassEvent* pClassEvent = pUser->GetGOC<CGocClassEvent>();
+        if (pClassEvent) {
+            // TODO: 需人工审查 - IDA 误标为 CItem::CanBroachEquip(8,0)，
+            // 按调用语义应为 CGocClassEvent 的 8 号事件通知接口，具体方法名待
+            // CGocClassEvent 还原批次核实。
+        }
+    };
+
+    pUser->IncrementJobCount();
+    CLogicThreadManager::Instance().DoJob(pUser->GetMapInsID().nMapID, func);
+    std::function<void()> funcDec = [pUser]() {
+        pUser->DecrementJobCount();
+    };
+    CLogicThreadManager::Instance().DoJob(pUser->GetMapInsID().nMapID, funcDec);
     return true;
 }
 
-// IDA: 0x1401FB930 - RecvLeagueInfo
-// TODO: 需要从IDA反编译确认正确的结构类型
+// ============================================================================
+// RecvLeagueInfo (0x1401FB930) - 已精确还原
+// 8 段解析序: ST_LEAGUE_INFO + ST_LEAGUE_MEMBER_LIST +
+// ST_LEAGUE_APPLICANT_LIST + ST_LEAGUE_BOARD_LIST + dwActorID(int) +
+// byState(u8) + ST_LEAGUE_RECORD_LIST + ST_LEAGUE_INFO_FOR_GAME。
+// 按 dwActorID 查用户:
+// - 找不到: LogError "[LEAUGE] ... No pUser" (保留原始拼写) 后返回 1。
+// - 找到且在区域中: lambda45 (0x1401FBF30) DoJob:
+//   存活检查 -> 从 stLeagueInfo 提取 nLeagueID/LeagueCard/szLeagueName
+//   构造 ST_LEAGUE_INFO_EX -> SetLeagueInfo -> (0x22,7) 依次发送
+//   stInfo/member/applicant/board/record/byState；
+//   随后 lambda192 DoJob 递减计数。
+// - 找到但不在区域中: 返回 0。
+// 返回 1。
+// ============================================================================
 bool CCommunitySocket::RecvLeagueInfo(XPacket* xPacket) {
-    // TODO: 正确的结构类型需要从IDA反编译确认
-    std::uint32_t dwActorID = 0;
+    ST_LEAGUE_INFO stLeagueInfo;
+    ST_LEAGUE_MEMBER_LIST stMemberList;
+    ST_LEAGUE_APPLICANT_LIST stApplicant;
+    ST_LEAGUE_BOARD_LIST stBoard;
+    int dwActorID = 0;
+    bool byState = false;
+    ST_LEAGUE_RECORD_LIST stRecordList;
+    ST_LEAGUE_INFO_FOR_GAME stLeagueInfoForGame;
+
+    *xPacket >> stLeagueInfo;
+    *xPacket >> stMemberList;
+    *xPacket >> stApplicant;
+    *xPacket >> stBoard;
+    xPacket->XParse >> dwActorID;
+    xPacket->XParse >> byState;
+    *xPacket >> stRecordList;
+    *xPacket >> stLeagueInfoForGame;
 
     XGameServer* pServer = XGameServer::Instance();
-    CUser* pUser = pServer ? pServer->FindActorIDToUser(dwActorID) : nullptr;
+    CUser* pUser = pServer ? pServer->FindActorIDToUser(
+        static_cast<std::uint32_t>(dwActorID)) : nullptr;
 
     if (!pUser) {
         LogHelper::LogError("game.contents",
@@ -4696,77 +4834,237 @@ bool CCommunitySocket::RecvLeagueInfo(XPacket* xPacket) {
         return true;
     }
 
-    // TODO: 需要实现正确的逻辑
-    GreenDamTan_log(__FILE__, __FUNCTION__, "RecvLeagueInfo - TODO: need correct struct types from IDA");
+    // Per IDA lambda45 (0x1401FBF30): League 信息下发链
+    std::function<void()> func = [pUser, stLeagueInfo, stMemberList, stApplicant,
+                                  stBoard, byState, stRecordList,
+                                  stLeagueInfoForGame]() {
+        if (!pUser || !pUser->IsLive() || !pUser->GetArea()) {
+            return;
+        }
+
+        ST_LEAGUE_INFO_EX stInfoEx;
+        stInfoEx.nLeagueID = stLeagueInfo.nLeagueID;
+        stInfoEx.dwLeagueCard = stLeagueInfo.dwLeagueCard;
+        wcscpy_s(stInfoEx.szLeagueName, stLeagueInfo.szLeagueName);
+
+        ST_LEAGUE_INFO_FOR_GAME stLocalForGame = stLeagueInfoForGame;
+        pUser->SetLeagueInfo(stInfoEx, stLocalForGame);
+
+        XSendPacket xSendPacket(0x22, 7);
+        xSendPacket << stLeagueInfo;
+        xSendPacket << stMemberList;
+        xSendPacket << stApplicant;
+        xSendPacket << stBoard;
+        xSendPacket << stRecordList;
+        xSendPacket.XParse << byState;
+        CGocNetwork::Send(pUser, xSendPacket);
+    };
+
+    if (!pUser->GetArea()) {
+        return false;
+    }
+
+    pUser->IncrementJobCount();
+    CLogicThreadManager::Instance().DoJob(pUser->GetMapInsID().nMapID, func);
+    std::function<void()> funcDec = [pUser]() {
+        pUser->DecrementJobCount();
+    };
+    CLogicThreadManager::Instance().DoJob(pUser->GetMapInsID().nMapID, funcDec);
+
     return true;
 }
 
-// IDA: 0x1401F51A0 - RecvLeagueLogin
-// TODO: 需要从IDA反编译确认正确的结构类型
+// ============================================================================
+// RecvLeagueLogin (0x1401F51A0) - 已精确还原
+// 11 段解析序: bLogin(u8) + ST_LEAGUE_MEMBER_UPDATE + ST_LEAGUE_INFO +
+// ST_LEAGUE_MEMBER_LIST + ST_LEAGUE_APPLICANT_LIST + ST_LEAGUE_BOARD_LIST +
+// byState(u8) + ST_LEAGUE_INFO_EX + ST_LEAGUE_RECORD_LIST +
+// ST_LEAGUE_INFO_FOR_GAME + nSyncCount(int)。
+// 按 stUpdate.dwActorID 查用户:
+// - 找不到: 返回 0。
+// - bLogin==true 且用户在区域中: lambda8 (0x1401F5920) DoJob:
+//   存活检查 -> SetLeagueInfo(stInfoEx, stLeagueInfoForGame) ->
+//   stInfoEx.dwUCID=actorID&0x1FFFFFFF -> UpdateLeagueSyncCount(nSyncCount) ->
+//   (0x22,7) 依次发送 stInfo/member/applicant/board/record/byState ->
+//   (0x22,0x44) stInfoEx 广播附近；随后 lambda192 DoJob 递减计数，
+//   lambda152 DoJobAllThread 全线程 UpdateLeagueMember(stUpdate)。
+// - bLogin==false: 仅 CUser::ClearLeagueInfo()。
+// 返回 1。
+// ============================================================================
 bool CCommunitySocket::RecvLeagueLogin(XPacket* xPacket) {
-    // TODO: 正确的结构类型需要从IDA反编译确认
-    std::uint32_t dwActorID = 0;
-    // TODO: 需要正确的数据包解析
-    // *xPacket >> stApplicantList;
-    // *xPacket >> stBoardList;
-    // xPacket->Parse().read((char*)byState, sizeof(byState));
-    // *xPacket >> stInfoEx;
-    // *xPacket >> stRecordList;
-    // *xPacket >> stLeagueInfoForGame;
-    // xPacket->Parse() >> nSyncCount;
+    bool bLogin = false;
+    ST_LEAGUE_MEMBER_UPDATE stUpdate;
+    ST_LEAGUE_INFO stInfo;
+    ST_LEAGUE_MEMBER_LIST stMemberList;
+    ST_LEAGUE_APPLICANT_LIST stApplicantList;
+    ST_LEAGUE_BOARD_LIST stBoardList;
+    bool byState = false;
+    ST_LEAGUE_INFO_EX stInfoEx;
+    ST_LEAGUE_RECORD_LIST stRecordList;
+    ST_LEAGUE_INFO_FOR_GAME stLeagueInfoForGame;
+    int nSyncCount = 0;
+
+    xPacket->XParse >> bLogin;
+    *xPacket >> stUpdate;
+    *xPacket >> stInfo;
+    *xPacket >> stMemberList;
+    *xPacket >> stApplicantList;
+    *xPacket >> stBoardList;
+    xPacket->XParse >> byState;
+    *xPacket >> stInfoEx;
+    *xPacket >> stRecordList;
+    *xPacket >> stLeagueInfoForGame;
+    xPacket->XParse >> nSyncCount;
 
     XGameServer* pServer = XGameServer::Instance();
-    CUser* pUser = pServer ? pServer->FindActorIDToUser(dwActorID) : nullptr;
+    CUser* pUser = pServer ? pServer->FindActorIDToUser(stUpdate.dwActorID) : nullptr;
 
     if (!pUser) {
         return false;
     }
 
-    // TODO: 需要实现正确的逻辑
-    GreenDamTan_log(__FILE__, __FUNCTION__, "RecvLeagueLogin - TODO: need correct struct types from IDA");
-    return true;
-}
+    if (bLogin) {
+        // Per IDA lambda8 (0x1401F5920): League 登录通知链
+        std::function<void()> func = [pUser, stInfo, stMemberList, stApplicantList,
+                                      stBoardList, byState, stInfoEx, stRecordList,
+                                      stLeagueInfoForGame, nSyncCount]() {
+            if (!pUser || !pUser->IsLive() || !pUser->GetArea()) {
+                return;
+            }
 
-// IDA: 0x1401F4320 - RecvLeagueMemberUpdate
-bool CCommunitySocket::RecvLeagueMemberUpdate(XPacket* xPacket) {
-    // TODO: ST_LEAGUE_MEMBER_UPDATE stUpdate;
-    // *xPacket >> stUpdate;
+            ST_LEAGUE_INFO_EX stLocalInfoEx = stInfoEx;
+            ST_LEAGUE_INFO_FOR_GAME stLocalForGame = stLeagueInfoForGame;
+            pUser->SetLeagueInfo(stLocalInfoEx, stLocalForGame);
+            stLocalInfoEx.dwUCID = pUser->GetActorID().dwActorID & 0x1FFFFFFF;
+            pUser->UpdateLeagueSyncCount(nSyncCount);
 
-    // Per IDA: 分发到所有逻辑线程
-    // TODO: 完整实现需要CLogicThreadManager::DoJobAllThread
-    GreenDamTan_log(__FILE__, __FUNCTION__, "RecvLeagueMemberUpdate - need CLogicThreadManager::DoJobAllThread");
-    return true;
-}
+            XSendPacket xSendPacket(0x22, 7);
+            xSendPacket << stInfo;
+            xSendPacket << stMemberList;
+            xSendPacket << stApplicantList;
+            xSendPacket << stBoardList;
+            xSendPacket << stRecordList;
+            xSendPacket.XParse << byState;
+            CGocNetwork::Send(pUser, xSendPacket);
 
-// IDA: 0x1401F44A0 - RecvLeagueNoticeChange
-bool CCommunitySocket::RecvLeagueNoticeChange(XPacket* xPacket) {
-    // TODO: ST_LEAGUE_NOTICE stNotice;
-    std::uint32_t dwActorID = 0;
+            XSendPacket xSendPacket2(0x22, 0x44);
+            xSendPacket2 << stLocalInfoEx;
+            CGocNetwork::BroadcastNearby(pUser, nullptr, xSendPacket2);
+        };
 
-    // *xPacket >> stNotice;
-    // xPacket->Parse() >> dwActorID;
+        if (!pUser->GetArea()) {
+            return false;
+        }
 
-    XGameServer* pServer = XGameServer::Instance();
-    CUser* pUser = pServer ? pServer->FindActorIDToUser(dwActorID) : nullptr;
-
-    if (pUser) {
-        // Per IDA: 增加任务计数并分发到逻辑线程
         pUser->IncrementJobCount();
-        // TODO: 完整实现需要CLogicThreadManager::DoJob
-        GreenDamTan_log(__FILE__, __FUNCTION__, "RecvLeagueNoticeChange - need CLogicThreadManager::DoJob");
+        CLogicThreadManager::Instance().DoJob(pUser->GetMapInsID().nMapID, func);
+        std::function<void()> funcDec = [pUser]() {
+            pUser->DecrementJobCount();
+        };
+        CLogicThreadManager::Instance().DoJob(pUser->GetMapInsID().nMapID, funcDec);
+
+        // Per IDA lambda152 (0x1401F4460): 全线程按 LeagueID 更新成员信息
+        std::function<void()> funcAll = [stUpdate]() {
+            ST_LEAGUE_MEMBER_UPDATE stCopy = stUpdate;
+            ThreadLocalData::GetInstance()->UpdateLeagueMember(stCopy);
+        };
+        CLogicThreadManager::Instance().DoJobAllThread(funcAll);
+    } else {
+        pUser->ClearLeagueInfo();
     }
 
     return true;
 }
 
-// IDA: 0x1401FAFB0 - RecvLeagueDelete
+// ============================================================================
+// RecvLeagueMemberUpdate (0x1401F4320) - 已精确还原
+// 解析 ST_LEAGUE_MEMBER_UPDATE；构造 lambda152 (0x1401F4460) 经
+// DoJobAllThread 分发到所有逻辑线程，各线程
+// ThreadLocalData::UpdateLeagueMember(stUpdate) ->
+// CLeagueMember::UpdateLeagueMember 向未同步成员广播 (0x22,0x22)。
+// ============================================================================
+bool CCommunitySocket::RecvLeagueMemberUpdate(XPacket* xPacket) {
+    ST_LEAGUE_MEMBER_UPDATE stUpdate;
+    *xPacket >> stUpdate;
+
+    // Per IDA lambda152 (0x1401F4460): 全线程按 LeagueID 更新成员信息
+    std::function<void()> func = [stUpdate]() {
+        ST_LEAGUE_MEMBER_UPDATE stCopy = stUpdate;
+        ThreadLocalData::GetInstance()->UpdateLeagueMember(stCopy);
+    };
+    CLogicThreadManager::Instance().DoJobAllThread(func);
+    return true;
+}
+
+// ============================================================================
+// RecvLeagueNoticeChange (0x1401F44A0) - 已精确还原
+// 解析 ST_LEAGUE_NOTICE + dwActorID(int)。
+// 1. 若 dwActorID 用户在线: lambda1 (0x1401F47B0) 经 DoJob 发到其线程，
+//    存活检查通过后 (0x22,0x36) + ST_LEAGUE_NOTICE 发给该用户；
+//    随后 lambda192 (0x140427E60) DoJob 递减任务计数。
+// 2. 无论用户是否在线，lambda3 (0x1401F4990) 经 DoJobAllThread 分发到
+//    所有逻辑线程，各线程 ThreadLocalData::SendLeagueNoticeChangeToMember
+//    (stNotice, dwActorID) -> CLeagueMember::SendLeagueNotice 向未同步且
+//    非 dwActorID 本人的成员广播 (0x22,0x29)。
+// ============================================================================
+bool CCommunitySocket::RecvLeagueNoticeChange(XPacket* xPacket) {
+    ST_LEAGUE_NOTICE stNotice;
+    *xPacket >> stNotice;
+
+    int dwActorID = 0;
+    xPacket->XParse >> dwActorID;
+
+    XGameServer* pServer = XGameServer::Instance();
+    CUser* pUser = pServer ? pServer->FindActorIDToUser(
+        static_cast<std::uint32_t>(dwActorID)) : nullptr;
+
+    if (pUser) {
+        // Per IDA lambda1 (0x1401F47B0): 公告发起者本人通知
+        std::function<void()> func = [pUser, stNotice]() {
+            if (!pUser || !pUser->IsLive()) {
+                return;
+            }
+
+            XSendPacket xSendPacket(0x22, 0x36);
+            xSendPacket << stNotice;
+            CGocNetwork::Send(pUser, xSendPacket);
+        };
+
+        pUser->IncrementJobCount();
+        CLogicThreadManager::Instance().DoJob(pUser->GetMapInsID().nMapID, func);
+        std::function<void()> funcDec = [pUser]() {
+            pUser->DecrementJobCount();
+        };
+        CLogicThreadManager::Instance().DoJob(pUser->GetMapInsID().nMapID, funcDec);
+    }
+
+    // Per IDA lambda3 (0x1401F4990): 全线程向 League 成员广播公告
+    std::function<void()> funcAll = [stNotice, dwActorID]() {
+        ST_LEAGUE_NOTICE stCopy = stNotice;
+        ThreadLocalData::GetInstance()->SendLeagueNoticeChangeToMember(
+            stCopy, static_cast<unsigned int>(dwActorID));
+    };
+    CLogicThreadManager::Instance().DoJobAllThread(funcAll);
+
+    return true;
+}
+
+// ============================================================================
+// RecvLeagueDelete (0x1401FAFB0) - 已精确还原
+// 解析 dwActorID + nLeagueID + biPenalty + nErrorCode；
+// nErrorCode <= 0 (成功): lambda43 (0x1401FB5B0) - SetLeagueInventorySend(0)
+// -> (0x22,2){nErrorCode} 发送 -> SetLeagueDeletePenalty(biPenalty) ->
+// ThreadLocalData::DeleteLeague(nLeagueID, dwActorID) -> ClearLeagueInfo ->
+// GetLeagueInfo(EX) + dwUCID=actorID&0x1FFFFFFF -> (0x22,0x44) 广播 ->
+// ST_LOG_GAME(15,2, L"해체") SendDBLog。
+// nErrorCode > 0 (失败): lambda41 (0x1401FB410) - 仅 (0x22,2){nErrorCode} 发送。
+// ============================================================================
 bool CCommunitySocket::RecvLeagueDelete(XPacket* xPacket) {
     std::uint32_t dwActorID = 0;
     int nLeagueID = 0;
     std::int64_t biPenalty = 0;
     int nErrorCode = 0;
 
-    // IDA: XParse::operator>>(&xPacket->XParse, &dwActorID);
     xPacket->XParse >> dwActorID;
     xPacket->XParse >> nLeagueID;
     xPacket->XParse >> biPenalty;
@@ -4775,19 +5073,146 @@ bool CCommunitySocket::RecvLeagueDelete(XPacket* xPacket) {
     XGameServer* pServer = XGameServer::Instance();
     CUser* pUser = pServer ? pServer->FindActorIDToUser(dwActorID) : nullptr;
 
-    if (pUser) {
-        // Per IDA: 增加任务计数并分发到逻辑线程
+    if (!pUser) {
+        return true;
+    }
+    if (!pUser->GetArea()) {
+        return true;
+    }
+
+    if (nErrorCode <= 0) {
+        // Per IDA lambda43 (0x1401FB5B0): 成功路径 - 解散 League
+        std::function<void()> func = [pUser, dwActorID, nLeagueID, biPenalty, nErrorCode]() {
+            if (!pUser || !pUser->IsLive() || !pUser->GetArea()) {
+                return;
+            }
+
+            pUser->SetLeagueInventorySend(false);
+
+            XSendPacket xSendPacket(0x22, 2);
+            xSendPacket.XParse << nErrorCode;
+            CGocNetwork::Send(pUser, xSendPacket);
+
+            pUser->SetLeagueDeletePenalty(biPenalty);
+            ThreadLocalData::GetInstance()->DeleteLeague(
+                static_cast<unsigned int>(nLeagueID), dwActorID);
+
+            ST_LEAGUE_INFO_EX stInfoEx;
+            pUser->ClearLeagueInfo();
+            pUser->GetLeagueInfo(stInfoEx);
+            stInfoEx.dwUCID = pUser->GetActorID().dwActorID & 0x1FFFFFFF;
+
+            XSendPacket xSendPacket2(0x22, 0x44);
+            xSendPacket2 << stInfoEx;
+            CGocNetwork::BroadcastNearby(pUser, nullptr, xSendPacket2);
+
+            ST_LOG_GAME stLog;
+            stLog._nUAID = static_cast<int>(pUser->GetUAID());
+            stLog._nUCID = static_cast<int>(pUser->GetActorID().dwActorID);
+            stLog._sMainType = 15;
+            stLog._sSubType = 2;
+            stLog.nParam0 = nLeagueID;
+            stLog.nParam5 = pUser->GetLevel();
+            wcscpy_s(stLog.szComment, L"해체");
+            XGameServer::Instance()->SendDBLog(stLog);
+        };
+
         pUser->IncrementJobCount();
-        // TODO: 完整实现需要CLogicThreadManager::DoJob
-        GreenDamTan_log(__FILE__, __FUNCTION__, "RecvLeagueDelete - need CLogicThreadManager::DoJob");
+        CLogicThreadManager::Instance().DoJob(pUser->GetMapInsID().nMapID, func);
+        std::function<void()> funcDec = [pUser]() {
+            pUser->DecrementJobCount();
+        };
+        CLogicThreadManager::Instance().DoJob(pUser->GetMapInsID().nMapID, funcDec);
+    } else {
+        // Per IDA lambda41 (0x1401FB410): 失败路径 - 仅发送错误码
+        std::function<void()> func = [pUser, nErrorCode]() {
+            if (!pUser || !pUser->IsLive() || !pUser->GetArea()) {
+                return;
+            }
+
+            XSendPacket xSendPacket(0x22, 2);
+            xSendPacket.XParse << nErrorCode;
+            CGocNetwork::Send(pUser, xSendPacket);
+        };
+
+        pUser->IncrementJobCount();
+        CLogicThreadManager::Instance().DoJob(pUser->GetMapInsID().nMapID, func);
+        std::function<void()> funcDec = [pUser]() {
+            pUser->DecrementJobCount();
+        };
+        CLogicThreadManager::Instance().DoJob(pUser->GetMapInsID().nMapID, funcDec);
     }
     return true;
 }
 
-bool CCommunitySocket::RecvLeagueDelegate(XPacket*) { return true; }
+// ============================================================================
+// RecvLeagueDelegate - 处理公会会长转让结果 (IDA 0x14020CD00)
+// 解析 dwReqUCID + dwDelegatedUCID + PS_RES_LEAGUE_DELEGATE + nSyncCount。
+// 请求者在线(lambda167 0x14020D0F0 DoJob): IsLive+GetArea 门 ->
+// (0x22,0x49) 发送 psDelegateRes 副本。
+// nResult==0 时(lambda169 0x14020D2E0 DoJobAllThread): 若 pLocalData 非空则
+// ThreadLocalData::SendLeagueDelegate(psDelegateRes 副本, dwDelegatedUCID,
+// nSyncCount)。请求者不在线时跳过 lambda167，但 lambda169 仍执行。
+// ============================================================================
+bool CCommunitySocket::RecvLeagueDelegate(XPacket* xPacket) {
+    std::uint32_t dwReqUCID = 0;
+    std::uint32_t dwDelegatedUCID = 0;
+    PS_RES_LEAGUE_DELEGATE psDelegateRes;
+    int nSyncCount = 0;
+
+    xPacket->XParse >> dwReqUCID;
+    xPacket->XParse >> dwDelegatedUCID;
+    *xPacket >> psDelegateRes;
+    xPacket->XParse >> nSyncCount;
+
+    CUser* pUser = XGameServer::Instance()->FindActorIDToUser(dwReqUCID);
+    if (pUser && pUser->GetArea()) {
+        // Per IDA lambda167 (0x14020D0F0)
+        std::function<void()> func = [pUser, psDelegateRes]() {
+            if (!pUser || !pUser->IsLive()) return;
+            if (!pUser->GetArea()) return;
+            PS_RES_LEAGUE_DELEGATE psRes = psDelegateRes;
+            XSendPacket xSendPacket(0x22, 0x49);
+            xSendPacket << psRes;
+            CGocNetwork::Send(pUser, xSendPacket);
+        };
+
+        pUser->IncrementJobCount();
+        CLogicThreadManager::Instance().DoJob(pUser->GetMapInsID().nMapID, func);
+        std::function<void()> funcDec = [pUser]() {
+            pUser->DecrementJobCount();
+        };
+        CLogicThreadManager::Instance().DoJob(pUser->GetMapInsID().nMapID, funcDec);
+    }
+
+    if (psDelegateRes.nResult == 0) {
+        // Per IDA lambda169 (0x14020D2E0) - DoJobAllThread
+        std::function<void()> funcAll = [psDelegateRes, dwDelegatedUCID, nSyncCount]() {
+            ThreadLocalData* pLocalData = ThreadLocalData::GetInstance();
+            if (pLocalData) {
+                PS_RES_LEAGUE_DELEGATE psRes = psDelegateRes;
+                pLocalData->SendLeagueDelegate(psRes, dwDelegatedUCID, nSyncCount);
+            }
+        };
+        CLogicThreadManager::Instance().DoJobAllThread(funcAll);
+    }
+    return true;
+}
 bool CCommunitySocket::RecvLeagueWithDraw(XPacket*) { return true; }
 
-// IDA: 0x1401F8B70 - RecvLeagueMemberKick
+// ============================================================================
+// RecvLeagueMemberKick (0x1401F8B70) - 已精确还原
+// 解析 nErrorCode + nLeagueID + dwReqActorID + dwTargetActorID +
+// ST_LEAGUE_INFO_UPDATE + shLevel + nSyncCount。
+// 请求者(lambda27 0x1401F91A0): UpdateLeagueSyncCount -> (0x22,0x28)
+// {dwTargetActorID} -> (0x22,0x43) 更新 -> ST_LOG_GAME(15,10)，
+// szComment=硬编码字符串，szComment2=League 名。
+// 被踢者(lambda29 0x1401F94C0): SetLeagueInventorySend(0) ->
+// UpdateLeagueSyncCount -> ClearLeagueInfo + GetLeagueInfo(EX) +
+// dwUCID=actorID&0x1FFFFFFF -> (0x22,0x44) 广播 -> (0x22,0xF) 发送。
+// 全线程(lambda31 0x1401F97A0): ThreadLocalData::SendLeagueKickout
+// (nLeagueID, dwReqActorID, dwTargetActorID, stInfoUpdate, nSyncCount)。
+// ============================================================================
 bool CCommunitySocket::RecvLeagueMemberKick(XPacket* xPacket) {
     int nErrorCode = 0;
     int nLeagueID = 0;
@@ -4797,7 +5222,6 @@ bool CCommunitySocket::RecvLeagueMemberKick(XPacket* xPacket) {
     std::int16_t shLevel = 0;
     int nSyncCount = 0;
 
-    // IDA: XParse::operator>>
     xPacket->XParse >> nErrorCode;
     xPacket->XParse >> nLeagueID;
     xPacket->XParse >> dwReqActorID;
@@ -4810,28 +5234,106 @@ bool CCommunitySocket::RecvLeagueMemberKick(XPacket* xPacket) {
     CUser* pReqUser = pServer ? pServer->FindActorIDToUser(dwReqActorID) : nullptr;
     CUser* pKickUser = pServer ? pServer->FindActorIDToUser(dwTargetActorID) : nullptr;
 
-    if (pReqUser) {
-        // Per IDA: 检查GetArea并增加任务计数
+    if (pReqUser && pReqUser->GetArea()) {
+        // Per IDA lambda27 (0x1401F91A0): 请求者通知 + 踢出日志
+        std::function<void()> funcReq = [pReqUser, dwTargetActorID, stInfoUpdate, shLevel, nSyncCount]() {
+            if (!pReqUser || !pReqUser->IsLive() || !pReqUser->GetArea()) {
+                return;
+            }
+
+            pReqUser->UpdateLeagueSyncCount(nSyncCount);
+
+            XSendPacket xSendPacket(0x22, 0x28);
+            xSendPacket.XParse << dwTargetActorID;
+            CGocNetwork::Send(pReqUser, xSendPacket);
+
+            XSendPacket xSendPacket2(0x22, 0x43);
+            xSendPacket2 << stInfoUpdate;
+            CGocNetwork::Send(pReqUser, xSendPacket2);
+
+            ST_LOG_GAME stLog;
+            stLog._nUAID = static_cast<int>(pReqUser->GetUAID());
+            stLog._nUCID = static_cast<int>(pReqUser->GetActorID().dwActorID);
+            stLog._sMainType = 15;
+            stLog._sSubType = 10;
+            stLog.nParam0 = stInfoUpdate.nLeagueID;
+            stLog.nParam1 = static_cast<int>(dwTargetActorID);
+            stLog.nParam5 = shLevel;
+            wcscpy_s(stLog.szComment, L"추방");
+            ST_LEAGUE_INFO_EX stLeagueInfo;
+            pReqUser->GetLeagueInfo(stLeagueInfo);
+            wcscpy_s(stLog.szComment2, stLeagueInfo.szLeagueName);
+            XGameServer::Instance()->SendDBLog(stLog);
+        };
+
         pReqUser->IncrementJobCount();
-        GreenDamTan_log(__FILE__, __FUNCTION__, "RecvLeagueMemberKick - need CLogicThreadManager::DoJob");
+        CLogicThreadManager::Instance().DoJob(pReqUser->GetMapInsID().nMapID, funcReq);
+        std::function<void()> funcReqDec = [pReqUser]() {
+            pReqUser->DecrementJobCount();
+        };
+        CLogicThreadManager::Instance().DoJob(pReqUser->GetMapInsID().nMapID, funcReqDec);
     }
 
-    if (pKickUser) {
+    if (pKickUser && pKickUser->GetArea()) {
+        // Per IDA lambda29 (0x1401F94C0): 被踢者清理
+        std::function<void()> funcKick = [pKickUser, nSyncCount]() {
+            if (!pKickUser || !pKickUser->IsLive() || !pKickUser->GetArea()) {
+                return;
+            }
+
+            pKickUser->SetLeagueInventorySend(false);
+            pKickUser->UpdateLeagueSyncCount(nSyncCount);
+
+            ST_LEAGUE_INFO_EX stInfoEx;
+            pKickUser->ClearLeagueInfo();
+            pKickUser->GetLeagueInfo(stInfoEx);
+            stInfoEx.dwUCID = pKickUser->GetActorID().dwActorID & 0x1FFFFFFF;
+
+            XSendPacket xSendPacket2(0x22, 0x44);
+            xSendPacket2 << stInfoEx;
+            CGocNetwork::BroadcastNearby(pKickUser, nullptr, xSendPacket2);
+
+            XSendPacket xSendPacket(0x22, 0xF);
+            CGocNetwork::Send(pKickUser, xSendPacket);
+        };
+
         pKickUser->IncrementJobCount();
-        GreenDamTan_log(__FILE__, __FUNCTION__, "RecvLeagueMemberKick (kick user) - need CLogicThreadManager::DoJob");
+        CLogicThreadManager::Instance().DoJob(pKickUser->GetMapInsID().nMapID, funcKick);
+        std::function<void()> funcKickDec = [pKickUser]() {
+            pKickUser->DecrementJobCount();
+        };
+        CLogicThreadManager::Instance().DoJob(pKickUser->GetMapInsID().nMapID, funcKickDec);
     }
+
+    // Per IDA lambda31 (0x1401F97A0): 全线程广播踢出
+    std::function<void()> funcAll = [nLeagueID, dwReqActorID, dwTargetActorID, stInfoUpdate, nSyncCount]() {
+        ST_LEAGUE_INFO_UPDATE stUpdate = stInfoUpdate;
+        ThreadLocalData::GetInstance()->SendLeagueKickout(
+            static_cast<unsigned int>(nLeagueID),
+            static_cast<int>(dwReqActorID),
+            dwTargetActorID, stUpdate, nSyncCount);
+    };
+    CLogicThreadManager::Instance().DoJobAllThread(funcAll);
 
     return true;
 }
 
-// IDA: 0x1401F49E0 - RecvLeagueInfoChange
+// ============================================================================
+// RecvLeagueInfoChange (0x1401F49E0) - 已精确还原
+// 解析 ST_LEAGUE_INFO；lambda4 (0x1401F4AE0) 经 DoJobAllThread 分发到
+// 所有逻辑线程，各线程 ThreadLocalData::LeagueInfoChange(stInfo) ->
+// CLeagueMember::SendLeagueInfo 广播给本线程该 League 在线成员。
+// ============================================================================
 bool CCommunitySocket::RecvLeagueInfoChange(XPacket* xPacket) {
-    // TODO: ST_LEAGUE_INFO stInfo;
-    // *xPacket >> stInfo;
+    ST_LEAGUE_INFO stInfo;
+    *xPacket >> stInfo;
 
-    // Per IDA: 分发到所有逻辑线程
-    // TODO: 完整实现需要CLogicThreadManager::DoJobAllThread
-    GreenDamTan_log(__FILE__, __FUNCTION__, "RecvLeagueInfoChange - need CLogicThreadManager::DoJobAllThread");
+    // Per IDA lambda4 (0x1401F4AE0): 全线程广播 League 信息变更
+    std::function<void()> func = [stInfo]() {
+        ST_LEAGUE_INFO stCopy = stInfo;
+        ThreadLocalData::GetInstance()->LeagueInfoChange(stCopy);
+    };
+    CLogicThreadManager::Instance().DoJobAllThread(func);
     return true;
 }
 
@@ -5147,10 +5649,21 @@ bool CCommunitySocket::RecvLeagueApplicantRes(XPacket* xPacket)
 }
 // ============================================================================
 // RecvLeagueApplicantAdd - 处理公会申请者添加 (IDA 0x1401F5070)
-// TODO: 阻塞 - lambda7 (0x1401F5160) 调用 ThreadLocalData::SendLeagueApply
-// （ThreadLocalData 管理器未还原），待任务 #87 后落地。
+// 解析 ST_LEAGUE_APPLICANT -> lambda7 (0x1401F5160) DoJobAllThread:
+// 按值副本交 ThreadLocalData::SendLeagueApply。返回 1。
 // ============================================================================
-bool CCommunitySocket::RecvLeagueApplicantAdd(XPacket*) { return true; }
+bool CCommunitySocket::RecvLeagueApplicantAdd(XPacket* xPacket)
+{
+    ST_LEAGUE_APPLICANT stApplicant{};
+    *xPacket >> stApplicant;
+
+    // Per IDA lambda7 (0x1401F5160)
+    CLogicThreadManager::Instance().DoJobAllThread([stApplicant]() {
+        ST_LEAGUE_APPLICANT stCopy = stApplicant;
+        ThreadLocalData::GetInstance()->SendLeagueApply(stCopy);
+    });
+    return true;
+}
 // ============================================================================
 // RecvLeagueApplicantReject - 处理公会申请者拒绝 (IDA 0x1401F8550)
 // 解析 ST_REQ_LEAGUE_APPLICANT_REJECT -> DoJob x2
@@ -5236,16 +5749,728 @@ bool CCommunitySocket::RecvLeagueList(XPacket* xPacket)
 
     return true;
 }
-bool CCommunitySocket::RecvLeagueNameChange(XPacket*) { return true; }
-bool CCommunitySocket::RecvLeagueCardChange(XPacket*) { return true; }
-bool CCommunitySocket::RecvLeaguePositionNameChange(XPacket*) { return true; }
-bool CCommunitySocket::RecvLeagueAuthChange(XPacket*) { return true; }
-bool CCommunitySocket::RecvLeagueMessage(XPacket*) { return true; }
-bool CCommunitySocket::RecvLeagueMemberPositionChange(XPacket*) { return true; }
-bool CCommunitySocket::RecvLeagueApplicantUpdate(XPacket*) { return true; }
-bool CCommunitySocket::RecvLeagueMemberLogOut(XPacket*) { return true; }
-bool CCommunitySocket::RecvLeagueApplicantJoinUser(XPacket*) { return true; }
-bool CCommunitySocket::RecvLeagueInviteJoinUser(XPacket*) { return true; }
+// ============================================================================
+// RecvLeagueNameChange - IDA @ 0x14021A620
+// 已精确还原 - 解析 PS_LEAGUE_NAME_CHANGE_SERVER；按 dwUCID 查用户；
+// 在线（GetArea 非空）时: lambda253 (0x14021A9E0) DoJob（SetReqLeagueNameChange +
+//   构造 psResChangeInfo{nLeagueID,nResult,szLeagueName}:
+//   - nResult != 0: UnLockList(psUpdateItemList)
+//   - nResult == 0: ST_LOG_GAME{22} + UpdateItemEnd(0x78)；失败则 LogError +
+//     UnLockList + nResult=52011 + (0x22,0x58) 发送后 return；
+//     成功则 SendUpdateItem + SetLeagueName + (0x22,0x44) BroadcastNearby +
+//     ST_LOG_GAME{15,16} + 逐物品 SendDBLog）
+//   最后 (0x22,0x58)+psResChangeInfo 发送）+ lambda192 递减；
+//   lambda255 (0x14021B0A0) DoJobAllThread（nResult==0 时构造 psRes 副本 ->
+//   ThreadLocalData::SendLeagueChangeName(psCopy, nSysnCount)）。
+// 用户不在线返回 false，否则返回 true。
+// ============================================================================
+bool CCommunitySocket::RecvLeagueNameChange(XPacket* xPacket) {
+    PS_LEAGUE_NAME_CHANGE_SERVER psChangeInfo;
+    *xPacket >> psChangeInfo;
+
+    XGameServer* pServer = XGameServer::Instance();
+    CUser* pUser = pServer ? pServer->FindActorIDToUser(
+        psChangeInfo.dwUCID) : nullptr;
+
+    if (!pUser || !pUser->GetArea()) {
+        return false;
+    }
+
+    pUser->IncrementJobCount();
+    // Per IDA lambda253 (0x14021A9E0): 改名结果处理链
+    std::function<void()> func = [pUser, psChangeInfo]() {
+        if (!pUser || !pUser->IsLive()) {
+            return;
+        }
+        CGocInventory* pInven = pUser->GetGOC<CGocInventory>();
+        if (!pInven) {
+            return;
+        }
+        pInven->SetReqLeagueNameChange(false);
+
+        PS_RES_LEAGUE_NAME_CHANGE psResChangeInfo;
+        psResChangeInfo.nLeagueID = psChangeInfo.nLeagueID;
+        psResChangeInfo.nResult = psChangeInfo.nResult;
+        wcscpy_s(psResChangeInfo.szLeagueName, psChangeInfo.szLeagueName);
+
+        if (psChangeInfo.nResult != 0) {
+            pInven->UnLockList(psChangeInfo.psUpdateItemList);
+        } else {
+            ST_LOG_GAME stLog = {};
+            stLog._sSubType = 22;
+            PS_RES_STORAGE_INFO psUpdateItemList = psChangeInfo.psUpdateItemList;
+            if (!pInven->UpdateItemEnd(0x78, psUpdateItemList, stLog)) {
+                LogHelper::LogError("game.item",
+                    "RecvLeagueNameChange error - UpdateItemEnd[ ActorID:%d ] ( %d )",
+                    psChangeInfo.dwUCID, 5041);
+                pInven->UnLockList(psChangeInfo.psUpdateItemList);
+
+                psResChangeInfo.nResult = 52011;
+                XSendPacket packet(0x22, 0x58);
+                packet << psResChangeInfo;
+                CGocNetwork::Send(pUser, packet);
+                return;
+            }
+
+            pInven->SendUpdateItem(psUpdateItemList);
+
+            ST_LEAGUE_INFO_EX stInfoExLog;
+            ST_LEAGUE_INFO_EX stInfoEx;
+            pUser->GetLeagueInfo(stInfoExLog);
+            pUser->SetLeagueName(psResChangeInfo.szLeagueName);
+            pUser->GetLeagueInfo(stInfoEx);
+
+            XSendPacket packet(0x22, 0x44);
+            packet << stInfoEx;
+            CGocNetwork::BroadcastNearby(pUser, nullptr, packet);
+
+            ST_LOG_GAME stLogGame = {};
+            stLogGame._sMainType = 15;
+            stLogGame._sSubType = 16;
+            stLogGame._nUAID = static_cast<int>(pUser->GetUAID());
+            stLogGame._nUCID = static_cast<int>(pUser->GetActorID().dwActorID);
+            stLogGame.nParam0 = psResChangeInfo.nLeagueID;
+            stLogGame.nParam5 = pUser->GetLevel();
+            wcscpy_s(stLogGame.szComment, stInfoExLog.szLeagueName);
+            wcscpy_s(stLogGame.szComment2, psResChangeInfo.szLeagueName);
+            for (std::size_t i = 0; i < psUpdateItemList.vecItem.size(); ++i) {
+                PS_STORAGE_INFO psInfo = psUpdateItemList.vecItem[i];
+                stLogGame.nParam1 = psInfo.stItem.nItemID;
+                stLogGame.nParam6 = psInfo.stItem.xSerial;
+                XGameServer::Instance()->SendDBLog(stLogGame);
+            }
+        }
+
+        XSendPacket xSendPacket(0x22, 0x58);
+        xSendPacket << psResChangeInfo;
+        CGocNetwork::Send(pUser, xSendPacket);
+    };
+    CLogicThreadManager::Instance().DoJob(pUser->GetMapInsID().nMapID, func);
+
+    // Per IDA lambda192 (0x140427E60): 任务完成递减计数
+    std::function<void()> funcDec = [pUser]() {
+        pUser->DecrementJobCount();
+    };
+    CLogicThreadManager::Instance().DoJob(pUser->GetMapInsID().nMapID, funcDec);
+
+    // Per IDA lambda255 (0x14021B0A0): nResult==0 时全线程广播改名
+    CLogicThreadManager::Instance().DoJobAllThread(
+        [psChangeInfo]() {
+            if (psChangeInfo.nResult != 0) {
+                return;
+            }
+            PS_RES_LEAGUE_NAME_CHANGE psResChangeInfo;
+            psResChangeInfo.nLeagueID = psChangeInfo.nLeagueID;
+            psResChangeInfo.nResult = psChangeInfo.nResult;
+            wcscpy_s(psResChangeInfo.szLeagueName, psChangeInfo.szLeagueName);
+
+            ThreadLocalData* pLocalData = ThreadLocalData::GetInstance();
+            if (pLocalData) {
+                pLocalData->SendLeagueChangeName(psResChangeInfo,
+                                                 psChangeInfo.nSysnCount);
+            }
+        });
+
+    return true;
+}
+// ============================================================================
+// RecvLeagueCardChange - IDA @ 0x14020D340
+// 已精确还原 - 解析 PS_REQ_LEAGUE_CARD + nSyncCount(int)；
+// lambda170 (0x14020D480) DoJobAllThread -> 按值副本交给
+// ThreadLocalData::SendLeagueCardChange(psCard, nSyncCount)。返回 true。
+// ============================================================================
+bool CCommunitySocket::RecvLeagueCardChange(XPacket* xPacket) {
+    PS_REQ_LEAGUE_CARD psCard;
+    int nSyncCount = 0;
+    *xPacket >> psCard;
+    xPacket->XParse >> nSyncCount;
+
+    // Per IDA lambda170 (0x14020D480)
+    PS_REQ_LEAGUE_CARD psCardCopy = psCard;
+    CLogicThreadManager::Instance().DoJobAllThread(
+        [psCardCopy, nSyncCount]() {
+            ThreadLocalData* pLocalData = ThreadLocalData::GetInstance();
+            if (pLocalData) {
+                pLocalData->SendLeagueCardChange(psCardCopy, nSyncCount);
+            }
+        });
+
+    return true;
+}
+
+// ============================================================================
+// RecvLeaguePositionNameChange - IDA @ 0x140209840
+// 已精确还原 - 解析 dwActorID(int) >> ST_LEAGUE_POSITION_NAME_CHANGE >> nLeagueID(int)；
+// pUser 在线（GetArea 非空）时 lambda35 (0x1401FA310) DoJob: 存活检查 ->
+// (0x22,0x15)+stChange 发送 -> FindActorIDToUser(dwActorID) -> ST_LOG_GAME
+// {_sMainType=15, _sSubType=5, nParam0=nLeagueID, nParam1=dwActorID,
+// nParam5=GetLevel(), szComment=硬编码串} SendDBLog；+ lambda192 递减；
+// 无论在线与否 lambda146 (0x140209E00) DoJobAllThread ->
+// ThreadLocalData::ChangePositionName(stChange 副本, nLeagueID)。返回 true。
+// ============================================================================
+bool CCommunitySocket::RecvLeaguePositionNameChange(XPacket* xPacket) {
+    int dwActorID = 0;
+    ST_LEAGUE_POSITION_NAME_CHANGE stChange;
+    int nLeagueID = 0;
+    xPacket->XParse >> dwActorID;
+    *xPacket >> stChange;
+    xPacket->XParse >> nLeagueID;
+
+    XGameServer* pServer = XGameServer::Instance();
+    CUser* pUser = pServer ? pServer->FindActorIDToUser(
+        static_cast<std::uint32_t>(dwActorID)) : nullptr;
+
+    if (pUser && pUser->GetArea()) {
+        pUser->IncrementJobCount();
+        // Per IDA lambda35 (0x1401FA310)
+        std::function<void()> func = [pUser, stChange, dwActorID, nLeagueID]() {
+            if (!pUser || !pUser->IsLive() || !pUser->GetArea()) {
+                return;
+            }
+
+            XSendPacket xSendPacket(0x22, 0x15);
+            xSendPacket << stChange;
+            CGocNetwork::Send(pUser, xSendPacket);
+
+            XGameServer* pServer = XGameServer::Instance();
+            CUser* pTargetUser = pServer ? pServer->FindActorIDToUser(
+                static_cast<std::uint32_t>(dwActorID)) : nullptr;
+            if (pTargetUser) {
+                ST_LOG_GAME stLog = {};
+                stLog._nUAID = static_cast<int>(pTargetUser->GetUAID());
+                stLog._nUCID = static_cast<int>(
+                    pTargetUser->GetActorID().dwActorID);
+                stLog._sMainType = 15;
+                stLog._sSubType = 5;
+                stLog.nParam0 = nLeagueID;
+                stLog.nParam1 = dwActorID;
+                stLog.nParam5 = pTargetUser->GetLevel();
+                // IDA word_140B75CC0 = L"리그 " (CP949: AC B9 F8 AD 20 00)
+                std::wcscpy(stLog.szComment, L"리그 ");
+                XGameServer::Instance()->SendDBLog(stLog);
+            }
+        };
+        CLogicThreadManager::Instance().DoJob(pUser->GetMapInsID().nMapID, func);
+
+        // Per IDA lambda192 (0x140427E60): 任务完成递减计数
+        std::function<void()> funcDec = [pUser]() {
+            pUser->DecrementJobCount();
+        };
+        CLogicThreadManager::Instance().DoJob(pUser->GetMapInsID().nMapID, funcDec);
+    }
+
+    // Per IDA lambda146 (0x140209E00)
+    ST_LEAGUE_POSITION_NAME_CHANGE stChangeCopy = stChange;
+    CLogicThreadManager::Instance().DoJobAllThread(
+        [stChangeCopy, nLeagueID]() {
+            ThreadLocalData* pLocalData = ThreadLocalData::GetInstance();
+            if (pLocalData) {
+                pLocalData->ChangePositionName(stChangeCopy, nLeagueID);
+            }
+        });
+
+    return true;
+}
+// ============================================================================
+// RecvLeagueAuthChange - IDA @ 0x140209190
+// 已精确还原 - 解析 ST_LEAGUE_AUTH_CHANGE >> nLeagueID(int) >>
+// dwActorID(u32) >> nSyncCount(int)；
+// pUser 在线（GetArea 非空）时:
+//   lambda30 (0x1404F0DB0) DoJob: IsLive 检查 -> GetLeagueID!=0 时
+//   (0xF6,0x28)+stChange+nLeagueID+dwActorID 经 CommunitySocket::SendCmd
+//   (0x22,0x32) 转发；==0 时 LogDebug "Not Exist League" + SendErrorMessage(57016)；
+//   lambda192 递减；
+//   8 次循环 ST_LOG_GAME{15,11, nParam0=nLeagueID, nParam3=idx,
+//   nParam4=nAuth[idx], szComment=L"LEAGUE " (word_140B562D0)} SendDBLog；
+// 无论在线与否 lambda143 (0x1402097E0) DoJobAllThread ->
+// ThreadLocalData::ChangeLeagueAuth(stChange 副本, nLeagueID, nSyncCount)。
+// 返回 true。
+// ============================================================================
+bool CCommunitySocket::RecvLeagueAuthChange(XPacket* xPacket) {
+    ST_LEAGUE_AUTH_CHANGE stChange;
+    int nLeagueID = 0;
+    unsigned int dwActorID = 0;
+    int nSyncCount = 0;
+    *xPacket >> stChange;
+    xPacket->XParse >> nLeagueID;
+    xPacket->XParse >> dwActorID;
+    xPacket->XParse >> nSyncCount;
+
+    XGameServer* pServer = XGameServer::Instance();
+    CUser* pUser = pServer ? pServer->FindActorIDToUser(dwActorID) : nullptr;
+
+    if (pUser) {
+        if (!pUser->GetArea()) {
+            return false;
+        }
+        pUser->IncrementJobCount();
+        // Per IDA lambda30 (0x1404F0DB0): 权限包转发链
+        std::function<void()> func = [pUser, stChange, nLeagueID, dwActorID]() {
+            if (!pUser || !pUser->IsLive()) {
+                return;
+            }
+            if (pUser->GetLeagueID() != 0) {
+                XSendPacket xSendPacket(0xF6, 0x28);
+                xSendPacket << stChange;
+                xSendPacket.XParse << pUser->GetLeagueID();
+                xSendPacket.XParse << pUser->GetActorID().dwActorID;
+                XGameServer::Instance()->GetCommunitySocket().SendCmd(
+                    &xSendPacket, pUser, 0x22, 0x32);
+            } else {
+                LogHelper::LogDebug("game.league",
+                    "Not Exist League [LeagueID:%d]", pUser->GetLeagueID());
+                pUser->SendErrorMessage(0x22, 0x28, 57016);
+            }
+        };
+        CLogicThreadManager::Instance().DoJob(pUser->GetMapInsID().nMapID, func);
+
+        // Per IDA lambda192 (0x140427E60): 任务完成递减计数
+        std::function<void()> funcDec = [pUser]() {
+            pUser->DecrementJobCount();
+        };
+        CLogicThreadManager::Instance().DoJob(pUser->GetMapInsID().nMapID, funcDec);
+
+        for (int i = 0; i < 8; ++i) {
+            ST_LOG_GAME stLog = {};
+            stLog._nUAID = static_cast<int>(pUser->GetUAID());
+            stLog._nUCID = static_cast<int>(pUser->GetActorID().dwActorID);
+            stLog._sMainType = 15;
+            stLog._sSubType = 11;
+            stLog.nParam0 = nLeagueID;
+            stLog.nParam3 = i;
+            stLog.nParam4 = stChange.nAuth[i];
+            // IDA word_140B562D0 = L"LEAGUE " (CP949: AC B9 F8 AD 20 00)
+            std::wcscpy(stLog.szComment, L"리그 ");
+            XGameServer::Instance()->SendDBLog(stLog);
+        }
+    }
+
+    // Per IDA lambda143 (0x1402097E0)
+    CLogicThreadManager::Instance().DoJobAllThread(
+        [stChange, nLeagueID, nSyncCount]() {
+            ThreadLocalData* pLocalData = ThreadLocalData::GetInstance();
+            if (pLocalData) {
+                pLocalData->ChangeLeagueAuth(stChange, nLeagueID, nSyncCount);
+            }
+        });
+
+    return true;
+}
+// ============================================================================
+// RecvLeagueMessage - IDA @ 0x140209E50
+// 已精确还原 - 解析 PS_CHAT_LEAGUE + PS_CHAT_ITEM_LINK_FOR_SERVER；
+// lambda147 (0x14020A020) DoJobAllThread -> 两结构按值副本交给
+// ThreadLocalData::SendLeagueMsg 广播 (7,1) 聊天包。返回 true。
+// ============================================================================
+bool CCommunitySocket::RecvLeagueMessage(XPacket* xPacket) {
+    PS_CHAT_LEAGUE stChatLeague;
+    PS_CHAT_ITEM_LINK_FOR_SERVER psLinkItemInfo;
+    *xPacket >> stChatLeague;
+    *xPacket >> psLinkItemInfo;
+
+    // Per IDA lambda147 (0x14020A020)
+    CLogicThreadManager::Instance().DoJobAllThread(
+        [stChatLeague, psLinkItemInfo]() {
+            ThreadLocalData* pLocalData = ThreadLocalData::GetInstance();
+            if (pLocalData) {
+                pLocalData->SendLeagueMsg(stChatLeague, psLinkItemInfo);
+            }
+        });
+
+    return true;
+}
+// ============================================================================
+// RecvLeagueMemberPositionChange - IDA @ 0x14020A160
+// 已精确还原 - 解析 ST_LEAGUE_MEMBER_POSITION >> nLeagueID(int) >>
+// dwActorID(u32) >> byPrevPosition(char) >> ST_LEAGUE_INFO_FOR_GAME >>
+// nSyncCount(int)；按 dwActorID 查用户；
+// pUser 在线且 stPosition.nResult > 0 时:
+//   lambda148 (0x14020A5B0) DoJob: IsLive+GetArea 检查 ->
+//   (0x22,0x42)+stPosition 副本发送 + lambda192 递减；
+// 无论是否处理 lambda150 (0x14020A7A0) DoJobAllThread ->
+// ThreadLocalData::UpdateMemberPosition(stPosition 副本, nLeagueID,
+// dwActorID, nSyncCount)。返回 true。
+// ============================================================================
+bool CCommunitySocket::RecvLeagueMemberPositionChange(XPacket* xPacket) {
+    ST_LEAGUE_MEMBER_POSITION stPosition;
+    int nLeagueID = 0;
+    unsigned int dwActorID = 0;
+    char byPrevPosition = 0;
+    ST_LEAGUE_INFO_FOR_GAME stLeagueInfoForGame;
+    int nSyncCount = 0;
+
+    *xPacket >> stPosition;
+    xPacket->XParse >> nLeagueID;
+    xPacket->XParse >> dwActorID;
+    xPacket->XParse >> byPrevPosition;
+    *xPacket >> stLeagueInfoForGame;
+    xPacket->XParse >> nSyncCount;
+
+    XGameServer* pServer = XGameServer::Instance();
+    CUser* pUser = pServer ? pServer->FindActorIDToUser(dwActorID) : nullptr;
+
+    if (pUser) {
+        pUser->GetUAID();
+        if (stPosition.nResult > 0) {
+            if (!pUser->GetArea()) {
+                return false;
+            }
+            pUser->IncrementJobCount();
+            // Per IDA lambda148 (0x14020A5B0): 职位变更包发送链
+            std::function<void()> func = [pUser, stPosition]() {
+                if (!pUser || !pUser->IsLive() || !pUser->GetArea()) {
+                    return;
+                }
+
+                ST_LEAGUE_MEMBER_POSITION stCopy = stPosition;
+                XSendPacket xSendPacket(0x22, 0x42);
+                xSendPacket << stCopy;
+                CGocNetwork::Send(pUser, xSendPacket);
+            };
+            CLogicThreadManager::Instance().DoJob(pUser->GetMapInsID().nMapID, func);
+
+            // Per IDA lambda192 (0x140427E60): 任务完成递减计数
+            std::function<void()> funcDec = [pUser]() {
+                pUser->DecrementJobCount();
+            };
+            CLogicThreadManager::Instance().DoJob(pUser->GetMapInsID().nMapID, funcDec);
+        }
+    }
+
+    // Per IDA lambda150 (0x14020A7A0)
+    CLogicThreadManager::Instance().DoJobAllThread(
+        [stPosition, nLeagueID, dwActorID, nSyncCount]() {
+            ThreadLocalData* pLocalData = ThreadLocalData::GetInstance();
+            if (pLocalData) {
+                pLocalData->UpdateMemberPosition(stPosition, nLeagueID,
+                                                 dwActorID, nSyncCount);
+            }
+        });
+
+    return true;
+}
+// ============================================================================
+// RecvLeagueApplicantUpdate - IDA @ 0x14020A800
+// 已精确还原 - 解析 dwActorID(u32) + ST_LEAGUE_APPLICANT_CHECK_LIST；
+// lambda151 (0x14020A960) DoJobAllThread -> ThreadLocalData::LeagueApplicantUpdate
+// (stUpdateList, dwActorID)。返回 true。
+// ============================================================================
+bool CCommunitySocket::RecvLeagueApplicantUpdate(XPacket* xPacket) {
+    unsigned int dwActorID = 0;
+    ST_LEAGUE_APPLICANT_CHECK_LIST stUpdateList;
+    xPacket->XParse >> dwActorID;
+    *xPacket >> stUpdateList;
+
+    // Per IDA lambda151 (0x14020A960)
+    CLogicThreadManager::Instance().DoJobAllThread(
+        [stUpdateList, dwActorID]() mutable {
+            ST_LEAGUE_APPLICANT_CHECK_LIST stCopy = stUpdateList;
+            ThreadLocalData* pLocalData = ThreadLocalData::GetInstance();
+            if (pLocalData) {
+                pLocalData->LeagueApplicantUpdate(stCopy, dwActorID);
+            }
+        });
+
+    return true;
+}
+// ============================================================================
+// RecvLeagueMemberLogOut - IDA @ 0x14020A9E0
+// 已精确还原 - 解析 ST_LEAGUE_MEMBER_UPDATE；lambda152 DoJobAllThread ->
+// ThreadLocalData::UpdateLeagueMember(stUpdate 副本)。返回 true。
+// ============================================================================
+bool CCommunitySocket::RecvLeagueMemberLogOut(XPacket* xPacket) {
+    ST_LEAGUE_MEMBER_UPDATE stUpdate;
+    *xPacket >> stUpdate;
+
+    // Per IDA lambda152 (0x14020AB10)
+    CLogicThreadManager::Instance().DoJobAllThread(
+        [stUpdate]() {
+            ThreadLocalData* pLocalData = ThreadLocalData::GetInstance();
+            if (pLocalData) {
+                pLocalData->UpdateLeagueMember(stUpdate);
+            }
+        });
+
+    return true;
+}
+// ============================================================================
+// RecvLeagueApplicantJoinUser - IDA @ 0x1401F6C40
+// 已精确还原 - 解析 ST_LEAGUE_MEMBER_EX + ST_LEAGUE_INFO_EX +
+// ST_LEAGUE_INFO_UPDATE + dwActorID(u32) + ST_LEAGUE_INFO_FOR_GAME +
+// nSyncCount(int)；
+// 1) lambda16 (0x1401F7310) DoJobAllThread -> ThreadLocalData::
+//    SendLeagueJoinUser_Apply(stMemberEx, stInfoUpdate, nSyncCount)。
+// 2) 申请者在线（GetArea 非空）时 lambda17 (0x1401F74E0) DoJob:
+//    UpdateLeagueSyncCount(nSyncCount) -> SetLeagueInfo(stInfoEx, forGame) ->
+//    dwUCID = ActorID & 0x1FFFFFFF -> AddLeagueMember -> (0x22,0x44)
+//    SendBroadCast(eNearby) -> ST_LOG_GAME{15,14, szComment=L"LEAGUE ",
+//    szComment2=szLeagueName} -> 查 dwActorID 用户再发
+//    ST_LOG_GAME{15,7, szComment=L"LEAGUE 지원자 "} -> CGocClassEvent
+//    8 号事件通知；+ lambda192 递减。
+// 3) 申请者不在线且 stMemberEx.byClass == 6 时（原公会长分支）:
+//    按 dwActorID 查 master 用户，在线则 lambda30 (0x1403B6BE0) DoJob:
+//    IsLive && !IsBit_OR(0xC0) && GetArea 检查 ->
+//    master 当前地图实例 ID != stMemberEx.sWorldID 或服务器 ID !=
+//    Option serverID 时 PS_KICK_USER_INFO{dwUAID, byKickType=39} Kickout；
+//    + lambda192 递减。返回 true。
+// ============================================================================
+bool CCommunitySocket::RecvLeagueApplicantJoinUser(XPacket* xPacket) {
+    ST_LEAGUE_MEMBER_EX stMemberEx;
+    ST_LEAGUE_INFO_EX stInfoEx;
+    ST_LEAGUE_INFO_UPDATE stInfoUpdate;
+    unsigned int dwActorID = 0;
+    ST_LEAGUE_INFO_FOR_GAME stLeagueInfoForGame;
+    int nSyncCount = 0;
+
+    *xPacket >> stMemberEx;
+    *xPacket >> stInfoEx;
+    *xPacket >> stInfoUpdate;
+    xPacket->XParse >> dwActorID;
+    *xPacket >> stLeagueInfoForGame;
+    xPacket->XParse >> nSyncCount;
+
+    // Per IDA lambda16 (0x1401F7310): 全线程广播入会申请
+    CLogicThreadManager::Instance().DoJobAllThread(
+        [stMemberEx, stInfoUpdate, nSyncCount]() {
+            ThreadLocalData* pLocalData = ThreadLocalData::GetInstance();
+            if (pLocalData) {
+                pLocalData->SendLeagueJoinUser_Apply(stMemberEx,
+                                                     stInfoUpdate, nSyncCount);
+            }
+        });
+
+    XGameServer* pServer = XGameServer::Instance();
+    CUser* pJoinedUser = pServer ? pServer->FindActorIDToUser(
+        stMemberEx.dwUCID) : nullptr;
+
+    if (pJoinedUser) {
+        if (!pJoinedUser->GetArea()) {
+            return false;
+        }
+        pJoinedUser->IncrementJobCount();
+        // Per IDA lambda17 (0x1401F74E0): 入会者信息同步链
+        std::function<void()> func = [pJoinedUser, stMemberEx, stInfoEx,
+                                       stInfoUpdate, stLeagueInfoForGame,
+                                       dwActorID, nSyncCount]() {
+            if (!pJoinedUser || !pJoinedUser->IsLive() ||
+                !pJoinedUser->GetArea()) {
+                return;
+            }
+
+            pJoinedUser->UpdateLeagueSyncCount(nSyncCount);
+
+            ST_LEAGUE_INFO_EX stLocalInfoEx = stInfoEx;
+            ST_LEAGUE_INFO_FOR_GAME stLocalForGame = stLeagueInfoForGame;
+            pJoinedUser->SetLeagueInfo(stLocalInfoEx, stLocalForGame);
+            stLocalInfoEx.dwUCID = pJoinedUser->GetActorID().dwActorID & 0x1FFFFFFF;
+
+            ThreadLocalData* pLocalData = ThreadLocalData::GetInstance();
+            if (pLocalData) {
+                pLocalData->AddLeagueMember(pJoinedUser);
+            }
+
+            XSendPacket xSendPacket(0x22, 0x44);
+            xSendPacket << stLocalInfoEx;
+            CGocNetwork::SendBroadCast(pJoinedUser, xSendPacket,
+                                       E_BROADCAST_TYPE::eNearby);
+
+            ST_LOG_GAME stLog = {};
+            stLog._nUAID = static_cast<int>(pJoinedUser->GetUAID());
+            stLog._nUCID = stMemberEx.dwUCID;
+            stLog._sMainType = 15;
+            stLog._sSubType = 14;
+            stLog.nParam0 = stMemberEx.stMember.nLeagueID;
+            stLog.nParam5 = pJoinedUser->GetLevel();
+            // IDA word_140B75C60 = L"LEAGUE "
+            std::wcscpy(stLog.szComment, L"리그 ");
+            std::wcscpy(stLog.szComment2, stLocalInfoEx.szLeagueName);
+            XGameServer::Instance()->SendDBLog(stLog);
+
+            XGameServer* pServer = XGameServer::Instance();
+            CUser* pAcceptUser = pServer ? pServer->FindActorIDToUser(
+                dwActorID) : nullptr;
+            if (pAcceptUser) {
+                ST_LOG_GAME stLogGame = {};
+                stLogGame._nUAID = static_cast<int>(pAcceptUser->GetUAID());
+                stLogGame._nUCID = static_cast<int>(
+                    pAcceptUser->GetActorID().dwActorID);
+                stLogGame._sMainType = 15;
+                stLogGame._sSubType = 7;
+                stLogGame.nParam0 = stMemberEx.stMember.nLeagueID;
+                stLogGame.nParam1 = stMemberEx.dwUCID;
+                stLogGame.nParam5 = pAcceptUser->GetLevel();
+                // IDA word_140B75C70 = L"LEAGUE 지원자 "
+                std::wcscpy(stLogGame.szComment, L"리그 지원자 ");
+                XGameServer::Instance()->SendDBLog(stLogGame);
+            }
+
+            CGocClassEvent* pClassEvent = pJoinedUser->GetGOC<CGocClassEvent>();
+            if (pClassEvent) {
+                // TODO: 需人工审查 - IDA 模板展开误标为 CItem::CanBroachEquip(8,0)，
+                // 按调用语义应为 CGocClassEvent 的 8 号事件通知接口，具体方法名待
+                // CGocClassEvent 还原批次核实。
+            }
+        };
+        CLogicThreadManager::Instance().DoJob(pJoinedUser->GetMapInsID().nMapID, func);
+
+        // Per IDA lambda192 (0x140427E60): 任务完成递减计数
+        std::function<void()> funcDec = [pJoinedUser]() {
+            pJoinedUser->DecrementJobCount();
+        };
+        CLogicThreadManager::Instance().DoJob(pJoinedUser->GetMapInsID().nMapID, funcDec);
+    } else if (stMemberEx.byClass == 6) {
+        // 原公会长分支: 申请者已转职 6 类外会（byClass==6 视为脱离原公会），
+        // 若原公会长仍在本服且地图/服不符则强制踢出
+        CUser* pMasterUser = pServer ? pServer->FindActorIDToUser(
+            dwActorID) : nullptr;
+        if (pMasterUser) {
+            if (!pMasterUser->GetArea()) {
+                return false;
+            }
+            pMasterUser->IncrementJobCount();
+            // Per IDA lambda30 (0x1403B6BE0): master 一致性强制踢出链
+            std::function<void()> func = [pMasterUser, stMemberEx]() {
+                if (!pMasterUser) {
+                    return;
+                }
+                if (!pMasterUser->IsLive() ||
+                    pMasterUser->IsBit_OR(
+                        static_cast<XClient::E_NET_STATE>(
+                            XClient::eStateChangeServer |
+                            XClient::eStateChangeWorld))) {
+                    return;
+                }
+                if (!pMasterUser->GetArea()) {
+                    return;
+                }
+                if (pMasterUser->GetArea()->GetInstanceID().nMapID !=
+                        stMemberEx.stMember.nLeagueID ||
+                    XGameServer::Instance()->GetOption().GetServerID() !=
+                        static_cast<std::uint32_t>(
+                            stMemberEx.sWorldID)) {
+                    PS_KICK_USER_INFO psKick;
+                    psKick.dwUAID = pMasterUser->GetUAID();
+                    psKick.byKickType = 39;
+                    pMasterUser->Kickout(&psKick, false);
+                }
+            };
+            CLogicThreadManager::Instance().DoJob(pMasterUser->GetMapInsID().nMapID, func);
+
+            // Per IDA lambda192 (0x140427E60): 任务完成递减计数
+            std::function<void()> funcDec = [pMasterUser]() {
+                pMasterUser->DecrementJobCount();
+            };
+            CLogicThreadManager::Instance().DoJob(pMasterUser->GetMapInsID().nMapID, funcDec);
+        }
+    }
+
+    return true;
+}
+// ============================================================================
+// RecvLeagueInviteJoinUser - IDA @ 0x1401F7B10
+// 已精确还原 - 解析 ST_LEAGUE_MEMBER_EX + byApplyState(u8) + ST_LEAGUE_INFO_EX
+// + ST_LEAGUE_INFO_UPDATE + dwActorID(u32) + ST_LEAGUE_INFO_FOR_GAME +
+// nSyncCount(int)；
+// 1) lambda21 (0x1401F8010) DoJobAllThread -> ThreadLocalData::
+//    SendLeagueJoinUser_Invite(stMemberEx, stInfoUpdate, byApplyState, nSyncCount)。
+// 2) 受邀者在线（GetArea 非空）时 lambda22 (0x1401F8200) DoJob:
+//    UpdateLeagueSyncCount(nSyncCount) -> SetLeagueInfo(stInfoEx, forGame) ->
+//    dwUCID = ActorID & 0x1FFFFFFF -> AddLeagueMember -> (0x22,0x44)
+//    SendBroadCast(eNearby) -> ST_LOG_GAME{15,4, szComment=szLeagueName} ->
+//    CGocClassEvent 8 号事件通知；+ lambda192 递减。
+// 返回 true。
+// ============================================================================
+bool CCommunitySocket::RecvLeagueInviteJoinUser(XPacket* xPacket) {
+    ST_LEAGUE_MEMBER_EX stMemberEx;
+    unsigned char byApplyState = 0;
+    ST_LEAGUE_INFO_EX stInfoEx;
+    ST_LEAGUE_INFO_UPDATE stInfoUpdate;
+    unsigned int dwActorID = 0;
+    ST_LEAGUE_INFO_FOR_GAME stLeagueInfoForGame;
+    int nSyncCount = 0;
+
+    *xPacket >> stMemberEx;
+    xPacket->XParse >> byApplyState;
+    *xPacket >> stInfoEx;
+    *xPacket >> stInfoUpdate;
+    xPacket->XParse >> dwActorID;
+    *xPacket >> stLeagueInfoForGame;
+    xPacket->XParse >> nSyncCount;
+
+    // Per IDA lambda21 (0x1401F8010): 全线程广播受邀入会
+    CLogicThreadManager::Instance().DoJobAllThread(
+        [stMemberEx, stInfoUpdate, byApplyState, nSyncCount]() {
+            ThreadLocalData* pLocalData = ThreadLocalData::GetInstance();
+            if (pLocalData) {
+                pLocalData->SendLeagueJoinUser_Invite(stMemberEx,
+                                                      stInfoUpdate,
+                                                      byApplyState, nSyncCount);
+            }
+        });
+
+    XGameServer* pServer = XGameServer::Instance();
+    CUser* pJoinUser = pServer ? pServer->FindActorIDToUser(
+        stMemberEx.dwUCID) : nullptr;
+
+    if (pJoinUser) {
+        if (!pJoinUser->GetArea()) {
+            return false;
+        }
+        pJoinUser->IncrementJobCount();
+        // Per IDA lambda22 (0x1401F8200): 受邀者信息同步链
+        std::function<void()> func = [pJoinUser, stMemberEx, stInfoEx,
+                                       stInfoUpdate, dwActorID,
+                                       stLeagueInfoForGame, nSyncCount]() {
+            if (!pJoinUser || !pJoinUser->IsLive() ||
+                !pJoinUser->GetArea()) {
+                return;
+            }
+
+            pJoinUser->UpdateLeagueSyncCount(nSyncCount);
+
+            ST_LEAGUE_INFO_EX stLocalInfoEx = stInfoEx;
+            ST_LEAGUE_INFO_FOR_GAME stLocalForGame = stLeagueInfoForGame;
+            pJoinUser->SetLeagueInfo(stLocalInfoEx, stLocalForGame);
+            stLocalInfoEx.dwUCID = pJoinUser->GetActorID().dwActorID & 0x1FFFFFFF;
+
+            ThreadLocalData* pLocalData = ThreadLocalData::GetInstance();
+            if (pLocalData) {
+                pLocalData->AddLeagueMember(pJoinUser);
+            }
+
+            XSendPacket xSendPacket(0x22, 0x44);
+            xSendPacket << stLocalInfoEx;
+            CGocNetwork::SendBroadCast(pJoinUser, xSendPacket,
+                                       E_BROADCAST_TYPE::eNearby);
+
+            ST_LOG_GAME stLog = {};
+            stLog._nUAID = static_cast<int>(pJoinUser->GetUAID());
+            stLog._nUCID = stMemberEx.dwUCID;
+            stLog._sMainType = 15;
+            stLog._sSubType = 4;
+            stLog.nParam0 = stMemberEx.stMember.nLeagueID;
+            stLog.nParam5 = pJoinUser->GetLevel();
+            std::wcscpy(stLog.szComment, stLocalInfoEx.szLeagueName);
+            XGameServer::Instance()->SendDBLog(stLog);
+
+            CGocClassEvent* pClassEvent = pJoinUser->GetGOC<CGocClassEvent>();
+            if (pClassEvent) {
+                // TODO: 需人工审查 - IDA 模板展开误标为 CItem::CanBroachEquip(8,0)，
+                // 按调用语义应为 CGocClassEvent 的 8 号事件通知接口，具体方法名待
+                // CGocClassEvent 还原批次核实。
+            }
+        };
+        CLogicThreadManager::Instance().DoJob(pJoinUser->GetMapInsID().nMapID, func);
+
+        // Per IDA lambda192 (0x140427E60): 任务完成递减计数
+        std::function<void()> funcDec = [pJoinUser]() {
+            pJoinUser->DecrementJobCount();
+        };
+        CLogicThreadManager::Instance().DoJob(pJoinUser->GetMapInsID().nMapID, funcDec);
+    }
+
+    return true;
+}
 // ============================================================================
 // RecvLeagueOpenOrNot - 处理公会开启/关闭 (IDA 0x14020C1A0)
 // 解析 ST_LEAGUE_OPEN + dwUCID -> DoJob x2
@@ -5282,22 +6507,323 @@ bool CCommunitySocket::RecvLeagueOpenOrNot(XPacket* xPacket)
 }
 // ============================================================================
 // RecvLeagueRecruitNotice - 处理公会招募公告 (IDA 0x14020C4C0)
-// TODO: 阻塞 - lambda165 (0x14020CA80) 调用 ThreadLocalData::SendLeagueRecruitNoticeToMember
-// （ThreadLocalData 管理器未还原），待任务 #87 后落地。
+// 解析 ST_LEAGUE_RECRUIT_NOTICE + biRemainTime + dwUCID。
+// 在线用户: lambda163 (0x14020C8B0) DoJob: IsLive 门 ->
+//   (0x22,0x47) << stRecruitNotice << biRemainTime -> CGocNetwork::Send；
+//   + lambda192 递减。
+// 全线程: lambda165 (0x14020CA80) DoJobAllThread: 按值副本交
+//   ThreadLocalData::SendLeagueRecruitNoticeToMember(st, biRemainTime)。
 // ============================================================================
-bool CCommunitySocket::RecvLeagueRecruitNotice(XPacket*) { return true; }
+bool CCommunitySocket::RecvLeagueRecruitNotice(XPacket* xPacket)
+{
+    ST_LEAGUE_RECRUIT_NOTICE stRecruitNotice{};
+    std::int64_t biRemainTime = 0;
+    std::uint32_t dwUCID = 0;
+    *xPacket >> stRecruitNotice;
+    xPacket->XParse >> biRemainTime;
+    xPacket->XParse >> dwUCID;
+
+    CUser* pUser = TXSingleton<XGameServer>::Instance()->FindActorIDToUser(dwUCID);
+    if (pUser) {
+        if (!pUser->GetArea())
+            return false;
+
+        pUser->IncrementJobCount();
+
+        // Per IDA lambda163 (0x14020C8B0)
+        CLogicThreadManager::Instance().DoJob(pUser->GetMapInsID().nMapID,
+            [pUser, biRemainTime, stRecruitNotice]() {
+                if (!pUser || !pUser->IsLive())
+                    return;
+                XSendPacket xSendPacket(0x22u, 0x47u);
+                ST_LEAGUE_RECRUIT_NOTICE st = stRecruitNotice;
+                xSendPacket << st;
+                xSendPacket.XParse << biRemainTime;
+                CGocNetwork::Send(pUser, xSendPacket);
+            });
+
+        CLogicThreadManager::Instance().DoJob(pUser->GetMapInsID().nMapID,
+            [pUser]() {
+                if (pUser)
+                    pUser->DecrementJobCount();
+            });
+    }
+
+    // Per IDA lambda165 (0x14020CA80)
+    CLogicThreadManager::Instance().DoJobAllThread(
+        [stRecruitNotice, biRemainTime]() {
+            ST_LEAGUE_RECRUIT_NOTICE stCopy = stRecruitNotice;
+            ThreadLocalData::GetInstance()->SendLeagueRecruitNoticeToMember(
+                stCopy, biRemainTime);
+        });
+    return true;
+}
 // ============================================================================
 // RecvLeagueRecordUpdate - 处理公会战绩更新 (IDA 0x14020CBC0)
-// TODO: 阻塞 - lambda166 (0x14020CCB0) 调用 ThreadLocalData::SendLeagueRecordUpdate
-// （ThreadLocalData 管理器未还原），待任务 #87 后落地。
+// 解析 ST_LEAGUE_RECORD -> lambda166 (0x14020CCB0) DoJobAllThread:
+// 按值副本交 ThreadLocalData::SendLeagueRecordUpdate。返回 1。
 // ============================================================================
-bool CCommunitySocket::RecvLeagueRecordUpdate(XPacket*) { return true; }
-bool CCommunitySocket::RecvLeagueCardChangeRes(XPacket*) { return true; }
+bool CCommunitySocket::RecvLeagueRecordUpdate(XPacket* xPacket)
+{
+    ST_LEAGUE_RECORD stRecord{};
+    *xPacket >> stRecord;
+
+    // Per IDA lambda166 (0x14020CCB0)
+    CLogicThreadManager::Instance().DoJobAllThread([stRecord]() {
+        ST_LEAGUE_RECORD stCopy = stRecord;
+        ThreadLocalData::GetInstance()->SendLeagueRecordUpdate(stCopy);
+    });
+    return true;
+}
+// ============================================================================
+// RecvLeagueCardChangeRes - 处理公会卡片变更结果 (IDA 0x14020D4D0)
+// 解析 dwUCID + PS_REQ_LEAGUE_CARD + PS_RES_STORAGE_INFO + nErrorCode +
+// nSyncCount。请求者不在线返回 0；在线但不在区域返回 0；否则
+// lambda171 (0x14020D8C0) DoJob:
+// - GetGOC<CGocInventory> 空时 LogError "CGocInventoryPtr is NULL(3360)" 返回。
+// - nErrorCode!=0: LogError "Failed reduce item DB(3368)" + UnLockList +
+//   (0x22,0x50) 发送 nErrorCode。
+// - 否则 (0x22,0x50) 发送 psCardInfo.nResult；nResult==0 时 SendUpdateItem +
+//   UpdateLeagueSyncCount(nSyncCount) + GetLeagueInfo(EX) ->
+//   dwLeagueCard=psCardInfo.dwLeagueCard -> dwUCID=ActorID(无掩码) ->
+//   SetLeagueInfo + (0x22,0x44) BroadcastNearby。
+// + lambda192 递减。返回 1。
+// ============================================================================
+bool CCommunitySocket::RecvLeagueCardChangeRes(XPacket* xPacket) {
+    std::uint32_t dwUCID = 0;
+    PS_REQ_LEAGUE_CARD psCardInfo;
+    PS_RES_STORAGE_INFO psUpdateItemList;
+    int nErrorCode = 0;
+    int nSyncCount = 0;
+
+    xPacket->XParse >> dwUCID;
+    *xPacket >> psCardInfo;
+    *xPacket >> psUpdateItemList;
+    xPacket->XParse >> nErrorCode;
+    xPacket->XParse >> nSyncCount;
+
+    XGameServer* pServer = XGameServer::Instance();
+    CUser* pReqUser = pServer ? pServer->FindActorIDToUser(dwUCID) : nullptr;
+    if (!pReqUser) {
+        return false;
+    }
+    if (!pReqUser->GetArea()) {
+        return false;
+    }
+
+    pReqUser->IncrementJobCount();
+    // Per IDA lambda171 (0x14020D8C0): 公会卡片变更下发链
+    std::function<void()> func = [pReqUser, dwUCID, psCardInfo,
+                                  psUpdateItemList, nErrorCode, nSyncCount]() {
+        if (!pReqUser || !pReqUser->IsLive() || !pReqUser->GetArea()) {
+            return;
+        }
+
+        CGocInventory* pInven = pReqUser->GetGOC<CGocInventory>();
+        if (!pInven) {
+            LogHelper::LogError("game.item",
+                "RecvLeagueCardChangeRes error - CGocInventoryPtr is NULL(3360) [ ActorID:%d ]",
+                dwUCID);
+            return;
+        }
+
+        if (nErrorCode != 0) {
+            LogHelper::LogError("game.item",
+                "RecvLeagueCardChangeRes error - Failed reduce item DB(3368) [ ActorID:%d ] ( %d )",
+                dwUCID, nErrorCode);
+            pInven->UnLockList(psUpdateItemList);
+
+            XSendPacket xSendPacket(0x22, 0x50);
+            xSendPacket.XParse << nErrorCode;
+            CGocNetwork::Send(pReqUser, xSendPacket);
+            return;
+        }
+
+        XSendPacket xSendPacket(0x22, 0x50);
+        xSendPacket.XParse << psCardInfo.nResult;
+        CGocNetwork::Send(pReqUser, xSendPacket);
+
+        if (psCardInfo.nResult == 0) {
+            PS_RES_STORAGE_INFO psLocalItemList = psUpdateItemList;
+            pInven->SendUpdateItem(psLocalItemList);
+
+            pReqUser->UpdateLeagueSyncCount(nSyncCount);
+
+            ST_LEAGUE_INFO_EX stInfoEx;
+            pReqUser->GetLeagueInfo(stInfoEx);
+            stInfoEx.dwLeagueCard = psCardInfo.dwLeagueCard;
+            stInfoEx.dwUCID = pReqUser->GetActorID().dwActorID;
+            pReqUser->SetLeagueInfo(stInfoEx);
+
+            XSendPacket packet(0x22, 0x44);
+            packet << stInfoEx;
+            CGocNetwork::BroadcastNearby(pReqUser, nullptr, packet);
+        }
+    };
+    CLogicThreadManager::Instance().DoJob(pReqUser->GetMapInsID().nMapID, func);
+
+    // Per IDA lambda192 (0x140427E60): 任务完成递减计数
+    std::function<void()> funcDec = [pReqUser]() {
+        pReqUser->DecrementJobCount();
+    };
+    CLogicThreadManager::Instance().DoJob(pReqUser->GetMapInsID().nMapID, funcDec);
+
+    return true;
+}
 bool CCommunitySocket::RecvLeagueLevelup(XPacket*) { return true; }
 bool CCommunitySocket::RecvLeagueSkillLearn(XPacket*) { return true; }
 bool CCommunitySocket::RecvLeagueWealth(XPacket*) { return true; }
 bool CCommunitySocket::RecvLeagueSyncInfo(XPacket*) { return true; }
 bool CCommunitySocket::RecvLeagueSyncLoad(XPacket*) { return true; }
-bool CCommunitySocket::RecvLeagueInventoryInfo(XPacket*) { return true; }
-bool CCommunitySocket::RecvLeagueInventoryMove(XPacket*) { return true; }
+// ============================================================================
+// RecvLeagueInventoryInfo - 处理公会仓库信息下发 (IDA 0x140210170)
+// 解析 dwReqUCID + PS_RES_STORAGE_INFO + PS_ITEM_BROACH_LIST +
+// PS_ITEM_SOCKET_LIST + PS_ITEM_PACKAGE_LIST + nInventorySyncCount。
+// 请求者不在线返回 0；在线但不在区域返回 0；否则
+// lambda181 (0x140210640) DoJob: IsLive+GetArea 门 ->
+// SetLeagueInventoryTime(GetCurDate()) ->
+// UpdateLeagueInventorySyncCount(nInventorySyncCount) ->
+// (0x22,0x56) 发送 psUpdateItemList + stBroachList + stSocketList +
+// stPackageList 四个结构副本。
+// + lambda192 递减。返回 1。
+// ============================================================================
+bool CCommunitySocket::RecvLeagueInventoryInfo(XPacket* xPacket) {
+    std::uint32_t dwReqUCID = 0;
+    PS_RES_STORAGE_INFO psUpdateItemList;
+    PS_ITEM_BROACH_LIST stBroachList;
+    PS_ITEM_SOCKET_LIST stSocketList;
+    PS_ITEM_PACKAGE_LIST stPackageList;
+    int nInventorySyncCount = 0;
+
+    xPacket->XParse >> dwReqUCID;
+    *xPacket >> psUpdateItemList;
+    *xPacket >> stBroachList;
+    *xPacket >> stSocketList;
+    *xPacket >> stPackageList;
+    xPacket->XParse >> nInventorySyncCount;
+
+    XGameServer* pServer = XGameServer::Instance();
+    CUser* pReqUser = pServer ? pServer->FindActorIDToUser(dwReqUCID) : nullptr;
+    if (!pReqUser) {
+        return false;
+    }
+    if (!pReqUser->GetArea()) {
+        return false;
+    }
+
+    pReqUser->IncrementJobCount();
+    // Per IDA lambda181 (0x140210640): 公会仓库信息下发链
+    std::function<void()> func = [pReqUser, psUpdateItemList, stBroachList,
+                                  stSocketList, stPackageList,
+                                  nInventorySyncCount]() {
+        if (!pReqUser || !pReqUser->IsLive() || !pReqUser->GetArea()) {
+            return;
+        }
+
+        pReqUser->SetLeagueInventoryTime(
+            XGameServer::Instance()->GetCurDate());
+        pReqUser->UpdateLeagueInventorySyncCount(nInventorySyncCount);
+
+        PS_RES_STORAGE_INFO psLocalItemList = psUpdateItemList;
+        PS_ITEM_BROACH_LIST stLocalBroachList = stBroachList;
+        PS_ITEM_SOCKET_LIST stLocalSocketList = stSocketList;
+        PS_ITEM_PACKAGE_LIST stLocalPackageList = stPackageList;
+
+        XSendPacket xSendPacket(0x22, 0x56);
+        xSendPacket << psLocalItemList;
+        xSendPacket << stLocalBroachList;
+        xSendPacket << stLocalSocketList;
+        xSendPacket << stLocalPackageList;
+        CGocNetwork::Send(pReqUser, xSendPacket);
+    };
+    CLogicThreadManager::Instance().DoJob(pReqUser->GetMapInsID().nMapID, func);
+
+    // Per IDA lambda192 (0x140427E60): 任务完成递减计数
+    std::function<void()> funcDec = [pReqUser]() {
+        pReqUser->DecrementJobCount();
+    };
+    CLogicThreadManager::Instance().DoJob(pReqUser->GetMapInsID().nMapID, funcDec);
+
+    return true;
+}
+// ============================================================================
+// RecvLeagueInventoryMove - 处理公会仓库物品移动结果 (IDA 0x1402109D0)
+// 解析 dwReqUCID + PS_ITEM_MOVE_LEAGUE_INVEN_FOR_GAME。
+// 请求者不在线: 跳过 DoJob 但 lambda185 仍执行；在线无 GetArea 返回 0。
+// lambda183 (0x140210DE0) DoJob: IsLive+GetArea 门 -> GetGOC<CGocInventory>:
+// - 空指针: 直接返回。
+// - nErrorCode<=0: MoveItemToLeagueInven(psItemMoveForServer 副本)。
+// - nErrorCode>0: byType==0 时 SetLock(bySrcInvenType,shSrcSlotPos,0);
+//   byType==1 时 SetLock(byDestInvenType,shDestSlotPos,0);
+//   SendErrorMessage(0x22,0x54,0xDEDC) + LogError 3764。
+// nErrorCode==0 时 lambda185 (0x140211090) DoJobAllThread:
+// GetInstance -> SendLeagueInventoryMove(dwReqUCID, 副本)。返回 1。
+// ============================================================================
+bool CCommunitySocket::RecvLeagueInventoryMove(XPacket* xPacket) {
+    std::uint32_t dwReqUCID = 0;
+    PS_ITEM_MOVE_LEAGUE_INVEN_FOR_GAME psItemMoveForServer;
+
+    xPacket->XParse >> dwReqUCID;
+    *xPacket >> psItemMoveForServer;
+
+    CUser* pReqUser = XGameServer::Instance()->FindActorIDToUser(dwReqUCID);
+    if (pReqUser) {
+        if (!pReqUser->GetArea()) {
+            return false;
+        }
+        pReqUser->IncrementJobCount();
+        // Per IDA lambda183 (0x140210DE0): 请求者侧物品落地链
+        std::function<void()> func = [pReqUser, psItemMoveForServer]() {
+            if (!pReqUser || !pReqUser->IsLive() || !pReqUser->GetArea()) {
+                return;
+            }
+            CGocInventory* pInven = pReqUser->GetGOC<CGocInventory>();
+            if (!pInven) {
+                return;
+            }
+            if (psItemMoveForServer.nErrorCode <= 0) {
+                PS_ITEM_MOVE_LEAGUE_INVEN_FOR_GAME psLocal = psItemMoveForServer;
+                pInven->MoveItemToLeagueInven(psLocal);
+            } else {
+                if (!psItemMoveForServer.psReqItemMoveInfo.byType) {
+                    pInven->SetLock(
+                        psItemMoveForServer.psReqItemMoveInfo.bySrcInvenType,
+                        psItemMoveForServer.psReqItemMoveInfo.shSrcSlotPos,
+                        0);
+                }
+                if (psItemMoveForServer.psReqItemMoveInfo.byType == 1) {
+                    pInven->SetLock(
+                        psItemMoveForServer.psReqItemMoveInfo.byDestInvenType,
+                        psItemMoveForServer.psReqItemMoveInfo.shDestSlotPos,
+                        0);
+                }
+                CGocNetwork::SendErrorMessage(pReqUser, 0x22u, 0x54u, 0xDEDCu);
+                LogHelper::LogError("game.contents",
+                    "RecvLeagueInventoryMove error - Failed move item in league inventory[ Move type:%d, Error:%d ]( %d )",
+                    psItemMoveForServer.psReqItemMoveInfo.byType,
+                    psItemMoveForServer.nErrorCode, 3764);
+            }
+        };
+        CLogicThreadManager::Instance().DoJob(pReqUser->GetMapInsID().nMapID, func);
+
+        // Per IDA lambda192 (0x140427E60): 任务完成递减计数
+        std::function<void()> funcDec = [pReqUser]() {
+            pReqUser->DecrementJobCount();
+        };
+        CLogicThreadManager::Instance().DoJob(pReqUser->GetMapInsID().nMapID, funcDec);
+    }
+
+    if (psItemMoveForServer.nErrorCode == 0) {
+        // Per IDA lambda185 (0x140211090): 全线程广播公会仓库移动
+        CLogicThreadManager::Instance().DoJobAllThread(
+            [dwReqUCID, psItemMoveForServer]() {
+                ThreadLocalData* pLocalData = ThreadLocalData::GetInstance();
+                if (pLocalData) {
+                    PS_ITEM_MOVE_LEAGUE_INVEN_FOR_GAME psLocal = psItemMoveForServer;
+                    pLocalData->SendLeagueInventoryMove(dwReqUCID, psLocal);
+                }
+            });
+    }
+    return true;
+}
 

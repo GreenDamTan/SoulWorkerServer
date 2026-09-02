@@ -1412,6 +1412,18 @@ struct PS_HELPER_CHANGE_AUTO_SUMMON {
 };
 
 /**
+ * 对齐 PDB UDT 0x5A03/0x5A04: 助手召唤响应
+ * (序列化顺序经 IDA 0x14074A560 核实: dwUCID -> dwActorID -> bSummon -> stHelper)
+ */
+struct PS_HELPER_SUMMON_RES {
+    std::uint32_t dwUCID = 0;          // +0x00
+    std::uint32_t dwActorID = 0;        // +0x04
+    bool bSummon = false;               // +0x08
+    std::uint8_t _pad0[7] = {};         // padding
+    ST_HELPER_INFO stHelper{};           // +0x10
+};
+
+/**
  * 对齐 IDA 0x14004BF30: 助手装备请求
  */
 struct PS_DB_HELPER_EQUIP_REQ {
@@ -1468,6 +1480,22 @@ inline void operator>>(XPacket& packet, ST_HELPER_INFO& value) {
     packet.XParse >> value.dwHelperID;
     packet >> value.stFriendSupport;
     packet.XParse >> value.byOrder;
+}
+
+// PS_HELPER_SUMMON_RES 序列化
+inline XPacket& operator<<(XPacket& packet, const PS_HELPER_SUMMON_RES& value) {
+    packet.XParse << value.dwUCID;
+    packet.XParse << value.dwActorID;
+    packet.XParse << value.bSummon;
+    packet << value.stHelper;
+    return packet;
+}
+
+inline void operator>>(XPacket& packet, PS_HELPER_SUMMON_RES& value) {
+    packet.XParse >> value.dwUCID;
+    packet.XParse >> value.dwActorID;
+    packet.XParse >> value.bSummon;
+    packet >> value.stHelper;
 }
 
 // PS_HELPER_LIST_RES 序列化

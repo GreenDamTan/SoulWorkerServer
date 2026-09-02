@@ -224,6 +224,12 @@ void CItem::GetBroachInfo(ST_ITEM_BROACH& stBroach, int nIndex, int& nResult) {
 void CItem::GetBroachList(PS_ITEM_BROACH_LIST&) {
 }
 
+// PDB: ?GetSocketList@CItem@@UEAAXAEAUPS_ITEM_SOCKET_LIST@@@Z @ 0x14018E110
+// 已精确还原 - 基类空实现（与 GetBroachList 同属 no-op COMDAT 家族；
+// CItemEquip/CItemAkashic 才有真实填充）。
+void CItem::GetSocketList(PS_ITEM_SOCKET_LIST&) {
+}
+
 // CItem vtable +0x110 (0x140B714D8) points at the shared zero-return COMDAT
 // 0x1400FA340; the PDB GetSetBuffID symbol folds into this body.
 std::uint32_t CItem::GetSetBuffID(int) {

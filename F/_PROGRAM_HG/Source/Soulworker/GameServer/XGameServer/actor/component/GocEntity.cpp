@@ -660,6 +660,21 @@ bool CGocEntity::IsRoguelikeState() const
 }
 
 // ============================================================================
+// GetProfilePhotoID (PDB S_GPROC32 [0001:00061270], Cb=56)
+// 状态: 部分还原 - IDA 未拆分该 56 字节 getter 边界（被并入 EventNetCafeItemBuy），
+// 按 PDB 装饰名与调用方语义（XForceProcess 匹配链 / ResChangeProfilePhoto 路径）
+// 落地为读取角色 stBaseInfo.dwProfilePhotoID。
+// TODO: 需人工审查：若后续 IDA 边界拆分成功，按反编译结果复核。
+std::uint32_t CGocEntity::GetProfilePhotoID() const
+{
+    CUser* pUser = GetUser();
+    if (!pUser || !pUser->stMyCharInfoEx()) {
+        return 0;
+    }
+    return pUser->stMyCharInfoEx()->stBaseInfo.dwProfilePhotoID;
+}
+
+// ============================================================================
 // IDA: ?GetSGAuthType@CGocEntity@@QEAAEXZ (0x1402D3B40)
 // Verified: Per IDA decompile - returns SG auth type
 uint8_t CGocEntity::GetSGAuthType() const

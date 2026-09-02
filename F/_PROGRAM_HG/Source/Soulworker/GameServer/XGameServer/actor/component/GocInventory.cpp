@@ -5454,103 +5454,197 @@ void CGocInventory::SendAppearacne() {
     CGocNetwork::Send(m_pOwner, xSendPacket);
 }
 
-// IDA: 0x1400C8DD0
-// Moves item to/from league inventory (complex function with 3 types)
-bool CGocInventory::MoveItemToLeagueInven(void* psItemMoveForServer) {
-    // IDA Decompiled:
-    // __int64 __fastcall CGocInventory::MoveItemToLeagueInven(
-    //         CGocInventory *this,
-    //         PS_ITEM_MOVE_LEAGUE_INVEN_FOR_GAME *psItemMoveForServer)
-    // {
-    //   CUser *pUser; // Get CUser from GetCUser()
-    //   PS_REQ_ITEM_MOVE_LEAGUE_INVEN psItemMove; // Copy from psItemMoveForServer
-    //   std::shared_ptr<CItem> pSrcItem;
-    //   std::shared_ptr<CItem> pOutItemPtr;
-    //   ST_LOG_GAME stLogItem;
-    //   XSendPacket xSendPacket;
-    //   PS_RES_STORAGE_INFO stItemList;
-    //   PS_STORAGE_INFO psCreateItemInfo;
-    //   ...
-    //
-    //   if (!pUser) {
-    //     PS_ITEM_MOVE_LEAGUE_INVEN_FOR_GAME::~PS_ITEM_MOVE_LEAGUE_INVEN_FOR_GAME(psItemMoveForServer);
-    //     return 0;
-    //   }
-    //   qmemcpy(&psItemMove, &psItemMoveForServer->psReqItemMoveInfo, sizeof(psItemMove));
-    //
-    //   if (psItemMove.byType == 0) {
-    //     // Move item FROM inventory TO league
-    //     CGocInventory::GetSlotItem(this, &pSrcItem, psItemMove.bySrcInvenType, psItemMove.shSrcSlotPos, bLock);
-    //     if (!pSrcItem) return 0;
-    //     shSaveInItemCount = CItem::GetCount(pSrcItem.get());
-    //     nInItemID = CItem::GetCurID(pSrcItem.get());
-    //     biInItemSerial = CItem::GetSerial(pSrcItem.get());
-    //     CGocInventory::RemoveItem(this, psItemMove.bySrcInvenType, psItemMove.shSrcSlotPos);
-    //     XSendPacket::XSendPacket(&xSendPacket, 0x22u, 0x54u);
-    //     operator<<(&xSendPacket, &psItemMove);
-    //     CGocNetwork::Send(pActor, &xSendPacket);
-    //     // Log: main=4, sub=80
-    //     ST_LOG_GAME::ST_LOG_GAME(&stLogItem);
-    //     stLogItem._sMainType = 4; stLogItem._sSubType = 80;
-    //     stLogItem._nUAID = pUser->GetUAID();
-    //     stLogItem._nUCID = GetActorID();
-    //     stLogItem.nParam0 = nInItemID;
-    //     stLogItem.nParam1 = shSaveInItemCount;
-    //     stLogItem.nParam2 = GetLevel();
-    //     stLogItem.nParam3 = psItemMove.nLeagueID;
-    //     stLogItem.nParam5 = biInItemSerial;
-    //     stLogItem.nParam7 = psItemMove.shDestSlotPos;
-    //     stLogItem.nParam8 = psItemMove.shSrcSlotPos;
-    //     stLogItem.nParam9 = CItem::GetItemTitleID(pSrcItem.get());
-    //     XGameServer::SendDBLog(v10, &stLogItem);
-    //   }
-    //   else if (psItemMove.byType == 1) {
-    //     // Move item FROM league TO inventory
-    //     if (CGocInventory::CheckRandomOption(this, &psItemMoveForServer->psOutItemInfo.stItem)) {
-    //       LogHelper::LogError("game.item", "MoveItemToLeagueInven - Change item random option(inventory_out) [UCID:%d]", UCID);
-    //     }
-    //     if (!CGocInventory::AddItem(this, psItemMove.byDestInvenType, psItemMove.shDestSlotPos, &v79)) {
-    //       // Log error and kick user
-    //       ST_LOG_GAME::ST_LOG_GAME(&stLogGame);
-    //       stLogGame._sMainType = 4; stLogGame._sSubType = 99;
-    //       // ... kick user with byKickType=21
-    //       return 0;
-    //     }
-    //     CGocInventory::GetSlotItem(this, &pOutItemPtr, psItemMove.byDestInvenType, psItemMove.shDestSlotPos, byLock);
-    //     if (!pOutItemPtr) return 0;
-    //     nSaveOutItemCount = CItem::GetCount(pOutItemPtr.get());
-    //     nOutItemID = CItem::GetCurID(pOutItemPtr.get());
-    //     biOutItemSerial = CItem::GetSerial(pOutItemPtr.get());
-    //     nItemTitleID = CItem::GetItemTitleID(pOutItemPtr.get());
-    //     // Copy socket, broach, package lists
-    //     for (i = 0; i < psItemMoveForServer->psResItemMoveInfo.psItemSocketList.size(); ++i)
-    //       pOutItemPtr->SetSocketInfo(&psItemMoveForServer->psResItemMoveInfo.psItemSocketList[i]);
-    //     for (j = 0; j < psItemMoveForServer->psResItemMoveInfo.psItemBroachList.size(); ++j)
-    //       pOutItemPtr->SetBroachInfo(&psItemMoveForServer->psResItemMoveInfo.psItemBroachList[j]);
-    //     for (k = 0; k < psItemMoveForServer->psResItemMoveInfo.psItemPackageList.size(); ++k)
-    //       CItem::SetPackageList(pOutItemPtr.get(), &psItemMoveForServer->psResItemMoveInfo.psItemPackageList[k]);
-    //     // Send create item and break item
-    //     CGocInventory::SendCreateItem(this, &stItemList);
-    //     CGocInventory::SendBreakItem(this, psItemMove.bySrcInvenType, psItemMove.shSrcSlotPos);
-    //     CGocInventory::SendSocketUpdate(this, &psItemMoveForServer->psResItemMoveInfo.psItemSocketList);
-    //     CGocInventory::SendBroachUpdate(this, &psItemMoveForServer->psResItemMoveInfo.psItemBroachList);
-    //     CGocInventory::SendPackageInfo(this, &psItemMoveForServer->psResItemMoveInfo.psItemPackageList);
-    //     // Log: main=4, sub=81
-    //     // Add akashic get info
-    //   }
-    //   else if (psItemMove.byType == 2) {
-    //     // Swap items between league slots
-    //     XSendPacket::XSendPacket(&packet, 0x22u, 0x54u);
-    //     operator<<(&packet, &psItemMove);
-    //     CGocNetwork::Send(pActor, &packet);
-    //     // Log: main=4, sub=82 for each item in psItemMoveForServer->psItemLogList
-    //   }
-    //   PS_ITEM_MOVE_LEAGUE_INVEN_FOR_GAME::~PS_ITEM_MOVE_LEAGUE_INVEN_FOR_GAME(psItemMoveForServer);
-    //   return 1;
-    // }
-    // TODO: 需人工审查 - Complex function with 3 types (0=to league, 1=from league, 2=swap)
-    (void)psItemMoveForServer;
-    return false;
+// ============================================================================
+// MoveItemToLeagueInven - IDA @ 0x1400C8DD0
+// 已精确还原 - 公会仓库物品移动（三类型分支）。
+// byType==0: 从背包移入公会仓库 - GetSlotItem 取源物品记录
+//   count/id/serial/title -> RemoveItem -> (0x22,0x54) 发送 psItemMove ->
+//   ST_LOG_GAME{4,80}（nParam7=shDestSlotPos, nParam8=shSrcSlotPos）。
+// byType==1: 从公会仓库移回背包 - CheckRandomOption 随机项校验 ->
+//   AddItem 失败时 ST_LOG_GAME{4,99} + Kickout(byKickType=21) 返回 false ->
+//   GetSlotItem 取落地物品记录 -> 逐项 SetSocketItem(vtable 0x38, bLoad=0) /
+//   SetBroach(vtable 0xA8) / SetPackageList -> SendCreateItem + SendBreakItem +
+//   SendSocketUpdate + SendBroachUpdate + SendPackageInfo -> ST_LOG_GAME{4,81} ->
+//   CGocAkashicRecord::AddAkashicGetInfo(nOutItemID)。
+// byType==2: 公会仓库内槽位交换 - (0x22,0x54) 发送 psItemMove ->
+//   遍历 psItemLogList 逐条 ST_LOG_GAME{4,82}
+//   （nParam0=itemID, nParam1=count, nParam5=serial, m==1 时 nParam7=shDestSlotPos
+//   否则 shSrcSlotPos, nParam8=pos2, nParam9=nCurIndex）。
+// ============================================================================
+bool CGocInventory::MoveItemToLeagueInven(
+        PS_ITEM_MOVE_LEAGUE_INVEN_FOR_GAME& psItemMoveForServer) {
+    CUser* pUser = GetCUserFromOwner(this);
+    if (!pUser) {
+        return false;
+    }
+    PS_REQ_ITEM_MOVE_LEAGUE_INVEN psItemMove = psItemMoveForServer.psReqItemMoveInfo;
+
+    if (psItemMove.byType == 0) {
+        bool bLock = false;
+        std::shared_ptr<CItem> pSrcItem = GetSlotItem(
+            psItemMove.bySrcInvenType,
+            static_cast<std::uint16_t>(psItemMove.shSrcSlotPos), bLock);
+        if (!pSrcItem) {
+            return false;
+        }
+        std::int16_t shSaveInItemCount = static_cast<std::int16_t>(
+            pSrcItem->GetCount());
+        int nInItemID = pSrcItem->GetID();
+        std::int64_t biInItemSerial = pSrcItem->GetSerial();
+
+        RemoveItem(psItemMove.bySrcInvenType, psItemMove.shSrcSlotPos);
+
+        XSendPacket xSendPacket(0x22, 0x54);
+        xSendPacket << psItemMove;
+        CGocNetwork::Send(m_pOwner, xSendPacket);
+
+        ST_LOG_GAME stLogItem = {};
+        stLogItem._sMainType = 4;
+        stLogItem._sSubType = 80;
+        stLogItem._nUAID = static_cast<int>(pUser->GetUAID());
+        stLogItem._nUCID = static_cast<int>(
+            pUser->GetActorID().dwActorID);
+        stLogItem.nParam0 = nInItemID;
+        stLogItem.nParam1 = shSaveInItemCount;
+        stLogItem.nParam2 = pUser->GetLevel();
+        stLogItem.nParam3 = psItemMove.nLeagueID;
+        stLogItem.nParam5 = static_cast<int>(biInItemSerial);
+        stLogItem.nParam7 = psItemMove.shDestSlotPos;
+        stLogItem.nParam8 = psItemMove.shSrcSlotPos;
+        stLogItem.nParam9 = pSrcItem->GetItemTitleID();
+        XGameServer::Instance()->SendDBLog(stLogItem);
+    } else if (psItemMove.byType == 1) {
+        if (CheckRandomOption(&psItemMoveForServer.psOutItemInfo.stItem)) {
+            LogHelper::LogError("game.item",
+                "MoveItemToLeagueInven - Change item random option(inventory_out) [UCID:%d]",
+                pUser->GetActorID().dwActorID);
+        }
+        STItem stOutItem = psItemMoveForServer.psOutItemInfo.stItem;
+        if (!AddItem(psItemMove.byDestInvenType, psItemMove.shDestSlotPos,
+                     stOutItem, false)) {
+            ST_LOG_GAME stLogGame = {};
+            stLogGame._sMainType = 4;
+            stLogGame._sSubType = 99;
+            stLogGame._nUAID = static_cast<int>(pUser->GetUAID());
+            stLogGame._nUCID = static_cast<int>(
+                pUser->GetActorID().dwActorID);
+            stLogGame.nParam0 = psItemMoveForServer.psOutItemInfo.stItem.nItemID;
+            stLogGame.nParam2 = pUser->GetLevel();
+            stLogGame.nParam3 = psItemMove.nLeagueID;
+            stLogGame.nParam5 = static_cast<int>(
+                psItemMoveForServer.psOutItemInfo.stItem.xSerial);
+            stLogGame.nParam7 = psItemMove.shSrcSlotPos;
+            stLogGame.nParam8 = psItemMove.shDestSlotPos;
+            XGameServer::Instance()->SendDBLog(stLogGame);
+
+            PS_KICK_USER_INFO psKickoutInfo;
+            psKickoutInfo.dwUAID = pUser->GetUAID();
+            psKickoutInfo.byKickType = 21;
+            pUser->Kickout(&psKickoutInfo, false);
+            return false;
+        }
+        bool byLock = false;
+        std::shared_ptr<CItem> pOutItemPtr = GetSlotItem(
+            psItemMove.byDestInvenType,
+            static_cast<std::uint16_t>(psItemMove.shDestSlotPos), byLock);
+        if (!pOutItemPtr) {
+            return false;
+        }
+        int nSaveOutItemCount = pOutItemPtr->GetCount();
+        int nOutItemID = pOutItemPtr->GetID();
+        std::int64_t biOutItemSerial = pOutItemPtr->GetSerial();
+        int nItemTitleID = pOutItemPtr->GetItemTitleID();
+
+        for (std::size_t i = 0;
+             i < psItemMoveForServer.psResItemMoveInfo.psItemSocketList.vecInfo.size();
+             ++i) {
+            pOutItemPtr->SetSocketItem(
+                psItemMoveForServer.psResItemMoveInfo.psItemSocketList.vecInfo[i],
+                false);
+        }
+        for (std::size_t j = 0;
+             j < psItemMoveForServer.psResItemMoveInfo.psItemBroachList.vecInfo.size();
+             ++j) {
+            pOutItemPtr->SetBroach(
+                psItemMoveForServer.psResItemMoveInfo.psItemBroachList.vecInfo[j]);
+        }
+        for (std::size_t k = 0;
+             k < psItemMoveForServer.psResItemMoveInfo.psItemPackageList.vecInfo.size();
+             ++k) {
+            PS_ITEM_PACKAGE psPackage =
+                psItemMoveForServer.psResItemMoveInfo.psItemPackageList.vecInfo[k];
+            pOutItemPtr->SetPackageList(psPackage);
+        }
+
+        PS_RES_STORAGE_INFO stItemList;
+        PS_STORAGE_INFO psCreateItemInfo;
+        psCreateItemInfo.byInvenType = psItemMove.byDestInvenType;
+        psCreateItemInfo.shSlotPos = psItemMove.shDestSlotPos;
+        psCreateItemInfo.stItem = psItemMoveForServer.psOutItemInfo.stItem;
+        stItemList.vecItem.push_back(psCreateItemInfo);
+        SendCreateItem(stItemList);
+        SendBreakItem(psItemMove.bySrcInvenType, psItemMove.shSrcSlotPos);
+
+        PS_ITEM_SOCKET_LIST stSocketListCopy =
+            psItemMoveForServer.psResItemMoveInfo.psItemSocketList;
+        SendSocketUpdate(stSocketListCopy);
+        PS_ITEM_BROACH_LIST stBroachListCopy =
+            psItemMoveForServer.psResItemMoveInfo.psItemBroachList;
+        SendBroachUpdate(stBroachListCopy);
+        PS_ITEM_PACKAGE_LIST stPackageListCopy =
+            psItemMoveForServer.psResItemMoveInfo.psItemPackageList;
+        SendPackageInfo(stPackageListCopy);
+
+        ST_LOG_GAME stLogOut = {};
+        stLogOut._sMainType = 4;
+        stLogOut._sSubType = 81;
+        stLogOut._nUAID = static_cast<int>(pUser->GetUAID());
+        stLogOut._nUCID = static_cast<int>(
+            pUser->GetActorID().dwActorID);
+        stLogOut.nParam0 = nOutItemID;
+        stLogOut.nParam1 = nSaveOutItemCount;
+        stLogOut.nParam2 = pUser->GetLevel();
+        stLogOut.nParam3 = psItemMove.nLeagueID;
+        stLogOut.nParam5 = static_cast<int>(biOutItemSerial);
+        stLogOut.nParam7 = psItemMove.shSrcSlotPos;
+        stLogOut.nParam8 = psItemMove.shDestSlotPos;
+        stLogOut.nParam9 = nItemTitleID;
+        XGameServer::Instance()->SendDBLog(stLogOut);
+
+        CGocAkashicRecord* pAkashicRecordsPtr =
+            pUser->GetGOC<CGocAkashicRecord>();
+        if (pAkashicRecordsPtr) {
+            pAkashicRecordsPtr->AddAkashicGetInfo(nOutItemID);
+        }
+    } else if (psItemMove.byType == 2) {
+        XSendPacket packet(0x22, 0x54);
+        packet << psItemMove;
+        CGocNetwork::Send(m_pOwner, packet);
+
+        ST_LOG_GAME stLogSwap = {};
+        stLogSwap._sMainType = 4;
+        stLogSwap._sSubType = 82;
+        stLogSwap._nUAID = static_cast<int>(pUser->GetUAID());
+        stLogSwap._nUCID = static_cast<int>(
+            pUser->GetActorID().dwActorID);
+        stLogSwap.nParam2 = pUser->GetLevel();
+        stLogSwap.nParam3 = psItemMove.nLeagueID;
+        for (std::size_t m = 0;
+             m < psItemMoveForServer.psItemLogList.vecInfo.size(); ++m) {
+            stLogSwap.nParam0 = psItemMoveForServer.psItemLogList.vecInfo[m].nItemID;
+            stLogSwap.nParam1 = psItemMoveForServer.psItemLogList.vecInfo[m].shItemCount;
+            stLogSwap.nParam5 = static_cast<int>(
+                psItemMoveForServer.psItemLogList.vecInfo[m].biSerial);
+            stLogSwap.nParam7 = psItemMove.shSrcSlotPos;
+            if (m == 1) {
+                stLogSwap.nParam7 = psItemMove.shDestSlotPos;
+            }
+            stLogSwap.nParam8 = psItemMoveForServer.psItemLogList.vecInfo[m].shPos;
+            stLogSwap.nParam9 = psItemMoveForServer.psItemLogList.vecInfo[m].nItemTitleID;
+            XGameServer::Instance()->SendDBLog(stLogSwap);
+        }
+    }
+    return true;
 }
 
 // IDA: 0x1400C9D40
@@ -8070,16 +8164,14 @@ bool CGocInventory::UseGacha(std::uint16_t dwGetID, int nCount,
     return false;
 }
 
-// IDA: 0x1400C0830
-// void __fastcall CGocInventory::SendSocketUpdate(CGocInventory *this, PS_ITEM_SOCKET_LIST *stSocketList)
-// Sends socket update to client (main=8, sub=0x61)
-void CGocInventory::SendSocketUpdate(void* stSocketList) {
-    // IDA Decompiled:
-    // XSendPacket xSendPacket(8, 0x61);
-    // xSendPacket << stSocketList;
-    // CGocNetwork::Send(pActor, &xSendPacket);
-
-    // TODO: 需人工审查 - Implement when PS_ITEM_SOCKET_LIST type available
+// ============================================================================
+// SendSocketUpdate - IDA @ 0x1400C0830
+// 已精确还原 - (8,0x61) 发送 PS_ITEM_SOCKET_LIST 后经 m_pOwner 发包。
+// ============================================================================
+void CGocInventory::SendSocketUpdate(PS_ITEM_SOCKET_LIST stSocketList) {
+    XSendPacket xSendPacket(8, 0x61);
+    xSendPacket << stSocketList;
+    CGocNetwork::Send(m_pOwner, xSendPacket);
 }
 
 // ============================================================================
@@ -9411,51 +9503,34 @@ bool CGocInventory::UseGraveInitItem(std::uint8_t byInvenType, std::int16_t shSl
 // Broach update functions (IDA verified)
 // ============================================================================
 
-// IDA: 0x1400C0910
-// void __fastcall CGocInventory::SendBroachUpdate(
-//         CGocInventory *this, PS_ITEM_BROACH_LIST *stBroachList)
-// Sends broach update packet to client (main=8, sub=0x62)
-void CGocInventory::SendBroachUpdate(void* stBroachList) {
-    // IDA Decompiled:
-    // PS_BROACH_SERIAL_LIST::PS_BROACH_SERIAL_LIST(&psCostumeSerialList);
-    // std::vector<unsigned __int64>::clear(&psCostumeSerialList);
-    // XSendPacket::XSendPacket(&xSendPacket, 8u, 0x62u);
-    // operator<<(&xSendPacket, stBroachList);
-    // operator<<(&xSendPacket, &psCostumeSerialList);
-    //
-    // // Get actor and send packet
-    // pActor = GetActor();
-    // CGocNetwork::Send(pActor, &xSendPacket);
-    //
-    // CWarpPotal::~CWarpPotal(&psCostumeSerialList);
-    // PS_ITEM_BROACH_LIST::~PS_ITEM_BROACH_LIST(stBroachList);
+// ============================================================================
+// SendBroachUpdate - IDA @ 0x1400C0910
+// 已精确还原 - 构造空的 PS_BROACH_SERIAL_LIST，(8,0x62) 依次发送
+// stBroachList 与 psCostumeSerialList 后经 m_pOwner 发包。
+// ============================================================================
+void CGocInventory::SendBroachUpdate(PS_ITEM_BROACH_LIST stBroachList) {
+    PS_BROACH_SERIAL_LIST psCostumeSerialList;
+    psCostumeSerialList.vecInfo.clear();
 
-    // TODO: 需人工审查 - Implement when PS_ITEM_BROACH_LIST/XSendPacket types available
-    (void)stBroachList;
+    XSendPacket xSendPacket(8, 0x62);
+    xSendPacket << stBroachList;
+    xSendPacket << psCostumeSerialList;
+    CGocNetwork::Send(m_pOwner, xSendPacket);
 }
 
 // ============================================================================
 // Package info functions (IDA verified)
 // ============================================================================
 
-// IDA: 0x1400C0A30
-// void __fastcall CGocInventory::SendPackageInfo(
-//         CGocInventory *this, PS_ITEM_PACKAGE_LIST *psPackageList)
-// Sends package info packet to client (main=8, sub=0x72)
-void CGocInventory::SendPackageInfo(void* psPackageList) {
-    // IDA Decompiled:
-    // XSendPacket::XSendPacket(&xSendPacket, 8u, 0x72u);
-    // XParse::operator<<(&xSendPacket.XParse, 1);
-    // operator<<(&xSendPacket, psPackageList);
-    //
-    // // Get actor and send packet
-    // pActor = GetActor();
-    // CGocNetwork::Send(pActor, &xSendPacket);
-    //
-    // PS_ITEM_PACKAGE_LIST::~PS_ITEM_PACKAGE_LIST(psPackageList);
-
-    // TODO: 需人工审查 - Implement when PS_ITEM_PACKAGE_LIST/XSendPacket types available
-    (void)psPackageList;
+// ============================================================================
+// SendPackageInfo - IDA @ 0x1400C0A30
+// 已精确还原 - (8,0x72) 先写 int 1 再写 psPackageList 后经 m_pOwner 发包。
+// ============================================================================
+void CGocInventory::SendPackageInfo(PS_ITEM_PACKAGE_LIST psPackageList) {
+    XSendPacket xSendPacket(8, 0x72);
+    xSendPacket.XParse << 1;
+    xSendPacket << psPackageList;
+    CGocNetwork::Send(m_pOwner, xSendPacket);
 }
 
 // ============================================================================

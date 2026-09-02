@@ -17,6 +17,19 @@
 // League Structures
 // ============================================================================
 
+// 联赛职位权限位 - PDB UDT 0x3916c (E_LEAGUE_POSITION fieldlist)
+enum E_LEAGUE_AUTH {
+    eJoinAuth        = 1,
+    eKickOutAuth     = 2,
+    eStoreInAuth     = 4,
+    eStoreOutAuth    = 8,
+    eNoticeAuth      = 16,
+    eShopAuth        = 32,
+    eSetPositionAuth = 64,
+    eLimitOutAuth    = 128,
+    eRecruitNotice   = 256,
+};
+
 // League member base info (32 bytes)
 struct ST_LEAGUE_MEMBER {
     std::int32_t nLeagueID = 0;
@@ -136,6 +149,37 @@ struct PS_REQ_ITEM_MOVE_LEAGUE_INVEN {
     std::uint8_t _pad1[7] = {};         // offset 0x29, padding to 48 bytes total
 };
 
+// PS_REQ_ITEM_MOVE_LEAGUE_INVEN 反序列化 (IDA operator>> @ 0x140739AD0)
+inline void operator>>(XPacket& packet, PS_REQ_ITEM_MOVE_LEAGUE_INVEN& value) {
+    packet.XParse >> value.nLeagueID;
+    packet.XParse >> value.dwNpcID;
+    packet.XParse >> value.nSrcItemID;
+    packet.XParse >> value.nDestItemID;
+    packet.XParse >> value.bySrcInvenType;
+    packet.XParse >> value.byDestInvenType;
+    packet.XParse >> value.shSrcSlotPos;
+    packet.XParse >> value.shDestSlotPos;
+    packet.XParse >> value.biSrcSerial;
+    packet.XParse >> value.biDestcSerial;
+    packet.XParse >> value.byType;
+}
+
+// PS_REQ_ITEM_MOVE_LEAGUE_INVEN 序列化 (IDA operator<< @ 0x140739990)
+inline XPacket& operator<<(XPacket& packet, PS_REQ_ITEM_MOVE_LEAGUE_INVEN& value) {
+    packet.XParse << value.nLeagueID;
+    packet.XParse << value.dwNpcID;
+    packet.XParse << value.nSrcItemID;
+    packet.XParse << value.nDestItemID;
+    packet.XParse << value.bySrcInvenType;
+    packet.XParse << value.byDestInvenType;
+    packet.XParse << value.shSrcSlotPos;
+    packet.XParse << value.shDestSlotPos;
+    packet.XParse << value.biSrcSerial;
+    packet.XParse << value.biDestcSerial;
+    packet.XParse << value.byType;
+    return packet;
+}
+
 // 联赛仓库物品移动响应参数 (240 bytes, 对齐 IDA PS_RES_ITEM_MOVE_LEAGUE_INVEN)
 struct PS_RES_ITEM_MOVE_LEAGUE_INVEN {
     std::int32_t nLeagueID = 0;         // offset 0x0
@@ -151,17 +195,19 @@ struct PS_RES_ITEM_MOVE_LEAGUE_INVEN {
     PS_ITEM_PACKAGE_LIST psItemPackageList{}; // offset 0xd0, size 32
 };
 
-// 联赛物品移动请求（游戏端）
-struct PS_ITEM_MOVE_LEAGUE_INVEN_FOR_GAME {
-    std::int32_t nErrorCode = 0;
-    std::uint8_t _pad0[4] = {};
-    PS_STORAGE_INFO psStorageInfo{};
-    PS_STORAGE_INFO psOutItemInfo{};
-    PS_RES_ITEM_MOVE_LEAGUE_INVEN psResItemMoveInfo{};
-    std::uint8_t psItemLogList_raw[32] = {};       // PS_LEAGUE_INVENTORY_FOR_LOG_LIST
-    std::int32_t nInventorySync = 0;
-    PS_REQ_ITEM_MOVE_LEAGUE_INVEN psReqItemMoveInfo{};
-};
+// PS_RES_ITEM_MOVE_LEAGUE_INVEN 反序列化 (IDA operator>> @ 0x140758150)
+inline void operator>>(XPacket& packet, PS_RES_ITEM_MOVE_LEAGUE_INVEN& value) {
+    packet.XParse >> value.nLeagueID;
+    packet.XParse >> value.nSrcItemID;
+    packet.XParse >> value.nDestItemID;
+    packet.XParse >> value.shSrcSlotPos;
+    packet.XParse >> value.shDestSlotPos;
+    packet.XParse >> value.byType;
+    packet >> value.stItem;
+    packet >> value.psItemSocketList;
+    packet >> value.psItemBroachList;
+    packet >> value.psItemPackageList;
+}
 
 // 对齐 IDA 0x1400EA170: 联赛仓库日志条目
 struct PS_LEAGUE_INVENTORY_FOR_LOG {
@@ -174,10 +220,29 @@ struct PS_LEAGUE_INVENTORY_FOR_LOG {
     std::int32_t nItemTitleID = 0;
 };
 
-// 对齐 IDA 0x1400EB480: 联赛仓库日志列表
+// 对齐 IDA 0x1400EB480: 联赛仓库日志列表 (PDB UDT 0x71745, 32 bytes)
 struct PS_LEAGUE_INVENTORY_FOR_LOG_LIST {
     std::vector<PS_LEAGUE_INVENTORY_FOR_LOG> vecInfo;
 };
+
+// 联赛物品移动请求（游戏端）- PDB UDT 0x24533, 592 bytes:
+// nErrorCode@0 + pad4 + psStorageInfo@8 + psOutItemInfo@136 +
+// psResItemMoveInfo@264 + psItemLogList@504 + nInventorySync@536 + pad4 +
+// psReqItemMoveInfo@544 (48 bytes)
+struct PS_ITEM_MOVE_LEAGUE_INVEN_FOR_GAME {
+    std::int32_t nErrorCode = 0;
+    std::uint8_t _pad0[4] = {};
+    PS_STORAGE_INFO psStorageInfo{};
+    PS_STORAGE_INFO psOutItemInfo{};
+    PS_RES_ITEM_MOVE_LEAGUE_INVEN psResItemMoveInfo{};
+    PS_LEAGUE_INVENTORY_FOR_LOG_LIST psItemLogList{};
+    std::int32_t nInventorySync = 0;
+    std::uint8_t _pad1[4] = {};
+    PS_REQ_ITEM_MOVE_LEAGUE_INVEN psReqItemMoveInfo{};
+};
+
+static_assert(sizeof(PS_ITEM_MOVE_LEAGUE_INVEN_FOR_GAME) == 592,
+              "PS_ITEM_MOVE_LEAGUE_INVEN_FOR_GAME size must match PDB UDT 0x24533");
 
 // League board (192 bytes)
 struct ST_LEAGUE_BOARD {
@@ -297,6 +362,17 @@ struct PS_REQ_LEAGUE_CARD {
     std::int32_t nResult = 0;
 };
 
+// League name change request (28 bytes) - PDB UDT 0x2f4b0 fieldlist 0x2f4af:
+// nLeagueID +0, psChangeItemInfo(PS_ITEM_SLOT_INFO) +4, szLeagueName[10] +8
+struct PS_REQ_LEAGUE_NAME_CHANGE {
+    std::int32_t nLeagueID = 0;
+    PS_ITEM_SLOT_INFO psChangeItemInfo{};
+    wchar_t szLeagueName[10] = {};
+};
+
+static_assert(sizeof(PS_REQ_LEAGUE_NAME_CHANGE) == 28,
+              "PS_REQ_LEAGUE_NAME_CHANGE size must match PDB UDT 0x2f4b0");
+
 // League name change for server (80 bytes)
 struct PS_LEAGUE_NAME_CHANGE_SERVER {
     std::uint32_t dwUCID = 0;
@@ -354,14 +430,16 @@ struct PS_RES_LEAGUE_DELEGATE {
     std::int32_t nResult = 0;
 };
 
-// League change name response (50 bytes)
+// League change name response (28 bytes) - PDB UDT 0x242b4:
+// nLeagueID(int,0x0) + szLeagueName[10](wchar_t,0x4) + nResult(int,0x18)
 struct PS_RES_LEAGUE_NAME_CHANGE {
     std::int32_t nLeagueID = 0;
-    std::uint32_t dwUCID = 0;
-    wchar_t szOldName[10] = {};   // 原公会名
-    wchar_t szNewName[10] = {};   // 新公会名
+    wchar_t szLeagueName[10] = {};
     std::int32_t nResult = 0;
 };
+
+static_assert(sizeof(PS_RES_LEAGUE_NAME_CHANGE) == 28,
+              "PS_RES_LEAGUE_NAME_CHANGE size must match PDB UDT 0x242b4");
 
 // League applicant accept response (8 bytes) - PDB UDT 0x24460
 struct PS_RES_LEAGUE_ACCEPT_ACCPLICANT {
@@ -532,45 +610,6 @@ struct PS_SERVER_CHANGE_CHARACTER_NAME {
 // ============================================================================
 // League Serialization Operators
 // ============================================================================
-
-// 联赛仓库移动请求反序列化
-inline void operator>>(XPacket& packet, PS_ITEM_MOVE_LEAGUE_INVEN_FOR_GAME& value) {
-    packet.XParse >> value.nErrorCode;
-    packet.XParse.GetBytes(reinterpret_cast<char*>(value._pad0), sizeof(value._pad0));
-    packet >> value.psStorageInfo;
-    packet >> value.psOutItemInfo;
-    packet.XParse.GetBytes(reinterpret_cast<char*>(&value.psResItemMoveInfo), sizeof(value.psResItemMoveInfo));
-    packet.XParse.GetBytes(reinterpret_cast<char*>(value.psItemLogList_raw), sizeof(value.psItemLogList_raw));
-    packet.XParse >> value.nInventorySync;
-    packet.XParse.GetBytes(reinterpret_cast<char*>(&value.psReqItemMoveInfo), sizeof(value.psReqItemMoveInfo));
-}
-
-// 联赛仓库移动请求序列化（用于 DB 包）
-// 对齐 IDA: 先写 nErrorCode，再写其余字段
-inline XSendDBPacket& operator<<(XSendDBPacket& packet, const PS_ITEM_MOVE_LEAGUE_INVEN_FOR_GAME& value) {
-    packet.XParse << value.nErrorCode;
-    packet.XParse.GetBytes(const_cast<char*>(reinterpret_cast<const char*>(value._pad0)), sizeof(value._pad0));
-    packet << value.psStorageInfo;
-    packet << value.psOutItemInfo;
-    packet.XParse.GetBytes(const_cast<char*>(reinterpret_cast<const char*>(&value.psResItemMoveInfo)), sizeof(value.psResItemMoveInfo));
-    packet.XParse.GetBytes(const_cast<char*>(reinterpret_cast<const char*>(value.psItemLogList_raw)), sizeof(value.psItemLogList_raw));
-    packet.XParse << value.nInventorySync;
-    packet.XParse.GetBytes(const_cast<char*>(reinterpret_cast<const char*>(&value.psReqItemMoveInfo)), sizeof(value.psReqItemMoveInfo));
-    return packet;
-}
-
-// 联赛仓库移动请求序列化（用于 SendPacket）
-inline XPacket& operator<<(XPacket& packet, const PS_ITEM_MOVE_LEAGUE_INVEN_FOR_GAME& value) {
-    packet.XParse << value.nErrorCode;
-    packet.XParse.GetBytes(const_cast<char*>(reinterpret_cast<const char*>(value._pad0)), sizeof(value._pad0));
-    packet << value.psStorageInfo;
-    packet << value.psOutItemInfo;
-    packet.XParse.GetBytes(const_cast<char*>(reinterpret_cast<const char*>(&value.psResItemMoveInfo)), sizeof(value.psResItemMoveInfo));
-    packet.XParse.GetBytes(const_cast<char*>(reinterpret_cast<const char*>(value.psItemLogList_raw)), sizeof(value.psItemLogList_raw));
-    packet.XParse << value.nInventorySync;
-    packet.XParse.GetBytes(const_cast<char*>(reinterpret_cast<const char*>(&value.psReqItemMoveInfo)), sizeof(value.psReqItemMoveInfo));
-    return packet;
-}
 
 // PS_RES_LEAGUE_SKILL 序列化
 inline XPacket& operator<<(XPacket& packet, const PS_RES_LEAGUE_SKILL& value) {
@@ -882,6 +921,52 @@ inline XSendPacket& operator<<(XSendPacket& packet, const PS_SYNC_LEAGUE_INFO& v
     return packet;
 }
 
+// PS_RES_LEAGUE_NAME_CHANGE 序列化运算符 (GameServer (0x22,0x58) 发送链)
+inline XSendPacket& operator<<(XSendPacket& packet, const PS_RES_LEAGUE_NAME_CHANGE& value) {
+    packet.XParse << value.nLeagueID;
+    packet.XParse << GreenDamTan_BoundedWideString(value.szLeagueName);
+    packet.XParse << value.nResult;
+    return packet;
+}
+
+// PS_RES_ITEM_MOVE_LEAGUE_INVEN 序列化运算符 (IDA operator<< @ 0x140758040)
+inline XPacket& operator<<(XPacket& packet, PS_RES_ITEM_MOVE_LEAGUE_INVEN& value) {
+    packet.XParse << value.nLeagueID;
+    packet.XParse << value.nSrcItemID;
+    packet.XParse << value.nDestItemID;
+    packet.XParse << value.shSrcSlotPos;
+    packet.XParse << value.shDestSlotPos;
+    packet.XParse << value.byType;
+    packet << value.stItem;
+    packet << value.psItemSocketList;
+    packet << value.psItemBroachList;
+    packet << value.psItemPackageList;
+    return packet;
+}
+
+// 联赛仓库移动请求反序列化 (IDA operator>> @ 0x140758330)
+inline void operator>>(XPacket& packet, PS_ITEM_MOVE_LEAGUE_INVEN_FOR_GAME& value) {
+    packet.XParse >> value.nErrorCode;
+    packet >> value.psStorageInfo;
+    packet >> value.psOutItemInfo;
+    packet >> value.psResItemMoveInfo;
+    packet >> value.psItemLogList;
+    packet.XParse >> value.nInventorySync;
+    packet >> value.psReqItemMoveInfo;
+}
+
+// 联赛仓库移动请求序列化（用于 SendPacket, IDA operator<< @ 0x140758260）
+inline XPacket& operator<<(XPacket& packet, PS_ITEM_MOVE_LEAGUE_INVEN_FOR_GAME& value) {
+    packet.XParse << value.nErrorCode;
+    packet << value.psStorageInfo;
+    packet << value.psOutItemInfo;
+    packet << value.psResItemMoveInfo;
+    packet << value.psItemLogList;
+    packet.XParse << value.nInventorySync;
+    packet << value.psReqItemMoveInfo;
+    return packet;
+}
+
 // PS_SYNC_LEAGUE_INFO XPacket 序列化运算符
 inline XPacket& operator<<(XPacket& packet, const PS_SYNC_LEAGUE_INFO& value) {
     packet.XParse << value.nLeagueID;
@@ -991,6 +1076,22 @@ inline void operator>>(XPacket& packet, ST_LEAGUE_NOTICE& value) {
     packet.XParse >> value.nResult;
 }
 
+// ST_LEAGUE_MEMBER_UPDATE 输入反序列化
+// IDA: ??5@YAAEAVXPacket@@AEAV0@AEAUST_LEAGUE_MEMBER_UPDATE@@@Z (0x140756BE0)
+inline void operator>>(XPacket& packet, ST_LEAGUE_MEMBER_UPDATE& value) {
+    packet.XParse >> value.nLeagueID;
+    packet.XParse >> value.dwActorID;
+    packet.XParse >> value.bLogin;
+    packet.XParse >> value.byLevel;
+    packet.XParse >> value.sWorld;
+    packet.XParse >> value.biPlayDate;
+    short outLen = 0;
+    packet.XParse.GetWString(value.szName, 21, outLen);
+    packet.XParse >> value.byChannel;
+    packet.XParse >> value.byAwaken;
+    packet.XParse >> value.dwProfilePhotoID;
+}
+
 // PS_LEAGUE_NAME_CHANGE_SERVER 输入反序列化
 inline void operator>>(XPacket& packet, PS_LEAGUE_NAME_CHANGE_SERVER& value) {
     packet.XParse >> value.dwUCID;
@@ -1001,6 +1102,22 @@ inline void operator>>(XPacket& packet, PS_LEAGUE_NAME_CHANGE_SERVER& value) {
     packet.XParse >> value.dwServerID;
     packet.XParse >> value.nSysnCount;
     packet.XParse >> value.nResult;
+}
+
+// PS_ITEM_SLOT_INFO 输入反序列化
+// IDA 0x140736BA0: 逐字段 byInvenType(uchar) + shSlotPos(short)，跳过 +1 padding
+inline void operator>>(XPacket& packet, PS_ITEM_SLOT_INFO& value) {
+    packet.XParse >> value.byInvenType;
+    packet.XParse >> value.shSlotPos;
+}
+
+// PS_REQ_LEAGUE_NAME_CHANGE 输入反序列化
+// IDA 0x140758900: nLeagueID + PS_ITEM_SLOT_INFO + GetWString(szLeagueName,10)
+inline void operator>>(XPacket& packet, PS_REQ_LEAGUE_NAME_CHANGE& value) {
+    packet.XParse >> value.nLeagueID;
+    packet >> value.psChangeItemInfo;
+    short outLen = 0;
+    packet.XParse.GetWString(value.szLeagueName, 10, outLen);
 }
 
 // ST_LEAGUE_POSITION_NAME_CHANGE 输入反序列化
@@ -1180,6 +1297,26 @@ inline XPacket& operator<<(XPacket& packet, const ST_LEAGUE_RECORD& value) {
     return packet;
 }
 
+// ST_LEAGUE_INFO_EX 输入反序列化
+// 对齐 IDA 0x140756EC0: dwUCID + nLeagueID + union ___u3 + szLeagueName(10)
+inline void operator>>(XPacket& packet, ST_LEAGUE_INFO_EX& value) {
+    packet.XParse >> value.dwUCID;
+    packet.XParse >> value.nLeagueID;
+    packet.XParse >> value.dwLeagueCard;
+    short outLen = 0;
+    packet.XParse.GetWString(value.szLeagueName, 10, outLen);
+}
+
+// ST_LEAGUE_INFO_FOR_GAME 输入反序列化
+// 对齐 IDA 0x140757EE0: dwMasterUCID + byLeagueLevel + byPosition + bySkillInfo[8] + nAuth[9]
+inline void operator>>(XPacket& packet, ST_LEAGUE_INFO_FOR_GAME& value) {
+    packet.XParse >> value.dwMasterUCID;
+    packet.XParse >> value.byLeagueLevel;
+    packet.XParse >> value.byPosition;
+    for (int i = 0; i < 8; ++i) packet.XParse >> value.bySkillInfo[i];
+    for (int j = 0; j < 9; ++j) packet.XParse >> value.nAuth[j];
+}
+
 // ST_LEAGUE_INFO_FOR_GAME 输出序列化
 inline XPacket& operator<<(XPacket& packet, const ST_LEAGUE_INFO_FOR_GAME& value) {
     packet.XParse << value.dwMasterUCID;
@@ -1324,6 +1461,15 @@ inline XPacket& operator<<(XPacket& packet, const PS_REQ_LEAGUE_DELEGATE& value)
     return packet;
 }
 
+// PS_RES_LEAGUE_DELEGATE 输入反序列化
+inline void operator>>(XPacket& packet, PS_RES_LEAGUE_DELEGATE& value) {
+    short outLen = 0;
+    packet.XParse >> value.nLeagueID;
+    packet.XParse.GetWString(value.szDelegatedName, 21, outLen);
+    packet.XParse.GetWString(value.szDelegateName, 21, outLen);
+    packet.XParse >> value.nResult;
+}
+
 // PS_RES_LEAGUE_DELEGATE 输出序列化
 inline XPacket& operator<<(XPacket& packet, const PS_RES_LEAGUE_DELEGATE& value) {
     packet.XParse << value.nLeagueID;
@@ -1421,20 +1567,49 @@ inline XPacket& operator<<(XPacket& packet, const ST_LEAGUE_APPLICANT_CHECK_LIST
 // 联赛列表结构反序列化运算符（从 LeagueManager.h 迁移）
 // ============================================================================
 
+// IDA: ??5@YAAEAVXPacket@@AEAV0@AEAUST_LEAGUE_MEMBER_LIST@@@Z (0x1407565A0)
+// 原始实现读取局部 cCount 后逐项 push_back，不回写 nCount。
 inline void operator>>(XPacket& packet, ST_LEAGUE_MEMBER_LIST& value) {
-    packet.XParse >> value.nCount;
+    int cCount = 0;
+    packet.XParse >> cCount;
+    for (int c = 0; c < cCount; ++c) {
+        ST_LEAGUE_MEMBER_EX stMemberEx;
+        packet >> stMemberEx;
+        value.vecInfo.push_back(stMemberEx);
+    }
 }
 
+// IDA: ??5@YAAEAVXPacket@@AEAV0@AEAUST_LEAGUE_BOARD_LIST@@@Z (0x140755BD0)
 inline void operator>>(XPacket& packet, ST_LEAGUE_BOARD_LIST& value) {
-    packet.XParse >> value.nCount;
+    int cCount = 0;
+    packet.XParse >> cCount;
+    for (int c = 0; c < cCount; ++c) {
+        ST_LEAGUE_BOARD stLeagueBoard;
+        packet >> stLeagueBoard;
+        value.vecInfo.push_back(stLeagueBoard);
+    }
 }
 
+// IDA: ??5@YAAEAVXPacket@@AEAV0@AEAUST_LEAGUE_APPLICANT_LIST@@@Z (0x140754CA0)
 inline void operator>>(XPacket& packet, ST_LEAGUE_APPLICANT_LIST& value) {
-    packet.XParse >> value.nCount;
+    int cCount = 0;
+    packet.XParse >> cCount;
+    for (int c = 0; c < cCount; ++c) {
+        ST_LEAGUE_APPLICANT stLeagueApplicant;
+        packet >> stLeagueApplicant;
+        value.vecInfo.push_back(stLeagueApplicant);
+    }
 }
 
+// IDA: ??5@YAAEAVXPacket@@AEAV0@AEAUST_LEAGUE_RECORD_LIST@@@Z (0x140757460)
 inline void operator>>(XPacket& packet, ST_LEAGUE_RECORD_LIST& value) {
-    packet.XParse >> value.nCount;
+    int cCount = 0;
+    packet.XParse >> cCount;
+    for (int c = 0; c < cCount; ++c) {
+        ST_LEAGUE_RECORD stInfo;
+        packet >> stInfo;
+        value.vecInfo.push_back(stInfo);
+    }
 }
 
 inline void operator>>(XPacket& packet, ST_LEAGUE_APPLICANT_CHECK_LIST& value) {

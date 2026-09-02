@@ -11,6 +11,7 @@
 class XRelaySocket;
 class XPacket;
 class CUser;
+struct ST_CREATE_MAZE;
 
 // XRelaySocket 存根 - 用于 GameServer 连接到 RelayServer
 class XRelaySocket : public XIOCPClient {
@@ -30,6 +31,19 @@ public:
     static void AddUserCount(int nCount) {
         // TODO: 对齐 IDA 实现 - 通知 RelayServer 用户数变化
     }
+
+    // IDA: ?IsReady@XRelaySocket@@QEAA_NXZ (PDB S_GPROC32 [0001:0077B440], Cb=24)
+    // 查询与 RelayServer 的连接是否就绪（XForceProcess 匹配链 50003 门控）。
+    // 连接管理未还原，活跃层暂返回 false，匹配进入按 50003 拒绝。
+    // TODO: 需人工审查 - 连接状态管理未还原
+    bool IsReady() {
+        return false;
+    }
+
+    // SendCreateMazeReq - 发送创建迷宫请求 (0xF2, 0x21) ST_CREATE_MAZE
+    // IDA: ?SendCreateMazeReq@XRelaySocket@@QEAAXAEAUST_CREATE_MAZE@@@Z @ 0x14077C390
+    //      (CParty::CreateMazeReq 0x1403AAD60 / CForce::CreateMazeReq 0x1401BBC90 调用)
+    void SendCreateMazeReq(ST_CREATE_MAZE& stCreateMaze);
 };
 
 // CCommunitySocket - Community Socket

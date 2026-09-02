@@ -86,6 +86,11 @@ public:
     // IDA: ?SetInfo@XActor@@UEAAXXZ
     virtual void SetInfo() {}
 
+    // 设置信息数据包 (虚函数，基类空实现)
+    // IDA: ?SetInfoPacket@XActor@@UEAAXAEAVXSendPacket@@@Z @ 0x14018E110
+    // (folded COMDAT: 与 CItem::GetSocketList 等共享同一 no-op 体)
+    virtual void SetInfoPacket(XSendPacket& xSendPacket) { (void)xSendPacket; }
+
     // IDA: ?SendWorldEventBooster@XActor@@UEAAXK_J@Z (0x140188CF0)
     virtual void SendWorldEventBooster(unsigned long dwBuffID, std::int64_t biEndDate);
     // IDA: ?SendTimeEvent@XActor@@UEAAXAEAUST_GM_TIME_EVENT_INFO@@@Z

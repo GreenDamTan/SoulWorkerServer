@@ -1480,7 +1480,8 @@ bool CMover::CheckReactionTarget(int iTargetType, CMover* pTargetMover, bool bCh
 // IDA 精确还原 - 移动到指定位置
 std::uint16_t CMover::Move(hkvVec3& vNextPos, float fRot) {
     if (m_pArea) {
-        m_pArea->MoveActor(this, &vNextPos, fRot);
+        // Per PDB: MoveActor 参数为 XVec3& (布局与 hkvVec3 等价)
+        m_pArea->MoveActor(this, *reinterpret_cast<XVec3*>(&vNextPos), fRot);
     } else {
         LogHelper::LogDebug("game.contents", "No Area when send move!!");
     }
@@ -3964,6 +3965,36 @@ void CMover::SetupAnimation() {
     // 3. XActionResMgr::SetAnimInfoToActor 设置动画信息
     // 4. SetupAnimInfo 设置动画信息
     // 5. GetAnimIndex(18, 2, 1) 获取受击动画数量
+}
+
+// ============================================================================
+// CMover::send_eSUB_CMD_MOVE_INFO
+// IDA: ?send_eSUB_CMD_MOVE_INFO@CMover@@QEAAXPEAV1@KK@Z @ 0x14036FEF0
+// IDA 精确还原 - 发送移动信息数据包 (5,0xD):
+// pMover 的 ActorID 转 QuestID + dwType + dwVal ->
+// SendBroadCastAfterLoading(this, packet, 0)
+// ============================================================================
+void CMover::send_eSUB_CMD_MOVE_INFO(CMover* pMover, std::uint32_t dwType, std::uint32_t dwVal) {
+    XSendPacket xPacket(5, 0xD);
+    int nQuestID = CQuestCondition::GetQuestID(pMover->GetActorID());
+    xPacket.XParse << nQuestID;
+    xPacket.XParse << dwType;
+    xPacket.XParse << dwVal;
+    CGocNetwork::SendBroadCastAfterLoading(this, xPacket, static_cast<E_BROADCAST_TYPE>(0));
+}
+
+// ============================================================================
+// CMover::SyncMove
+// IDA: ?SyncMove@CMover@@QEAAXXZ @ 0x14036EA30
+// 已精确还原 - m_stMovePos 非 Zero 时:
+// byRunBit = IsStatus(0x100) ->
+// send_eSUB_CMD_MOVE(this, m_stMovePos.x, m_stMovePos.y, byRunBit)
+// ============================================================================
+void CMover::SyncMove() {
+    if (!m_stMovePos.IsZero()) {
+        bool byRunBit = IsStatus(0x100u);
+        send_eSUB_CMD_MOVE(this, m_stMovePos.x, m_stMovePos.y, byRunBit);
+    }
 }
 
 // ============================================================================

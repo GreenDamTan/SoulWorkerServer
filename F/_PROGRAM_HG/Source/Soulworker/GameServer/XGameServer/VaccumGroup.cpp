@@ -131,7 +131,7 @@ bool CVaccumGroup::AddVaccumCube(UXActorID uxActor, VInterActionBoxInfo* pInfo) 
     }
     else {
         // IDA: LogHelper::LogError("game.contents", "<VACCUM> Failed Create Vaccum %d!", pInfo->iID);
-        GreenDamTan_log(__FILE__, __FUNCTION__, "<VACCUM> Failed Create Vaccum %d!", pInfo->GetID());
+        GreenDamTan_log(__FILE__, __FUNCTION__, "<VACCUM> Failed Create Vaccum %d!", pInfo->iID);
         return false;
     }
 }

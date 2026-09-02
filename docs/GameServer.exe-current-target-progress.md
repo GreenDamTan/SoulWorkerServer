@@ -16944,3 +16944,20 @@ Validate the current GameServer.exe reconstruction worktree before the user-auth
 - MILESTONE: all 22 ForceProcess dispatch cases now have real IDA-derived implementations; the force subsystem community-socket surface is complete (only deep dependencies remain: XForceProcess class for MatchingCheck's CheckForceMatchingEnterUser TODO call site, and ThreadLocalData 0x1450 layout for CreateMatchingMaze's stub).
 - Ledgers: func-index 4 rows updated (3 handlers + SendForceInfo with stale-row correction note). type-index: no changes this round. path-recovery-index: no changes this round.
 - Next batch options: XForceProcess class restore (process/ForceProcess.cpp, 26+ functions); league handler chain (RecvCreateLeague etc. are TODO stubs); ThreadLocalData 0x1450 layout batch.
+
+[2026-09-02 15:21:00 +0800] [deepseek-v4-flash]
+### Task #117: XForceProcess class landing + CheckForceMatchingEnterUser + 2 support functions
+- Target: GameServer.exe; IDA MCP port 10004; model deepseek-v4-flash; local offset +08:00.
+- NEW FILES: process/ForceProcess.h/cpp (XForceProcess : TXProcess<CUser>, main cmd 0x2E), wired into CMakeLists. Source ownership from PDB cvdump: process/forceprocess.cpp, MD5 0CE935F8D4EFBEDB2196DCD00B793D89 (module ForceProcess.obj).
+- Implemented exactly from IDA:
+  - XForceProcess ctor/dtor (0x140430B00/0x140430BC0) - trivial.
+  - XForceProcess::Parse (0x140430BF0): 9-case subcmd dispatch restored.
+  - XForceProcess::CheckForceMatchingEnterUser (0x140435020): full 10-stage validation chain - null user 51001; GetTB_MAZE_INFO miss 55008; unequipped soul weapon (dwItemID==-1) 53136; NeedItem check via GetTB_ITEM/GetTB_ITEM_CLASSIFY/GetTBInvenPtr/GetSameItems_2 accumulation with SetMazeNeedItemID on success, fail 55035 + item ID; CUser::CheckMazeEnterCount; NeedQuest FindEpisode-or-IsCompleteEpisode 55037; IsClearMaze(Check_Clear_Maze) 53127; Req_Min_Lv 53123; Fatigue_Point CanUseFP 55044; trade state 55002; social-item type-3 in district 55093.
+- Support functions landed:
+  - CUser::CheckMazeEnterCount (0x140700C30): PC-room (GetNetCafe && Maze_Enter_Count_PC_Room) and normal (Maze_Enter_Count + GetMazeEnterPlusDayCount) daily limits; Maze_Type==2 aggregates via CGocRecode::GetDailyBaseMazeID (7-arg decorated _NGG_NAEAGAEAEAEAH); base error 55053, missing-record 53138.
+  - XResourceMgr::GetMazeEnterPlusDayCount (0x1408D6520): day-of-week bitmask bonus, pre-9am counts as previous day; cross-platform via localtime_s/localtime_r per the platform compat rule; landed in TB_MAZE_INFO.h fragment (XRES sections).
+- RecvForceMatchingCheck (0x140216CC0) TODO call site now LIVE: pUser->GetProcessPtr<XForceProcess>(0x2E) -> CheckForceMatchingEnterUser; the 14 documented stubs in ForceProcess.cpp keep the class linkable (ctor/Parse/CheckForceMatchingEnterUser real, 10 Req*/Check stubs).
+- Truthfulness correction: 10 XForceProcess Req* rows (ReqForceInvite/Accept/ChangeMaster/KickOut/Leave/Cancel/MatchingEnter/MatchingExit/MatchingCheck + CheckForceMatchingEnter) previously recorded implemented with NO source; func-index corrected to blocked with the stub note. Two rows also had malformed decorated names from the batch fix; both corrected to their true _NXZ (no-arg) forms.
+- Build: cmake --build build --target GameServer -j1 clean. Smoke: GREENDAMTAN_AUTOSTOP_MS=5000 exit 0.
+- Ledgers: func-index 16 rows updated (6 implemented + 10 corrected-to-blocked stub rows). type-index: +1 XForceProcess row (field_count 12, size TBD, blocked). path-recovery-index: +pending next entry (process/ForceProcess.cpp PDB ownership row to add).
+- Next batch: restore the 10 stubbed XForceProcess handlers from IDA (ReqForceInvite 0x140430D40 first); add path-index row for ForceProcess.cpp.

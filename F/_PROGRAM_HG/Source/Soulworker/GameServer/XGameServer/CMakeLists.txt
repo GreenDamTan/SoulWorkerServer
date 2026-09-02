@@ -56,6 +56,7 @@ add_executable(GameServer
     Process/LoginProcess.cpp
     Process/MonsterProcess.cpp
     Process/ItemProcess.cpp
+    Process/ForceProcess.cpp
     actor/component/gocattribute.cpp
     actor/component/gocskill.cpp
     actor/component/gocinventory.cpp

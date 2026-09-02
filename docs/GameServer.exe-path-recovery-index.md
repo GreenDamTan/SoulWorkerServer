@@ -82,3 +82,5 @@
 | Soulworker/GameServer/XGameServer/Force/ForceMember.h | XGameServer/CForce.h | CForceMember.h | GameServer PDB cvdump lines xgameserver force forcemember.h (MD5 6D38C534C67576510136202405F6CAA0); current landing merged into CForce.h, differs from original PDB path + current-target | no |
 | Soulworker/GameServer/XGameServer/Party/Party.cpp | XGameServer/CParty.cpp | CParty.cpp | GameServer PDB module `XGameServer\Party.obj` + cvdump lines for `xgameserver\party\party.cpp`; current landing CParty.cpp differs from original PDB path + current-target | no |
 | Soulworker/GameServer/XGameServer/Party/Party.h | XGameServer/CParty.h | CParty.h | GameServer PDB module `XGameServer\Party.obj` headers; current landing CParty.h differs from original PDB path + current-target | no |
+
+| Soulworker/GameServer/XGameServer/Process/ForceProcess.cpp | XGameServer/process/ForceProcess.cpp | ForceProcess.cpp | GameServer PDB module XGameServer/ForceProcess.obj + cvdump lines xgameserver/process/forceprocess.cpp (MD5 0CE935F8D4EFBEDB2196DCD00B793D89) + current-target | yes |

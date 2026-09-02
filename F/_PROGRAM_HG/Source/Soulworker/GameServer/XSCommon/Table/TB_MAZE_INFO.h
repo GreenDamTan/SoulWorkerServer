@@ -70,6 +70,8 @@ static_assert(sizeof(TB_MAZE_INFO) == 0x67B, "TB_MAZE_INFO size mismatch with ID
 #if defined(GREENDAMTAN_TB_XRES_PUBLIC_DECL_SECTION)
     TB_MAZE_INFO* GetTB_MAZE_INFO(std::uint16_t index) ;
     void SetTB_MAZE_INFO(std::uint16_t index, const TB_MAZE_INFO& row) ;
+    // IDA: ?GetMazeEnterPlusDayCount@XResourceMgr@@QEAAEG@Z @ 0x1408D6520
+    std::uint8_t GetMazeEnterPlusDayCount(std::uint16_t wMazeID) ;
 #endif
 
 #if defined(GREENDAMTAN_TB_XRES_PRIVATE_DECL_SECTION)
@@ -85,6 +87,54 @@ TB_MAZE_INFO* XResourceMgr::GetTB_MAZE_INFO(std::uint16_t index) {
 
 void XResourceMgr::SetTB_MAZE_INFO(std::uint16_t index, const TB_MAZE_INFO& row) {
         m_mapTB_MAZE_INFO[index] = row;
+    }
+
+// IDA: ?GetMazeEnterPlusDayCount@XResourceMgr@@QEAAEG@Z @ 0x1408D6520
+// 按星期位掩码返回当日额外迷宫进入次数：本地时间 9 点前按前一天计算。
+std::uint8_t XResourceMgr::GetMazeEnterPlusDayCount(std::uint16_t wMazeID) {
+        TB_MAZE_INFO* pMazeInfo = GetTB_MAZE_INFO(wMazeID);
+        if (!pMazeInfo || !pMazeInfo->Maze_Enter_Count || !pMazeInfo->Maze_Enter_Plus_Value) {
+            return 0;
+        }
+        std::int64_t nTime = static_cast<std::int64_t>(std::time(nullptr));
+        bool bBackOneDay = true;
+        std::tm Tm = {};
+#ifdef _WIN32
+        const time_t tNow = static_cast<time_t>(nTime);
+        if (localtime_s(&Tm, &tNow) == 0 && Tm.tm_hour >= 9) {
+            bBackOneDay = false;
+        }
+#else
+        const time_t tNow = static_cast<time_t>(nTime);
+        if (localtime_r(&tNow, &Tm) != nullptr && Tm.tm_hour >= 9) {
+            bBackOneDay = false;
+        }
+#endif
+        if (bBackOneDay) {
+            // IDA: localtime 失败或 9 点前回退一天
+            nTime -= 86400;
+        }
+        std::tm Tm2 = {};
+#ifdef _WIN32
+        const time_t tAdj = static_cast<time_t>(nTime);
+        if (localtime_s(&Tm2, &tAdj) != 0) {
+            return 0;
+        }
+#else
+        const time_t tAdj = static_cast<time_t>(nTime);
+        if (localtime_r(&tAdj, &Tm2) == nullptr) {
+            return 0;
+        }
+#endif
+        const std::uint8_t byDay = static_cast<std::uint8_t>(Tm2.tm_wday + 1);
+        if (byDay == 0) {
+            return 0;
+        }
+        const std::uint8_t byDayBit = static_cast<std::uint8_t>(1u << (byDay - 1));
+        if (byDayBit & pMazeInfo->Maze_Enter_Plus_Day) {
+            return pMazeInfo->Maze_Enter_Plus_Value;
+        }
+        return 0;
     }
 
 std::int64_t XResourceMgr::LoadTBMazeInfoDB() {

@@ -30,6 +30,7 @@
 #include "Soulworker/GameServer/XGameServer/actor/component/GocInventory.h"
 #include "Soulworker/GameServer/XGameServer/actor/component/GocQuest.h"
 #include "Soulworker/GameServer/XGameServer/actor/component/GocForce.h"
+#include "Soulworker/GameServer/XGameServer/process/ForceProcess.h"
 #include "Soulworker/GameServer/XGameServer/actor/component/GocNetwork.h"
 #include "Soulworker/GameServer/XGameServer/actor/component/GocPost.h"
 #include "Soulworker/GameServer/XGameServer/BattleZone.h"
@@ -4225,10 +4226,11 @@ bool CCommunitySocket::RecvForceMatchingCheck(XPacket* xPacket) {
 
         // Per IDA: XClient::GetProcessPtr<XForceProcess>(0x2E) 后
         // CheckForceMatchingEnterUser(pUser, dwMazeID, &nError, &nNeedItemID)
-        // TODO: 需人工审查 - XForceProcess 类（process/ForceProcess.cpp, PDB MD5 0CE935F8D4EFBEDB2196DCD00B793D89）
-        // 尚未还原到源码树；CheckForceMatchingEnterUser @ 0x140435020 待其落地后接入
-        // XForceProcess* pProcess = pUser->GetProcessPtr<XForceProcess>(0x2E);
-        // if (pProcess) pProcess->CheckForceMatchingEnterUser(pUser, dwMazeID, &nError, &nNeedItemID);
+        XForceProcess* pProcess = pUser->GetProcessPtr<XForceProcess>(0x2E);
+        if (pProcess) {
+            pProcess->CheckForceMatchingEnterUser(pUser, static_cast<std::uint16_t>(dwMazeID),
+                                                   nError, &nNeedItemID);
+        }
 
         if (nError) {
             if (nError == 55035) {

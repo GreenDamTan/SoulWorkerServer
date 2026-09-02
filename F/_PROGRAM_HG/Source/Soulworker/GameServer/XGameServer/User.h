@@ -466,6 +466,10 @@ public:
     bool SendErrorMessage(std::uint8_t ucMainCmd, std::uint8_t ucSubCmd,
                           std::uint16_t xErrorCode, std::uint32_t dwUCID);
 
+    // CheckMazeEnterCount - 检查每日/PC 房迷宫进入次数限制
+    // IDA: ?CheckMazeEnterCount@CUser@@QEAA_NPEAUTB_MAZE_INFO@@AEAH@Z @ 0x140700C30
+    bool CheckMazeEnterCount(struct TB_MAZE_INFO* pMazeData, int& nErrorID);
+
     // SendChatNotify - 0x1406FA5C0
     // Sends chat notification packet (main 7, sub 5)
     void SendChatNotify(int nType, int nValue);

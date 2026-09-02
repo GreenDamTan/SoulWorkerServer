@@ -306,6 +306,90 @@ bool CUser::SendErrorMessage(std::uint8_t ucMainCmd, std::uint8_t ucSubCmd,
     return true;
 }
 
+// CheckMazeEnterCount - IDA: ?CheckMazeEnterCount@CUser@@QEAA_NPEAUTB_MAZE_INFO@@AEAH@Z @ 0x140700C30
+// 精确还原: 校验每日迷宫进入次数（普通/PC 房两组），Maze_Type==2 走基础迷宫聚合。
+bool CUser::CheckMazeEnterCount(TB_MAZE_INFO* pMazeData, int& nErrorID) {
+    nErrorID = 55053;
+    if (!pMazeData) {
+        return false;
+    }
+
+    CGocRecode* pRecode = GetGOC<CGocRecode>();
+    if (!pRecode) {
+        return false;
+    }
+    CGocEntity* pEntity = GetGOC<CGocEntity>();
+    if (!pEntity) {
+        return false;
+    }
+
+    // Per IDA: PC 房网吧加成次数检查
+    if (pEntity->GetNetCafe() && pMazeData->Maze_Enter_Count_PC_Room) {
+        if (pMazeData->Maze_Type == 2) {
+            // Per IDA: 聚合基础迷宫 - 按组查询并比较组内计数
+            std::uint16_t wBaseMazeID = 0;
+            std::uint8_t byBaseMazeEnterCountPCRoom = 0;
+            std::uint8_t byOut3 = 0;
+            int nOut = 0;
+            if (!pRecode->GetDailyBaseMazeID(pMazeData->ID, pMazeData->Maze_Portal_ID, true,
+                                             wBaseMazeID, byBaseMazeEnterCountPCRoom, byOut3, nOut)) {
+                return false;
+            }
+            if (pRecode->GetEnterMazeLimitPCBangCount(wBaseMazeID) < byBaseMazeEnterCountPCRoom) {
+                return true;
+            }
+        } else {
+            if (pRecode->GetEnterMazeLimitPCBangCount(pMazeData->ID)
+                < pMazeData->Maze_Enter_Count_PC_Room) {
+                return true;
+            }
+        }
+    }
+
+    // Per IDA: 普通每日次数检查
+    if (pMazeData->Maze_Enter_Count) {
+        if (pMazeData->Maze_Type == 2) {
+            std::uint16_t wBaseMazeID = 0;
+            std::uint8_t byBaseMazeEnterCount = 0;
+            std::uint8_t byOut3 = 0;
+            int nOut = 0;
+            if (!pRecode->GetDailyBaseMazeID(pMazeData->ID, pMazeData->Maze_Portal_ID, false,
+                                             wBaseMazeID, byBaseMazeEnterCount, byOut3, nOut)) {
+                return false;
+            }
+            if (pRecode->GetEnterMazeLimitCount(wBaseMazeID) >= byBaseMazeEnterCount) {
+                return false;
+            }
+        } else {
+            const int nEnterCount = pRecode->GetEnterMazeLimitCount(pMazeData->ID);
+            const int nMazeEnterCount = pMazeData->Maze_Enter_Count;
+            const std::uint8_t byPlus = XGameServer::Instance()->GetResourceMgr()
+                .GetMazeEnterPlusDayCount(pMazeData->ID);
+            if (nEnterCount >= byPlus + nMazeEnterCount) {
+                return false;
+            }
+        }
+    }
+
+    // Per IDA: Maze_Type==2 且无任何次数配置时要求聚合记录存在
+    if (pMazeData->Maze_Type == 2
+        && !pMazeData->Maze_Enter_Count
+        && !pMazeData->Maze_Enter_Count_PC_Room) {
+        const bool bNetCafe = pEntity->GetNetCafe();
+        std::uint16_t wBaseMazeID = 0;
+        std::uint8_t byCount = 0;
+        std::uint8_t byOut3 = 0;
+        int nOut = 0;
+        if (!pRecode->GetDailyBaseMazeID(pMazeData->ID, pMazeData->Maze_Portal_ID, bNetCafe,
+                                         wBaseMazeID, byCount, byOut3, nOut)) {
+            nErrorID = 53138;
+            return false;
+        }
+    }
+
+    return true;
+}
+
 // SendChatNotify - IDA 0x1406FA5C0
 // 精确还原: 发送聊天通知 (main 7, sub 5)
 void CUser::SendChatNotify(int nType, int nValue) {

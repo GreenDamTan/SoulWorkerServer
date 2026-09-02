@@ -90,6 +90,34 @@ public:
     bool RecvPartyMatchingMaze(XPacket* xPacket);
     bool RecvPartyMazeClear(XPacket* xPacket);
 
+    // Force packet handlers (IDA addresses; implemented in GameSockets.cpp)
+    bool RecvForceCreate(XPacket* xPacket);           // 0x140211C50
+    bool RecvForceJoinMember(XPacket* xPacket);       // 0x140212200
+    bool RecvForceLeaveMember(XPacket* xPacket);      // 0x140212910
+    bool RecvForceChangeMaster(XPacket* xPacket);     // 0x140213410
+    bool RecvForceDelete(XPacket* xPacket);           // 0x140213690
+    bool RecvForceEnterMaze(XPacket* xPacket);        // 0x140213D90
+    bool RecvForceUpdateInfo(XPacket* xPacket);       // 0x140214120
+    bool RecvForceEnterServer(XPacket* xPacket);      // 0x140214250
+    bool RecvForceInvite(XPacket* xPacket);           // 0x1402147D0
+    bool RecvUpdateForceMember(XPacket* xPacket);     // 0x140213570 (implemented)
+    bool RecvForceAccept(XPacket* xPacket);           // 0x1402157D0 (pending)
+    bool RecvForceReject(XPacket* xPacket);           // 0x140215B00 (pending)
+    bool RecvForceMessage(XPacket* xPacket);           // 0x140215EA0 (pending)
+    bool RecvForceMatchingEnter(XPacket* xPacket);    // 0x140216240 (pending)
+    bool RecvForceMatchingExit(XPacket* xPacket);     // 0x140216850 (pending)
+    bool RecvForceMatchingCheck(XPacket* xPacket);    // 0x140216CC0 (pending)
+    bool RecvForceMatchingReset(XPacket* xPacket);   // 0x1402172A0 (pending)
+    bool RecvForceMatchingWait(XPacket* xPacket);     // 0x1402177D0 (pending)
+    bool RecvForceMatchingMaze(XPacket* xPacket);     // 0x140217B70 (pending)
+    bool RecvForceMazeClear(XPacket* xPacket);        // 0x140218700 (pending)
+    bool RecvForceInfo(XPacket* xPacket);              // 0x1402187B0 (pending)
+    bool RecvForceNameChange(XPacket* xPacket);       // 0x1402189A0 (pending)
+    bool RecvForceMatching(XPacket* xPacket);          // 0x140203130 (pending)
+
+    // Per IDA 0x1401fcf70: Force 包主分发
+    virtual bool ForceProcess(XPacket* xPacket);
+
     // League packet handlers
     bool RecvCreateLeague(XPacket* xPacket);
     bool RecvLeagueDelete(XPacket* xPacket);

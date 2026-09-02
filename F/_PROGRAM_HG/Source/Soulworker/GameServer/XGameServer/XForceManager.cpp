@@ -5,6 +5,7 @@
 #include "XForceManager.h"
 #include "CForce.h"
 #include "User.h"
+#include "actor/component/GocQuest.h"
 #include <algorithm>
 
 // 静态实例
@@ -249,6 +250,35 @@ bool XForceManager::ChangeMaster(const UXActorID& uxNewMasterID) {
     // 3. 检查当前用户是否有权限 (是否是当前队长)
     // 4. 更新队长信息
     // 5. 通知所有成员
+
+    return false;
+}
+
+// IDA: ?ChangeMaster@XForceManager@@QEAA_NKTUXActorID@@@Z @ 0x1401C6860
+// 按 ForceID 更改队长：新队长 ActorID 无效直接失败；按 ForceID 找到实例后
+// 委托 CForce::ChangeMaster，成功则 (0x2E,3) 只写新队长 ID 广播给全 Force。
+bool XForceManager::ChangeMaster(std::uint32_t dwForceID, UXActorID uNewMasterActorID) {
+    const std::uint32_t dwNewMasterID = CQuestCondition::GetQuestID(uNewMasterActorID);
+    if (dwNewMasterID == 0xFFFFFFFF) {
+        return false;
+    }
+
+    auto iter = m_mapForceInfo.find(dwForceID);
+    if (iter == m_mapForceInfo.end()) {
+        return false;
+    }
+
+    std::shared_ptr<CForce> pForce = iter->second;
+    if (!pForce) {
+        return false;
+    }
+
+    if (pForce->ChangeMaster(dwNewMasterID)) {
+        XSendPacket xSendPacket(0x2E, 3);
+        xSendPacket.XParse << static_cast<std::uint32_t>(dwNewMasterID);
+        pForce->Send(xSendPacket, 0);
+        return true;
+    }
 
     return false;
 }

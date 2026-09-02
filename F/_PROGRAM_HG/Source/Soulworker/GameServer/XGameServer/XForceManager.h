@@ -105,6 +105,11 @@ public:
     // 返回: 是否成功
     bool ChangeMaster(const UXActorID& uxNewMasterID);
 
+    // ChangeMaster - 按 ForceID 更改队长 (IDA: 0x1401C6860)
+    // 参数: ForceID, 新队长ActorID
+    // 返回: 是否成功
+    bool ChangeMaster(std::uint32_t dwForceID, UXActorID uNewMasterActorID);
+
     // RegisterForce - 注册Force (IDA: 0x1401C4E60)
     // 参数: ForceID, pMasterUser
     // 返回: shared_ptr<CForce>

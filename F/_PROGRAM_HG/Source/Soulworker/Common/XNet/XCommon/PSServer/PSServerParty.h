@@ -1365,6 +1365,20 @@ inline XPacket& operator<<(XPacket& packet, const PS_RES_FORCE_ENTER_SERVER& val
     return packet;
 }
 
+// PS_RES_FORCE_ENTER_SERVER 反序列化（对齐 << 的 8 字节 bool+pad 布局）
+inline void operator>>(XPacket& packet, PS_RES_FORCE_ENTER_SERVER& value) {
+    packet.XParse >> value.bLoadForce;
+    packet.XParse.GetBYTE();
+    packet.XParse.GetBYTE();
+    packet.XParse.GetBYTE();
+    packet.XParse.GetBYTE();
+    packet.XParse.GetBYTE();
+    packet.XParse.GetBYTE();
+    packet.XParse.GetBYTE();
+    packet >> value.stEnterMember;
+    packet >> value.stForceInfo;
+}
+
 // PS_PARTY_INFO_ALL 序列化
 inline void operator>>(XPacket& packet, PS_PARTY_INFO_ALL& value) {
     std::uint16_t count = 0;

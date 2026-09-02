@@ -16897,3 +16897,21 @@ Validate the current GameServer.exe reconstruction worktree before the user-auth
 - Build: cmake --build build --target GameServer -j1 clean. Smoke: GREENDAMTAN_AUTOSTOP_MS=5000 exit 0, Complete Server Init + Auto shutdown tick reached.
 - Ledgers: func-index 18 rows updated (4 implemented restores + ForceProcess + RecvUpdateForceMember stub correction + 13 stub rows with ownership). type-index: no new types (PS_RES_FORCE_ENTER_SERVER >> is a serializer completion, recorded here). path-recovery-index: no changes this round.
 - Next batch: restore the 13 stubbed force handlers from IDA (Accept 0x1402157D0, Reject 0x140215B00, Message 0x140215EA0, MatchingEnter/Exit/Check/Reset/Wait 0x140216240-0x1402177D0, MatchingMaze 0x140217B70, MazeClear 0x140218700, Info 0x1402187B0, NameChange 0x1402189A0, RecvForceMatching 0x140203130); RecvUpdateForceMember 0x140213570 needs its first real restore.
+
+[2026-09-02 14:49:00 +0800] [deepseek-v4-flash]
+### Task #114: force Accept/Reject/Message + Matching Enter/Exit/Check
+- Target: GameServer.exe; IDA MCP port 10004; model deepseek-v4-flash; local offset +08:00.
+- GameSockets.cpp restored from stubs:
+  - RecvForceAccept (0x1402157D0): PS_RES_FORCE_ACCEPT parse (added missing >> to PSServerParty.h), FindActorIDToUser by dwAcceptID, lambda222 (0x1402159F0) DoJob (0x2E,2) accept result, lambda192 decrement; returns true.
+  - RecvForceReject (0x140215B00): PS_FORCE_REJECT parse, FindActorIDToUser by dwReqActor (not-found returns false BEFORE dispatch per IDA), lambda224 (0x140215D60) DoJob (0x2E,8) reject packet, lambda192 decrement.
+  - RecvForceMessage (0x140215EA0): PS_CHAT_FORCE + PS_CHAT_ITEM_LINK_FOR_SERVER parse, lambda226 (0x140215FF0) DoJobAllThread: GetForce(stChatForce.dwPartyID) then (7,1) chat {actorID, type 3, msg, item-link count + PS_CHAT_ITEM_LINK entries} via CForce::Send.
+  - RecvForceMatchingEnter (0x140216240): dwActorID+byResult+dwEnterActorID+ST_FORCE_MATCHING_INFO parse, lambda227 (0x1402165A0): byResult==0 error 53131; ==100 error 53161; else if dwEnterActorID==self record GetCurDate matching date + clear matching state, then (0x2E,0x30) matching info packet.
+  - RecvForceMatchingExit (0x140216850): dwActorID+dwExitActorID+byReason parse, lambda229 (0x140216AB0): self-or-zero exit clears SetMatchingDate(0)+SetMatchingState(0), then (0x2E,0x31) {dwExitActorID, byReason}.
+  - RecvForceMatchingCheck (0x140216CC0): dwActorID+dwMazeID parse, lambda231 (0x140216F10) with exact packet flow: error 55035 -> SendErrorMessage(main,5,55035,needItemID); other errors -> SendErrorMessage(main,5,code); then (0xFA,0x15) PS_SERVER_FORCE_MATCHING_CHECK {dwUAID,dwUCID,byCheck=0,nError} and (0xFA,0x14) {dwUCID,0,dwUAID,level} both via CommunitySocket::SendCmd; success -> (0x2E,0x32). XForceProcess::CheckForceMatchingEnterUser call site is a documented TODO: process/ForceProcess.cpp (PDB MD5 0CE935F8D4EFBEDB2196DCD00B793D89) is not yet in the source tree.
+- Support functions landed:
+  - CUser::SendErrorMessage 4-param overload (0x1406FB290): (main, sub|0x80, errorCode, dwUCID) via BridgeSend, returns true; declaration added to User.h.
+  - CGocForce::SetMatchingState (0x1401F3600): m_byMatchingState = byState; was declared in GocForce.h but never implemented - surfaced as a link error and fixed by landing the exact IDA body in GocForce.cpp.
+- Build: cmake --build build --target GameServer -j1 clean (final ninja no work to do).
+- Ledgers: func-index 5 rows updated (MatchingEnter/Exit/Check blocked->implemented; SendErrorMessage 4-param; SetMatchingState implementation+ownership). type-index: no new types (PS_RES_FORCE_ACCEPT >> is a serializer completion). path-recovery-index: no changes this round.
+- Blockers: XForceProcess class (26+ indexed functions at 0x140430B00-0x140435020, PDB module ForceProcess.obj, source process/ForceProcess.cpp) is missing from the tree; MatchingCheck TODO call site depends on it. Remaining force stubs: MatchingReset/MatchingWait/MatchingMaze/MazeClear/Info/NameChange/RecvForceMatching + RecvUpdateForceMember.
+- Next batch: RecvForceMatchingReset (0x1402172A0) and RecvForceMatchingWait (0x1402177D0) are small; then consider the XForceProcess class as its own batch (it unblocks MatchingCheck fully and several Req* handlers).

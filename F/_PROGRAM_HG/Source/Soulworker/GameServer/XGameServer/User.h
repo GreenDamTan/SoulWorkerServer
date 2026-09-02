@@ -461,6 +461,11 @@ public:
     // Used by CGocNetwork::SendErrorMessage
     void SendErrorMessage(std::uint8_t ucMainCmd, std::uint8_t ucSubCmd, std::uint16_t xErrorCode);
 
+    // SendErrorMessage - Send error message packet with extra UCID payload
+    // IDA: ?SendErrorMessage@CUser@@QEAA_NEEGK@Z @ 0x1406FB290
+    bool SendErrorMessage(std::uint8_t ucMainCmd, std::uint8_t ucSubCmd,
+                          std::uint16_t xErrorCode, std::uint32_t dwUCID);
+
     // SendChatNotify - 0x1406FA5C0
     // Sends chat notification packet (main 7, sub 5)
     void SendChatNotify(int nType, int nValue);

@@ -1575,6 +1575,11 @@ inline XPacket& operator<<(XPacket& packet, const PS_RES_FORCE_ACCEPT& value) {
     return packet;
 }
 
+inline void operator>>(XPacket& packet, PS_RES_FORCE_ACCEPT& value) {
+    packet.XParse >> value.dwAcceptID;
+    packet.XParse >> value.nResult;
+}
+
 inline XPacket& operator<<(XPacket& packet, const PS_PARTY_REJECT& value) {
     packet.XParse << value.dwReqActor;
     packet.XParse << value.dwRejectID;

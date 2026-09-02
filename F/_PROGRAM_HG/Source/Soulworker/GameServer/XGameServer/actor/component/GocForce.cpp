@@ -679,3 +679,9 @@ void CGocForce::SetForce(std::shared_ptr<CForce> pForce)
 
 
 
+
+// IDA: ?SetMatchingState@CGocForce@@QEAAXE@Z @ 0x1401F3600
+// 设置匹配状态
+void CGocForce::SetMatchingState(std::uint8_t byState) {
+    m_byMatchingState = byState;
+}

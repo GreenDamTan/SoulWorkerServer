@@ -3942,51 +3942,328 @@ bool CCommunitySocket::RecvUpdateForceMember(XPacket* xPacket) {
     return true;
 }
 
-// IDA: ?RecvForceAccept@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z (0x1402157D0)
-// 状态: STUB
-// TODO: 从 IDA 0x1402157D0 反编译还原 Force 邀请接受流程
+// Per IDA 0x1402157D0: RecvForceAccept
+// Force 邀请接受响应：解析 PS_RES_FORCE_ACCEPT -> 按 dwAcceptID 找人 ->
+// lambda222 DoJob（(0x2E,2) 接受结果包）+ lambda192 递减。返回 1。
 bool CCommunitySocket::RecvForceAccept(XPacket* xPacket) {
-    GreenDamTan_log(__FILE__, __FUNCTION__, "RecvForceAccept stub - pending IDA restore");
+    PS_RES_FORCE_ACCEPT stForceAccept;
+    *xPacket >> stForceAccept;
+
+    XGameServer* pServer = XGameServer::Instance();
+    CUser* pReqUser = pServer ? pServer->FindActorIDToUser(stForceAccept.dwAcceptID) : nullptr;
+
+    if (pReqUser) {
+        if (!pReqUser->GetArea()) {
+            return false;
+        }
+
+        pReqUser->IncrementJobCount();
+
+        // Per IDA lambda222 (0x1402159F0): 玩家线程发送接受结果
+        std::function<void()> func = [pReqUser, stForceAccept]() {
+            if (!pReqUser || !pReqUser->IsLive()) {
+                return;
+            }
+            PS_RES_FORCE_ACCEPT stNewForceAccept = stForceAccept;
+            XSendPacket xSendPacket(0x2E, 2);
+            xSendPacket << stNewForceAccept;
+            CGocNetwork::Send(pReqUser, xSendPacket);
+        };
+        CLogicThreadManager::Instance().DoJob(pReqUser->GetMapInsID().nMapID, func);
+
+        std::function<void()> funcDec = [pReqUser]() {
+            pReqUser->DecrementJobCount();
+        };
+        CLogicThreadManager::Instance().DoJob(pReqUser->GetMapInsID().nMapID, funcDec);
+    }
+
     return true;
 }
 
-// IDA: ?RecvForceReject@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z (0x140215B00)
-// 状态: STUB
-// TODO: 从 IDA 0x140215B00 反编译还原 Force 邀请拒绝流程
+// Per IDA 0x140215B00: RecvForceReject
+// Force 邀请拒绝响应：解析 PS_FORCE_REJECT -> 按 dwReqActor 找人 ->
+// lambda224 DoJob（(0x2E,8) 拒绝包）+ lambda192 递减。找不到人直接返回 0。
 bool CCommunitySocket::RecvForceReject(XPacket* xPacket) {
-    GreenDamTan_log(__FILE__, __FUNCTION__, "RecvForceReject stub - pending IDA restore");
+    PS_FORCE_REJECT stReject;
+    *xPacket >> stReject;
+
+    XGameServer* pServer = XGameServer::Instance();
+    CUser* pReqUser = pServer ? pServer->FindActorIDToUser(stReject.dwReqActor) : nullptr;
+
+    if (!pReqUser) {
+        return false;
+    }
+
+    if (!pReqUser->GetArea()) {
+        return false;
+    }
+
+    pReqUser->IncrementJobCount();
+
+    // Per IDA lambda224 (0x140215D60): 玩家线程发送拒绝结果
+    std::function<void()> func = [pReqUser, stReject]() {
+        if (!pReqUser || !pReqUser->IsLive()) {
+            return;
+        }
+        PS_FORCE_REJECT stNewReject = stReject;
+        XSendPacket xSendPacket(0x2E, 8);
+        xSendPacket << stNewReject;
+        CGocNetwork::Send(pReqUser, xSendPacket);
+    };
+    CLogicThreadManager::Instance().DoJob(pReqUser->GetMapInsID().nMapID, func);
+
+    std::function<void()> funcDec = [pReqUser]() {
+        pReqUser->DecrementJobCount();
+    };
+    CLogicThreadManager::Instance().DoJob(pReqUser->GetMapInsID().nMapID, funcDec);
+
     return true;
 }
 
-// IDA: ?RecvForceMessage@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z (0x140215EA0)
-// 状态: STUB
-// TODO: 从 IDA 0x140215EA0 反编译还原 Force 聊天消息广播
+// Per IDA 0x140215EA0: RecvForceMessage
+// Force 聊天消息：解析 PS_CHAT_FORCE + PS_CHAT_ITEM_LINK_FOR_SERVER ->
+// lambda226 广播到所有线程（GetForce(dwForceID) 存在则 (7,1) 聊天包
+// 附带消息与物品链接转发给全 Force）。返回 1。
 bool CCommunitySocket::RecvForceMessage(XPacket* xPacket) {
-    GreenDamTan_log(__FILE__, __FUNCTION__, "RecvForceMessage stub - pending IDA restore");
+    PS_CHAT_FORCE stChatForce;
+    PS_CHAT_ITEM_LINK_FOR_SERVER psChatItemLinkInfo;
+
+    *xPacket >> stChatForce;
+    *xPacket >> psChatItemLinkInfo;
+
+    // Per IDA lambda226 (0x140215FF0): 所有线程向 Force 成员转发聊天
+    std::function<void()> func = [stChatForce, psChatItemLinkInfo]() {
+        std::shared_ptr<CForce> pForce =
+            ThreadLocalData::GetInstance()->GetForceMgr()->GetForce(stChatForce.dwPartyID);
+        if (!pForce) {
+            return;
+        }
+
+        XSendPacket xSendPacket(7, 1);
+        xSendPacket.XParse << stChatForce.dwActorID;
+        xSendPacket.XParse << 3;
+        xSendPacket.XParse << GreenDamTan_BoundedWideString(stChatForce.szMsg);
+        xSendPacket.XParse << psChatItemLinkInfo.byItemLinkCount;
+        for (int i = 0; i < psChatItemLinkInfo.byItemLinkCount; ++i) {
+            PS_CHAT_ITEM_LINK psInfo = psChatItemLinkInfo.psItemLinkInfo[i];
+            xSendPacket << psInfo;
+        }
+        pForce->Send(xSendPacket, 0);
+    };
+    CLogicThreadManager::Instance().DoJobAllThread(func);
+
     return true;
 }
 
-// IDA: ?RecvForceMatchingEnter@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z (0x140216240)
-// 状态: STUB
-// TODO: 从 IDA 0x140216240 反编译还原（lambda227 已知捕获 CUser*/byType/dwID/ST_FORCE_MATCHING_INFO）
+// Per IDA 0x140216240: RecvForceMatchingEnter
+// Force 匹配进入响应：解析 dwActorID + byResult + dwEnterActorID +
+// ST_FORCE_MATCHING_INFO -> lambda227 DoJob（byResult==0 错误 53131；
+// ==100 错误 53161；其余时若 dwEnterActorID 是本人则记录匹配时间并清状态，
+// 随后 (0x2E,0x30) 匹配信息包）+ lambda192 递减。
 bool CCommunitySocket::RecvForceMatchingEnter(XPacket* xPacket) {
-    GreenDamTan_log(__FILE__, __FUNCTION__, "RecvForceMatchingEnter stub - pending IDA restore");
+    std::uint32_t dwActorID = 0;
+    std::uint8_t byResult = 0;
+    std::uint32_t dwEnterActorID = 0;
+    ST_FORCE_MATCHING_INFO stMatchingInfo;
+
+    xPacket->XParse >> dwActorID;
+    xPacket->XParse >> byResult;
+    xPacket->XParse >> dwEnterActorID;
+    *xPacket >> stMatchingInfo;
+
+    XGameServer* pServer = XGameServer::Instance();
+    CUser* pUser = pServer ? pServer->FindActorIDToUser(dwActorID) : nullptr;
+
+    if (!pUser) {
+        return true;
+    }
+
+    if (!pUser->GetArea()) {
+        return false;
+    }
+
+    pUser->IncrementJobCount();
+
+    // Per IDA lambda227 (0x1402165A0): 玩家线程处理匹配结果
+    std::function<void()> func = [pUser, byResult, dwEnterActorID, stMatchingInfo]() {
+        if (!pUser || !pUser->IsLive()) {
+            return;
+        }
+        if (byResult == 0) {
+            pUser->SendErrorMessage(0x2E, 0x30, 53131);
+            return;
+        }
+        if (byResult == 100) {
+            pUser->SendErrorMessage(0x2E, 0x30, 53161);
+            return;
+        }
+
+        // Per IDA: 进入者即本人则记录匹配时间并清除匹配状态
+        if (pUser->GetActorID() == UXActorID(dwEnterActorID)) {
+            CGocForce* pGocForce = pUser->GetGOC<CGocForce>();
+            if (pGocForce) {
+                const std::int64_t biDate = XGameServer::Instance()->GetCurDate();
+                pGocForce->SetMatchingDate(biDate);
+                pGocForce->SetMatchingState(0);
+            }
+        }
+
+        ST_FORCE_MATCHING_INFO st = stMatchingInfo;
+        XSendPacket xSendPacket(0x2E, 0x30);
+        xSendPacket << st;
+        CGocNetwork::Send(pUser, xSendPacket);
+    };
+    CLogicThreadManager::Instance().DoJob(pUser->GetMapInsID().nMapID, func);
+
+    std::function<void()> funcDec = [pUser]() {
+        pUser->DecrementJobCount();
+    };
+    CLogicThreadManager::Instance().DoJob(pUser->GetMapInsID().nMapID, funcDec);
+
     return true;
 }
 
-// IDA: ?RecvForceMatchingExit@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z (0x140216850)
-// 状态: STUB
-// TODO: 从 IDA 0x140216850 反编译还原（lambda229）
+// Per IDA 0x140216850: RecvForceMatchingExit
+// Force 匹配退出响应：解析 dwActorID + dwExitActorID + byReason ->
+// lambda229 DoJob（退出者本人或 0 时清匹配时间/状态；(0x2E,0x31) 退出通知）
+// + lambda192 递减。
 bool CCommunitySocket::RecvForceMatchingExit(XPacket* xPacket) {
-    GreenDamTan_log(__FILE__, __FUNCTION__, "RecvForceMatchingExit stub - pending IDA restore");
+    std::uint32_t dwActorID = 0;
+    std::uint32_t dwExitActorID = 0;
+    std::uint8_t byReason = 0;
+
+    xPacket->XParse >> dwActorID;
+    xPacket->XParse >> dwExitActorID;
+    xPacket->XParse >> byReason;
+
+    XGameServer* pServer = XGameServer::Instance();
+    CUser* pUser = pServer ? pServer->FindActorIDToUser(dwActorID) : nullptr;
+
+    if (!pUser) {
+        return true;
+    }
+
+    if (!pUser->GetArea()) {
+        return false;
+    }
+
+    pUser->IncrementJobCount();
+
+    // Per IDA lambda229 (0x140216AB0): 玩家线程处理匹配退出
+    std::function<void()> func = [pUser, dwExitActorID, byReason]() {
+        if (!pUser || !pUser->IsLive()) {
+            return;
+        }
+
+        // Per IDA: 退出者本人或全队退出（0）时清除匹配状态
+        if (pUser->GetActorID() == UXActorID(dwExitActorID) || dwExitActorID == 0) {
+            CGocForce* pGocForce = pUser->GetGOC<CGocForce>();
+            if (pGocForce) {
+                pGocForce->SetMatchingDate(0);
+                pGocForce->SetMatchingState(0);
+            }
+        }
+
+        XSendPacket xSendPacket(0x2E, 0x31);
+        xSendPacket.XParse << dwExitActorID;
+        xSendPacket.XParse << byReason;
+        CGocNetwork::Send(pUser, xSendPacket);
+    };
+    CLogicThreadManager::Instance().DoJob(pUser->GetMapInsID().nMapID, func);
+
+    std::function<void()> funcDec = [pUser]() {
+        pUser->DecrementJobCount();
+    };
+    CLogicThreadManager::Instance().DoJob(pUser->GetMapInsID().nMapID, funcDec);
+
     return true;
 }
 
-// IDA: ?RecvForceMatchingCheck@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z (0x140216CC0)
-// 状态: STUB
-// TODO: 从 IDA 0x140216CC0 反编译还原（lambda231）
+// Per IDA 0x140216CC0: RecvForceMatchingCheck
+// Force 匹配检查：解析 dwActorID + dwMazeID -> lambda231 DoJob
+// （XForceProcess::CheckForceMatchingEnterUser 前置校验；失败按错误码分支
+// (0x2E,5) SendErrorMessage 55035 带物品 ID / 其他错误码，(0xFA,0x15) 检查回包 +
+// (0xFA,0x14) 取消包回 RelayServer；成功 (0x2E,0x32) 空包给客户端）+
+// lambda192 递减。
 bool CCommunitySocket::RecvForceMatchingCheck(XPacket* xPacket) {
-    GreenDamTan_log(__FILE__, __FUNCTION__, "RecvForceMatchingCheck stub - pending IDA restore");
+    std::uint32_t dwActorID = 0;
+    std::uint32_t dwMazeID = 0;
+
+    xPacket->XParse >> dwActorID;
+    xPacket->XParse >> dwMazeID;
+
+    XGameServer* pServer = XGameServer::Instance();
+    CUser* pUser = pServer ? pServer->FindActorIDToUser(dwActorID) : nullptr;
+
+    if (!pUser) {
+        return true;
+    }
+
+    if (!pUser->GetArea()) {
+        return false;
+    }
+
+    pUser->IncrementJobCount();
+
+    // Per IDA lambda231 (0x140216F10): 玩家线程校验匹配进入条件
+    std::function<void()> func = [pUser, dwMazeID]() {
+        if (!pUser || !pUser->IsLive()) {
+            return;
+        }
+
+        int nError = 0;
+        int nNeedItemID = 0;
+
+        // Per IDA: XClient::GetProcessPtr<XForceProcess>(0x2E) 后
+        // CheckForceMatchingEnterUser(pUser, dwMazeID, &nError, &nNeedItemID)
+        // TODO: 需人工审查 - XForceProcess 类（process/ForceProcess.cpp, PDB MD5 0CE935F8D4EFBEDB2196DCD00B793D89）
+        // 尚未还原到源码树；CheckForceMatchingEnterUser @ 0x140435020 待其落地后接入
+        // XForceProcess* pProcess = pUser->GetProcessPtr<XForceProcess>(0x2E);
+        // if (pProcess) pProcess->CheckForceMatchingEnterUser(pUser, dwMazeID, &nError, &nNeedItemID);
+
+        if (nError) {
+            if (nError == 55035) {
+                pUser->SendErrorMessage(0x2E, 5, 55035, nNeedItemID);
+            } else {
+                pUser->SendErrorMessage(0x2E, 5, static_cast<std::uint16_t>(nError));
+            }
+
+            // Per IDA: (0xFA,0x15) 检查失败回包
+            PS_SERVER_FORCE_MATCHING_CHECK psCheck = {};
+            psCheck.dwUAID = pUser->GetUAID();
+            psCheck.dwUCID = pUser->GetActorID().dwActorID;
+            psCheck.byCheck = 0;
+            psCheck.nError = nError;
+            {
+                XSendPacket xSendPacket(0xFA, 0x15);
+                xSendPacket << psCheck;
+                XGameServer::Instance()->GetCommunitySocket().SendCmd(
+                    &xSendPacket, pUser, 0x2E, 0x32);
+            }
+
+            // Per IDA: (0xFA,0x14) 匹配取消回包（带 UCID/0/UAID/等级）
+            {
+                XSendPacket xSendPacket(0xFA, 0x14);
+                xSendPacket.XParse << pUser->GetActorID().dwActorID;
+                xSendPacket.XParse << 0;
+                xSendPacket.XParse << pUser->GetUAID();
+                xSendPacket.XParse << pUser->GetLevel();
+                XGameServer::Instance()->GetCommunitySocket().SendCmd(
+                    &xSendPacket, pUser, 0x2E, 0x31);
+            }
+        } else {
+            // Per IDA: 成功 (0x2E,0x32) 空包
+            XSendPacket packet(0x2E, 0x32);
+            CGocNetwork::Send(pUser, packet);
+        }
+    };
+    CLogicThreadManager::Instance().DoJob(pUser->GetMapInsID().nMapID, func);
+
+    std::function<void()> funcDec = [pUser]() {
+        pUser->DecrementJobCount();
+    };
+    CLogicThreadManager::Instance().DoJob(pUser->GetMapInsID().nMapID, funcDec);
+
     return true;
 }
 

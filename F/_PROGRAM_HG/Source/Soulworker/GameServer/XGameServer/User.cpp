@@ -290,6 +290,22 @@ void CUser::SendErrorMessage(std::uint8_t ucMainCmd, std::uint8_t ucSubCmd, std:
     BridgeSend(xSendPacket);
 }
 
+// SendErrorMessage - 发送带附加 UCID 的错误消息
+// IDA: ?SendErrorMessage@CUser@@QEAA_NEEGK@Z @ 0x1406FB290
+bool CUser::SendErrorMessage(std::uint8_t ucMainCmd, std::uint8_t ucSubCmd,
+                             std::uint16_t xErrorCode, std::uint32_t dwUCID) {
+    // IDA 反编译精确还原:
+    // XSendPacket::XSendPacket(&xSendPacket, ucMainCmd, ucSubCmd | 0x80);
+    // XParse::operator<<(&xSendPacket.XParse, xErrorCode);
+    // XParse::operator<<(&xSendPacket.XParse, dwUCID);
+    // BridgeSend(&xSendPacket);
+    XSendPacket xSendPacket(ucMainCmd, ucSubCmd | 0x80);
+    xSendPacket.XParse << xErrorCode;
+    xSendPacket.XParse << dwUCID;
+    BridgeSend(xSendPacket);
+    return true;
+}
+
 // SendChatNotify - IDA 0x1406FA5C0
 // 精确还原: 发送聊天通知 (main 7, sub 5)
 void CUser::SendChatNotify(int nType, int nValue) {

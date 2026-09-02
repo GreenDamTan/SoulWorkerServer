@@ -22,6 +22,7 @@
 #include "Soulworker/GameServer/XGameServer/Monster.h"
 #include "Soulworker/GameServer/XGameServer/Npc.h"
 #include "Soulworker/GameServer/XGameServer/XMonsterMgr.h"
+#include "Soulworker/GameServer/XCore/XServer/GreenDamTan_LogHelper.h"
 
 namespace {
 struct GreenDamTan_ThreadLocalSlots {
@@ -317,4 +318,22 @@ void ThreadLocalData::UpdateChannel(std::uint16_t wMapID, ST_CHANNEL_INFO& stCha
             return;
         }
     }
+}
+
+// ============================================================================
+// CreateMatchingMaze (PS_FORCE_INFO variant) - IDA @ 0x1406D2960
+// 状态: STUB - 活动边界占位
+// TODO: 需人工审查 - 完整实现依赖:
+//   1. m_xMazePool (TXPool<XMaze>) 池化实例 - 完整 ThreadLocalData 0x1450 布局组件
+//   2. XMaze::Create / SetPartyInfo / SetForce
+//   3. 建立成功后 lambda1 DoJobAllThread 广播 + ST_LOG_GAME(5,1) L"메이즈 생성" 日志
+//   4. (0xF2,0x42) {dwMatchingID, stCreateMaze, stForceInfo} 回 ControlServer
+//   5. 失败码 50006 (无池) / 50007 (Create 失败)
+// 依赖: ThreadLocalData 完整布局批次（0x1450 布局重建是独立已规划任务）
+void ThreadLocalData::CreateMatchingMaze(ST_CREATE_MAZE& stCreateMaze, PS_FORCE_INFO& stForceInfo, unsigned long dwMatchingID) {
+    // TODO: 需人工审查 - m_xMazePool 池不可用（活动层无池化迷宫组件）
+    stCreateMaze.nResult = 50006;
+    LogHelper::LogError("game.contents",
+        "CreateMatchingMaze error - Failed create maze no pool[ MapID:%I64d ] ( %d )",
+        stCreateMaze.uxMapID.nMapID, 409);
 }

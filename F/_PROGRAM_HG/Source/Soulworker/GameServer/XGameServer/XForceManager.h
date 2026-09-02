@@ -16,7 +16,9 @@ struct PS_REQ_FORCE_CREATE;
 struct PS_FORCE_LEAVE;
 struct PS_FORCE_ADDMEMBER;
 struct PS_FORCE_INFO;
-struct UST_UPDATE_FORCE_MEMBER;
+// PDB 证实 UST_UPDATE_FORCE_MEMBER@@ 是 ST_UPDATE_FORCE_MEMBER 的唯一名
+// (UDT 0x0000f452, Size 96)，装饰名中的 U 前缀来自唯一名而非独立类型
+struct ST_UPDATE_FORCE_MEMBER;
 struct PS_ENTER_MAP_RES;
 union UXActorID;
 union UXMapID;
@@ -121,8 +123,8 @@ public:
     std::shared_ptr<CForce> AddForce(PS_FORCE_INFO& stForceInfo);
 
     // UpdateMemberInfo - 更新成员信息 (IDA: 0x1401C6A70)
-    // 参数: UST_UPDATE_FORCE_MEMBER
-    void UpdateMemberInfo(UST_UPDATE_FORCE_MEMBER& stUpdateMember);
+    // 参数: ST_UPDATE_FORCE_MEMBER（PDB 唯一名 UST_UPDATE_FORCE_MEMBER@@）
+    void UpdateMemberInfo(ST_UPDATE_FORCE_MEMBER& stUpdateMember);
 
     // ReqForceEnterServer - 请求进入服务器 (IDA: 0x1401C6740)
     // 参数: pUser, ForceID

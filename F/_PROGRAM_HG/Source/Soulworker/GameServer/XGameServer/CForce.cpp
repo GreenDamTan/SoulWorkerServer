@@ -6,6 +6,7 @@
 #include "Soulworker/Common/XNet/XCommon/PSServer/PSServerCore.h"
 #include "Soulworker/Common/XNet/XCommon/PSServer/PSServerMapMaze.h"
 #include "Soulworker/GameServer/XGameServer/actor/component/GocQuest.h"
+#include "Soulworker/GameServer/XGameServer/actor/component/GocNetwork.h"
 #include "Soulworker/GameServer/XCore/XServer/GreenDamTan_LogHelper.h"
 #include "User.h"
 #include "GameServer.h"
@@ -219,6 +220,49 @@ void CForce::GetMazeRecode(std::uint32_t dwActorID, int* pMazeRecode) {
     if (iter != m_mapPartyMember.end()) {
         iter->second->GetRecode(pMazeRecode);
     }
+}
+
+// IDA: ?SendForceInfo@CForce@@QEAAXPEAVCUser@@E@Z @ 0x1401B7100
+// 向单个成员发送 Force 信息：(0x2E,9) PS_FORCE_INFO，
+// 遍历 m_mapForceMember 逐个拷贝成员数据（ST_PARTY_MEMBER 与
+// ST_FORCE_MEMBER 线格式布局一致，CPartyMember 首字段即成员信息）。
+void CForce::SendForceInfo(CUser* pMember, std::uint8_t byUpdateType) {
+    if (!pMember) {
+        return;
+    }
+
+    PS_FORCE_INFO psForceInfo = {};
+    psForceInfo.dwForceID = m_dwForceID;
+    psForceInfo.dwMaster = m_dwMasterID;
+    psForceInfo.byUpdateType = byUpdateType;
+    psForceInfo.byForceType = m_byForceType;
+
+    // IDA: 遍历 m_mapForceMember 拷贝成员
+    for (const auto& kv : m_mapForceMember) {
+        CForceMember* pForceMember = kv.second;
+        if (!pForceMember) {
+            continue;
+        }
+        const ST_PARTY_MEMBER& stMember = pForceMember->GetMemberInfo();
+        ST_FORCE_MEMBER stForceMember = {};
+        stForceMember.dwMemberID = stMember.dwMemberID;
+        std::memcpy(stForceMember.strName, stMember.strName, sizeof(stForceMember.strName));
+        stForceMember.byLevel = stMember.byLevel;
+        stForceMember.byClass = stMember.byClass;
+        stForceMember.byAwaken = stMember.byAwaken;
+        stForceMember.dwProfilePhotoID = stMember.dwProfilePhotoID;
+        stForceMember.nMapID = stMember.nMapID;
+        stForceMember.nChannel = stMember.nChannel;
+        stForceMember.nMaxHP = stMember.nMaxHP;
+        stForceMember.nHP = stMember.nHP;
+        stForceMember.bLogin = stMember.bLogin;
+        stForceMember.uxMapID = stMember.uxMapID;
+        psForceInfo.vecForceMember.push_back(stForceMember);
+    }
+
+    XSendPacket xSendPacket(0x2E, 9);
+    xSendPacket << psForceInfo;
+    CGocNetwork::Send(pMember, xSendPacket);
 }
 
 // IDA: ?ApplyReward@CForce@@QEAAX... (dtor reference)

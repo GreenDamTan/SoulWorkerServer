@@ -146,6 +146,10 @@ public:
     // IDA: ?GetMazeRecode@CForce@@QEAAXKPEAH@Z @ 0x1403A6D30
     void GetMazeRecode(std::uint32_t dwActorID, int* pMazeRecode);
 
+    // SendForceInfo - 向单个成员发送 Force 信息
+    // IDA: ?SendForceInfo@CForce@@QEAAXPEAVCUser@@E@Z @ 0x1401B7100
+    void SendForceInfo(CUser* pMember, std::uint8_t byUpdateType);
+
     // === Maze Enter (IDA 精确还原，此前 func-index 误归 XRelayServer 的 Force.cpp) ===
 
     // SendEnterMaze - 单人进迷宫：任务同步、传送门定位、DB Game/统计/日志三包

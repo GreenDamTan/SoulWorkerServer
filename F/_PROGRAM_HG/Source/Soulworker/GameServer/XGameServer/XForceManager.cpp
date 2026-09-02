@@ -329,8 +329,8 @@ std::shared_ptr<CForce> XForceManager::AddForce(PS_FORCE_INFO& stForceInfo) {
 }
 
 // IDA: ?UpdateMemberInfo@XForceManager@@QEAAXAEAUST_UPDATE_FORCE_MEMBER@@@Z @ 0x1401C6A70
-// 更新成员信息
-void XForceManager::UpdateMemberInfo(UST_UPDATE_FORCE_MEMBER& stUpdateMember) {
+// 更新成员信息（PDB 唯一名 UST_UPDATE_FORCE_MEMBER@@ 即 ST_UPDATE_FORCE_MEMBER）
+void XForceManager::UpdateMemberInfo(ST_UPDATE_FORCE_MEMBER& stUpdateMember) {
     // IDA verified: 更新公会成员信息
     // TODO: 需要UST_UPDATE_FORCE_MEMBER结构定义
     // 

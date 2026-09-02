@@ -3934,11 +3934,20 @@ bool CCommunitySocket::ForceProcess(XPacket* xPacket) {
 // TODO: 需人工审查 - 各函数在下一批次从 IDA 反编译精确还原
 // ============================================================================
 
-// IDA: ?RecvUpdateForceMember@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z (0x140213570)
-// 状态: STUB - func-index 记为 implemented 但源码缺失，需完整还原
-// TODO: 从 IDA 0x140213570 反编译还原：解析 ST_UPDATE_FORCE_MEMBER 并分发
+// Per IDA 0x140213570: RecvUpdateForceMember
+// Force 成员信息更新：解析 ST_UPDATE_FORCE_MEMBER -> lambda206 广播到
+// 所有线程（XForceManager::UpdateMemberInfo）。
 bool CCommunitySocket::RecvUpdateForceMember(XPacket* xPacket) {
-    GreenDamTan_log(__FILE__, __FUNCTION__, "RecvUpdateForceMember stub - pending IDA restore");
+    ST_UPDATE_FORCE_MEMBER stForceMember;
+    *xPacket >> stForceMember;
+
+    // Per IDA lambda206 (0x140213660): 所有线程更新成员信息
+    std::function<void()> func = [stForceMember]() {
+        ST_UPDATE_FORCE_MEMBER stUpdate = stForceMember;
+        ThreadLocalData::GetInstance()->GetForceMgr()->UpdateMemberInfo(stUpdate);
+    };
+    CLogicThreadManager::Instance().DoJobAllThread(func);
+
     return true;
 }
 
@@ -4378,11 +4387,144 @@ bool CCommunitySocket::RecvForceMatchingWait(XPacket* xPacket) {
     return true;
 }
 
-// IDA: ?RecvForceMatchingMaze@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z (0x140217B70)
-// 状态: STUB
-// TODO: 从 IDA 0x140217B70 反编译还原（lambda237 巨型迷宫匹配，可能阻塞）
+// Per IDA 0x140217B70: RecvForceMatchingMaze
+// Force 匹配迷宫进入：解析 ST_CREATE_MAZE + PS_FORCE_INFO -> 按用户找人 ->
+// lambda237 DoJob（byGroupType==2 时 GetForce/AddForce 分支：新 Force 则
+// SetMazeID + SendForceInfo + lambda239 全线程广播；已有 Force 则绑定
+// CGocForce::SetForce + SendForceInfo + 清匹配时间；随后 DBSyncQuestCondition、
+// GetPortalPos 门控、(3,0x42)+(0xF0,0x12) DB 双包、ST_LOG_GAME(5,4)）+
+// lambda192 递减。
 bool CCommunitySocket::RecvForceMatchingMaze(XPacket* xPacket) {
-    GreenDamTan_log(__FILE__, __FUNCTION__, "RecvForceMatchingMaze stub - pending IDA restore");
+    ST_CREATE_MAZE stCreateMaze;
+    PS_FORCE_INFO stForceInfo;
+
+    *xPacket >> stCreateMaze;
+    *xPacket >> stForceInfo;
+
+    XGameServer* pServer = XGameServer::Instance();
+    CUser* pUser = pServer ? pServer->FindActorIDToUser(stCreateMaze.dwUserID) : nullptr;
+
+    if (pUser) {
+        if (!pUser->GetArea()) {
+            return false;
+        }
+
+        pUser->IncrementJobCount();
+
+        // Per IDA lambda237 (0x140217E60): 玩家线程执行匹配迷宫进入
+        std::function<void()> func = [pUser, stCreateMaze, stForceInfo]() {
+            if (!pUser || !pUser->IsLive()) {
+                return;
+            }
+
+            PS_FORCE_INFO stSendForceInfo = stForceInfo;
+
+            // Per IDA: 以 ST_CREATE_MAZE 的 ST_MAP_INFO 基础构造 PS_ENTER_MAP_RES
+            PS_ENTER_MAP_RES stEnterMapRes = {};
+            static_cast<ST_MAP_INFO&>(stEnterMapRes) = static_cast<const ST_MAP_INFO&>(stCreateMaze);
+            stEnterMapRes.nResult = 0;
+            stEnterMapRes.bChangeServer = false;
+            if (stCreateMaze.dwServerID != XGameServer::Instance()->GetOption().GetServerID()) {
+                stEnterMapRes.bChangeServer = true;
+            }
+
+            // Per IDA: byGroupType==2 -> Force 绑定/重建分支
+            if (stCreateMaze.stPartyInfo.byGroupType == 2) {
+                std::shared_ptr<CForce> pForce =
+                    ThreadLocalData::GetInstance()->GetForceMgr()->GetForce(
+                        static_cast<std::uint32_t>(stCreateMaze.stPartyInfo.nID));
+                if (!pForce) {
+                    // Per IDA: 本线程无实例 -> AddForce + SetMazeID + 广播
+                    PS_FORCE_INFO stInfo = stSendForceInfo;
+                    pForce = ThreadLocalData::GetInstance()->GetForceMgr()->AddForce(stInfo);
+                    if (!pForce) {
+                        return;
+                    }
+                    pForce->SetMazeID(stSendForceInfo.uxMazeID);
+                    pForce->SendForceInfo(pUser, 1);
+
+                    // Per IDA lambda239 (0x1402186B0): 全线程同步 Force 数据
+                    std::function<void()> funcAdd = [stInfo]() {
+                        PS_FORCE_INFO stCopy = stInfo;
+                        ThreadLocalData::GetInstance()->GetForceMgr()->AddForce(stCopy);
+                    };
+                    CLogicThreadManager::Instance().DoJobAllThread(funcAdd);
+                } else {
+                    // Per IDA: 已有实例 -> 绑定成员 CGocForce 并清匹配时间
+                    CGocForce* pGocForce = pUser->GetGOC<CGocForce>();
+                    if (pGocForce) {
+                        pGocForce->SetForce(pForce);
+                    }
+                    pForce->SendForceInfo(pUser, 1);
+                    if (pGocForce) {
+                        pGocForce->SetMatchingDate(0);
+                    }
+                }
+            }
+
+            ST_LOG_GAME stLog = {};
+            stLog._nUAID = static_cast<int>(pUser->GetUAID());
+            stLog._nUCID = static_cast<int>(pUser->GetActorID().dwActorID);
+            stLog._sMainType = 5;
+            stLog._sSubType = 4;
+            stLog.nParam0 = static_cast<int>(
+                (static_cast<std::uint64_t>(stForceInfo.uxMazeID.nMapID) >> 16) >> 16);
+            stLog.nParam1 = static_cast<int>(stForceInfo.dwMaster);
+            stLog.nParam3 = static_cast<int>(stCreateMaze.vecEnterMember.size());
+            stLog.nParam4 = stCreateMaze.stPartyInfo.nID;
+            stLog.nParam5 = pUser->GetLevel();
+            stLog.nParam6 = stCreateMaze.uxMapID.nMapID;
+            std::wcscpy(stLog.szComment, L"메이즈 입장");
+            XGameServer::Instance()->SendDBLog(stLog);
+
+            {
+                CGocQuest* pQuest = pUser->GetGOC<CGocQuest>();
+                if (pQuest) {
+                    pQuest->DBSyncQuestCondition();
+                }
+            }
+
+            stEnterMapRes.byChangeType = 0;
+            const int nMapID = static_cast<int>(
+                (stEnterMapRes.uxMapID.nMapID << 16) >> 48);
+            if (XGameServer::Instance()->GetWorldResMgr().GetPortalPos(
+                    nMapID, stEnterMapRes.nJumpID, &stEnterMapRes.stPosInfo)) {
+                {
+                    int nPrevMapID = 0;
+                    XSendDBPacket xSendDBPacket(static_cast<XActor*>(pUser), 3, 0x42);
+                    xSendDBPacket << stEnterMapRes;
+                    xSendDBPacket.XParse << nPrevMapID;
+                    xSendDBPacket.XParse << 0;
+                    XGameServer::Instance()->SendDBGame(xSendDBPacket);
+                }
+
+                {
+                    ST_STATISTICS_MAP_SAVE stInfo = {};
+                    stInfo.dwUCID = stEnterMapRes.dwUserID;
+                    stInfo.dwMapID = static_cast<int>(
+                        (static_cast<std::uint64_t>(stEnterMapRes.uxMapID.nMapID) >> 16) >> 16);
+                    stInfo.dwServerID = XGameServer::Instance()->GetOption().GetServerID();
+                    XSendDBPacket xSendDBStatistics(static_cast<XActor*>(pUser), 0xF0, 0x12);
+                    xSendDBStatistics << stInfo;
+                    XGameServer::Instance()->SendDBStatistics(xSendDBStatistics);
+                }
+            } else {
+                pUser->ClearState(eStateChangeWorld);
+                LogHelper::LogError("game.contents",
+                    "RecvForceMatchingMaze error - No have World Data[ ActorID:%d, MapID:%d, JumpID:%d ] ( %d )",
+                    stEnterMapRes.dwUserID,
+                    static_cast<int>((static_cast<std::uint64_t>(stEnterMapRes.uxMapID.nMapID) >> 16) >> 16),
+                    stEnterMapRes.nJumpID, 4695);
+            }
+        };
+        CLogicThreadManager::Instance().DoJob(pUser->GetMapInsID().nMapID, func);
+
+        std::function<void()> funcDec = [pUser]() {
+            pUser->DecrementJobCount();
+        };
+        CLogicThreadManager::Instance().DoJob(pUser->GetMapInsID().nMapID, funcDec);
+    }
+
     return true;
 }
 
@@ -4475,11 +4617,31 @@ bool CCommunitySocket::RecvForceNameChange(XPacket* xPacket) {
     return true;
 }
 
-// IDA: ?RecvForceMatching@CCommunitySocket@@QEAA_NAEAVXPacket@@@Z (0x140203130)
-// 状态: STUB
-// TODO: 从 IDA 0x140203130 反编译还原 Force 匹配响应
+// Per IDA 0x140203130: RecvForceMatching
+// Force 匹配成功：解析 ST_CREATE_MAZE + PS_FORCE_INFO + dwMatchingID ->
+// lambda97/98 包装后按 stCreateMaze.uxMapID（目标地图线程）DoJob
+// （ThreadLocalData::CreateMatchingMaze 建立匹配迷宫）。
 bool CCommunitySocket::RecvForceMatching(XPacket* xPacket) {
-    GreenDamTan_log(__FILE__, __FUNCTION__, "RecvForceMatching stub - pending IDA restore");
+    ST_CREATE_MAZE stCreateMaze;
+    PS_FORCE_INFO stForceInfo;
+    std::uint32_t dwMatchingID = 0;
+
+    *xPacket >> stCreateMaze;
+    *xPacket >> stForceInfo;
+    xPacket->XParse >> dwMatchingID;
+
+    // Per IDA lambda97/98 (0x1402032C0): 目标地图线程建立匹配迷宫
+    std::function<void()> func = [stCreateMaze, stForceInfo, dwMatchingID]() {
+        ST_CREATE_MAZE stMaze = stCreateMaze;
+        PS_FORCE_INFO stInfo = stForceInfo;
+        // Per IDA: ThreadLocalData::GetInstance()->CreateMatchingMaze(stMaze, stInfo, dwMatchingID)
+        // TODO: 需人工审查 - CreateMatchingMaze (0x1406D2960) 依赖 m_xMazePool/XMaze::Create
+        // 的完整 ThreadLocalData 0x1450 布局（按计划为独立批次，当前活动层为 ThreadLocalData_Stub）；
+        // 依赖落地后接入。活动边界内 stub 实现已记录于 ThreadLocalData_Stub.cpp。
+        ThreadLocalData::GetInstance()->CreateMatchingMaze(stMaze, stInfo, dwMatchingID);
+    };
+    CLogicThreadManager::Instance().DoJob(stCreateMaze.uxMapID.nMapID, func);
+
     return true;
 }
 

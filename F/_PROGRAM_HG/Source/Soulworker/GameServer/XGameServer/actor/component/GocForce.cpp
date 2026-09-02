@@ -650,10 +650,19 @@ int CGocForce::GetFamilyID() {
 
 
 // Force setter
+// IDA: ?SetForce@CGocForce@@QEAAXV?$shared_ptr@VCForce@@@tr1@std@@@Z @ 0x140083F30
+// 赋值 m_pParty；有 owner 时取其 ActorID 并向队伍注册成员用户指针。
 void CGocForce::SetForce(std::shared_ptr<CForce> pForce)
 {
-    (void)pForce;
-    m_pParty.reset();
+    m_pParty = std::static_pointer_cast<CParty>(pForce);
+    if (m_pParty) {
+        CMover* pOwnerMover = GetOwnerGO();
+        CUser* pMember = pOwnerMover ? static_cast<CUser*>(pOwnerMover) : nullptr;
+        if (pMember) {
+            const std::uint32_t dwActorID = pMember->GetActorID().dwActorID;
+            m_pParty->RegisterPartyMember(dwActorID, pMember);
+        }
+    }
 }
 
 

@@ -745,3 +745,82 @@ void CParty::CheckPassiveSkill(CUser* pOwner, std::uint8_t byTargetType, std::ui
         }
     }
 }
+
+// IDA: ?ChangeMaster@CForce@@QEAA_NK@Z @ 0x1403A5580
+// (CParty 与 CForce 同 272 字节布局，成员共享；XPartyManager 对两者调用同一实现)
+// 新队长必须在成员表内且不等于现任队长，否则返回 false。
+bool CParty::ChangeMaster(std::uint32_t dwPartyMaster) {
+    auto iter = m_mapPartyMember.find(dwPartyMaster);
+    if (iter == m_mapPartyMember.end()) {
+        return false;
+    }
+    if (m_dwMasterID == dwPartyMaster) {
+        return false;
+    }
+    m_dwMasterID = dwPartyMaster;
+    return true;
+}
+
+// IDA: ?Enumerate@CForce@@QEAAXAEAV?$vector@KV?$allocator@K@std@@@std@@@Z @ 0x1401B8C80
+// 遍历 m_mapPartyMember，把所有成员 key 压入 vecMember。
+void CParty::Enumerate(std::vector<std::uint32_t>& vecMember) {
+    for (auto& kv : m_mapPartyMember) {
+        vecMember.push_back(kv.first);
+    }
+}
+
+// IDA: ?SyncMemberHP@CParty@@QEAAXHHH@Z @ 0x1403ABEE0
+// 按成员 ID 查找，成功时对成员设置最大/当前 HP。
+void CParty::SyncMemberHP(std::uint32_t nMemberID, int nMaxHP, int nHP) {
+    auto iter = m_mapPartyMember.find(nMemberID);
+    if (iter == m_mapPartyMember.end()) {
+        return;
+    }
+    if (iter->second) {
+        iter->second->SetMaxHP(nMaxHP);
+        iter->second->SetHP(nHP);
+    }
+}
+
+// IDA: ?RegisterPartyMember@CParty@@QEAAXKPEAVCUser@@@Z @ 0x1401B7E00
+// 按成员 ID 查找，成功且 pMember 非空时绑定用户指针。
+void CParty::RegisterPartyMember(std::uint32_t dwActorID, CUser* pMember) {
+    auto iter = m_mapPartyMember.find(dwActorID);
+    if (iter == m_mapPartyMember.end()) {
+        return;
+    }
+    if (pMember) {
+        iter->second->SetMember(pMember);
+    }
+}
+
+// IDA: ?RemoveForceBooster@CForce@@QEAAXXZ @ 0x1403A5600
+// 遍历成员，对无用户指针或地图属于本线程的成员移除队伍增益。
+void CParty::RemoveForceBooster() {
+    for (auto& kv : m_mapPartyMember) {
+        CPartyMember* pMember = kv.second;
+        if (!pMember) {
+            continue;
+        }
+        CUser* pUser = pMember->GetMember();
+        if (pUser) {
+            UXMapID uxMapID = pUser->GetMapInsID();
+            if (!pUser || ThreadLocalData::GetInstance()->IsThreadArea(uxMapID)) {
+                pUser->ChangeBooster(eBooster_Type_Party, 0);
+            }
+        }
+    }
+}
+
+// IDA: ?SetForceType@CForce@@QEAAXE@Z @ 0x1403AABF0
+// byType==1 时对所有成员设置成员状态 2；随后记录类型。
+void CParty::SetForceType(std::uint8_t byType) {
+    if (byType == 1) {
+        for (auto& kv : m_mapPartyMember) {
+            if (kv.second) {
+                kv.second->SetPartyMemberState(2);
+            }
+        }
+    }
+    m_byPartyType = byType;
+}

@@ -6,12 +6,15 @@
 #include "CParty.h"
 #include "User.h"
 #include "GameServer.h"
-#include "Soulworker/GameServer/XCore/XServer/XSendPacket.h"
+#include "Soulworker/Common/XNet/XIOCPBase/Packet.h"
 #include "Soulworker/GameServer/XCore/XServer/GreenDamTan_LogHelper.h"
 #include "Soulworker/Common/XNet/XUtil/TXSingleton.h"
 #include "Soulworker/GameServer/XGameServer/actor/component/GocParty.h"
 #include "Soulworker/GameServer/XGameServer/actor/component/GocForce.h"
+#include "Soulworker/GameServer/XGameServer/CForce.h"
+#include "Soulworker/GameServer/XCore/XArea/XArea.h"
 #include "Soulworker/Common/XNet/XCommon/PSServer/PSServerParty.h"
+#include "Soulworker/Common/XNet/XCommon/PSServer/PSServerUser.h"
 #include <memory>
 
 // IDA: ??0XPartyManager@@QEAA@XZ @ 0x1403AC640
@@ -65,7 +68,7 @@ std::uint32_t XPartyManager::CreateParty(PS_REQ_PARTY_CREATE& stCreateParty) {
 
 // IDA: ?CreateParty@XPartyManager@@QEAA_NPEAVCUser@@K@Z @ 0x1403AC970
 bool XPartyManager::CreateParty(CUser* pMember, std::uint32_t dwPartyID) {
-    if (!pMember || !dwPartyID) {
+    if (!dwPartyID) {
         return false;
     }
 
@@ -85,17 +88,40 @@ bool XPartyManager::CreateParty(CUser* pMember, std::uint32_t dwPartyID) {
     if (!pGocParty) {
         return false;
     }
+    if (!pMember->GetArea()) {
+        return false;
+    }
 
-    // Set party reference in user's component
-    pGocParty->SetForce(pParty);
+    // IDA: CGocForce::SetForce(shared_ptr) + CGocParty::SendPartyInfo(1)
+    // (GetGOC<CGocParty> 取组件后按 CGocForce::SetForce 静态绑定调用)
+    static_cast<CGocForce*>(pGocParty)->SetForce(std::static_pointer_cast<CForce>(pParty));
     pGocParty->SendPartyInfo(1);
 
-    // TODO: Check if in maze and sync HP/update member info
-    // This requires XArea::IsMaze() and other maze-related APIs
+    // IDA: 若玩家在迷宫区（vtable+56 即 XArea::IsMaze），同步 HP 并更新成员信息
+    XArea* pArea = pMember->GetArea();
+    if (pArea && pArea->IsMaze()) {
+        STMyCharInfoEx* pInfo = pMember->stMyCharInfoEx();
+        const std::uint32_t dwActorID = pMember->GetActorID().dwActorID;
+        pParty->SyncMemberHP(dwActorID, pInfo->stAbility.nMaxAbility[0], pInfo->stAbility.nCurAbility[0]);
+        pParty->SendUpdateMemberInfo(dwActorID);
+    }
 
-    // TODO: Send PS_UPDATE_USER_MAP_INFO to control server
-    // This requires XGameServer and control socket access
+    // IDA: 组装 PS_UPDATE_USER_MAP_INFO 发送 (0xF3,4) 到 CONTROL
+    PS_UPDATE_USER_MAP_INFO stMapInfo = {};
+    stMapInfo.dwUAID = pMember->GetUAID();
+    stMapInfo.dwActorID = pMember->GetActorID().dwActorID;
+    stMapInfo.uxMapID = pMember->GetMapInsID();
+    stMapInfo.stPartyInfo.byGroupType = 1;
+    stMapInfo.stPartyInfo.nID = dwPartyID;
+    stMapInfo.biAuthSessionID = pMember->GetAuthSessionID();
 
+    XSendPacket xSendPacket(0xF3, 0x04);
+    xSendPacket << stMapInfo;
+
+    auto pGameServer = TXSingleton<XGameServer>::Instance();
+    if (pGameServer) {
+        pGameServer->GetControlSocket().SendCheck(&xSendPacket);
+    }
     return true;
 }
 
@@ -112,23 +138,23 @@ bool XPartyManager::AddMember(CUser* pMember, PS_PARTY_ADDMEMBER& stAddMember, P
         }
 
         // Add member to party
-        pParty->AddMember(stAddMember, pMember);
+        pParty->AddMember(stAddMember.stMember, pMember);
 
-        // Update user's party component
+        // Update user's party component (IDA: CGocForce::SetForce path)
         auto pGocParty = pMember->GetGOC<CGocParty>();
         if (pGocParty) {
-            pGocParty->SetForce(pParty);
+            static_cast<CGocForce*>(pGocParty)->SetForce(std::static_pointer_cast<CForce>(pParty));
         }
 
         // Update user-party mapping
         // Remove old mapping if exists
-        auto userIt = m_mapPartyUserInfo.find(stAddMember.dwMemberID);
+        auto userIt = m_mapPartyUserInfo.find(stAddMember.stMember.dwMemberID);
         if (userIt != m_mapPartyUserInfo.end()) {
             m_mapPartyUserInfo.erase(userIt);
         }
 
         // Add new mapping
-        m_mapPartyUserInfo[stAddMember.dwMemberID] = stAddMember.dwPartyID;
+        m_mapPartyUserInfo[stAddMember.stMember.dwMemberID] = stAddMember.dwPartyID;
 
         // Send party info to member
         pParty->SendPartyInfo(pMember, 2);
@@ -140,8 +166,12 @@ bool XPartyManager::AddMember(CUser* pMember, PS_PARTY_ADDMEMBER& stAddMember, P
         }
 
         // Create party with info
-        pParty->Create(stPartyInfo.dwPartyID, stPartyInfo.vecPartyMember.empty() ?
-            ST_PARTY_MEMBER{} : stPartyInfo.vecPartyMember[0]);
+        if (stPartyInfo.vecPartyMember.empty()) {
+            ST_PARTY_MEMBER stMaster{};
+            pParty->Create(stPartyInfo.dwPartyID, stMaster);
+        } else {
+            pParty->Create(stPartyInfo.dwPartyID, stPartyInfo.vecPartyMember[0]);
+        }
 
         // Store party
         m_mapPartyInfo[stPartyInfo.dwPartyID] = pParty;
@@ -151,10 +181,10 @@ bool XPartyManager::AddMember(CUser* pMember, PS_PARTY_ADDMEMBER& stAddMember, P
             m_mapPartyUserInfo[member.dwMemberID] = stPartyInfo.dwPartyID;
         }
 
-        // Update user's party component
+        // Update user's party component (IDA: CGocForce::SetForce path)
         auto pGocParty = pMember->GetGOC<CGocParty>();
         if (pGocParty) {
-            pGocParty->SetForce(pParty);
+            static_cast<CGocForce*>(pGocParty)->SetForce(std::static_pointer_cast<CForce>(pParty));
         }
     }
 
@@ -175,22 +205,22 @@ bool XPartyManager::AddMember(PS_PARTY_ADDMEMBER& stAddMember) {
     }
 
     // Add member to party
-    pParty->AddMember(stAddMember, nullptr);
+    pParty->AddMember(stAddMember.stMember, nullptr);
 
     // Update user-party mapping
     // Remove old mapping if exists
-    auto userIt = m_mapPartyUserInfo.find(stAddMember.dwMemberID);
+    auto userIt = m_mapPartyUserInfo.find(stAddMember.stMember.dwMemberID);
     if (userIt != m_mapPartyUserInfo.end()) {
         m_mapPartyUserInfo.erase(userIt);
     }
 
     // Add new mapping
-    m_mapPartyUserInfo[stAddMember.dwMemberID] = stAddMember.dwPartyID;
+    m_mapPartyUserInfo[stAddMember.stMember.dwMemberID] = stAddMember.dwPartyID;
 
     // Send packet to party members
     XSendPacket xSendPacket(0x12, 0x10);
     xSendPacket << stAddMember;
-    pParty->Send(xSendPacket, stAddMember.dwMemberID);
+    pParty->Send(xSendPacket, stAddMember.stMember.dwMemberID);
 
     return true;
 }
@@ -229,7 +259,7 @@ bool XPartyManager::ChangeMaster(std::uint32_t dwPartyID, UXActorID uNewMasterAc
 // IDA: ?LeaveParty@XPartyManager@@QEAA_NAEAUPS_PARTY_LEAVE@@K@Z @ 0x1403ADD40
 bool XPartyManager::LeaveParty(PS_PARTY_LEAVE& stPartyLeave, std::uint32_t dwNewMaster) {
     // Find party
-    auto it = m_mapPartyInfo.find(stPartyLeave.dwExitUCID);
+    auto it = m_mapPartyInfo.find(stPartyLeave.dwPartyID);
     if (it == m_mapPartyInfo.end()) {
         return false;
     }
@@ -240,7 +270,7 @@ bool XPartyManager::LeaveParty(PS_PARTY_LEAVE& stPartyLeave, std::uint32_t dwNew
     }
 
     // Get member that is leaving
-    auto pMember = pParty->GetMember(stPartyLeave.dwExitUAID);
+    auto pMember = pParty->GetMember(stPartyLeave.dwLeaveMember);
     if (pMember) {
         auto pUser = pMember->GetMember();
         if (pUser) {
@@ -265,10 +295,10 @@ bool XPartyManager::LeaveParty(PS_PARTY_LEAVE& stPartyLeave, std::uint32_t dwNew
     pParty->Send(xSendPacket, 0);
 
     // Kick user from party
-    pParty->UserKickOut(stPartyLeave.dwExitUAID);
+    pParty->UserKickOut(stPartyLeave.dwLeaveMember);
 
     // Remove from user-party mapping
-    auto userIt = m_mapPartyUserInfo.find(stPartyLeave.dwExitUAID);
+    auto userIt = m_mapPartyUserInfo.find(stPartyLeave.dwLeaveMember);
     if (userIt != m_mapPartyUserInfo.end()) {
         m_mapPartyUserInfo.erase(userIt);
     }
@@ -282,7 +312,7 @@ bool XPartyManager::LeaveParty(PS_PARTY_LEAVE& stPartyLeave, std::uint32_t dwNew
 // IDA: ?DeleteParty@XPartyManager@@QEAA_NAEAUPS_PARTY_LEAVE@@@Z @ 0x1403AE1A0
 bool XPartyManager::DeleteParty(PS_PARTY_LEAVE& stPartyLeave) {
     // Find party
-    auto it = m_mapPartyInfo.find(stPartyLeave.dwExitUCID);
+    auto it = m_mapPartyInfo.find(stPartyLeave.dwPartyID);
     if (it == m_mapPartyInfo.end()) {
         return false;
     }
@@ -293,13 +323,13 @@ bool XPartyManager::DeleteParty(PS_PARTY_LEAVE& stPartyLeave) {
     }
 
     // Send leave packet if exit UAID is valid
-    if (stPartyLeave.dwExitUAID != 0xFFFFFFFF) {
+    if (stPartyLeave.dwLeaveMember != 0xFFFFFFFF) {
         XSendPacket xSendPacket(0x12, 0x05);
         xSendPacket << stPartyLeave;
         pParty->Send(xSendPacket, 0);
 
         // Get leaving member
-        auto pMember = pParty->GetMember(stPartyLeave.dwExitUAID);
+        auto pMember = pParty->GetMember(stPartyLeave.dwLeaveMember);
         if (pMember) {
             auto pUser = pMember->GetMember();
             if (pUser) {
@@ -316,7 +346,7 @@ bool XPartyManager::DeleteParty(PS_PARTY_LEAVE& stPartyLeave) {
 
     // Send delete party packet
     XSendPacket xSendPacket(0x12, 0x07);
-    xSendPacket << stPartyLeave.dwExitUCID;
+    xSendPacket << stPartyLeave.dwPartyID;
     pParty->Send(xSendPacket, 0);
 
     // Get all member IDs
@@ -348,6 +378,22 @@ std::uint32_t XPartyManager::GetPartyID(UXActorID uActorID) {
         return 0;
     }
     return it->second;
+}
+
+// IDA: ?GetParty@XPartyManager@@QEAA?AV?$shared_ptr@VCParty@@@tr1@std@@K@Z @ 0x1403AE740
+// 按 PartyID 查找并返回 shared_ptr 拷贝，未找到时返回空 shared_ptr。
+std::shared_ptr<CParty> XPartyManager::GetParty(std::uint32_t dwPartyID) {
+    auto it = m_mapPartyInfo.find(dwPartyID);
+    if (it == m_mapPartyInfo.end()) {
+        return nullptr;
+    }
+    return it->second;
+}
+
+// IDA: ?GetParty@XPartyManager@@QEAA?AV?$shared_ptr@VCParty@@@tr1@std@@TUXActorID@@@Z @ 0x1403AE7F0
+// 先取 PartyID 再委托 by-ID 重载。
+std::shared_ptr<CParty> XPartyManager::GetParty(UXActorID uActorID) {
+    return GetParty(GetPartyID(uActorID));
 }
 
 // IDA: ?GetUserCount@XPartyManager@@QEAAEK@Z @ 0x1403AE840
@@ -413,7 +459,7 @@ bool XPartyManager::ReqPartyEnterServer(CUser* pReqUser, std::uint32_t dwPartyID
 
     auto pGameServer = TXSingleton<XGameServer>::Instance();
     if (pGameServer) {
-        pGameServer->GetControlSocket().SendCheck(xSendPacket);
+        pGameServer->GetControlSocket().SendCheck(&xSendPacket);
     }
 
     return true;
@@ -422,8 +468,8 @@ bool XPartyManager::ReqPartyEnterServer(CUser* pReqUser, std::uint32_t dwPartyID
 // IDA: ?ResEnterMaze@XPartyManager@@QEAAXPEAVCUser@@KAEAUPS_ENTER_MAP_RES@@@Z @ 0x1403AEB80
 void XPartyManager::ResEnterMaze(CUser* pUser, std::uint32_t dwPartyID, PS_ENTER_MAP_RES& stMazeInfo) {
     if (!pUser) {
-        GreenDamTan_log("game.contents", "<%d PARTY> ResEnterMaze Invalid User (%lld)",
-            dwPartyID, stMazeInfo.uxMapID.nMapID);
+        LogHelper::LogError("game.contents", "<%d PARTY> ResEnterMaze Invalid User (%lld)",
+            dwPartyID, static_cast<long long>(stMazeInfo.uxMapID.nMapID));
         return;
     }
 
@@ -441,8 +487,8 @@ void XPartyManager::ResEnterMaze(CUser* pUser, std::uint32_t dwPartyID, PS_ENTER
     // Handle maze enter response
     pParty->ResEnterMaze(pUser, &stMazeInfo);
 
-    GreenDamTan_log("game.contents", "<%d PARTY> ResEnterMaze (UCID : %d / %lld)",
-        dwPartyID, pUser->GetActorID().dwActorID, stMazeInfo.uxMapID.nMapID);
+    LogHelper::LogError("game.contents", "<%d PARTY> ResEnterMaze (UCID : %d / %lld)",
+        dwPartyID, pUser->GetActorID().dwActorID, static_cast<long long>(stMazeInfo.uxMapID.nMapID));
 }
 
 // IDA: ?ResPartyUpdateInfo@XPartyManager@@QEAAXKTUXMapID@@@Z @ 0x1403AECB0
@@ -483,7 +529,7 @@ void XPartyManager::UpdateMemberInfo(ST_UPDATE_PARTY_MEMBER& stUpdateMember) {
     xSendPacket << stUpdateMember;
     pParty->Send(xSendPacket, 0);
 
-    GreenDamTan_log("game.contents", "<%d PARTY> UpdateMember (UCID : %d / %d)",
+    LogHelper::LogError("game.contents", "<%d PARTY> UpdateMember (UCID : %d / %d)",
         stUpdateMember.dwPartyID, stUpdateMember.stPartyMember.dwMemberID,
         stUpdateMember.stPartyMember.nMapID);
 }

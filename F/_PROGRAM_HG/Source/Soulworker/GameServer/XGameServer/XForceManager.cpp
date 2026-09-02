@@ -3,7 +3,7 @@
 // 对齐 IDA GameServer.exe
 
 #include "XForceManager.h"
-#include "Force.h"
+#include "CForce.h"
 #include "User.h"
 #include <algorithm>
 
@@ -92,7 +92,7 @@ void XForceManager::DeleteForce(PS_FORCE_LEAVE& stLeave) {
     // 3. 通知所有成员公会已解散
     // 4. 清理成员列表
     // 5. 从m_mapForce删除
-    // 6. 清理m_mapActorToForce
+    // 6. 清理m_mapForceUserInfo
 
 }
 
@@ -107,11 +107,11 @@ bool XForceManager::LeaveForce(PS_FORCE_LEAVE& stLeave, std::uint32_t dwForceID)
     // 2. 检查成员是否存在
     // 3. 如果是队长，需要转移队长或解散公会
     // 4. 从成员列表移除
-    // 5. 更新m_mapActorToForce
+    // 5. 更新m_mapForceUserInfo
     // 6. 通知其他成员
 
-    auto it = m_mapForce.find(dwForceID);
-    if (it == m_mapForce.end()) {
+    auto it = m_mapForceInfo.find(dwForceID);
+    if (it == m_mapForceInfo.end()) {
         return false;
     }
 
@@ -131,7 +131,7 @@ void XForceManager::AddMember(PS_FORCE_ADDMEMBER& stAddMember) {
     // 3. 检查公会是否已满 (最多8人)
     // 4. 检查用户是否已在其他公会
     // 5. 添加成员到Force
-    // 6. 更新m_mapActorToForce
+    // 6. 更新m_mapForceUserInfo
     // 7. 通知所有成员
 
 }
@@ -160,8 +160,8 @@ bool XForceManager::AddMember(CUser* pUser, PS_FORCE_ADDMEMBER& stAddMember, PS_
 // IDA: ?GetForce@XForceManager@@QEAA?AV?$shared_ptr@VCForce@@@tr1@std@@K@Z @ 0x1401C6460
 // 获取Force实例 - 通过ForceID
 std::shared_ptr<CForce> XForceManager::GetForce(std::uint32_t dwForceID) {
-    auto it = m_mapForce.find(dwForceID);
-    if (it != m_mapForce.end()) {
+    auto it = m_mapForceInfo.find(dwForceID);
+    if (it != m_mapForceInfo.end()) {
         return it->second;
     }
     return nullptr;
@@ -175,8 +175,8 @@ std::shared_ptr<CForce> XForceManager::GetForce(const UXActorID& uxActorID) {
     // 
     // 伪代码逻辑:
     // std::uint32_t dwActorID = uxActorID.GetID();
-    // auto it = m_mapActorToForce.find(dwActorID);
-    // if (it != m_mapActorToForce.end()) {
+    // auto it = m_mapForceUserInfo.find(dwActorID);
+    // if (it != m_mapForceUserInfo.end()) {
     //     return GetForce(it->second);
     // }
 
@@ -191,8 +191,8 @@ std::uint32_t XForceManager::GetForceID(const UXActorID& uxActorID) {
     // 
     // 伪代码逻辑:
     // std::uint32_t dwActorID = uxActorID.GetID();
-    // auto it = m_mapActorToForce.find(dwActorID);
-    // if (it != m_mapActorToForce.end()) {
+    // auto it = m_mapForceUserInfo.find(dwActorID);
+    // if (it != m_mapForceUserInfo.end()) {
     //     return it->second;
     // }
 
@@ -261,7 +261,7 @@ std::shared_ptr<CForce> XForceManager::RegisterForce(std::uint32_t dwForceID, CU
     // 
     // 伪代码逻辑:
     // 1. 检查dwForceID是否已存在
-    // if (m_mapForce.find(dwForceID) != m_mapForce.end()) {
+    // if (m_mapForceInfo.find(dwForceID) != m_mapForceInfo.end()) {
     //     return nullptr;
     // }
     // 
@@ -275,7 +275,7 @@ std::shared_ptr<CForce> XForceManager::RegisterForce(std::uint32_t dwForceID, CU
     // 
     // 4. 更新ActorToForce映射
     // std::uint32_t dwMasterActorID = pMasterUser->GetActorID();
-    // m_mapActorToForce[dwMasterActorID] = dwForceID;
+    // m_mapForceUserInfo[dwMasterActorID] = dwForceID;
     // 
     // return pForce;
 
@@ -293,7 +293,7 @@ std::shared_ptr<CForce> XForceManager::AddForce(PS_FORCE_INFO& stForceInfo) {
     // 2. 创建CForce实例
     // 3. 从stForceInfo填充Force信息
     // 4. 添加到m_mapForce
-    // 5. 更新m_mapActorToForce
+    // 5. 更新m_mapForceUserInfo
 
     return nullptr;
 }

@@ -6622,7 +6622,7 @@
 | - | - | ?ApplyReward@CForce@@QEAAXXZ | 0x1401b7a30 | implemented | IDA ?ApplyReward@CForce@@QEAAXXZ | yes | - |
 | - | - | ??1PS_ITEM_SOCKET_LIST@@QEAA@XZ | 0x1401b7d60 | blocked | IDA ??1PS_ITEM_SOCKET_LIST@@QEAA@XZ | yes | - |
 | - | - | ?SetForceMemberInfo@CForce@@QEAAXKAEAUST_FORCE_MEMBER@@@Z | 0x1401b7d80 | implemented | IDA ?SetForceMemberInfo@CForce@@QEAAXKAEAUST_FORCE_MEMBER@@@Z | yes | - |
-| - | - | ?RegisterPartyMember@CParty@@QEAAXKPEAVCUser@@@Z | 0x1401b7e00 | implemented | IDA decompile | yes | Party.cpp (registers party member by actor ID) |
+| XGameServer | CParty.cpp | ?RegisterPartyMember@CParty@@QEAAXKPEAVCUser@@@Z | 0x1401b7e00 | implemented | IDA decompile | yes | Party.cpp (registers party member by actor ID) |
 | - | - | ?SetMemberMapID@CForce@@QEAAXKHHTUXMapID@@@Z | 0x1401b7e80 | implemented | IDA ?SetMemberMapID@CForce@@QEAAXKHHTUXMapID@@@Z | yes | - |
 | - | - | ?SetMemberHP@CForce@@QEAAXKTUXMapID@@H@Z | 0x1401b7f50 | implemented | IDA ?SetMemberHP@CForce@@QEAAXKTUXMapID@@H@Z | yes | - |
 | - | - | ?SetMemberMaxHP@CForce@@QEAAXKTUXMapID@@H@Z | 0x1401b80b0 | implemented | IDA ?SetMemberMaxHP@CForce@@QEAAXKTUXMapID@@H@Z | yes | - |
@@ -6634,7 +6634,7 @@
 | - | - | ?IsMember@CParty@@QEAA_NK@Z | 0x1401b8640 | implemented | IDA ?IsMember@CParty@@QEAA_NK@Z | yes | - |
 | - | - | ?DropItem@CForce@@QEAAXHHAEAUXVec3@@_NHH@Z | 0x1401b86a0 | implemented | IDA ?DropItem@CForce@@QEAAXHHAEAUXVec3@@_NHH@Z | yes | - |
 | - | - | ?UserKickOut@CForce@@QEAAHK@Z | 0x1401b8b80 | implemented | IDA ?UserKickOut@CForce@@QEAAHK@Z | yes | - |
-| - | - | ?Enumerate@CForce@@QEAAXAEAV?$vector@KV?$allocator@K@std@@@std@@@Z | 0x1401b8c80 | implemented | IDA ?Enumerate@CForce@@QEAAXAEAV?$vector@KV?$allocator@K@std@@@std@@@Z | yes | - |
+| XGameServer | CParty.cpp | ?Enumerate@CForce@@QEAAXAEAV?$vector@KV?$allocator@K@std@@@std@@@Z | 0x1401b8c80 | implemented | IDA ?Enumerate@CForce@@QEAAXAEAV?$vector@KV?$allocator@K@std@@@std@@@Z | yes | - |
 | - | - | ?ResEnterMaze@CForce@@QEAAXPEAVCUser@@AEAUPS_ENTER_MAP_RES@@@Z | 0x1401b8d00 | implemented | IDA decompile | yes | Force.cpp (handles maze enter response with error codes) |
 | - | - | ?SendEnterMaze@CForce@@QEAAXPEAVCUser@@AEAUPS_ENTER_MAP_RES@@@Z | 0x1401b8f00 | implemented | IDA decompile | yes | Force.cpp (sends enter maze packet with DB sync) |
 | - | - | ?SendForceUpdateMemberInfo@CForce@@QEAAXPEAVCUser@@@Z | 0x1401b9550 | implemented | IDA decompile | yes | Force.cpp (broadcasts force member info update) |
@@ -6869,8 +6869,8 @@
 | - | - | ?LeaveForce@XForceManager@@QEAA_NAEAUPS_FORCE_LEAVE@@K@Z | 0x1401c6a20 | implemented | IDA ?LeaveForce@XForceManager@@QEAA_NAEAUPS_FORCE_LEAVE@@K@Z | yes | - |
 | - | - | ?DeleteForce@XForceManager@@QEAA_NAEAUPS_FORCE_LEAVE@@@Z | 0x1401c6ed0 | implemented | IDA ?DeleteForce@XForceManager@@QEAA_NAEAUPS_FORCE_LEAVE@@@Z | yes | - |
 | - | - | ?GetForceID@XForceManager@@QEAAKTUXActorID@@@Z | 0x1401c73f0 | implemented | IDA ?GetForceID@XForceManager@@QEAAKTUXActorID@@@Z | yes | - |
-| - | - | ?GetForce@XForceManager@@QEAA?AV?$shared_ptr@VCForce@@@tr1@std@@K@Z | 0x1401c7460 | implemented | IDA ?GetForce@XForceManager@@QEAA?AV?$shared_ptr@VCForce@@@tr1@std@@K@Z | yes | - |
-| - | - | ?GetForce@XForceManager@@QEAA?AV?$shared_ptr@VCForce@@@tr1@std@@TUXActorID@@@Z | 0x1401c7510 | implemented | IDA ?GetForce@XForceManager@@QEAA?AV?$shared_ptr@VCForce@@@tr1@std@@TUXActorID@@@Z | yes | - |
+| XGameServer | XForceManager.cpp | ?GetForce@XForceManager@@QEAA?AV?$shared_ptr@VCForce@@@tr1@std@@K@Z | 0x1401c7460 | implemented | IDA decompile + active build | yes | Wired into active compile layer: m_mapForceInfo.find returns shared_ptr copy or empty. |
+| XGameServer | XForceManager.cpp | ?GetForce@XForceManager@@QEAA?AV?$shared_ptr@VCForce@@@tr1@std@@TUXActorID@@@Z | 0x1401c7510 | implemented | IDA decompile + active build | yes | Wired into active compile layer: GetForceID(uActorID) then by-ID overload. |
 | - | - | ?GetUserCount@XForceManager@@QEAAEK@Z | 0x1401c7560 | implemented | IDA ?GetUserCount@XForceManager@@QEAAEK@Z | yes | - |
 | - | - | ?IsForceUser@XForceManager@@QEAA_NTUXActorID@@@Z | 0x1401c75e0 | implemented | IDA ?IsForceUser@XForceManager@@QEAA_NTUXActorID@@@Z | yes | - |
 | - | - | ?IsMasterUser@XForceManager@@QEAA_NTUXActorID@@@Z | 0x1401c7650 | implemented | IDA ?IsMasterUser@XForceManager@@QEAA_NTUXActorID@@@Z | yes | - |
@@ -6971,9 +6971,9 @@
 | XGameServer | GameSockets.cpp | ?RecvEnterMap@CGameControlSocket@@QEAA_NAEAVXPacket@@@Z | 0x1401cc340 | blocked | IDA decompile | yes | ������?|
 | - | - | ??0_lambda19_@?A0xa4fe1a90@@QEAA@AEBQEAVCUser@@AEBUPS_ENTER_MAP_RES@@@Z | 0x1401cc5c0 | blocked | IDA ??0_lambda19_@?A0xa4fe1a90@@QEAA@AEBQEAVCUser@@AEBUPS_ENTER_MAP_RES@@@Z | yes | - |
 | - | - | ??R_lambda10_@?A0xa4fe1a90@@QEBAXXZ | 0x1401cc630 | blocked | IDA ??R_lambda10_@?A0xa4fe1a90@@QEBAXXZ | yes | - |
-| XGameServer | GameSockets.cpp | ?RecvCheckPartyInMaze@CGameControlSocket@@QEAA_NAEAVXPacket@@@Z | 0x1401ccda0 | blocked | IDA decompile | yes | ����Թ��ж���?|
+| XGameServer | GameSockets.cpp | ?RecvCheckPartyInMaze@CGameControlSocket@@QEAA_NAEAVXPacket@@@Z | 0x1401ccda0 | implemented | IDA decompile + active build | yes | Restored: parse UXMapID + PS_ENTER_MAP_REQ + nResult, FindActorIDToUser, IsLive gate, IncrementJobCount, lambda12 DoJob (party/force EnterMaze by byGroupType, or (0x11,0x42) ST_CREATE_MAZE error), lambda192 DecrementJobCount. |
 | - | - | ??0_lambda12_@?A0xa4fe1a90@@QEAA@AEBQEAVCUser@@AEBTUXMapID@@AEBUPS_ENTER_MAP_REQ@@AEBH@Z | 0x1401cd050 | blocked | IDA ??0_lambda12_@?A0xa4fe1a90@@QEAA@AEBQEAVCUser@@AEBTUXMapID@@AEBUPS_ENTER_MAP_REQ@@AEBH@Z | yes | - |
-| - | - | ??R_lambda12_@?A0xa4fe1a90@@QEBAXXZ | 0x1401cd0f0 | blocked | IDA ??R_lambda12_@?A0xa4fe1a90@@QEBAXXZ | yes | - |
+| XGameServer | GameSockets.cpp | ??R_lambda12_@?A0xa4fe1a90@@QEBAXXZ | 0x1401cd0f0 | implemented | IDA decompile + active build | yes | Restored: lambda12 operator() - nResult<=0 routes byGroupType 1->XPartyManager::GetParty+CParty::EnterMaze, 2->XForceManager::GetForce+CForce::EnterMaze; positive nResult sends (0x11,0x42) error with LogError 591. |
 | XGameServer | GameSockets.cpp | ?RecvUserChangeServer@CGameControlSocket@@UEAA_NAEAVXPacket@@@Z | 0x1401cd4b0 | blocked | IDA decompile | yes | �û��л������� |
 | - | - | ??0_lambda14_@?A0xa4fe1a90@@QEAA@AEBQEAVCUser@@AEBUPS_RES_CHANGE_SERVER@@@Z | 0x1401cd730 | blocked | IDA ??0_lambda14_@?A0xa4fe1a90@@QEAA@AEBQEAVCUser@@AEBUPS_RES_CHANGE_SERVER@@@Z | yes | - |
 | - | - | ??R_lambda14_@?A0xa4fe1a90@@QEBAXXZ | 0x1401cd7a0 | blocked | IDA ??R_lambda14_@?A0xa4fe1a90@@QEBAXXZ | yes | - |
@@ -16525,8 +16525,8 @@ yes | ?????????? |
 | - | - | ?GetMember@CParty@@QEAAPEAVCPartyMember@@K@Z | 0x1403a5050 | implemented | IDA ?GetMember@CParty@@QEAAPEAVCPartyMember@@K@Z | yes | - |
 | - | - | ?UpdateMemberInfo@CParty@@QEAAXAEAUST_UPDATE_PARTY_MEMBER@@@Z | 0x1403a50c0 | implemented | IDA ?UpdateMemberInfo@CParty@@QEAAXAEAUST_UPDATE_PARTY_MEMBER@@@Z | yes | - |
 | - | - | ?UpdateMemberLevelOrder@CParty@@QEAAXXZ | 0x1403a5150 | implemented | IDA ?UpdateMemberLevelOrder@CParty@@QEAAXXZ | yes | - |
-| - | - | ?ChangeMaster@CForce@@QEAA_NK@Z | 0x1403a5580 | implemented | IDA ?ChangeMaster@CForce@@QEAA_NK@Z | yes | - |
-| - | - | ?RemoveForceBooster@CForce@@QEAAXXZ | 0x1403a5600 | implemented | IDA ?RemoveForceBooster@CForce@@QEAAXXZ | yes | - |
+| XGameServer | CParty.cpp | ?ChangeMaster@CForce@@QEAA_NK@Z | 0x1403a5580 | implemented | IDA ?ChangeMaster@CForce@@QEAA_NK@Z | yes | - |
+| XGameServer | CParty.cpp | ?RemoveForceBooster@CForce@@QEAAXXZ | 0x1403a5600 | implemented | IDA ?RemoveForceBooster@CForce@@QEAAXXZ | yes | - |
 | - | - | ?UpdatePartyBooster@CParty@@QEAAXK@Z | 0x1403a56d0 | implemented | IDA ?UpdatePartyBooster@CParty@@QEAAXK@Z | yes | - |
 | - | - | ?ChangeMonsterLevelStat@CParty@@QEAAX_N@Z | 0x1403a5b20 | implemented | IDA ?ChangeMonsterLevelStat@CParty@@QEAAX_N@Z | yes | - |
 | - | - | ?SendPartyInfo@CParty@@QEAAXPEAVCUser@@E@Z | 0x1403a5c60 | implemented | IDA ?SendPartyInfo@CParty@@QEAAXPEAVCUser@@E@Z | yes | - |
@@ -16559,40 +16559,40 @@ yes | ?????????? |
 | - | - | ?AgreeEnterMaze@CParty@@QEAAXK@Z | 0x1403aa1f0 | implemented | IDA ?AgreeEnterMaze@CParty@@QEAAXK@Z | yes | - |
 | - | - | ?SetEnterMazeResponse@CParty@@QEAA_NK@Z | 0x1403aa360 | implemented | IDA ?SetEnterMazeResponse@CParty@@QEAA_NK@Z | yes | - |
 | - | - | ?SendEnterMaze@CParty@@QEAAXAEAUPS_ENTER_MAP_RES@@@Z | 0x1403aa440 | implemented | IDA ?SendEnterMaze@CParty@@QEAAXAEAUPS_ENTER_MAP_RES@@@Z | yes | - |
-| - | - | ?SetForceType@CForce@@QEAAXE@Z | 0x1403aabf0 | implemented | IDA ?SetForceType@CForce@@QEAAXE@Z | yes | - |
+| XGameServer | CParty.cpp | ?SetForceType@CForce@@QEAAXE@Z | 0x1403aabf0 | implemented | IDA ?SetForceType@CForce@@QEAAXE@Z | yes | - |
 | - | - | ?SendMazeClear@CParty@@QEAAXE@Z | 0x1403aaca0 | implemented | IDA ?SendMazeClear@CParty@@QEAAXE@Z | yes | - |
 | - | - | ?CreateMazeReq@CParty@@QEAAXXZ | 0x1403aad60 | implemented | IDA ?CreateMazeReq@CParty@@QEAAXXZ | yes | - |
 | - | - | ?EnterMazeByForce@CParty@@QEAA_NPEAVCUser@@TUXMapID@@AEAUPS_ENTER_MAP_REQ@@@Z | 0x1403aaed0 | implemented | IDA ?EnterMazeByForce@CParty@@QEAA_NPEAVCUser@@TUXMapID@@AEAUPS_ENTER_MAP_REQ@@@Z | yes | - |
 | - | - | ?ClearMemberRecode@CParty@@QEAAXXZ | 0x1403abe60 | implemented | IDA ?ClearMemberRecode@CParty@@QEAAXXZ | yes | - |
-| - | - | ?SyncMemberHP@CParty@@QEAAXHHH@Z | 0x1403abee0 | implemented | IDA ?SyncMemberHP@CParty@@QEAAXHHH@Z | yes | - |
+| XGameServer | CParty.cpp | ?SyncMemberHP@CParty@@QEAAXHHH@Z | 0x1403abee0 | implemented | IDA ?SyncMemberHP@CParty@@QEAAXHHH@Z | yes | - |
 | - | - | ?ChangeMemberName@CParty@@QEAAXAEAUPS_CHANGE_NAME@@@Z | 0x1403abf90 | implemented | IDA ?ChangeMemberName@CParty@@QEAAXAEAUPS_CHANGE_NAME@@@Z | yes | - |
 | - | - | ?CheckEnterMazeItem@CParty@@QEAA_NXZ | 0x1403ac020 | implemented | IDA ?CheckEnterMazeItem@CParty@@QEAA_NXZ | yes | - |
 | - | - | ?_Lrotate@?$_Tree@V?$_Tmap_traits@EUSItemRateInfo@@U?$less@E@std@@V?$allocator@U?$pair@$$CBEUSItemRateInfo@@@std@@@3@$0A@@std@@@std@@IEAAXPEAU_Node@?$_Tree_nod@V?$_Tmap_traits@EUSItemRateInfo@@U?$less@E@std@@V?$allocator@U?$pair@$$CBEUSItemRateInfo@@@std@@@3@$0A@@std@@@2@@Z | 0x1403ac4a0 | blocked | IDA ?_Lrotate@?$_Tree@V?$_Tmap_traits@EUSItemRateInfo@@U?$less@E@std@@V?$allocator@U?$pair@$$CBEUSItemRateInfo@@@std@@@3@$0A@@std@@@std@@IEAAXPEAU_Node@?$_Tree_nod@V?$_Tmap_traits@EUSItemRateInfo@@U?$less@E@std@@V?$allocator@U?$pair@$$CBEUSItemRateInfo@@@std@@@3@$0A@@std@@@2@@Z | yes | - |
 | - | - | ?SetRecode@CPartyMember@@QEAAXPEAH@Z | 0x1403ac5e0 | implemented | IDA ?SetRecode@CPartyMember@@QEAAXPEAH@Z | yes | - |
 | - | - | ??0STEnterMazeRequst@CParty@@QEAA@XZ | 0x1403ac610 | blocked | IDA ??0STEnterMazeRequst@CParty@@QEAA@XZ | yes | - |
-| - | - | ??0XPartyManager@@QEAA@XZ | 0x1403ac640 | blocked | IDA ??0XPartyManager@@QEAA@XZ | yes | - |
+| XGameServer | XPartyManager.cpp | ??0XPartyManager@@QEAA@XZ | 0x1403ac640 | implemented | IDA decompile + active build | yes | Restored: clears m_mapPartyInfo/m_mapPartyUserInfo and zeroes m_dwSeqNo. |
 | - | - | ??_EXPartyManager@@UEAAPEAXI@Z | 0x1403ac6d0 | blocked | IDA ??_EXPartyManager@@UEAAPEAXI@Z | yes | - |
-| - | - | ??1XPartyManager@@UEAA@XZ | 0x1403ac710 | blocked | IDA ??1XPartyManager@@UEAA@XZ | yes | - |
-| - | - | ?CreateParty@XPartyManager@@QEAAKAEAUPS_REQ_PARTY_CREATE@@@Z | 0x1403ac790 | implemented | IDA ?CreateParty@XPartyManager@@QEAAKAEAUPS_REQ_PARTY_CREATE@@@Z | yes | - |
-| - | - | ?CreateParty@XPartyManager@@QEAA_NPEAVCUser@@K@Z | 0x1403ac970 | implemented | IDA ?CreateParty@XPartyManager@@QEAA_NPEAVCUser@@K@Z | yes | - |
+| XGameServer | XPartyManager.cpp | ??1XPartyManager@@UEAA@XZ | 0x1403ac710 | implemented | IDA decompile + active build | yes | Restored: clears m_mapPartyUserInfo then m_mapPartyInfo in destructor. |
+| XGameServer | XPartyManager.cpp | ?CreateParty@XPartyManager@@QEAAKAEAUPS_REQ_PARTY_CREATE@@@Z | 0x1403ac790 | implemented | IDA ?CreateParty@XPartyManager@@QEAAKAEAUPS_REQ_PARTY_CREATE@@@Z | yes | - |
+| XGameServer | XPartyManager.cpp | ?CreateParty@XPartyManager@@QEAA_NPEAVCUser@@K@Z | 0x1403ac970 | implemented | IDA ?CreateParty@XPartyManager@@QEAA_NPEAVCUser@@K@Z | yes | - |
 | - | - | ?AddParty@XPartyManager@@QEAA?AV?$shared_ptr@VCParty@@@tr1@std@@AEAUPS_PARTY_INFO@@@Z | 0x1403acdf0 | implemented | IDA ?AddParty@XPartyManager@@QEAA?AV?$shared_ptr@VCParty@@@tr1@std@@AEAUPS_PARTY_INFO@@@Z | yes | - |
 | - | - | ?RegisterParty@XPartyManager@@QEAA?AV?$shared_ptr@VCParty@@@tr1@std@@KPEAVCUser@@@Z | 0x1403ad190 | implemented | IDA ?RegisterParty@XPartyManager@@QEAA?AV?$shared_ptr@VCParty@@@tr1@std@@KPEAVCUser@@@Z | yes | - |
-| - | - | ?AddMember@XPartyManager@@QEAA_NPEAVCUser@@AEAUPS_PARTY_ADDMEMBER@@AEAUPS_PARTY_INFO@@@Z | 0x1403ad4f0 | implemented | IDA ?AddMember@XPartyManager@@QEAA_NPEAVCUser@@AEAUPS_PARTY_ADDMEMBER@@AEAUPS_PARTY_INFO@@@Z | yes | - |
-| - | - | ?AddMember@XPartyManager@@QEAA_NAEAUPS_PARTY_ADDMEMBER@@@Z | 0x1403ad960 | implemented | IDA ?AddMember@XPartyManager@@QEAA_NAEAUPS_PARTY_ADDMEMBER@@@Z | yes | - |
-| - | - | ?ChangeMaster@XPartyManager@@QEAA_NKTUXActorID@@@Z | 0x1403adb90 | implemented | IDA ?ChangeMaster@XPartyManager@@QEAA_NKTUXActorID@@@Z | yes | - |
-| - | - | ?LeaveParty@XPartyManager@@QEAA_NAEAUPS_PARTY_LEAVE@@K@Z | 0x1403add40 | implemented | IDA ?LeaveParty@XPartyManager@@QEAA_NAEAUPS_PARTY_LEAVE@@K@Z | yes | - |
-| - | - | ?DeleteParty@XPartyManager@@QEAA_NAEAUPS_PARTY_LEAVE@@@Z | 0x1403ae1a0 | implemented | IDA ?DeleteParty@XPartyManager@@QEAA_NAEAUPS_PARTY_LEAVE@@@Z | yes | - |
-| - | - | ?GetPartyID@XPartyManager@@QEAAKTUXActorID@@@Z | 0x1403ae6d0 | implemented | IDA ?GetPartyID@XPartyManager@@QEAAKTUXActorID@@@Z | yes | - |
-| - | - | ?GetParty@XPartyManager@@QEAA?AV?$shared_ptr@VCParty@@@tr1@std@@K@Z | 0x1403ae740 | implemented | IDA ?GetParty@XPartyManager@@QEAA?AV?$shared_ptr@VCParty@@@tr1@std@@K@Z | yes | - |
-| - | - | ?GetParty@XPartyManager@@QEAA?AV?$shared_ptr@VCParty@@@tr1@std@@TUXActorID@@@Z | 0x1403ae7f0 | implemented | IDA ?GetParty@XPartyManager@@QEAA?AV?$shared_ptr@VCParty@@@tr1@std@@TUXActorID@@@Z | yes | - |
-| - | - | ?GetUserCount@XPartyManager@@QEAAEK@Z | 0x1403ae840 | implemented | IDA ?GetUserCount@XPartyManager@@QEAAEK@Z | yes | - |
-| - | - | ?IsPartyUser@XPartyManager@@QEAA_NTUXActorID@@@Z | 0x1403ae8c0 | implemented | IDA ?IsPartyUser@XPartyManager@@QEAA_NTUXActorID@@@Z | yes | - |
-| - | - | ?IsMasterUser@XPartyManager@@QEAA_NTUXActorID@@@Z | 0x1403ae930 | implemented | IDA ?IsMasterUser@XPartyManager@@QEAA_NTUXActorID@@@Z | yes | - |
-| - | - | ?ReqPartyEnterServer@XPartyManager@@QEAA_NPEAVCUser@@K@Z | 0x1403aea20 | implemented | IDA ?ReqPartyEnterServer@XPartyManager@@QEAA_NPEAVCUser@@K@Z | yes | - |
-| - | - | ?ResEnterMaze@XPartyManager@@QEAAXPEAVCUser@@KAEAUPS_ENTER_MAP_RES@@@Z | 0x1403aeb80 | implemented | IDA ?ResEnterMaze@XPartyManager@@QEAAXPEAVCUser@@KAEAUPS_ENTER_MAP_RES@@@Z | yes | - |
-| - | - | ?ResPartyUpdateInfo@XPartyManager@@QEAAXKTUXMapID@@@Z | 0x1403aecb0 | implemented | IDA ?ResPartyUpdateInfo@XPartyManager@@QEAAXKTUXMapID@@@Z | yes | - |
-| - | - | ?UpdateMemberInfo@XPartyManager@@QEAAXAEAUST_UPDATE_PARTY_MEMBER@@@Z | 0x1403aed50 | implemented | IDA ?UpdateMemberInfo@XPartyManager@@QEAAXAEAUST_UPDATE_PARTY_MEMBER@@@Z | yes | - |
-| - | - | ?RecvPartyMazeClear@XPartyManager@@QEAAXK@Z | 0x1403aeed0 | implemented | IDA ?RecvPartyMazeClear@XPartyManager@@QEAAXK@Z | yes | - |
+| XGameServer | XPartyManager.cpp | ?AddMember@XPartyManager@@QEAA_NPEAVCUser@@AEAUPS_PARTY_ADDMEMBER@@AEAUPS_PARTY_INFO@@@Z | 0x1403ad4f0 | implemented | IDA ?AddMember@XPartyManager@@QEAA_NPEAVCUser@@AEAUPS_PARTY_ADDMEMBER@@AEAUPS_PARTY_INFO@@@Z | yes | - |
+| XGameServer | XPartyManager.cpp | ?AddMember@XPartyManager@@QEAA_NAEAUPS_PARTY_ADDMEMBER@@@Z | 0x1403ad960 | implemented | IDA ?AddMember@XPartyManager@@QEAA_NAEAUPS_PARTY_ADDMEMBER@@@Z | yes | - |
+| XGameServer | XPartyManager.cpp | ?ChangeMaster@XPartyManager@@QEAA_NKTUXActorID@@@Z | 0x1403adb90 | implemented | IDA ?ChangeMaster@XPartyManager@@QEAA_NKTUXActorID@@@Z | yes | - |
+| XGameServer | XPartyManager.cpp | ?LeaveParty@XPartyManager@@QEAA_NAEAUPS_PARTY_LEAVE@@K@Z | 0x1403add40 | implemented | IDA ?LeaveParty@XPartyManager@@QEAA_NAEAUPS_PARTY_LEAVE@@K@Z | yes | - |
+| XGameServer | XPartyManager.cpp | ?DeleteParty@XPartyManager@@QEAA_NAEAUPS_PARTY_LEAVE@@@Z | 0x1403ae1a0 | implemented | IDA ?DeleteParty@XPartyManager@@QEAA_NAEAUPS_PARTY_LEAVE@@@Z | yes | - |
+| XGameServer | XPartyManager.cpp | ?GetPartyID@XPartyManager@@QEAAKTUXActorID@@@Z | 0x1403ae6d0 | implemented | IDA ?GetPartyID@XPartyManager@@QEAAKTUXActorID@@@Z | yes | - |
+| XGameServer | XPartyManager.cpp | ?GetParty@XPartyManager@@QEAA?AV?$shared_ptr@VCParty@@@tr1@std@@K@Z | 0x1403ae740 | implemented | IDA ?GetParty@XPartyManager@@QEAA?AV?$shared_ptr@VCParty@@@tr1@std@@K@Z | yes | - |
+| XGameServer | XPartyManager.cpp | ?GetParty@XPartyManager@@QEAA?AV?$shared_ptr@VCParty@@@tr1@std@@TUXActorID@@@Z | 0x1403ae7f0 | implemented | IDA ?GetParty@XPartyManager@@QEAA?AV?$shared_ptr@VCParty@@@tr1@std@@TUXActorID@@@Z | yes | - |
+| XGameServer | XPartyManager.cpp | ?GetUserCount@XPartyManager@@QEAAEK@Z | 0x1403ae840 | implemented | IDA ?GetUserCount@XPartyManager@@QEAAEK@Z | yes | - |
+| XGameServer | XPartyManager.cpp | ?IsPartyUser@XPartyManager@@QEAA_NTUXActorID@@@Z | 0x1403ae8c0 | implemented | IDA ?IsPartyUser@XPartyManager@@QEAA_NTUXActorID@@@Z | yes | - |
+| XGameServer | XPartyManager.cpp | ?IsMasterUser@XPartyManager@@QEAA_NTUXActorID@@@Z | 0x1403ae930 | implemented | IDA ?IsMasterUser@XPartyManager@@QEAA_NTUXActorID@@@Z | yes | - |
+| XGameServer | XPartyManager.cpp | ?ReqPartyEnterServer@XPartyManager@@QEAA_NPEAVCUser@@K@Z | 0x1403aea20 | implemented | IDA ?ReqPartyEnterServer@XPartyManager@@QEAA_NPEAVCUser@@K@Z | yes | - |
+| XGameServer | XPartyManager.cpp | ?ResEnterMaze@XPartyManager@@QEAAXPEAVCUser@@KAEAUPS_ENTER_MAP_RES@@@Z | 0x1403aeb80 | implemented | IDA ?ResEnterMaze@XPartyManager@@QEAAXPEAVCUser@@KAEAUPS_ENTER_MAP_RES@@@Z | yes | - |
+| XGameServer | XPartyManager.cpp | ?ResPartyUpdateInfo@XPartyManager@@QEAAXKTUXMapID@@@Z | 0x1403aecb0 | implemented | IDA ?ResPartyUpdateInfo@XPartyManager@@QEAAXKTUXMapID@@@Z | yes | - |
+| XGameServer | XPartyManager.cpp | ?UpdateMemberInfo@XPartyManager@@QEAAXAEAUST_UPDATE_PARTY_MEMBER@@@Z | 0x1403aed50 | implemented | IDA ?UpdateMemberInfo@XPartyManager@@QEAAXAEAUST_UPDATE_PARTY_MEMBER@@@Z | yes | - |
+| XGameServer | XPartyManager.cpp | ?RecvPartyMazeClear@XPartyManager@@QEAAXK@Z | 0x1403aeed0 | implemented | IDA ?RecvPartyMazeClear@XPartyManager@@QEAAXK@Z | yes | - |
 | - | - | ?erase@?$_Tree@V?$_Tmap_traits@KV?$shared_ptr@VCQuestCondition@@@tr1@std@@U?$less@K@3@V?$allocator@U?$pair@$$CBKV?$shared_ptr@VCQuestCondition@@@tr1@std@@@std@@@3@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@KV?$shared_ptr@VCQuestCondition@@@tr1@std@@U?$less@K@3@V?$allocator@U?$pair@$$CBKV?$shared_ptr@VCQuestCondition@@@tr1@std@@@std@@@3@$0A@@std@@@std@@@2@V?$_Tree_const_iterator@V?$_Tree_val@V?$_Tmap_traits@KV?$shared_ptr@VCQuestCondition@@@tr1@std@@U?$less@K@3@V?$allocator@U?$pair@$$CBKV?$shared_ptr@VCQuestCondition@@@tr1@std@@@std@@@3@$0A@@std@@@std@@@2@@Z | 0x1403aeff0 | blocked | IDA ?erase@?$_Tree@V?$_Tmap_traits@KV?$shared_ptr@VCQuestCondition@@@tr1@std@@U?$less@K@3@V?$allocator@U?$pair@$$CBKV?$shared_ptr@VCQuestCondition@@@tr1@std@@@std@@@3@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@KV?$shared_ptr@VCQuestCondition@@@tr1@std@@U?$less@K@3@V?$allocator@U?$pair@$$CBKV?$shared_ptr@VCQuestCondition@@@tr1@std@@@std@@@3@$0A@@std@@@std@@@2@V?$_Tree_const_iterator@V?$_Tree_val@V?$_Tmap_traits@KV?$shared_ptr@VCQuestCondition@@@tr1@std@@U?$less@K@3@V?$allocator@U?$pair@$$CBKV?$shared_ptr@VCQuestCondition@@@tr1@std@@@std@@@3@$0A@@std@@@std@@@2@@Z | yes | - |
 | - | - | ?find@?$_Tree@V?$_Tmap_traits@KV?$shared_ptr@VCQuestCondition@@@tr1@std@@U?$less@K@3@V?$allocator@U?$pair@$$CBKV?$shared_ptr@VCQuestCondition@@@tr1@std@@@std@@@3@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@KV?$shared_ptr@VCQuestCondition@@@tr1@std@@U?$less@K@3@V?$allocator@U?$pair@$$CBKV?$shared_ptr@VCQuestCondition@@@tr1@std@@@std@@@3@$0A@@std@@@std@@@2@AEBK@Z | 0x1403af830 | blocked | IDA ?find@?$_Tree@V?$_Tmap_traits@KV?$shared_ptr@VCQuestCondition@@@tr1@std@@U?$less@K@3@V?$allocator@U?$pair@$$CBKV?$shared_ptr@VCQuestCondition@@@tr1@std@@@std@@@3@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@KV?$shared_ptr@VCQuestCondition@@@tr1@std@@U?$less@K@3@V?$allocator@U?$pair@$$CBKV?$shared_ptr@VCQuestCondition@@@tr1@std@@@std@@@3@$0A@@std@@@std@@@2@AEBK@Z | yes | - |
 | - | - | ?_Rrotate@?$_Tree@V?$_Tmap_traits@KUST_HAVE_TITLE_INFO@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUST_HAVE_TITLE_INFO@@@std@@@3@$0A@@std@@@std@@IEAAXPEAU_Node@?$_Tree_nod@V?$_Tmap_traits@KUST_HAVE_TITLE_INFO@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUST_HAVE_TITLE_INFO@@@std@@@3@$0A@@std@@@2@@Z | 0x1403af8f0 | blocked | IDA ?_Rrotate@?$_Tree@V?$_Tmap_traits@KUST_HAVE_TITLE_INFO@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUST_HAVE_TITLE_INFO@@@std@@@3@$0A@@std@@@std@@IEAAXPEAU_Node@?$_Tree_nod@V?$_Tmap_traits@KUST_HAVE_TITLE_INFO@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUST_HAVE_TITLE_INFO@@@std@@@3@$0A@@std@@@2@@Z | yes | - |

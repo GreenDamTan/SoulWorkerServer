@@ -109,6 +109,11 @@ public:
     // IsLogin - 检查是否在线
     bool IsLogin() const { return m_partyMemberInfo.bLogin != 0; }
 
+    // SetPartyMemberState - 设置成员状态
+    // IDA 0x14025DED0: m_nPartyMemberState = nState（被 CForce::SetForceType 内联调用，
+    // IDA 误标为 CFsmTransition::SetOutputState）
+    void SetPartyMemberState(int nState) { m_nPartyMemberState = nState; }
+
 private:
     // === IDA 确认的成员变量 ===
     // offset 0x00: m_partyMemberInfo (88 bytes - ST_PARTY_MEMBER)
@@ -273,6 +278,30 @@ public:
     // UserKickOut - 踢出用户
     // IDA: ?UserKickOut@CParty@@QEAAHK@Z @ 0x1403A7D90
     std::uint32_t UserKickOut(std::uint32_t dwMember);
+
+    // ChangeMaster - 更换队长
+    // IDA: ?ChangeMaster@CForce@@QEAA_NK@Z @ 0x1403A5580 (CParty 与 CForce 同布局共享实现)
+    bool ChangeMaster(std::uint32_t dwPartyMaster);
+
+    // Enumerate - 枚举全部成员 ID
+    // IDA: ?Enumerate@CForce@@QEAAXAEAV?$vector@KV?$allocator@K@std@@@std@@@Z @ 0x1401B8C80
+    void Enumerate(std::vector<std::uint32_t>& vecMember);
+
+    // SyncMemberHP - 同步成员 HP（SetMaxHP + SetHP）
+    // IDA: ?SyncMemberHP@CParty@@QEAAXHHH@Z @ 0x1403ABEE0
+    void SyncMemberHP(std::uint32_t nMemberID, int nMaxHP, int nHP);
+
+    // RegisterPartyMember - 注册成员用户指针（SetMember）
+    // IDA: ?RegisterPartyMember@CParty@@QEAAXKPEAVCUser@@@Z @ 0x1401B7E00
+    void RegisterPartyMember(std::uint32_t dwActorID, CUser* pMember);
+
+    // RemoveForceBooster - 移除所有本线程成员的队伍增益
+    // IDA: ?RemoveForceBooster@CForce@@QEAAXXZ @ 0x1403A5600（CParty/CForce 同 272 布局）
+    void RemoveForceBooster();
+
+    // SetForceType - 设置类型；type==1 时对所有成员设置成员状态 2
+    // IDA: ?SetForceType@CForce@@QEAAXE@Z @ 0x1403AABF0
+    void SetForceType(std::uint8_t byType);
 
     // === Maze Functions ===
 

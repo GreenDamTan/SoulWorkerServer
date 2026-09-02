@@ -35,6 +35,8 @@ add_executable(GameServer
     Party.cpp
     CParty.cpp
     CForce.cpp
+    XPartyManager.cpp
+    XForceManager.cpp
     TraceHPState.cpp
     Maze.cpp
     CellPosMgr.cpp

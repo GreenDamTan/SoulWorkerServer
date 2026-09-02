@@ -20,6 +20,10 @@
 #include "User.h"
 #include "GameServer.h"
 #include "ThreadLocalData.h"
+#include "Soulworker/GameServer/XGameServer/XPartyManager.h"
+#include "Soulworker/GameServer/XGameServer/XForceManager.h"
+#include "Soulworker/GameServer/XGameServer/CParty.h"
+#include "Soulworker/GameServer/XGameServer/CForce.h"
 #include "Soulworker/GameServer/XCore/XServer/GreenDamTan_LogHelper.h"
 #include "Soulworker/GameServer/XCore/XArea/XActor.h"
 #include "Soulworker/GameServer/XGameServer/actor/component/GocParty.h"
@@ -408,7 +412,7 @@ bool CGameControlSocket::RecvEnterMap(XPacket* xPacket) {
 
 // Per IDA 0x1401ccda0: RecvCheckPartyInMaze
 bool CGameControlSocket::RecvCheckPartyInMaze(XPacket* xPacket) {
-    // Per IDA: 检查迷宫中的队伍
+    // Per IDA: 解析迷宫 ID、进入请求与结果码
     UXMapID uxMazeID = {};
     PS_ENTER_MAP_REQ stEnterReq = {};
     int nResult = 0;
@@ -417,7 +421,7 @@ bool CGameControlSocket::RecvCheckPartyInMaze(XPacket* xPacket) {
     *xPacket >> stEnterReq;
     xPacket->XParse >> nResult;
 
-    // Per IDA: 查找用户
+    // Per IDA: 按请求内 ActorID 查找用户
     XGameServer* pServer = XGameServer::Instance();
     CUser* pUser = pServer ? pServer->FindActorIDToUser(stEnterReq.dwActorID) : nullptr;
 
@@ -428,9 +432,62 @@ bool CGameControlSocket::RecvCheckPartyInMaze(XPacket* xPacket) {
         return false;
     }
 
-    // Per IDA: 通过CLogicThreadManager分发任务
-    // TODO: 完整实现需要CLogicThreadManager::DoJob
-    GreenDamTan_log(__FILE__, __FUNCTION__, "RecvCheckPartyInMaze - need CLogicThreadManager::DoJob");
+    // Per IDA: 用户不在存活态则直接拒绝（vtable+40 IsLive）
+    if (!pUser->IsLive()) {
+        return false;
+    }
+
+    // Per IDA: IncrementJobCount 后经 lambda12 分发到玩家所在线程
+    pUser->IncrementJobCount();
+
+    // Per IDA lambda12 (0x1401CD0F0): 在逻辑线程执行队伍/Force 迷宫进入判定
+    std::function<void()> func = [pUser, uxMazeID, stEnterReq, nResult]() {
+        if (!pUser || !pUser->IsLive()) {
+            return;
+        }
+        // Per IDA: 结果码 <= 0 时按组类型走队伍/Force 迷宫进入
+        if (nResult <= 0) {
+            if (stEnterReq.stPartyInfo.byGroupType == 1 && stEnterReq.stPartyInfo.nID > 0) {
+                // Per IDA: ThreadLocalData::GetInstance()->m_xPartyMgr.GetParty(actorID)
+                XPartyManager* pPartyMgr = ThreadLocalData::GetInstance()->GetPartyMgr();
+                if (pPartyMgr) {
+                    std::shared_ptr<CParty> pParty = pPartyMgr->GetParty(pUser->GetActorID());
+                    if (pParty) {
+                        PS_ENTER_MAP_REQ stReq = stEnterReq;
+                        pParty->EnterMaze(pUser, uxMazeID, &stReq);
+                    }
+                }
+            } else if (stEnterReq.stPartyInfo.byGroupType == 2 && stEnterReq.stPartyInfo.nID > 0) {
+                // Per IDA: m_xForceMgr.GetForce(actorID)
+                XForceManager* pForceMgr = ThreadLocalData::GetInstance()->GetForceMgr();
+                if (pForceMgr) {
+                    std::shared_ptr<CForce> pForce = pForceMgr->GetForce(pUser->GetActorID());
+                    if (pForce) {
+                        PS_ENTER_MAP_REQ stReq = stEnterReq;
+                        pForce->EnterMaze(pUser, uxMazeID, &stReq);
+                    }
+                }
+            }
+        } else {
+            // Per IDA: 结果码为正即失败，向玩家回 (0x11,0x42) ST_CREATE_MAZE 错误包
+            LogHelper::LogError("game.contents",
+                "RecvCheckPartyInMaze error - Failed Enter Party Maze User[ ActorID:%d, Error:%d ] ( %d )",
+                pUser->GetActorID().dwActorID, nResult, 591);
+            ST_CREATE_MAZE stMaze = {};
+            stMaze.nResult = nResult;
+            stMaze.dwUserID = pUser->GetActorID().dwActorID;
+            XSendPacket xSendPacket(0x11, 0x42);
+            xSendPacket << stMaze;
+            CGocNetwork::Send(pUser, xSendPacket);
+        }
+    };
+    CLogicThreadManager::Instance().DoJob(pUser->GetMapInsID().nMapID, func);
+
+    // Per IDA lambda192 (0x140427E60): 任务完成递减计数
+    std::function<void()> funcDec = [pUser]() {
+        pUser->DecrementJobCount();
+    };
+    CLogicThreadManager::Instance().DoJob(pUser->GetMapInsID().nMapID, funcDec);
     return true;
 }
 

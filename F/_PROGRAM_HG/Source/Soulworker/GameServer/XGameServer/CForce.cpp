@@ -4,9 +4,10 @@
 
 #include "CForce.h"
 #include "Soulworker/Common/XNet/XCommon/PSServer/PSServerCore.h"
+#include "User.h"
+#include "ThreadLocalData.h"
 
 // Forward declarations
-class CUser;
 class XSendPacket;
 
 // ============================================================================

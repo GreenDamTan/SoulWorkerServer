@@ -92,6 +92,14 @@ public:
     // Get party ID by actor ID
     std::uint32_t GetPartyID(UXActorID uActorID);
 
+    // IDA: ?GetParty@XPartyManager@@QEAA?AV?$shared_ptr@VCParty@@@tr1@std@@K@Z @ 0x1403AE740
+    // Get party instance by party ID (empty shared_ptr if not found)
+    std::shared_ptr<CParty> GetParty(std::uint32_t dwPartyID);
+
+    // IDA: ?GetParty@XPartyManager@@QEAA?AV?$shared_ptr@VCParty@@@tr1@std@@TUXActorID@@@Z @ 0x1403AE7F0
+    // Get party instance by actor ID (delegates to GetPartyID then by-ID overload)
+    std::shared_ptr<CParty> GetParty(UXActorID uActorID);
+
     // IDA: ?GetUserCount@XPartyManager@@QEAAEK@Z @ 0x1403AE840
     // Get member count for party
     std::uint8_t GetUserCount(std::uint32_t dwPartyID);

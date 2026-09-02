@@ -18,8 +18,8 @@ struct PS_FORCE_ADDMEMBER;
 struct PS_FORCE_INFO;
 struct UST_UPDATE_FORCE_MEMBER;
 struct PS_ENTER_MAP_RES;
-struct UXActorID;
-struct UXMapID;
+union UXActorID;
+union UXMapID;
 
 // ============================================================================
 // XForceManager - Force/Guild Manager (Singleton)
@@ -139,11 +139,15 @@ protected:
     XForceManager() = default;
     ~XForceManager() = default;
 
+    // PDB UDT 0x75c5e (Size 128): m_dwMaxForceID@8, m_mapForceInfo@16,
+    // m_mapForceUserInfo@48, m_ForcePool@80
+    std::uint32_t m_dwMaxForceID = 0;
+
     // Force map: ForceID -> shared_ptr<CForce>
-    std::map<std::uint32_t, std::shared_ptr<CForce>> m_mapForce;
+    std::map<std::uint32_t, std::shared_ptr<CForce>> m_mapForceInfo;
 
     // ActorID -> ForceID mapping for quick lookup
-    std::map<std::uint32_t, std::uint32_t> m_mapActorToForce;
+    std::map<std::uint32_t, std::uint32_t> m_mapForceUserInfo;
 
 private:
     static XForceManager* s_pInstance;

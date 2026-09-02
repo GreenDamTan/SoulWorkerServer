@@ -265,6 +265,10 @@ public:
     // IDA @ 0x1406D85A0 - Send time event to all areas
     void SendTimeEvent(ST_GM_TIME_EVENT_INFO& stInfo);
 
+    // Manager accessors（IDA 为直接成员访问；活跃层经 getter 取 private 指针）
+    XPartyManager* GetPartyMgr() { return m_xPartyMgr; }
+    XForceManager* GetForceMgr() { return m_xForceMgr; }
+
     // Channel management
     // IDA @ 0x1406D67D0 - Update all channels
     void UpdateChannelAll(PS_CHANNEL_INFO& stChannelInfo);

@@ -13,10 +13,17 @@
 #include "Soulworker/GameServer/XGameServer/actor/component/GocEntity.h"
 #include "Soulworker/GameServer/XGameServer/actor/component/XBaseInventory.h"
 #include "Soulworker/GameServer/XGameServer/Item/CItem.h"
+#include "Soulworker/GameServer/XGameServer/actor/component/GocParty.h"
+#include "Soulworker/GameServer/XGameServer/actor/component/GocFriend.h"
+#include "Soulworker/GameServer/XGameServer/ThreadLocalData.h"
+#include "Soulworker/GameServer/XGameServer/XForceManager.h"
+#include "Soulworker/GameServer/XGameServer/CForce.h"
+#include "Soulworker/GameServer/XGameServer/CParty.h"
 #include "Soulworker/GameServer/XCore/XArea/XDistrict.h"
 #include "Soulworker/GameServer/XGameServer/SocialItemObject.h"
 #include "Soulworker/GameServer/XCore/XServer/GreenDamTan_LogHelper.h"
 #include "Soulworker/GameServer/XSCommon/Table/DBLoadTable.h"
+#include "Soulworker/GameServer/XRelayServer/Thread/LogicThreadProcessor.h"
 
 // IDA: ??0XForceProcess@@QEAA@XZ @ 0x140430B00
 XForceProcess::XForceProcess() {
@@ -174,16 +181,148 @@ bool XForceProcess::CheckForceMatchingEnterUser(CUser* pUser, std::uint16_t wMaz
 }
 
 // ============================================================================
-// 以下处理器为待还原占位（func-index 状态 implemented 但源码缺失 - 需逐个核对）
-// TODO: 需人工审查 - 各函数从 IDA 反编译精确还原后移除本标记
+// ReqForceInvite (0x140430D40) - 已精确还原
+// 邀请请求：解析 PS_REQ_PARTY_INVITE + bySelect；封包序号非法直接踢出
+// (kickType 8)；lambda0 在玩家线程执行完整校验链（迷宫中/匹配中/已有队伍/
+// 区域限制/已在 Force/非队长/满员(8)/Force 在迷宫中/邀请自己/被屏蔽），
+// 通过则 (0xFA,0xB) 转发 CommunitySocket 邀请。
 // ============================================================================
-
-// IDA: ?ReqForceInvite@XForceProcess@@QEAA_NAEAVXPacket@@@Z (0x140430D40)
-// 状态: STUB
-// TODO: 从 IDA 0x140430D40 反编译还原 Force 邀请请求
 bool XForceProcess::ReqForceInvite(XPacket& xPacket) {
-    GreenDamTan_log(__FILE__, __FUNCTION__, "XForceProcess::ReqForceInvite stub - pending IDA restore");
-    return true;
+    PS_REQ_PARTY_INVITE stInvite;
+    std::uint8_t bySelect = 0;
+
+    xPacket >> stInvite;
+    xPacket.XParse >> bySelect;
+
+    CUser* pUser = GetClientPtr();
+
+    // Per IDA: CWayPoint::GetCurID(&xPacket+5) 非零表示非法包序号 - 报错并踢出
+    if (xPacket.GetCurID()) {
+        SendErrorMessage(1, 0xC3B6);
+        PS_KICK_USER_INFO psKick = {};
+        psKick.dwUAID = pUser->GetUAID();
+        psKick.byKickType = 8;
+        pUser->Kickout(&psKick, false);
+        return true;
+    }
+
+    // Per IDA lambda0 (0x1404310B0): 玩家线程执行邀请校验
+    std::function<void()> func = [pUser, stInvite, bySelect]() {
+        if (!pUser || !pUser->IsLive() || !pUser->GetArea()) {
+            return;
+        }
+
+        // Per IDA: 迷宫中禁止邀请
+        if (pUser->IsMaze()) {
+            pUser->SendErrorMessage(0x2E, 1, 53102);
+            return;
+        }
+        // Per IDA: 匹配中禁止邀请
+        if (pUser->IsMatching()) {
+            pUser->SendErrorMessage(0x2E, 1, 53131);
+            return;
+        }
+        // Per IDA: 已在队伍中
+        CGocParty* pGocParty = pUser->GetGOC<CGocParty>();
+        if (pGocParty && pGocParty->IsParty() && pGocParty->GetPartyID() > 0) {
+            pUser->SendErrorMessage(0x2E, 1, 53145);
+            return;
+        }
+        // Per IDA: 区域禁止使用 Force（Force_Use==1）或战场区域
+        if (pUser->GetArea()->GetWorldType() != 0) {
+            pUser->SendErrorMessage(0x2E, 1, 53147);
+            return;
+        }
+        TB_DISTRICT* pDistrict = XGameServer::Instance()->GetResourceMgr()
+            .GetTB_DISTRICT(pUser->GetArea()->GetTBMapID());
+        if (!pDistrict || pDistrict->Force_Use == 1) {
+            pUser->SendErrorMessage(0x2E, 1, 53147);
+            return;
+        }
+
+        std::uint32_t dwForceID = 0;
+        // Per IDA: 已在 Force 中 - 需为队长且未满员且 Force 不在迷宫中
+        if (ThreadLocalData::GetInstance()->GetForceMgr()->IsForceUser(pUser->GetActorID())) {
+            if (!ThreadLocalData::GetInstance()->GetForceMgr()->IsMasterUser(pUser->GetActorID())) {
+                pUser->SendErrorMessage(0x2E, 1, 53103);
+                return;
+            }
+            const std::uint32_t dwMyForceID =
+                ThreadLocalData::GetInstance()->GetForceMgr()->GetForceID(pUser->GetActorID());
+            if (ThreadLocalData::GetInstance()->GetForceMgr()->GetUserCount(dwMyForceID) >= 8) {
+                pUser->SendErrorMessage(0x2E, 1, 53110);
+                return;
+            }
+            std::shared_ptr<CForce> pForce =
+                ThreadLocalData::GetInstance()->GetForceMgr()->GetForce(pUser->GetActorID());
+            if (!pForce || pForce->GetMazeID().nMapID > 0) {
+                pUser->SendErrorMessage(0x2E, 1, 53116);
+                return;
+            }
+        }
+
+        // Per IDA: 不能邀请自己
+        const std::wstring strMyName = pUser->GetName();
+        const wchar_t* szMyName = strMyName.c_str();
+        const wchar_t* szTargetName = stInvite.strReqName;
+        bool bSelfInvite = true;
+        size_t i = 0;
+        while (true) {
+            const wchar_t c1 = szMyName[i];
+            const wchar_t c2 = szTargetName[i];
+            if (c1 != c2) {
+                bSelfInvite = false;
+                break;
+            }
+            if (c1 == L'\0') {
+                bSelfInvite = true;
+                break;
+            }
+            ++i;
+        }
+        if (bSelfInvite) {
+            pUser->SendErrorMessage(0x2E, 1, 53134);
+            return;
+        }
+
+        // Per IDA: 目标玩家屏蔽了邀请人则拒绝
+        CGocFriend* pFriend = pUser->GetGOC<CGocFriend>();
+        if (pFriend && pFriend->IsBlockByName(stInvite.strReqName)) {
+            pUser->SendErrorMessage(0x2E, 1, 53013);
+            return;
+        }
+
+        // Per IDA: (0xFA,0xB) 转发邀请到 CommunitySocket
+        PS_REQ_FORCE_INVITE stNewInvite = {};
+        stNewInvite.dwReqActorID = pUser->GetActorID().dwActorID;
+        const std::wstring strName = pUser->GetName();
+        const wchar_t* szSrc = strName.c_str();
+        wchar_t* szDst = stNewInvite.strReqName;
+        do {
+            *szDst = *szSrc;
+            ++szSrc;
+            ++szDst;
+        } while (*szSrc);
+
+        XSendPacket xSendPacket(0xFA, 0xB);
+        xSendPacket << stNewInvite;
+        xSendPacket.XParse << static_cast<std::uint32_t>(pUser->GetUAID());
+        xSendPacket.XParse << static_cast<std::uint8_t>(pUser->GetLevel());
+        xSendPacket.XParse << dwForceID;
+        XGameServer::Instance()->GetCommunitySocket().SendCmd(
+            &xSendPacket, pUser, 0x2E, 1);
+    };
+
+    if (pUser && pUser->GetArea()) {
+        pUser->IncrementJobCount();
+        CLogicThreadManager::Instance().DoJob(pUser->GetMapInsID().nMapID, func);
+        std::function<void()> funcDec = [pUser]() {
+            pUser->DecrementJobCount();
+        };
+        CLogicThreadManager::Instance().DoJob(pUser->GetMapInsID().nMapID, funcDec);
+        return true;
+    }
+    return false;
 }
 
 // IDA: ?ReqForceAccept@XForceProcess@@QEAA_NAEAVXPacket@@@Z (0x1404319F0)

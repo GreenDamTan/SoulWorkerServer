@@ -4,6 +4,7 @@
 #include "Soulworker/GameServer/XGameServer/MoverEx.h"
 #include "Soulworker/GameServer/XGameServer/MySkillList.h"
 #include "Soulworker/GameServer/XGameServer/actor/component/GocBooster.h"
+#include "Soulworker/GameServer/XCore/XArea/XArea.h"
 #include <cstdint>
 #include <string>
 #include <vector>
@@ -469,6 +470,14 @@ public:
     // CheckMazeEnterCount - 检查每日/PC 房迷宫进入次数限制
     // IDA: ?CheckMazeEnterCount@CUser@@QEAA_NPEAUTB_MAZE_INFO@@AEAH@Z @ 0x140700C30
     bool CheckMazeEnterCount(struct TB_MAZE_INFO* pMazeData, int& nErrorID);
+
+    // IsMaze - 是否处于迷宫区域
+    // IDA: ?IsMaze@CUser@@QEAA_NXZ @ 0x1406F1940
+    bool IsMaze() { return GetArea() && GetArea()->IsMaze(); }
+
+    // GetWorldType - 获取所在区域世界类型
+    // IDA: ?GetWorldType@CUser@@QEAAHXZ @ 0x140439D50
+    int GetWorldType() { return GetArea() ? GetArea()->GetWorldType() : 0; }
 
     // SendChatNotify - 0x1406FA5C0
     // Sends chat notification packet (main 7, sub 5)

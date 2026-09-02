@@ -19779,7 +19779,7 @@ yes | ?????????? |
 | - | - | ??_GXForceProcess@@UEAAPEAXI@Z | 0x140430b80 | blocked | IDA ??_GXForceProcess@@UEAAPEAXI@Z | yes | - |
 | XGameServer | process/ForceProcess.cpp | ??1XForceProcess@@UEAA@XZ | 0x140430bc0 | implemented | IDA decompile + active build | no | Landed with class. |
 | XGameServer | process/ForceProcess.cpp | ?Parse@XForceProcess@@UEAA_NAEAVXPacket@@@Z | 0x140430bf0 | implemented | IDA decompile + active build | no | Restored 9-case subcmd dispatch (1 Invite, 2 Accept, 3 ChangeMaster, 4 KickOut, 5 Leave, 8 Cancel, 0x30 MatchingEnter, 0x31 MatchingExit, 0x32 MatchingCheck, default 1). |
-| XGameServer | process/ForceProcess.cpp | ?ReqForceInvite@XForceProcess@XForceProcess@@QEAA_NAEAVXPacket@@@Z | 0x140430d40 | blocked | IDA decompile + active build | no | CORRECTED: prior implemented status had no source; now landed as documented STUB wired into Parse dispatch; full IDA-precise restore pending next batch. |
+| XGameServer | Process/ForceProcess.cpp | ?ReqForceInvite@XForceProcess@@QEAA_NAEAVXPacket@@@Z | 0x140430d40 | implemented | IDA decompile + disasm + active build | no | Restored: PS_REQ_PARTY_INVITE + bySelect parse, GetCurID anti-replay gate (SendErrorMessage 1,0xC3B6 + Kickout byKickType 8), lambda0 (0x1404310B0) full body: IsMaze 53102 / IsMatching 53131 / already-in-party 53145 / world-type + TB_DISTRICT Force_Use 53147 / IsForceUser branch (IsMasterUser 53103, GetUserCount>=8 53110, force-in-maze 53116) / self-invite 53134 / IsBlockByName 53013, pass -> (0xFA,0xB) via SendCmd; user-null or no-area returns false. |
 | - | - | ??0_lambda0_@?A0xfdbe7117@@QEAA@AEBQEAVCUser@@AEBUPS_REQ_FORCE_INVITE@@AEBE@Z | 0x140431020 | blocked | IDA ??0_lambda0_@?A0xfdbe7117@@QEAA@AEBQEAVCUser@@AEBUPS_REQ_FORCE_INVITE@@AEBE@Z | yes | - |
 | - | - | ??R_lambda0_@?A0xfdbe7117@@QEBAXXZ | 0x1404310b0 | blocked | IDA ??R_lambda0_@?A0xfdbe7117@@QEBAXXZ | yes | - |
 | XGameServer | process/ForceProcess.cpp | ?ReqForceAccept@XForceProcess@XForceProcess@@QEAA_NAEAVXPacket@@@Z | 0x1404319f0 | blocked | IDA decompile + active build | no | CORRECTED: prior implemented status had no source; now landed as documented STUB wired into Parse dispatch; full IDA-precise restore pending next batch. |
@@ -19993,7 +19993,7 @@ yes | ?????????? |
 | - | - | ??$_ApplyX@X@?$_Callable_obj@V_lambda16_@?A0xfdbe7117@@$0A@@tr1@std@@QEAAXXZ | 0x140439c30 | blocked | IDA ??$_ApplyX@X@?$_Callable_obj@V_lambda16_@?A0xfdbe7117@@$0A@@tr1@std@@QEAAXXZ | yes | - |
 | - | - | ??0PS_SERVER_FORCE_MATCHING_ENTER_MEMBER@@QEAA@XZ | 0x140439c50 | blocked | IDA ??0PS_SERVER_FORCE_MATCHING_ENTER_MEMBER@@QEAA@XZ | yes | - |
 | - | - | ??0PS_SERVER_FORCE_MATCHING_ENTER@@QEAA@XZ | 0x140439d00 | blocked | IDA ??0PS_SERVER_FORCE_MATCHING_ENTER@@QEAA@XZ | yes | - |
-| - | - | ?GetWorldType@CUser@@QEAAHXZ | 0x140439d50 | implemented | IDA ?GetWorldType@CUser@@QEAAHXZ | yes | - |
+| XGameServer | User.h | ?GetWorldType@CUser@@QEAAHXZ | 0x140439d50 | implemented | IDA decompile + active build | no | Restored inline: GetArea() ? GetArea()->GetWorldType() : 0 (null-safe per active layer; IDA reads m_pArea directly). |
 | - | - | ??0CFriendProcess@@QEAA@XZ | 0x140439d80 | blocked | IDA ??0CFriendProcess@@QEAA@XZ | yes | - |
 | - | - | ??_ECFriendProcess@@UEAAPEAXI@Z | 0x140439e00 | blocked | IDA ??_ECFriendProcess@@UEAAPEAXI@Z | yes | - |
 | - | - | ??1CFriendProcess@@UEAA@XZ | 0x140439e40 | blocked | IDA ??1CFriendProcess@@UEAA@XZ | yes | - |
@@ -34642,7 +34642,7 @@ yes | ?????????? |
 | - | - | ?ClearBuffProcess@CUser@@UEAAHHPEAVAttackJudgmentTrigger@@VhkvVec3@@@Z | 0x1406f06a0 | blocked | IDA ?ClearBuffProcess@CUser@@UEAAHHPEAVAttackJudgmentTrigger@@VhkvVec3@@@Z | yes | - |
 | - | - | ?CheckContinousAttack@CUser@@UEAAGE@Z | 0x1406f1110 | blocked | IDA ?CheckContinousAttack@CUser@@UEAAGE@Z | yes | - |
 | - | - | ?ApplyComboBuff@CUser@@QEAAXPEBUTB_COMBO_BUFF@@@Z | 0x1406f15f0 | blocked | IDA ?ApplyComboBuff@CUser@@QEAAXPEBUTB_COMBO_BUFF@@@Z | yes | - |
-| - | - | ?IsMaze@CUser@@QEAA_NXZ | 0x1406f1940 | blocked | IDA ?IsMaze@CUser@@QEAA_NXZ | yes | - |
+| XGameServer | User.h | ?IsMaze@CUser@@QEAA_NXZ | 0x1406f1940 | implemented | IDA decompile + active build | no | Restored inline: GetArea() && GetArea()->IsMaze(); unblocked ReqForceInvite chain. |
 | - | - | ?IsRevive@CUser@@QEAA_NXZ | 0x1406f1990 | blocked | IDA ?IsRevive@CUser@@QEAA_NXZ | yes | - |
 | - | - | ?SetDirectionTo@CUser@@UEAAXAEBVhkvVec3@@@Z | 0x1406f19e0 | blocked | IDA ?SetDirectionTo@CUser@@UEAAXAEBVhkvVec3@@@Z | yes | - |
 | - | - | ?ChangeMotion@CUser@@UEAAXFHH@Z | 0x1406f1aa0 | blocked | IDA ?ChangeMotion@CUser@@UEAAXFHH@Z | yes | - |

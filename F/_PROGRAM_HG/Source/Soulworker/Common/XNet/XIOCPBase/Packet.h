@@ -67,6 +67,13 @@ public:
         return m_pRoot ? m_pRoot->ucSubCmd : 0;
     }
 
+    // IDA 各 Req* 处理器入口的包序号校验（如 XForceProcess::ReqForceInvite
+    // 调 CWayPoint::GetCurID 于 xPacket+5 处读取 4 字节序号字段）。
+    // 当前跨平台布局以 usVer 承载该序号语义。
+    int GetCurID() const {
+        return static_cast<int>(usVer);
+    }
+
     std::uint8_t GetMainCmd() const {
         return m_pRoot ? m_pRoot->ucMainCmd : 0;
     }

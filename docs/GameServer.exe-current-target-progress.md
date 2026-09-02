@@ -16961,3 +16961,21 @@ Validate the current GameServer.exe reconstruction worktree before the user-auth
 - Build: cmake --build build --target GameServer -j1 clean. Smoke: GREENDAMTAN_AUTOSTOP_MS=5000 exit 0.
 - Ledgers: func-index 16 rows updated (6 implemented + 10 corrected-to-blocked stub rows). type-index: +1 XForceProcess row (field_count 12, size TBD, blocked). path-recovery-index: +pending next entry (process/ForceProcess.cpp PDB ownership row to add).
 - Next batch: restore the 10 stubbed XForceProcess handlers from IDA (ReqForceInvite 0x140430D40 first); add path-index row for ForceProcess.cpp.
+
+[2026-09-02 15:40:00 +0800] [deepseek-v4-flash]
+### Task #118 (partial): XForceProcess::ReqForceInvite + CUser::IsMaze/GetWorldType
+- Target: GameServer.exe; IDA MCP port 10004; model deepseek-v4-flash; local offset +08:00.
+- ForceProcess.cpp ReqForceInvite (0x140430D40) restored from stub:
+  - Parse PS_REQ_PARTY_INVITE + bySelect.
+  - GetCurID anti-replay gate: disasm proved the IDA label CWayPoint::GetCurID is a mislabel on a 4-byte sequence field read at xPacket+5 in the original layout; active port maps it to XPacket::GetCurID() returning usVer (new accessor added to Packet.h with binary-evidence comment). Non-zero -> TXProcess::SendErrorMessage(1, 0xC3B6) + CUser::Kickout(byKickType 8, bDirect false).
+  - lambda0 (0x1404310B0) full body inlined: IsMaze 53102; IsMatching 53131; GetGOC<CGocParty> IsParty && GetPartyID>0 53145; world-type!=0 or TB_DISTRICT Force_Use==1 53147 (via XArea::GetTBMapID + GetTB_DISTRICT); IsForceUser branch -> IsMasterUser 53103 / GetUserCount>=8 53110 / GetForce+GetMazeID>0 53116; self-invite name compare 53134; GetGOC<CGocFriend> IsBlockByName 53013; pass -> PS_REQ_FORCE_INVITE {dwReqActorID, name} + (0xFA,0xB) {UAID, level, dwForceID} via GetCommunitySocket().SendCmd(0x2E,1).
+  - Dispatch: IncrementJobCount + DoJob(user map thread) + lambda192 decrement; pUser null/no-Area returns false before dispatch.
+- Support functions landed inline in User.h:
+  - CUser::IsMaze (0x1406F1940): GetArea() && GetArea()->IsMaze() - unblocked the invite chain (was blocked).
+  - CUser::GetWorldType (0x140439D50): GetArea()->GetWorldType() with active-layer null guard.
+- Packet.h: XPacket::GetCurID() accessor added (returns usVer) documenting the xPacket+5 binary evidence; matches TradeProcess.cpp precedent usage.
+- Compile fixes: XArea.h include added to User.h (incomplete type for the new inline methods); Kickout call corrected to pointer (&psKick); ForceProcess.cpp includes extended (GocParty/GocFriend/ThreadLocalData/XForceManager/CForce/CParty/LogicThreadProcessor). CMake path normalized to Process/ForceProcess.cpp (case-only).
+- Build: cmake --build build --target GameServer -j1 clean.
+- Ledgers: func-index 3 rows updated (ReqForceInvite implemented; IsMaze/GetWorldType implemented). type-index: no changes this round. path-recovery-index: no changes this round.
+- Remaining in this task: ReqForceAccept (0x1404319F0), ReqForceLeave (0x140432D40), ReqForceCancel (0x140432370), ReqForceChangeMaster, ReqForceKickOut, ReqForceMatchingEnter/Exit/Check, CheckForceMatchingEnter (10 stubs total still blocked).
+- Next batch: ReqForceAccept and the small no-arg handlers (ReqForceLeave/ReqForceMatchingExit) likely share the invite dispatch pattern; restore together.

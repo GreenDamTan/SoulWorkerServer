@@ -11,6 +11,7 @@
 
 #include "hkvMath.h"
 #include "hkvVec3.h"
+#include <cstddef>
 #include <cstring>
 
 // Forward declarations
@@ -20,11 +21,39 @@ class hkvEulerUtil;
 // hkvPlane - Havok Plane (4 floats: normal + distance)
 // ============================================================================
 struct hkvPlane {
-    float x, y, z, d;  // normal (x,y,z) and distance (d)
+    hkvVec3 m_vNormal;
+    float m_fNegDist;
 
-    hkvPlane() : x(0.0f), y(0.0f), z(0.0f), d(0.0f) {}
-    hkvPlane(float _x, float _y, float _z, float _d) : x(_x), y(_y), z(_z), d(_d) {}
+    hkvPlane() : m_vNormal(0.0f, 0.0f, 0.0f), m_fNegDist(0.0f) {}
+    hkvPlane(float _x, float _y, float _z, float _d)
+        : m_vNormal(_x, _y, _z), m_fNegDist(_d) {}
+    hkvPlane(const hkvPlane& rhs) : m_vNormal() {
+        operator=(rhs);
+    }
+
+    void operator=(const hkvPlane& plane) {
+        unsigned char normal[sizeof(hkvVec3)];
+        std::memcpy(normal, &plane.m_vNormal, sizeof(normal));
+        std::memcpy(&m_vNormal, normal, sizeof(normal));
+        m_fNegDist = plane.m_fNegDist;
+    }
+
+    float getDistanceTo(const hkvVec3& vPoint) const {
+        return m_vNormal.dot(vPoint) + m_fNegDist;
+    }
+
+    int GetSide(const hkvVec3& vertex) const {
+        return getDistanceTo(vertex) >= 0.0f;
+    }
+
+    void setFromPointAndNormal(const hkvVec3& vPointOnPlane, const hkvVec3& vNormal) {
+        std::memcpy(&m_vNormal, &vNormal, sizeof(m_vNormal));
+        m_fNegDist = -vNormal.dot(vPointOnPlane);
+    }
 };
+static_assert(sizeof(hkvPlane) == 16, "hkvPlane size must match GameServer PDB");
+static_assert(offsetof(hkvPlane, m_vNormal) == 0, "hkvPlane normal offset mismatch");
+static_assert(offsetof(hkvPlane, m_fNegDist) == 12, "hkvPlane distance offset mismatch");
 
 // ============================================================================
 // hkvMat3 - 3x3 rotation matrix (36 bytes: 9 floats)
@@ -47,6 +76,7 @@ struct hkvMat3 {
 
     // setFromEulerAngles - Set rotation from Euler angles (degrees)
     // IDA: ?setFromEulerAngles@hkvMat3@@QEAAXMMM@Z @ 0x14009F510
+    // TODO: 需人工审查 - 原函数经 ConvertEulerToMat3_Deg 调用外部 ConvertEulerToMat3_Rad；当前手写公式尚未与该外部函数核对。
     void setFromEulerAngles(float fRoll, float fPitch, float fYaw)
     {
         // Convert degrees to radians
@@ -75,6 +105,12 @@ struct hkvMat3 {
         m_ElementsCM[6] = cy * sp * cr + sy * sr;
         m_ElementsCM[7] = sy * sp * cr - cy * sr;
         m_ElementsCM[8] = cp * cr;
+    }
+
+    hkvVec3 getAxis(unsigned int iColumn) const {
+        return hkvVec3(m_ElementsCM[3 * iColumn],
+                       m_ElementsCM[3 * iColumn + 1],
+                       m_ElementsCM[3 * iColumn + 2]);
     }
 
     // === Operators ===

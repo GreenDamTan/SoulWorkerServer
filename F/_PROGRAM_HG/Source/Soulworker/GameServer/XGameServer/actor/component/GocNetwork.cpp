@@ -127,12 +127,8 @@ void CGocNetwork::Send(std::vector<CMover*>& gobList, XSendPacket& packet)
         if (!pMover) {
             continue;
         }
-        // Note: In IDA, CMover contains XActor at offset 872
-        // In our reconstruction, we need to get the XActor from CMover
-        // Since CMover has XActor as a member at a specific offset,
-        // we use reinterpret_cast with the offset
-        // TODO: 汇编还原 - Verify the actual CMover->XActor relationship
-        XActor* pActor = reinterpret_cast<XActor*>(reinterpret_cast<char*>(pMover) + 872);
+        // 原始 +872 为 VisBaseEntity_cl 的大小；基类转换按当前布局调整偏移。
+        XActor* pActor = static_cast<XActor*>(pMover);
         if (pActor && pActor->CanSync()) {
             pActor->BridgeSend(packet);
         }
@@ -154,7 +150,7 @@ void CGocNetwork::Send(std::vector<CMover*>& gobList, XSendPacket& packet, XActo
         if (!pMover) {
             continue;
         }
-        XActor* pActor = reinterpret_cast<XActor*>(reinterpret_cast<char*>(pMover) + 872);
+        XActor* pActor = static_cast<XActor*>(pMover);
         if (pActor != pExceptActor && pActor && pActor->CanSync()) {
             pActor->BridgeSend(packet);
         }
@@ -174,7 +170,7 @@ void CGocNetwork::SendAfterLoading(std::vector<CMover*>& gobList, XSendPacket& p
         if (!pMover) {
             continue;
         }
-        XActor* pActor = reinterpret_cast<XActor*>(reinterpret_cast<char*>(pMover) + 872);
+        XActor* pActor = static_cast<XActor*>(pMover);
         if (pActor != pExceptActor && pActor && pActor->CanSync()) {
             pActor->BridgeSend_AfterLoading(packet);
         }

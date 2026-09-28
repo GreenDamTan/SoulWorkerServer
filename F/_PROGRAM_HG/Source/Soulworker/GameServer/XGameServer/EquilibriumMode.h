@@ -10,61 +10,43 @@
 // Forward declarations
 struct STMageCheckEventSpawnBox;
 
-// E_GAME_MODE_TYPE - Game mode type enumeration
-enum E_GAME_MODE_TYPE {
-    eGM_MODE_NONE = 0,
-    eGM_MODE_DEFENCE = 1,
-    eGM_MODE_SURVIVAL = 2,
-    eGM_MODE_OPERATION = 3,
-    eGM_MODE_UNITY = 4,
-    eGM_MODE_WARLORD = 5,
-    eGM_MODE_EQ = 6
-};
-
 // EquilibriumMode - Equilibrium game mode
 class EquilibriumMode : public GameModeBase {
 public:
-    EquilibriumMode() : GameModeBase() {
-        Init(nullptr);
-    }
-    ~EquilibriumMode() override = default;
+    EquilibriumMode();
+    ~EquilibriumMode() override;
 
-    // IDA: ?Init@EquilibriumMode@@QEAAXPEAUSTMageCheckEventSpawnBox@@@Z (0x1402a6ae0)
-    // Initializes the equilibrium mode with event spawn info
-    void Init(STMageCheckEventSpawnBox* pEventSpawnInfo) {
-        GameModeBase::Init();
-        m_pEventSpawnInfo = pEventSpawnInfo;
-        m_fLastSpawnTime = 0.0f;
-        m_fFullModeTime = 0.0f;
-        m_nModeState = 0;
-        m_eModeType = eGM_MODE_EQ;
-        m_nSectorID = 0;
-    }
+    void Init(STMageCheckEventSpawnBox* pEventSpawnInfo);
+    // TODO: 需人工审查：StartMode (0x1402a6b50) 使用了 PDB 的 CSector::SetMode 类型；
+    // 原始 GameModeMgr 注册链与事件广播运行路径仍未验证。
+    void StartMode(XMaze* pMaze) override;
+    void Tick(float fDelta) override;
+    bool CheckEndMode() override;
+    void Intrusion(CUser* pUser) override;
 
-    // Accessors
+    void StartSpawnMonster();
+    bool AllMonsterSpawned();
+    void EndGame(std::uint8_t byResult);
+
     STMageCheckEventSpawnBox* GetEventSpawnInfo() const { return m_pEventSpawnInfo; }
     void SetEventSpawnInfo(STMageCheckEventSpawnBox* pInfo) { m_pEventSpawnInfo = pInfo; }
-
     int GetModeState() const { return m_nModeState; }
-    void SetModeState(int nState) { m_nModeState = nState; }
-
-    E_GAME_MODE_TYPE GetModeType() const { return m_eModeType; }
-    void SetModeType(E_GAME_MODE_TYPE eType) { m_eModeType = eType; }
-
+    void SetModeState(int nState) override { m_nModeState = nState; }
+    eGAMEMODE_TYPE GetModeType() const { return m_eModeType; }
+    void SetModeType(eGAMEMODE_TYPE eType) { m_eModeType = eType; }
     int GetSectorID() const { return m_nSectorID; }
     void SetSectorID(int nID) { m_nSectorID = nID; }
-
     float GetLastSpawnTime() const { return m_fLastSpawnTime; }
     void SetLastSpawnTime(float fTime) { m_fLastSpawnTime = fTime; }
-
     float GetFullModeTime() const { return m_fFullModeTime; }
     void SetFullModeTime(float fTime) { m_fFullModeTime = fTime; }
 
-private:
+protected:
     STMageCheckEventSpawnBox* m_pEventSpawnInfo;
     float m_fLastSpawnTime;
     float m_fFullModeTime;
-    int m_nModeState;
-    E_GAME_MODE_TYPE m_eModeType;
     int m_nSectorID;
+    int m_nMonster;
 };
+
+static_assert(sizeof(EquilibriumMode) == 112, "EquilibriumMode size must match GameServer PDB");

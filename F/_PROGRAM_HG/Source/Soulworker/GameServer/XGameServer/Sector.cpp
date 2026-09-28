@@ -2,6 +2,7 @@
 // CSector implementation - Precisely restored from IDA GameServer.exe
 
 #include "Soulworker/GameServer/XGameServer/Sector.h"
+#include "Soulworker/GameServer/XGameServer/GameModeBase.h"
 #include "Soulworker/GameServer/XGameServer/Monster.h"
 #include "Soulworker/GameServer/XGameServer/User.h"
 #include "Soulworker/GameServer/XGameServer/BattleZone.h"
@@ -252,7 +253,7 @@ void CSector::SetAI(bool bEnable)
 void CSector::SetModeState(int nState)
 {
     if (m_pGameMode) {
-        // TODO: m_pGameMode->SetModeState(nState);
+        m_pGameMode->SetModeState(nState);
     }
 }
 
@@ -262,12 +263,10 @@ void CSector::SetModeState(int nState)
 // ============================================================================
 eGAMEMODE_TYPE CSector::GetGameModeType()
 {
-    // Per IDA 0x1406CA9F0: CSector::GetGameModeType
-    // TODO: XGameMode is incomplete type
-    // if (m_pGameMode) {
-    //     return static_cast<eGAMEMODE_TYPE>(m_pGameMode->GetModeType());
-    // }
-    return eGAMEMODE_TYPE_NONE;
+    if (m_pGameMode) {
+        return m_pGameMode->GetModeType();
+    }
+    return eGM_MODE_NONE;
 }
 
 // ============================================================================

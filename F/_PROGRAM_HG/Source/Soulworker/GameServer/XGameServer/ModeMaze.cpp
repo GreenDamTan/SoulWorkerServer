@@ -4,10 +4,13 @@
 #include "ModeMaze.h"
 #include "Soulworker/GameServer/XCore/XServer/XServer.h"
 #include "Soulworker/GameServer/XCore/XServer/Option.h"
+#include "Soulworker/GameServer/XCore/XServer/GreenDamTan_LogHelper.h"
 #include "Soulworker/GameServer/XSCommon/Table/DBLoadTable.h"
+#include "Soulworker/GameServer/XGameServer/GameServer.h"
 #include "Soulworker/GameServer/XGameServer/User.h"
 #include "Soulworker/GameServer/XGameServer/Mover.h"
 #include "Soulworker/GameServer/XGameServer/Monster.h"
+#include "Soulworker/GameServer/XGameServer/actor/component/GocNetwork.h"
 #include "Soulworker/Common/XNet/XIOCPBase/Packet.h"
 #include <cstring>
 
@@ -15,26 +18,24 @@
 // Verified: Direct IDA decompilation
 XModeMaze::XModeMaze()
     : XMaze()
+    , m_objectGridScanner()
+    , m_bHotTime(false)
+    , m_dwEventRoomID(0)
     , m_pTB_OPERATION_INFO(nullptr)
-    , m_nPartyMemeberCount(0)
-    , m_nMaxUserCount(0)
+    , m_dw64DemensionInfoSendTick(0)
+    , m_dw64DemensionReviveTick(0)
+    , m_dwLastCheckPlayTime(0)
     , m_nMaxDemensionTime(0)
     , m_nMaxDemensionPoint(0)
     , m_nTotalDemensionPoint(0)
     , m_nGoalDemensionPoint(0)
-    , m_dw64DemensionInfoSendTick(0)
-    , m_dw64DemensionReviveTick(0)
-    , m_dwLastCheckPlayTime(0)
     , m_bPlayTimeStop_Cheat(false)
-    , m_bHotTime(false)
-    , m_dwEventRoomID(0)
 {
     // IDA: Initialize vtable
     // this->__vftable = (XModeMaze_vtbl *)&XModeMaze::`vftable';
 
     // IDA: AREA_OBJECT constructor
     // AREA_OBJECT::AREA_OBJECT(&this->m_objectGridScanner);
-    std::memset(m_objectGridScanner_dummy, 0, sizeof(m_objectGridScanner_dummy));
 
     // IDA: Map constructors called automatically
     // std::map<int,PS_UPDATE_MAZE_ENTER_LIMIT_COUNT>::map<int,PS_UPDATE_MAZE_ENTER_LIMIT_COUNT>(&this->m_mapFirstJumpID);
@@ -62,30 +63,27 @@ XModeMaze::~XModeMaze()
 }
 
 // IDA: ?Init@XModeMaze@@UEAA_NXZ (0x14028D700)
-// Verified: Direct IDA decompilation
 bool XModeMaze::Init()
 {
-    // IDA decompiled:
-    // XGameServer *v1 = TXSingleton<XGameServer>::Instance();
-    // LogicTimer *Option = (LogicTimer *)XServer::GetOption(v1);
-    // int nWorldID = XOption::GetGroupID(Option);
-    // unsigned int dwID = (unsigned __int16)XArea::GetTBMapID(this);
-    // XGameServer *v3 = TXSingleton<XGameServer>::Instance();
-    // this->m_pTB_OPERATION_INFO = XResourceMgr::GetOperationInfoTable(&v3->m_xResourceMgr, dwID, nWorldID);
+    XGameServer* pServer = XGameServer::Instance();
+    const int nWorldID = pServer->GetOption().GetGroupID();
+    const unsigned int dwID = GetTBMapID();
+    m_pTB_OPERATION_INFO = pServer->GetResourceMgr().GetOperationInfoTable(dwID, nWorldID);
+    if (!m_pTB_OPERATION_INFO)
+    {
+        LogHelper::LogError("game.contents", "Init error - pTB_OPERATION_INFO Table Null [ TID:%d ] ( %d )",
+            GetTBMapID(), 60);
+        return false;
+    }
 
-    // TODO: 汇编还原 - 需要XGameServer单例和XResourceMgr
-    // 当前简化实现
+    TB_MAZE_INFO* pTBMazeInfo = pServer->GetResourceMgr().GetTB_MAZE_INFO(GetTBMapID());
+    if (!pTBMazeInfo)
+    {
+        LogHelper::LogError("game.contents", "Init error - pTB_MAZE_INFO Table Null [ TBID:%d ] ( %d )",
+            GetTBMapID(), 67);
+        return false;
+    }
 
-    // IDA: Get world ID from option
-    // XGameServer* pServer = XGameServer::Instance();
-    // XOption* pOption = pServer->GetOption();
-    // int nWorldID = pOption->GetGroupID();
-    int nWorldID = 0;  // TODO: 获取真实WorldID
-
-    // IDA: Get TBMapID
-    std::uint16_t dwID = GetTBMapID();
-
-    // IDA: Initialize dimension variables
     m_nMaxDemensionTime = 0;
     m_nMaxDemensionPoint = 0;
     m_nTotalDemensionPoint = 0;
@@ -97,30 +95,27 @@ bool XModeMaze::Init()
     m_bHotTime = false;
     m_dwEventRoomID = 0;
 
-    // IDA: Check maze type for dimension mode (Maze_Type == 12)
-    TB_MAZE_INFO* pTBMazeInfo = m_pTBMazeInfo;
-    if (pTBMazeInfo)
-    {
-        // IDA: Check Clear_Con_Type for dimension time and point
-        for (int i = 0; i < 3; ++i)
-        {
-            // IDA: Get clear condition type and value
-            // if (*(&pTB_MAZE_INFO->Clear_Con_Type_01 + i) == 4)
-            //   this->m_nMaxDemensionTime = *(&pTB_MAZE_INFO->Clear_Con_Value_01 + i);
-            // else if (*(&pTB_MAZE_INFO->Clear_Con_Type_01 + i) == 5)
-            //   this->m_nMaxDemensionPoint = *(&pTB_MAZE_INFO->Clear_Con_Value_01 + i);
-        }
+    if (pTBMazeInfo->Maze_Type != 12)
+        return XMaze::Init();
 
-        // IDA: Validate dimension settings
-        if (m_nMaxDemensionTime <= 0 || m_nMaxDemensionPoint <= 0)
-        {
-            // LogHelper::LogError("game.contents", "OPERATION GOAL ERROR [ TBID:%d [%d/%d] ] ( %d )",
-            //     GetTBMapID(), m_nMaxDemensionTime, m_nMaxDemensionPoint, 99);
-            return false;
-        }
+    const std::uint8_t clearTypes[] = {pTBMazeInfo->Clear_Con_Type_01,
+        pTBMazeInfo->Clear_Con_Type_02, pTBMazeInfo->Clear_Con_Type_03};
+    const unsigned int clearValues[] = {pTBMazeInfo->Clear_Con_Value_01,
+        pTBMazeInfo->Clear_Con_Value_02, pTBMazeInfo->Clear_Con_Value_03};
+    for (int i = 0; i < 3; ++i)
+    {
+        if (clearTypes[i] == 4)
+            m_nMaxDemensionTime = clearValues[i];
+        else if (clearTypes[i] == 5)
+            m_nMaxDemensionPoint = clearValues[i];
     }
 
-    // IDA: Call base class Init
+    if (m_nMaxDemensionTime <= 0 || m_nMaxDemensionPoint <= 0)
+    {
+        LogHelper::LogError("game.contents", "OPERATION GOAL ERROR [ TBID:%d [%d/%d] ] ( %d )",
+            GetTBMapID(), m_nMaxDemensionTime, m_nMaxDemensionPoint, 99);
+        return false;
+    }
     return XMaze::Init();
 }
 
@@ -155,91 +150,74 @@ void XModeMaze::Clear()
 }
 
 // IDA: ?Create@XModeMaze@@UEAA_NAEAUST_CREATE_MAZE@@@Z (0x14028DA40)
-// Verified: Direct IDA decompilation
+// 状态: 部分还原 - 创建分支已按 IDA 对比，基类初始化与派生布局仍待核准。
+// TODO: 需人工审查
+//   1. 核对 XMaze::Init 的完整初始化链。
+//   2. 核对 XMaze 基类布局与网格扫描器派生字段偏移。
+// 依赖: XMaze::Init、XMaze PDB 布局及对应表资源。
 bool XModeMaze::Create(ST_CREATE_MAZE& stCreateMaze)
 {
-    // IDA decompiled:
-    // UXMapID::UXMapID(&this->m_uxMapID, stCreateMaze->uxMapID.__s0);
-    //
-    // Iterate through vecEnterMember and add to m_mapWaitEnterMazeUser
-    // for each member in stCreateMaze->vecEnterMember:
-    //   ST_MAZE_WAIT_ENTER_USER_INFO stInfo;
-    //   stInfo.stMemberInfo = member;
-    //   stInfo.dw64ExitTime = 0;
-    //   stInfo.byState = 10;
-    //   m_mapWaitEnterMazeUser[member.dwUCID] = stInfo;
-    //
-    // this->m_nPartyMemeberCount = m_mapWaitEnterMazeUser.size();
-    // this->m_nMaxUserCount = 14;
+    m_uxMapID.nMapID = stCreateMaze.uxMapID.nMapID;
 
-    // TODO: 汇编还原 - 需要ST_CREATE_MAZE结构完整定义
-    // 当前简化实现
+    for (const ST_ENTER_MAZE_MEMBER_INFO& memberInfo : stCreateMaze.vecEnterMember)
+    {
+        ST_MAZE_WAIT_ENTER_USER_INFO stInfo;
+        stInfo.stMemberInfo = memberInfo;
+        stInfo.dw64ExitTime = 0;
+        stInfo.byState = 10;
+        m_mapWaitEnterMazeUser.insert(std::make_pair(memberInfo.dwMember, stInfo));
+    }
 
-    // IDA: Set party member count from wait enter users
-    m_nPartyMemeberCount = 0;  // TODO: Get from stCreateMaze.vecEnterMember.size()
+    m_nPartyMemeberCount = static_cast<int>(m_mapWaitEnterMazeUser.size());
     m_nMaxUserCount = 14;
 
-    // IDA: Get maze info and setup grid scanner
-    TB_MAZE_INFO* pTBMazeInfo = m_pTBMazeInfo;
-    if (pTBMazeInfo)
+    TB_MAZE_INFO* pTBMazeInfo = XGameServer::Instance()->GetResourceMgr().GetTB_MAZE_INFO(GetTBMapID());
+    if (!pTBMazeInfo)
     {
-        // IDA: Setup AREA_OBJECT size
-        // AREA_OBJECT::SetSize(&this->m_objectGridScanner,
-        //     pTBMazeInfo->Maze_Start_X, pTBMazeInfo->Maze_Start_Y,
-        //     pTBMazeInfo->Maze_Size_X, pTBMazeInfo->Maze_Size_Y, 5000);
-
-        // IDA: Call Init
-        if (Init())
-        {
-            return true;
-        }
-        else
-        {
-            // LogHelper::LogError("game.contents", "Create error - Failed create mode maze when Init[ TID:%d ] ( %d )",
-            //     GetTBMapID(), 155);
-            return false;
-        }
-    }
-    else
-    {
-        // LogHelper::LogError("game.contents", "Create error - MazeInfo Table Null [ TID:%d ] ( %d )",
-        //     GetTBMapID(), 142);
+        LogHelper::LogError("game.contents", "Create error - MazeInfo Table Null [ TID:%d ] ( %d )",
+            GetTBMapID(), 142);
         return false;
     }
+
+    m_objectGridScanner.SetSize(pTBMazeInfo->Maze_Start_X, pTBMazeInfo->Maze_Start_Y,
+        pTBMazeInfo->Maze_Size_X, pTBMazeInfo->Maze_Size_Y, 5000);
+
+    if (!Init())
+    {
+        LogHelper::LogError("game.contents", "Create error - Failed create mode maze when Init[ TID:%d ] ( %d )",
+            GetTBMapID(), 155);
+        return false;
+    }
+    return true;
 }
 
 // IDA: ?Create@XModeMaze@@QEAA_NAEAUST_CREATE_MODE_MAZE@@@Z (0x14028DCA0)
-// Verified: Direct IDA decompilation
-bool XModeMaze::CreateModeMaze(struct ST_CREATE_MODE_MAZE& stCreateModeMaze)
+// 状态: 部分还原 - 成员映射已按 PDB 偏移核对，基类链路仍待核准。
+// TODO: 需人工审查
+//   1. 核对 XMaze::Init 的完整初始化链与模式迷宫布局。
+//   2. 核对 SpawnGenerateMonster 的首跳生成链和入口路由。
+// 依赖: XMaze::Init、XModeMaze 派生布局及 SpawnGenerateMonster。
+bool XModeMaze::Create(struct ST_CREATE_MODE_MAZE& stCreateModeMaze)
 {
-    // IDA: Set the UXMapID from the creation request
     m_uxMapID.nMapID = stCreateModeMaze.uxMapID.nMapID;
-
-    // IDA: Get TBMapID
-    unsigned short TBMapID = GetTBMapID();
-
-    // IDA: Get TBMazeInfo table - use m_pTBMazeInfo from base class
-    TB_MAZE_INFO* pTB_MAZE_INFO = m_pTBMazeInfo;
+    const unsigned short TBMapID = GetTBMapID();
+    XGameServer* pServer = XGameServer::Instance();
+    TB_MAZE_INFO* pTB_MAZE_INFO = pServer->GetResourceMgr().GetTB_MAZE_INFO(TBMapID);
     if (!pTB_MAZE_INFO)
     {
-        // LogHelper::LogError("game.contents", "Create error - MazeInfo Table Null [ TID:%d ] ( %d )",
-        //     TBMapID, 169);
+        LogHelper::LogError("game.contents", "Create error - MazeInfo Table Null [ TID:%d ] ( %d )",
+            TBMapID, 169);
         return false;
     }
 
-    // IDA: Get operation info table - use m_pTB_OPERATION_INFO member
-    // Note: Operation info is retrieved via XResourceMgr in original code
-    // For now, we assume it's set elsewhere or we need to implement GetTBOperationInfo
-    TB_OPERATION_INFO* pTB_OPERATION_INFO = m_pTB_OPERATION_INFO;
-    if (!pTB_OPERATION_INFO)
+    const int nWorldID = pServer->GetOption().GetGroupID();
+    const unsigned int dwID = GetTBMapID();
+    if (!pServer->GetResourceMgr().GetOperationInfoTable(dwID, nWorldID))
     {
-        // LogHelper::LogError("game.contents", "Create error - OperationInfo Table Null [ TID:%d ] ( %d )",
-        //     TBMapID, 176);
+        LogHelper::LogError("game.contents", "Create error - OperationInfo Table Null [ TID:%d ] ( %d )",
+            GetTBMapID(), 176);
         return false;
     }
-
-    // IDA: Store operation info pointer
-    m_pTB_OPERATION_INFO = pTB_OPERATION_INFO;
 
     // IDA: Process each enter member
     for (size_t i = 0; i < stCreateModeMaze.vecEnterMember.size(); ++i)
@@ -254,9 +232,8 @@ bool XModeMaze::CreateModeMaze(struct ST_CREATE_MODE_MAZE& stCreateModeMaze)
         stInfo.byState = 10;
 
         // IDA: Insert into wait enter maze user map
-        m_mapModeMazeWaitEnterUser.insert(std::make_pair(memberInfo.dwActorID, stInfo));
+        m_mapWaitEnterMazeUser.insert(std::make_pair(memberInfo.dwActorID, stInfo));
 
-        // IDA: Insert first jump ID
         m_mapFirstJumpID.insert(std::make_pair(memberInfo.dwActorID, memberInfo.nFirstJumpID));
 
         // IDA: If maze type is 12 (dimension shutter), create score entry
@@ -276,7 +253,8 @@ bool XModeMaze::CreateModeMaze(struct ST_CREATE_MODE_MAZE& stCreateModeMaze)
             stScore.nReviveCount = 0;
 
             // IDA: Extract return map ID from UXMapID (high word)
-            stScore.wReturnMapID = static_cast<unsigned short>(memberInfo.uxMapID.nMapID >> 16);
+            stScore.wReturnMapID = static_cast<unsigned short>(
+                (static_cast<std::uint64_t>(memberInfo.uxMapID.nMapID) << 16) >> 48);
 
             // IDA: Insert into dimension score map
             m_mapDemensionScore.insert(std::make_pair(stScore.stInfo.dwUCID, stScore));
@@ -284,22 +262,17 @@ bool XModeMaze::CreateModeMaze(struct ST_CREATE_MODE_MAZE& stCreateModeMaze)
     }
 
     // IDA: Set party member count from map size
-    m_nPartyMemeberCount = static_cast<int>(m_mapModeMazeWaitEnterUser.size());
+    m_nPartyMemeberCount = static_cast<int>(m_mapWaitEnterMazeUser.size());
     m_nMaxUserCount = 14;  // IDA: Max user count is 14
 
-    // IDA: Initialize grid scanner with maze bounds
-    // AREA_OBJECT::SetSize(&m_objectGridScanner,
-    //     pTB_MAZE_INFO->Maze_Start_X,
-    //     pTB_MAZE_INFO->Maze_Start_Y,
-    //     pTB_MAZE_INFO->Maze_Size_X,
-    //     pTB_MAZE_INFO->Maze_Size_Y,
-    //     5000);
+    m_objectGridScanner.SetSize(pTB_MAZE_INFO->Maze_Start_X, pTB_MAZE_INFO->Maze_Start_Y,
+        pTB_MAZE_INFO->Maze_Size_X, pTB_MAZE_INFO->Maze_Size_Y, 5000);
 
     // IDA: Call Init()
     if (!Init())
     {
-        // LogHelper::LogError("game.contents", "Create error - Failed create mode maze when Init[ TID:%d ] ( %d )",
-        //     GetTBMapID(), 223);
+        LogHelper::LogError("game.contents", "Create error - Failed create mode maze when Init[ TID:%d ] ( %d )",
+            GetTBMapID(), 223);
         return false;
     }
 
@@ -474,7 +447,7 @@ void XModeMaze::SendLoadEx_GameStart()
 
     // IDA: Send packet 0x11, 0x25 (GAME_CMD, LOAD_EX_GAME_START)
     XSendPacket xPacket(0x11, 0x25);
-    SendBroadCastAll(&xPacket, 0);
+    SendBroadCastAll(xPacket, 0);
 }
 
 // IDA: ?SetPosToParty@XModeMaze@@UEAA_NPEAVCUser@@@Z (0x14028ED20)
@@ -547,7 +520,7 @@ std::uint16_t XModeMaze::EnterGameObject(XActor* pActor, E_SEND_INFO_TYPE eType)
     XArea::EnterActor(pActor);
 
     // IDA: Get scanner for this actor
-    std::map<unsigned long, CMover*>* pVecActor = static_cast<std::map<unsigned long, CMover*>*>(GetScanner(pActor));
+    std::map<std::uint32_t, CMover*>* pVecActor = XMaze::GetScanner(pActor);
     if (!pVecActor)
     {
         // LogHelper::LogDebug("game.contents", "Scanner Scanner NULL [UCID:%d] (%d)", pActor->GetActorID().dwActorID, 536);
@@ -595,7 +568,7 @@ std::uint16_t XModeMaze::ExitGameObject(XActor* pActor, E_SEND_INFO_TYPE eType)
     // TODO: 完整实现需要CMonster和CNpc类型信息
 
     // IDA: Get scanner and remove actor from map
-    std::map<unsigned long, CMover*>* pVecActor = static_cast<std::map<unsigned long, CMover*>*>(GetScanner(pActor));
+    std::map<std::uint32_t, CMover*>* pVecActor = XMaze::GetScanner(pActor);
     if (!pVecActor)
     {
         // LogHelper::LogDebug("game.contents", "Scanner Scanner NULL [UCID:%d] (%d)", pActor->GetActorID().dwActorID, 595);
@@ -610,25 +583,14 @@ std::uint16_t XModeMaze::ExitGameObject(XActor* pActor, E_SEND_INFO_TYPE eType)
 }
 
 // IDA: ?GetScanner@XModeMaze@@QEAAPEAV?$Range2DScanner@PEAVCMover@@@@PEAVXActor@@@Z (0x14028F7B0)
-// Verified: Direct IDA decompilation
-void* XModeMaze::GetScanner(XActor* pActor)
+Range2DScanner<CMover*>* XModeMaze::GetScanner(XActor* pActor)
 {
-    // IDA: Get actor type to determine which scanner to return
-    if (!pActor)
-        return nullptr;
-
     int nType = pActor->GetType();
-
-    // IDA: Type 0 = player scanner
     if (nType == 0)
-        return m_objectGridScanner_dummy;  // TODO: return m_objectGridScanner.playerScanner
-
-    // IDA: Type 1-2 = NPC scanner
+        return m_objectGridScanner.playerScanner;
     if (nType > 0 && nType <= 2)
-        return m_objectGridScanner_dummy;  // TODO: return m_objectGridScanner.npcScanner
-
-    // IDA: Other types = etc scanner
-    return m_objectGridScanner_dummy;  // TODO: return m_objectGridScanner.etcScanner
+        return m_objectGridScanner.npcScanner;
+    return m_objectGridScanner.etcScanner;
 }
 
 // IDA: ?EnterActor@XModeMaze@@UEAAGPEAVXActor@@@Z (0x14028F810)
@@ -653,7 +615,7 @@ std::uint16_t XModeMaze::EnterActorEx(XActor* pActor)
     XMaze::EnterActor(pActor);
 
     // IDA: Get scanner for this actor
-    std::map<unsigned long, CMover*>* pVecActor = static_cast<std::map<unsigned long, CMover*>*>(GetScanner(pActor));
+    std::map<std::uint32_t, CMover*>* pVecActor = XMaze::GetScanner(pActor);
     if (!pVecActor)
         return 50001;
 
@@ -733,68 +695,54 @@ std::uint16_t XModeMaze::EnterActorEx(XActor* pActor)
 }
 
 // IDA: ?EnterGridActor@XModeMaze@@QEAA_NPEAVXActor@@@Z (0x14028FF70)
-// Verified: Direct IDA decompilation
+// 状态: 部分还原 - 网格插入与逐格扫描计数已接通，下游进入通知仍未完整落地。
+// TODO: 需人工审查
+//   1. 恢复 NPC、怪物及类型 6 的进入通知封包。
+//   2. 恢复公共交通的真实计时与进入通知发送。
+//   3. 核对玩家进入对象列表的下游封包及 XMaze 布局。
+// 依赖: NPC/怪物协议、类型 6 封包、VPublicTransportPath 及 XMaze 布局。
 bool XModeMaze::EnterGridActor(XActor* pActor)
 {
     if (!pActor)
         return false;
 
-    // IDA: Get scanner for this actor
-    void* pTargetScanner = GetScanner(pActor);
+    Range2DScanner<CMover*>* pTargetScanner = GetScanner(pActor);
     if (!pTargetScanner)
         return false;
 
-    // IDA: Get actor position from PosInfo
     ::STPosInfo* pPosInfo = pActor->GetPosInfo();
     if (!pPosInfo)
         return false;
 
-    float fx = pPosInfo->vPos.x;
-    float fy = pPosInfo->vPos.y;
-
-    // IDA: Cast to CMover
+    const float fx = pPosInfo->vPos.x;
+    const float fy = pPosInfo->vPos.y;
     CMover* pMover = dynamic_cast<CMover*>(pActor);
+    if (!pTargetScanner->Insert(fx, fy, pMover))
+    {
+        LogHelper::LogError("game.contents", "EnterGridActor error - Actor is line over[ ActorID:%d, TBMapID:%d, PosX:%.2f, PosY:%.2f ] ( %d )",
+            pActor->GetActorID().dwActorID, GetTBMapID(), fx, fy, 775);
+        return false;
+    }
 
-    // IDA: Insert into grid scanner
-    // TODO: 完整实现需要 Range2DScanner<CMover*>::Insert
-    // if (!Range2DScanner<CMover*>::Insert(pTargetScanner, fx, fy, &pMover))
-    // {
-    //     LogHelper::LogError("game.contents", "EnterGridActor error - Actor is line over[ ActorID:%d, TBMapID:%d, PosX:%.2f, PosY:%.2f ] ( %d )",
-    //         pActor->GetActorID().dwActorID, GetTBMapID(), fx, fy, 775);
-    //     return false;
-    // }
-
-    // IDA: Scan for nearby players and objects
     std::vector<CMover*> vecPlayerList;
-    std::vector<CMover*> vecObjList;
-
-    // IDA: Reserve capacity
     vecPlayerList.reserve(300);
+    if (pActor->GetType())
+        m_objectGridScanner.playerScanner->ScanGrid(fx, fy, 2, 2, vecPlayerList);
+    else
+        m_objectGridScanner.playerScanner->ScanGridAndSetObjCnt(fx, fy, 2, 2, vecPlayerList, 1);
+
+    std::vector<CMover*> vecObjList;
     vecObjList.reserve(300);
+    m_objectGridScanner.npcScanner->ScanGrid(fx, fy, 2, 2, vecObjList);
+    m_objectGridScanner.etcScanner->ScanGrid(fx, fy, 2, 2, vecObjList);
 
-    // IDA: Scan player scanner grid
-    // TODO: 完整实现需要 Range2DScanner
-    // if (pActor->GetType())
-    //     Range2DScanner<CMover*>::ScanGrid(m_objectGridScanner.playerScanner, fx, fy, 2, 2, &vecPlayerList);
-    // else
-    //     Range2DScanner<CMover*>::ScanGridAndSetObjCnt(m_objectGridScanner.playerScanner, fx, fy, 2, 2, &vecPlayerList, 1);
-
-    // IDA: Scan NPC and etc scanners
-    // Range2DScanner<CMover*>::ScanGrid(m_objectGridScanner.npcScanner, fx, fy, 2, 2, &vecObjList);
-    // Range2DScanner<CMover*>::ScanGrid(m_objectGridScanner.etcScanner, fx, fy, 2, 2, &vecObjList);
-
-    // IDA: Send enter object to others
     if (!vecPlayerList.empty())
     {
-        // XDistrict::ProcessSendEnterObjectToOthers(this, &vecPlayerList, pActor);
-        // XDistrict::ProcessSendTranslateInfoToOthers(this, pActor, &vecPlayerList);
+        ProcessSendEnterObjectToOthers(vecPlayerList, pActor);
+        ProcessSendTranslateInfoToOthers(pActor, vecPlayerList);
     }
-
-    // IDA: Send enter object list to player if this is a player
     if (pActor->IsPlayer())
-    {
-        // ProcessSendEnterObjectListToPlayer(pActor, &vecPlayerList, &vecObjList);
-    }
+        ProcessSendEnterObjectListToPlayer(pActor, vecPlayerList, vecObjList);
 
     return true;
 }
@@ -953,59 +901,48 @@ void XModeMaze::ExitArea(XActor* pActor)
 }
 
 // IDA: ?ExitGridActor@XModeMaze@@QEAA_NPEAVXActor@@@Z (0x1402911B0)
-// Verified: Direct IDA decompilation
+// 状态: 部分还原 - 有位置删除、失败后无位置删除与逐格扫描计数已接通，离开通知仍不完整。
+// TODO: 需人工审查
+//   1. 对照汇编核准无位置删除的对象搜索顺序及失败行为。
+//   2. 恢复 ProcessSendLeaveObjectToOthers 的实际封包发送。
+// 依赖: UniformGrid::Erase(obj) 的原始行为、离开通知链及 XMaze 布局核对。
 bool XModeMaze::ExitGridActor(XActor* pActor)
 {
     if (!pActor)
         return false;
 
-    // IDA: Get scanner for this actor
-    void* pTargetScanner = GetScanner(pActor);
+    Range2DScanner<CMover*>* pTargetScanner = GetScanner(pActor);
     if (!pTargetScanner)
         return false;
 
-    // IDA: Get actor position from PosInfo
     ::STPosInfo* pPosInfo = pActor->GetPosInfo();
     if (!pPosInfo)
         return false;
 
-    float fx = pPosInfo->vPos.x;
-    float fy = pPosInfo->vPos.y;
-
-    // IDA: Cast to CMover
+    const float fx = pPosInfo->vPos.x;
+    const float fy = pPosInfo->vPos.y;
     CMover* pMover = dynamic_cast<CMover*>(pActor);
+    if (!pTargetScanner->Erase(fx, fy, pMover))
+    {
+        LogHelper::LogError("game.contents", "ExitActor error - Failed ExitActor[ ActorID:%d, TBMapID:%d, PosX:%.2f, PosY:%.2f ] ( %d )",
+            pActor->GetActorID().dwActorID, GetTBMapID(), fx, fy, 1015);
+        if (!pTargetScanner->Erase(pMover))
+        {
+            LogHelper::LogError("game.contents", "ExitActor error - Failed Erase[ ActorID:%d ] ( %d )",
+                pActor->GetActorID().dwActorID, 1019);
+            return false;
+        }
+    }
 
-    // IDA: Erase from grid scanner
-    // TODO: 完整实现需要 Range2DScanner<CMover*>::Erase
-    // if (!Range2DScanner<CMover*>::Erase(pTargetScanner, fx, fy, &pMover))
-    // {
-    //     LogHelper::LogError("game.contents", "ExitActor error - Failed ExitActor[ ActorID:%d, TBMapID:%d, PosX:%.2f, PosY:%.2f ] ( %d )",
-    //         pActor->GetActorID().dwActorID, GetTBMapID(), fx, fy, 1015);
-    //     // Try to erase without position
-    //     if (!Range2DScanner<CMover*>::Erase(pTargetScanner, &pMover))
-    //     {
-    //         LogHelper::LogError("game.contents", "ExitActor error - Failed Erase[ ActorID:%d ] ( %d )",
-    //             pActor->GetActorID().dwActorID, 1019);
-    //         return false;
-    //     }
-    // }
-
-    // IDA: Scan for nearby players
     std::vector<CMover*> vecPlayerList;
     vecPlayerList.reserve(300);
+    if (pActor->GetType())
+        m_objectGridScanner.playerScanner->ScanGrid(fx, fy, 2, 2, vecPlayerList);
+    else
+        m_objectGridScanner.playerScanner->ScanGridAndSetObjCnt(fx, fy, 2, 2, vecPlayerList, -1);
 
-    // IDA: Scan player scanner grid
-    // TODO: 完整实现需要 Range2DScanner
-    // if (pActor->GetType())
-    //     Range2DScanner<CMover*>::ScanGrid(m_objectGridScanner.playerScanner, fx, fy, 2, 2, &vecPlayerList);
-    // else
-    //     Range2DScanner<CMover*>::ScanGridAndSetObjCnt(m_objectGridScanner.playerScanner, fx, fy, 2, 2, &vecPlayerList, -1);
-
-    // IDA: Send leave object to others
     if (!vecPlayerList.empty())
-    {
-        // ProcessSendLeaveObjectToOthers(&vecPlayerList, pActor, true);
-    }
+        ProcessSendLeaveObjectToOthers(vecPlayerList, pActor, true);
 
     return true;
 }
@@ -1094,15 +1031,69 @@ void XModeMaze::ProcessMoveObject(XActor* pActor, std::vector<CMover*>& vecEnter
     // IDA: Process enter player list
     if (!vecEnterPlayerList.empty())
     {
-        // XDistrict::ProcessSendEnterObjectToOthers(this, &vecEnterPlayerList, pActor);
-        // XDistrict::ProcessSendTranslateInfoToOthers(this, pActor, &vecEnterPlayerList);
+        ProcessSendEnterObjectToOthers(vecEnterPlayerList, pActor);
+        ProcessSendTranslateInfoToOthers(pActor, vecEnterPlayerList);
     }
 
     // IDA: Process enter object list for player
     if (pActor->IsPlayer() && !vecEnterObjList.empty())
     {
-        // ProcessSendEnterObjectListToPlayer(pActor, &vecEnterPlayerList, &vecEnterObjList);
+        ProcessSendEnterObjectListToPlayer(pActor, vecEnterPlayerList, vecEnterObjList);
     }
+}
+
+// XModeMaze::ProcessSendEnterObjectToOthers (0x1402C9B70)
+// 状态: 部分还原 - 玩家与真空立方体封包可发送，其他对象类型仍待补齐。
+// TODO: 需人工审查
+//   1. 恢复 NPC 的 PS_NPCINFO_VEC 与 STNpcInfo 序列化及 CNpc 构建接线。
+//   2. 恢复怪物的 PS_MONSTERINFO_VEC 与 STMonsterInfo 序列化。
+//   3. 核对类型 6 的具体派生对象及其信息封包实现。
+// 依赖: NPC/怪物协议序列化及类型 6 的完整业务类。
+void XModeMaze::ProcessSendEnterObjectToOthers(std::vector<CMover*>& vecPlayerList, XActor* pActor)
+{
+    switch (pActor->GetType())
+    {
+    case 0:
+    {
+        XSendPacket packet(4, 0x11);
+        pActor->SetInfoPacket(packet);
+        CGocNetwork::Send(vecPlayerList, packet, pActor);
+        break;
+    }
+    case 5:
+    {
+        XSendPacket packet(0x25, 0x11);
+        pActor->SetInfoPacket(packet);
+        CGocNetwork::Send(vecPlayerList, packet, nullptr);
+        break;
+    }
+    default:
+        break;
+    }
+}
+
+// XModeMaze::ProcessSendTranslateInfoToOthers (0x1402925B0)
+// 状态: 部分还原 - 交通协议已核对，当前用户交通时间仍为占位值。
+// TODO: 需人工审查
+//   1. 恢复 CUser::GetPublicTransportTime 所依赖的 VPublicTransportPath::GetCurTime。
+//   2. 在真实交通时间可用后发送 5/0x16 数据包并排除当前乘客。
+// 依赖: VPublicTransportPath 的真实布局及计时接口。
+void XModeMaze::ProcessSendTranslateInfoToOthers(XActor* pActor, std::vector<CMover*>& vecPlayerList)
+{
+    CUser* pUser = dynamic_cast<CUser*>(pActor);
+    if (!pUser || !pUser->IsPlayingPublicTransport())
+        return;
+
+    ST_MOVE_TRANSPORT_TAKE stMoveTake;
+    stMoveTake.dwActorID = pUser->GetActorID().dwActorID;
+    stMoveTake.wTransportTableIdx = pUser->GetPublicTransportIndex();
+    // TODO: 需人工审查
+    // stMoveTake.fStartTime = pUser->GetPublicTransportTime();
+    // XSendPacket packet(5, 0x16);
+    // packet << stMoveTake;
+    // CGocNetwork::SendAfterLoading(vecPlayerList, packet, pActor);
+    (void)stMoveTake;
+    (void)vecPlayerList;
 }
 
 // IDA: ?ProcessSendLeaveObjectToOthers@XModeMaze@@QEAAXAEAV?$vector@PEAVCMover@@V?$allocator@PEAVCMover@@@std@@@std@@PEAVXActor@@_N@Z (0x140291B10)
@@ -1359,7 +1350,7 @@ void XModeMaze::SendEnterPlayerInfo(CUser* pUser)
     pUser->SetInfoPacket(xSendPacket);
 
     // IDA: Broadcast to all players
-    SendBroadCastAll(&xSendPacket, false);
+    SendBroadCastAll(xSendPacket, false);
 }
 
 // IDA: ?SendExitPlayerInfo@XModeMaze@@QEAAXPEAVCUser@@@Z (0x140294120)
@@ -1378,7 +1369,7 @@ void XModeMaze::SendExitPlayerInfo(CUser* pUser)
     xSendPacket << actorID.dwActorID;
 
     // IDA: Broadcast to all players
-    SendBroadCastAll(&xSendPacket, false);
+    SendBroadCastAll(xSendPacket, false);
 }
 
 // IDA: ?IsEnemyPVP@XModeMaze@@UEAA_NPEAVXActor@@0@Z (0x140294200)
@@ -2213,7 +2204,7 @@ void XModeMaze::SendDemensionPoint(unsigned long dwUCID)
     // xSendPacket << psPoint;
 
     // IDA: Broadcast to all players
-    SendBroadCastAll(&xSendPacket, false);
+    SendBroadCastAll(xSendPacket, false);
 }
 
 // IDA: ?SendDemensionShutterInfo@XModeMaze@@QEAAXKH_K@Z (0x1402978F0)
@@ -2235,7 +2226,7 @@ void XModeMaze::SendDemensionShutterInfo(unsigned long dwUCID, int nAddPoint, un
     // IDA: Send packet (main=0x33, sub=0x11)
     XSendPacket xSendPacket(0x33, 0x11);
     // xSendPacket << psInfo;
-    SendBroadCastAll(&xSendPacket, false);
+    SendBroadCastAll(xSendPacket, false);
 
     // IDA: Update send tick
     m_dw64DemensionInfoSendTick = dwTick;
@@ -2248,7 +2239,7 @@ void XModeMaze::SendDemensionShutterReward(struct PS_MODE_MAZE_REWARD_INFO& stIn
     // IDA: Send reward packet (main=0x33, sub=0x13)
     XSendPacket xSendPacket(0x33, 0x13);
     // xSendPacket << stInfo;
-    SendBroadCastAll(&xSendPacket, false);
+    SendBroadCastAll(xSendPacket, false);
 }
 
 // IDA: ?SendDemensionShutterEventMatchingReward@XModeMaze@@QEAAXAEAUPS_MODE_MAZE_REWARD_INFO@@@Z (0x140297AD0)
@@ -2503,121 +2494,68 @@ void XModeMaze::SpawnGenerateMonster()
 }
 
 // IDA: ?SendBroadCast@XModeMaze@@UEAAXAEAVXSendPacket@@PEAVXActor@@W4E_BROADCAST_TYPE@IXArea@@@Z (0x140298870)
-// Verified: Direct IDA decompilation
-void XModeMaze::SendBroadCast(XSendPacket* pPacket, XActor* pExceptActor, E_BROADCAST_TYPE eType)
+void XModeMaze::SendBroadCast(XSendPacket& packet, XActor* pActor, E_BROADCAST_TYPE eType)
 {
-    // IDA: Check broadcast type - if E_BROADCAST_TYPE_ALL or null type, broadcast to all
-    if (eType != E_BROADCAST_TYPE::E_BROADCAST_TYPE_ALL && eType != static_cast<E_BROADCAST_TYPE>(0) && pExceptActor)
+    if (eType != E_BROADCAST_TYPE::eAll && eType != E_BROADCAST_TYPE::eAll_InMap && pActor)
     {
-        // IDA: Get position from actor
-        XActor* pScanExcept = nullptr;
-        if (eType == E_BROADCAST_TYPE::E_BROADCAST_TYPE_NORMAL)
-            pScanExcept = pExceptActor;
+        XActor* pExceptActor = nullptr;
+        if (eType == E_BROADCAST_TYPE::eNoneSelf)
+            pExceptActor = pActor;
 
-        // IDA: Get position from actor's area
-        // TODO: 完整实现需要获取 Actor 位置的 API
-        // float fx = pExceptActor->GetArea()->GetPosition().x;
-        // float fy = pExceptActor->GetArea()->GetPosition().y;
-
-        // IDA: Scan grid for nearby players
+        STPosInfo* pPosInfo = pActor->GetPosInfo();
+        const float fx = pPosInfo->vPos.x;
+        const float fy = pPosInfo->vPos.y;
         std::vector<CMover*> vecPlayerList;
-        // TODO: 完整实现需要 Range2DScanner
-        // Range2DScanner<CMover*>::ScanGrid(m_objectGridScanner.playerScanner, fx, fy, 2, 2, &vecPlayerList);
-
-        // IDA: Send packet to all found players
-        // CGocNetwork::Send(&vecPlayerList, pPacket, pScanExcept);
-
-        // Fallback: call base class
-        XMaze::SendBroadCast(pPacket, pExceptActor, eType);
+        vecPlayerList.reserve(300);
+        m_objectGridScanner.playerScanner->ScanGrid(fx, fy, 2, 2, vecPlayerList);
+        CGocNetwork::Send(vecPlayerList, packet, pExceptActor);
     }
     else
     {
-        // IDA: Broadcast to all players in map
-        SendBroadCastAll(pPacket, false);
+        SendBroadCastAll(packet, false);
     }
 }
 
 // IDA: ?SendBroadCast@XModeMaze@@UEAAXAEAVXSendPacket@@PEAVXActor@@_NW4E_BROADCAST_TYPE@IXArea@@@Z (0x1402989A0)
-// Verified: Direct IDA decompilation
-void XModeMaze::SendBroadCast(XSendPacket* pPacket, XActor* pExceptActor, bool bExceptDie, E_BROADCAST_TYPE eType)
+void XModeMaze::SendBroadCast(XSendPacket& packet, XActor* pActor, bool bExceptDie, E_BROADCAST_TYPE eType)
 {
-    // IDA: Check broadcast type - if E_BROADCAST_TYPE_ALL or null type, broadcast to all
-    if (eType != E_BROADCAST_TYPE::E_BROADCAST_TYPE_ALL && eType != static_cast<E_BROADCAST_TYPE>(0) && pExceptActor)
+    if (eType != E_BROADCAST_TYPE::eAll && eType != E_BROADCAST_TYPE::eAll_InMap && pActor)
     {
-        // IDA: Get position from actor
-        XActor* pScanExcept = nullptr;
-        if (eType == E_BROADCAST_TYPE::E_BROADCAST_TYPE_NORMAL)
-            pScanExcept = pExceptActor;
+        XActor* pExceptActor = nullptr;
+        if (eType == E_BROADCAST_TYPE::eNoneSelf)
+            pExceptActor = pActor;
 
-        // IDA: Get position from actor's area
-        // TODO: 完整实现需要获取 Actor 位置的 API
-        // float fx = pExceptActor->GetArea()->GetPosition().x;
-        // float fy = pExceptActor->GetArea()->GetPosition().y;
-
-        // IDA: Scan grid for nearby players
+        STPosInfo* pPosInfo = pActor->GetPosInfo();
+        const float fx = pPosInfo->vPos.x;
+        const float fy = pPosInfo->vPos.y;
         std::vector<CMover*> vecPlayerList;
-        // TODO: 完整实现需要 Range2DScanner
-        // Range2DScanner<CMover*>::ScanGrid(m_objectGridScanner.playerScanner, fx, fy, 2, 2, &vecPlayerList);
-
-        // IDA: Iterate through players and send packet
-        for (auto it = vecPlayerList.begin(); it != vecPlayerList.end(); ++it)
+        vecPlayerList.reserve(300);
+        m_objectGridScanner.playerScanner->ScanGrid(fx, fy, 2, 2, vecPlayerList);
+        for (CMover* pMover : vecPlayerList)
         {
-            CMover* pMover = *it;
-            if (pMover)
+            if (pMover && (!bExceptDie || !pMover->IsDie()))
             {
-                // IDA: Check if should skip dead players
-                if (!bExceptDie || !pMover->IsDie())
-                {
-                    // IDA: CMover inherits from CMoverEx which inherits from XActor
-                    // Check if should skip except actor
-                    if (!pScanExcept || pMover != reinterpret_cast<CMover*>(pScanExcept))
-                    {
-                        // TODO: 完整实现需要 CGocNetwork::Send
-                        // CGocNetwork::Send(pMover, pPacket);
-                    }
-                }
+                XActor* pTargetActor = static_cast<XActor*>(pMover);
+                if (!pExceptActor || pExceptActor != pTargetActor)
+                    CGocNetwork::Send(pTargetActor, packet);
             }
         }
-
-        // Fallback: call base class
-        XMaze::SendBroadCast(pPacket, pExceptActor, eType);
     }
     else
     {
-        // IDA: Broadcast to all players in map
-        SendBroadCastAll(pPacket, bExceptDie);
+        SendBroadCastAll(packet, bExceptDie);
     }
 }
 
 // IDA: ?SendBroadCastAll@XModeMaze@@QEAAXAEAVXSendPacket@@_N@Z (0x140298C00)
-// Verified: Direct IDA decompilation
-void XModeMaze::SendBroadCastAll(XSendPacket* pPacket, bool bExceptDie)
+void XModeMaze::SendBroadCastAll(XSendPacket& packet, bool bExceptDie)
 {
-    // IDA: Enumerate all players in scanner
     std::vector<CMover*> vecPCList;
-    // TODO: 完整实现需要 Range2DScanner
-    // Range2DScanner<CMover*>::Enumerate(m_objectGridScanner.playerScanner, &vecPCList);
-
-    // IDA: Iterate through players and send packet
-    for (auto it = vecPCList.begin(); it != vecPCList.end(); ++it)
+    m_objectGridScanner.playerScanner->Enumerate(vecPCList);
+    for (CMover* pMover : vecPCList)
     {
-        CMover* pMover = *it;
-        if (pMover)
-        {
-            // IDA: Check if should skip dead players
-            if (!bExceptDie || !pMover->IsDie())
-            {
-                // IDA: CMover inherits from CMoverEx which inherits from XActor
-                // TODO: 完整实现需要 CGocNetwork::Send
-                // CGocNetwork::Send(pMover, pPacket);
-            }
-        }
-    }
-
-    // Fallback: call SendBroadCast with E_BROADCAST_TYPE_ALL type
-    if (vecPCList.empty())
-    {
-        SendBroadCast(pPacket, nullptr, E_BROADCAST_TYPE::E_BROADCAST_TYPE_ALL);
+        if (pMover && (!bExceptDie || !pMover->IsDie()))
+            CGocNetwork::Send(static_cast<XActor*>(pMover), packet);
     }
 }
 

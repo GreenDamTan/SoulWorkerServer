@@ -15,6 +15,7 @@
 
 #include <cstdint>
 #include "Soulworker/GameServer/XCore/VisionEngineTypes.h"
+#include "Soulworker/Common/XNet/XCommon/VEventObjectDefine.h"
 
 // Forward declarations
 class XActor;
@@ -27,112 +28,17 @@ struct TB_INTERACTION_OBJECT;
 class XResourceMgr;
 class XGameServer;
 
-// ============================================================================
-// eEventObjectType - Event object type enumeration
-// PDB UDT 0x1899B (cvdump types): 3 members, T_INT4
-//   eEventObjectType_None = 0
-//   eEventObjectType_Box = 1
-//   eEventObjectType_Point = 2
-// ============================================================================
-enum eEventObjectType {
-    eEventObjectType_None = 0,
-    eEventObjectType_Box = 1,
-    eEventObjectType_Point = 2,
-};
-
-// ============================================================================
-// eEventBoxType - Event box type enumeration
-// PDB UDT 0x1898B (cvdump types): 22 members, T_INT4
-// ============================================================================
-enum eEventBoxType {
-    eEventBoxType_Start = 0,
-    eEventBoxType_MonsterSpawn = 1,
-    eEventBoxType_CheckMonsterSpawn = 2,
-    eEventBoxType_OpenMaze = 3,
-    eEventBoxType_CheckSceneDirecting = 4,
-    eEventBoxType_Portal = 5,
-    eEventBoxType_CommonPosition = 6,
-    eEventBoxType_Sector = 7,
-    eEventBoxType_CheckSector = 8,
-    eEventBoxType_ServerGate = 9,
-    eEventBoxType_MazeEscape = 10,
-    eEventBoxType_LuaFunction = 11,
-    eEventBoxType_InteractionObjectBox = 12,
-    eEventBoxType_QuestMoveCheck = 13,
-    eEventBoxType_CutScene = 14,
-    eEventBoxType_CheckEventSpawn = 15,
-    eEventBoxType_PortalExit = 16,
-    eEventBoxType_PersonalShopArea = 17,
-    eEventBoxType_SafeArea = 18,
-    eEventBoxType_SectorStart = 19,
-    eEventBoxType_SocialItemExclude = 20,
-    eEventBoxType_Max = 21,
-};
-
-// ============================================================================
-// VEventObjectInfo - Base event object info (160 bytes)
-// PDB UDT 0x74D06, Size = 160, fieldlist 0x74D05 (cvdump types)
-//   vfptr +0x00 (虚函数提供), iID +8, iUniqueID +12, eType +16,
-//   PosTopLeft +20, PosBottomRight +32, Size +44, fRotate +56,
-//   Plane(hkvPlane[6]) +60, iLayerBitmask +156
-// PDB 方法集: GetCenter/IsIn/Collision (VANILLA 非虚),
-//   Clone/Load/InitPlane (INTRODUCING VIRTUAL, vfptr 0/8/16),
-//   GetEventUniqueID (STATIC), 构造x2, operator=
-// 注意: PDB 无虚析构记录，禁止添加 virtual 析构以免改变 vtable 布局。
-// 注意: PDB 三个 size (160/164/524/296) 均不按 8 圆整，证明原始工程对这些
-//       Vision 类使用 pack(4)；用 pragma pack(4) 复现原始 MSVC 布局，
-//       避免 clang-cl MSVC ABI 对 polymorphic 基类子对象圆整到 8 的偏移漂移。
-// ============================================================================
 #pragma pack(push, 4)
-struct VEventObjectInfo {
-    // Virtual methods (PDB vtable 顺序: Clone@0, Load@8, InitPlane@16)
-    // TODO: 需人工审查 - Clone/Load/InitPlane 方法体依赖 Vision 资源子系统未还原
-    virtual VEventObjectInfo* Clone() const { return nullptr; }
-    virtual bool Load() { return false; }
-    virtual void InitPlane() {}
 
-    // Static methods
-    // IDA: ?GetEventUniqueID@VEventObjectInfo@@SAHHH@Z (0x1401ADD50)
-    static int GetEventUniqueID(int nID, int nLevelA) {
-        return 100000 * (nLevelA + 1) + nID;
-    }
-
-    // IDA: ?GetCenter@VEventObjectInfo@@QEBA?AVhkvVec3@@XZ (0x140763A30)
-    // PDB fieldlist 0x74D05 list[10] GetCenter (VANILLA 非虚), 返回 hkvVec3 by value
-    // 精确还原: x/y 取 PosTopLeft/PosBottomRight 中点, z 取 PosTopLeft.z
-    hkvVec3 GetCenter() const {
-        hkvVec3 vResult;
-        vResult.x = (PosTopLeft.x + PosBottomRight.x) * 0.5f;
-        vResult.y = (PosTopLeft.y + PosBottomRight.y) * 0.5f;
-        vResult.z = PosTopLeft.z;
-        return vResult;
-    }
-
-    // Members (from PDB)
-    int iID = 0;               // offset 8
-    int iUniqueID = 0;         // offset 12
-    eEventObjectType eType = eEventObjectType_None;  // offset 16
-    hkvVec3 PosTopLeft{};      // offset 20
-    hkvVec3 PosBottomRight{};  // offset 32
-    hkvVec3 Size{};            // offset 44
-    float fRotate = 0.0f;      // offset 56
-    hkvPlane Plane[6] = {};    // offset 60
-    unsigned int iLayerBitmask = 0;  // offset 156
+// PDB UDT 0x6A3F8: VEventBoxInfo base (164 bytes) and ten check-box IDs at +176.
+struct VCheckMonsterSpawnInfo : public VEventBoxInfo {
+    int m_iType;
+    int m_iLoopCount;
+    int m_iEntityID;
+    int m_iCheckBox[10];
 };
-static_assert(sizeof(VEventObjectInfo) == 160, "VEventObjectInfo size must match PDB (160)");
-static_assert(offsetof(VEventObjectInfo, iID) == 8, "VEventObjectInfo.iID offset mismatch");
-static_assert(offsetof(VEventObjectInfo, eType) == 16, "VEventObjectInfo.eType offset mismatch");
-static_assert(offsetof(VEventObjectInfo, iLayerBitmask) == 156,
-              "VEventObjectInfo.iLayerBitmask offset mismatch");
-
-// ============================================================================
-// VEventBoxInfo - Event box info (164 bytes)
-// IDA: size 164, inherits VEventObjectInfo
-// PDB UDT 0x74486: eBoxType (eEventBoxType) @ +160
-// ============================================================================
-struct VEventBoxInfo : public VEventObjectInfo {
-    eEventBoxType eBoxType;    // offset 160
-};
+static_assert(sizeof(VCheckMonsterSpawnInfo) == 216,
+              "VCheckMonsterSpawnInfo size must match PDB (216)");
 
 // ============================================================================
 // VEventObjectResource - Event object resource container

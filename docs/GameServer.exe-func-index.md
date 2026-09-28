@@ -2790,8 +2790,8 @@
 | XCore | VisionEngineTypes/hkvVec3.h | ??YhkvVec3@@QEAAXAEBV0@@Z | 0x14009f370 | implemented | IDA decompile | yes | operator+= inline in header |
 | XCore | VisionEngineTypes/hkvVec3.h | ??H@YA?BVhkvVec3@@AEBV0@0@Z | 0x14009f400 | implemented | IDA decompile | yes | operator+ (addition) inline in header |
 | XCore | VisionEngineTypes/hkvMath.h | ?Deg2Rad@hkvMath@@SAMM@Z | 0x14009f470 | implemented | IDA decompile | yes | Convert degrees to radians |
-| XCore | VisionEngineTypes/hkvEulerUtil.h | ?ConvertEulerToMat3_Deg@hkvEulerUtil@@SA?AVhkvMat3@@MMMW4Enum@Mode@1@@Z | 0x14009f490 | implemented | IDA decompile | yes | Convert Euler angles to rotation matrix |
-| XCore | VisionEngineTypes/hkvMat3.h | ?setFromEulerAngles@hkvMat3@@QEAAXMMM@Z | 0x14009f510 | implemented | IDA decompile | yes | Set matrix from Euler angles |
+| Vision/Runtime/Base/Math/Helper | hkvEulerUtil.inl | ?ConvertEulerToMat3_Deg@hkvEulerUtil@@SA?AVhkvMat3@@MMMW4Enum@Mode@1@@Z | 0x14009f490 | decompiled | GameServer PDB cvdump lines + IDA decompile/disasm; original source not landed | no | insufficient_evidence |
+| XCore | VisionEngineTypes/hkvMat3.h | ?setFromEulerAngles@hkvMat3@@QEAAXMMM@Z | 0x14009f510 | implemented | GameServer PDB cvdump lines + IDA + landed source | no | insufficient_evidence |
 | - | - | ?EulerToMatrix@VisMath_cl@@QEAAXMMMAEAVhkvMat3@@@Z | 0x14009f590 | implemented | IDA ?EulerToMatrix@VisMath_cl@@QEAAXMMMAEAVhkvMat3@@@Z | yes | - |
 | XCore | VisionEngineTypes/hkvMat3.h | ?setIdentity@hkvMat3@@QEAAXXZ | 0x14009f5d0 | implemented | IDA decompile | yes | Set matrix to identity |
 | XCore | VisionEngineTypes/hkvMat3.h | ??0hkvMat3@@QEAA@XZ | 0x14009f660 | implemented | IDA decompile | yes | Default constructor - identity matrix |
@@ -4002,9 +4002,9 @@
 | - | - | ??1CGocNetwork@@UEAA@XZ | 0x140103890 | implemented | IDA ??1CGocNetwork@@UEAA@XZ | yes | - |
 | CGocNetwork | GocNetwork.cpp | ?Send@CGocNetwork@@SA_NPEAVXActor@@AEAVXSendPacket@@@Z | 0x1401038c0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
 | - | - | ?SendAfterLoading@CGocNetwork@@SA_NPEAVXActor@@AEAVXSendPacket@@@Z | 0x140103910 | implemented | IDA ?SendAfterLoading@CGocNetwork@@SA_NPEAVXActor@@AEAVXSendPacket@@@Z | yes | - |
-| - | - | ?Send@CGocNetwork@@SAXAEAV?$vector@PEAVCMover@@V?$allocator@PEAVCMover@@@std@@@std@@AEAVXSendPacket@@@Z | 0x140103960 | implemented | IDA ?Send@CGocNetwork@@SAXAEAV?$vector@PEAVCMover@@V?$allocator@PEAVCMover@@@std@@@std@@AEAVXSendPacket@@@Z | yes | - |
-| - | - | ?Send@CGocNetwork@@SAXAEAV?$vector@PEAVCMover@@V?$allocator@PEAVCMover@@@std@@@std@@AEAVXSendPacket@@PEAVXActor@@@Z | 0x140103a40 | implemented | IDA ?Send@CGocNetwork@@SAXAEAV?$vector@PEAVCMover@@V?$allocator@PEAVCMover@@@std@@@std@@AEAVXSendPacket@@PEAVXActor@@@Z | yes | - |
-| - | - | ?SendAfterLoading@CGocNetwork@@SAXAEAV?$vector@PEAVCMover@@V?$allocator@PEAVCMover@@@std@@@std@@AEAVXSendPacket@@PEAVXActor@@@Z | 0x140103b30 | implemented | IDA ?SendAfterLoading@CGocNetwork@@SAXAEAV?$vector@PEAVCMover@@V?$allocator@PEAVCMover@@@std@@@std@@AEAVXSendPacket@@PEAVXActor@@@Z | yes | - |
+| XGameServer/actor/component | GocNetwork.cpp | ?Send@CGocNetwork@@SAXAEAV?$vector@PEAVCMover@@V?$allocator@PEAVCMover@@@std@@@std@@AEAVXSendPacket@@@Z | 0x140103960 | implemented | GameServer PDB CGocNetwork symbols + IDA + landed source | no | insufficient_evidence |
+| XGameServer/actor/component | GocNetwork.cpp | ?Send@CGocNetwork@@SAXAEAV?$vector@PEAVCMover@@V?$allocator@PEAVCMover@@@std@@@std@@AEAVXSendPacket@@PEAVXActor@@@Z | 0x140103a40 | implemented | GameServer PDB CGocNetwork symbols + IDA + landed source | no | insufficient_evidence |
+| XGameServer/actor/component | GocNetwork.cpp | ?SendAfterLoading@CGocNetwork@@SAXAEAV?$vector@PEAVCMover@@V?$allocator@PEAVCMover@@@std@@@std@@AEAVXSendPacket@@PEAVXActor@@@Z | 0x140103b30 | implemented | GameServer PDB CGocNetwork symbols + IDA + landed source | no | insufficient_evidence |
 | - | - | ?BroadcastNearby@CGocNetwork@@SA_NPEAVXActor@@0AEAVXSendPacket@@@Z | 0x140103c20 | implemented | IDA ?BroadcastNearby@CGocNetwork@@SA_NPEAVXActor@@0AEAVXSendPacket@@@Z | yes | - |
 | - | - | ?SendBroadCast@CGocNetwork@@SAXPEAVCMover@@AEAVXSendPacket@@W4E_BROADCAST_TYPE@IXArea@@@Z | 0x140103cd0 | implemented | IDA ?SendBroadCast@CGocNetwork@@SAXPEAVCMover@@AEAVXSendPacket@@W4E_BROADCAST_TYPE@IXArea@@@Z | yes | - |
 | - | - | ?SendBroadCastAfterLoading@CGocNetwork@@SAXPEAVCMover@@AEAVXSendPacket@@W4E_BROADCAST_TYPE@IXArea@@@Z | 0x140103d60 | implemented | IDA ?SendBroadCastAfterLoading@CGocNetwork@@SAXPEAVCMover@@AEAVXSendPacket@@W4E_BROADCAST_TYPE@IXArea@@@Z | yes | - |
@@ -5651,6 +5651,7 @@
 | - | - | ?GetLogDBAgentCount@XGameDBSocketMgr@@QEAAHXZ | 0x140188d50 | blocked | IDA ?GetLogDBAgentCount@XGameDBSocketMgr@@QEAAHXZ | yes | - |
 | - | - | ?DeleteThis@VRefCounter@@UEAAXXZ | 0x140188d60 | implemented | IDA ?DeleteThis@VRefCounter@@UEAAXXZ | no | 调用虚析构链 delete this |
 | - | - | ?OnTickFunction@VResourceManager@@UEAAXM@Z | 0x140188db0 | implemented | IDA ?OnTickFunction@VResourceManager@@UEAAXM@Z | yes | - |
+| XGameServer/Mode | GameModeBase.h | ?Tick@GameModeBase@@UEAAXM@Z | 0x140188db0 | implemented | GameServer PDB GameModeBase.h publics/lines 0001:00187DB0 + IDA folded empty body + landed Mode/GameModeBase.cpp | no | insufficient_evidence |
 | - | - | ?ChangeCombatType@CMoverEx@@UEAAXHME@Z | 0x140188dc0 | implemented | IDA ?ChangeCombatType@CMoverEx@@UEAAXHME@Z | yes | - |
 | XGameServer | MoverEx.cpp | ?SetCombatType@CMoverEx@@UEAAXH@Z | 0x140188de0 | implemented | IDA decompile | yes | ??????????? |
 | XGameServer | MoverEx.cpp | ?IsControlMonster@CMoverEx@@UEAA_NXZ | 0x140188e00 | implemented | IDA decompile | yes | ???????????? |
@@ -5839,6 +5840,8 @@
 | XGameServer/Item | CItem.cpp | ?GetBroachList@CItem@@UEAAXAEAUPS_ITEM_BROACH_LIST@@@Z | 0x14018f110 | verified | PDB signature + CItem vtable + IDA folded COMDAT + source build | yes | CItem vtable +0xC0 resolves this PDB symbol to the shared no-op body. |
 | XGameServer/Item | CItem.cpp | ?GetSocketList@CItem@@UEAAXAEAUPS_ITEM_SOCKET_LIST@@@Z | 0x14018e110 | implemented | PDB signature + IDA folded COMDAT + landed source | no | CItem base no-op; CItemEquip 0x140284050 has the real fill. |
 | XGameServer | XArea/XActor.h | ?SetInfoPacket@XActor@@UEAAXAEAVXSendPacket@@@Z | 0x14018e110 | implemented | PDB signature + IDA folded COMDAT + landed source | no | Base no-op virtual added to XActor; shares folded COMDAT with CItem::GetSocketList; derived CNpc/CMonster/CUser overrides already exist. |
+| XGameServer/Mode | GameModeBase.h | ?StartMode@GameModeBase@@UEAAXPEAVXMaze@@@Z | 0x14018f110 | implemented | GameServer PDB GameModeBase.h publics/lines 0001:0018E110 + IDA folded empty body + landed Mode/GameModeBase.cpp | no | insufficient_evidence |
+| XGameServer/Mode | GameModeBase.h | ?Intrusion@GameModeBase@@UEAAXPEAVCUser@@@Z | 0x14018f110 | implemented | GameServer PDB GameModeBase.h publics/lines 0001:0018E110 + IDA folded empty body + landed Mode/GameModeBase.cpp | no | insufficient_evidence |
 | - | - | ?allocate@?$allocator@UPS_SOCIALITEM_USER@@@std@@QEAAPEAUPS_SOCIALITEM_USER@@_K@Z | 0x14018f120 | blocked | IDA ?allocate@?$allocator@UPS_SOCIALITEM_USER@@@std@@QEAAPEAUPS_SOCIALITEM_USER@@_K@Z | yes | - |
 | - | - | ?max_size@?$allocator@UPS_SOCIALITEM_USER@@@std@@QEBA_KXZ | 0x14018f140 | blocked | IDA ?max_size@?$allocator@UPS_SOCIALITEM_USER@@@std@@QEBA_KXZ | yes | - |
 | - | - | ??$insert@U?$pair@$$CBHE@std@@@?$_Tree@V?$_Tmap_traits@HEU?$less@H@std@@V?$allocator@U?$pair@$$CBHE@std@@@2@$0A@@std@@@std@@QEAA?AU?$pair@V?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@HEU?$less@H@std@@V?$allocator@U?$pair@$$CBHE@std@@@2@$0A@@std@@@std@@@std@@_N@1@$$QEAU?$pair@$$CBHE@1@@Z | 0x14018f180 | blocked | IDA ??$insert@U?$pair@$$CBHE@std@@@?$_Tree@V?$_Tmap_traits@HEU?$less@H@std@@V?$allocator@U?$pair@$$CBHE@std@@@2@$0A@@std@@@std@@QEAA?AU?$pair@V?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@HEU?$less@H@std@@V?$allocator@U?$pair@$$CBHE@std@@@2@$0A@@std@@@std@@@std@@_N@1@$$QEAU?$pair@$$CBHE@1@@Z | yes | - |
@@ -6059,7 +6062,8 @@
 | - | - | ?GetTB_SOUL_METRY@XResourceMgr@@QEAAPEAUTB_SOUL_METRY@@G@Z | 0x140198930 | implemented | IDA ?GetTB_SOUL_METRY@XResourceMgr@@QEAAPEAUTB_SOUL_METRY@@G@Z | yes | - |
 | - | - | ??0CGroupAggro@@QEAA@XZ | 0x1401989a0 | blocked | IDA ??0CGroupAggro@@QEAA@XZ | yes | - |
 | - | - | ?Reset@CGroupAggro@@QEAAXXZ | 0x1401989e0 | implemented | IDA ?Reset@CGroupAggro@@QEAAXXZ | yes | - |
-| CGroupAggro | GroupAggro.cpp | ?Init@CGroupAggro@@QEAAXPEAVCMonster@@@Z | 0x140198a20 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
+| XGameServer | GroupAggro.cpp | ?Init@CGroupAggro@@QEAAXPEAVCMonster@@@Z | 0x140198a20 | implemented | GameServer PDB CGroupAggro::Init symbols/publics + IDA folded body + landed source; shares address with CSector::SetMode | no | insufficient_evidence |
+| XGameServer | Sector.h | ?SetMode@CSector@@QEAAXPEAVGameModeBase@@@Z | 0x140198a20 | implemented | GameServer PDB Sector.obj/publics/symbols + IDA folded body + landed inline setter; shares address with CGroupAggro::Init | no | insufficient_evidence |
 | - | - | ?SetInfo@CGroupAggro@@QEAAXHHH@Z | 0x140198a40 | implemented | IDA ?SetInfo@CGroupAggro@@QEAAXHHH@Z | yes | - |
 | - | - | ?RunAggro@CGroupAggro@@QEAAXXZ | 0x140198a90 | implemented | IDA ?RunAggro@CGroupAggro@@QEAAXXZ | yes | - |
 | - | - | ?ClearAggroFlag@CGroupAggro@@QEAAXXZ | 0x140198db0 | implemented | IDA ?ClearAggroFlag@CGroupAggro@@QEAAXXZ | yes | - |
@@ -6361,6 +6365,7 @@
 | - | - | ?GetObjectResource@XDistrict@@UEAAPEAVVEventObjectResource@@XZ | 0x1401acf60 | implemented | IDA ?GetObjectResource@XDistrict@@UEAAPEAVVEventObjectResource@@XZ | yes | - |
 | - | - | ?ProcessExp@XArea@@UEAAXPEAVXActor@@MH@Z | 0x1401acf80 | blocked | IDA decompile | no | XArea.h inline stub (empty function) |
 | - | - | ?GetSkillLevel@CMover@@UEAAEXZ | 0x1401acfa0 | implemented | IDA ?GetSkillLevel@CMover@@UEAAEXZ | yes | - |
+| XGameServer/Mode | GameModeBase.h | ?CheckEndMode@GameModeBase@@UEAA_NXZ | 0x1401acfa0 | implemented | GameServer PDB GameModeBase.obj/publics/lines 0001:001ABFA0 + IDA folded false return + landed Mode/GameModeBase.cpp | no | insufficient_evidence |
 | - | - | ?MoveActor@XArea@@UEAAGTUXActorID@@AEAUXVec3@@M@Z | 0x1401acfb0 | blocked | IDA decompile | no | XArea.h inline stub (returns 0) |
 | XGameServer | User.cpp | ?GetEnterDistrictPos@CUser@@QEAAXAEAUSTPosInfo@@@Z | 0x1401acfd0 | implemented | IDA decompile + source/build check | no | Landed this round; build passed |
 | CMonster | Monster.cpp | ?SetSummonLifeTime@CMonster@@QEAAXM@Z | 0x1401ad000 | implemented | IDA ?SetSummonLifeTime@CMonster@@QEAAXM@Z | yes | - |
@@ -6382,7 +6387,8 @@
 | - | - | ??0STMagePotalBox@@QEAA@XZ | 0x1401ad5d0 | blocked | IDA ??0STMagePotalBox@@QEAA@XZ | yes | - |
 | - | - | ??0STInteractionBox@@QEAA@XZ | 0x1401ad640 | blocked | IDA ??0STInteractionBox@@QEAA@XZ | yes | - |
 | - | - | ??0ST_WORLD_MODE@@QEAA@XZ | 0x1401ad6b0 | blocked | IDA ??0ST_WORLD_MODE@@QEAA@XZ | yes | - |
-| - | - | ??0STMageProcessSpawnBox@@QEAA@XZ | 0x1401ad6e0 | blocked | IDA ??0STMageProcessSpawnBox@@QEAA@XZ | yes | - |
+| XGameServer | Maze.cpp | STMageEventSpawnBox::STMageEventSpawnBox | 0x1401ad6b0 | implemented | GameServer PDB Maze.obj + cvdump lines Maze.h + GameServer IDA folded ST_WORLD_MODE body + landed source | no | insufficient_evidence: three zero stores match fields +0/+4/+8; ICF-folded binary name differs; source constructor landed in Maze.cpp |
+| XGameServer | Maze.cpp | ??0STMageProcessSpawnBox@@QEAA@XZ | 0x1401ad6e0 | implemented | GameServer PDB Maze.obj + cvdump lines Maze.h + GameServer IDA constructor + landed source | no | insufficient_evidence: all nine fields zeroed in IDA order; source constructor landed in Maze.cpp |
 | - | - | ?RemoveAll@?$VMap@HPEAX@@QEAAXXZ | 0x1401ad760 | blocked | IDA ?RemoveAll@?$VMap@HPEAX@@QEAAXXZ | yes | - |
 | - | - | ??1?$VMap@HPEAX@@QEAA@XZ | 0x1401ad7e0 | blocked | IDA ??1?$VMap@HPEAX@@QEAA@XZ | yes | - |
 | - | - | ??0?$VMap@HPEAX@@QEAA@H@Z | 0x1401ad800 | blocked | IDA ??0?$VMap@HPEAX@@QEAA@H@Z | yes | - |
@@ -12232,15 +12238,15 @@
 | - | - | ?SetComplete@CSector@@QEAAX_N@Z | 0x14028d480 | implemented | IDA ?SetComplete@CSector@@QEAAX_N@Z | yes | - |
 | - | - | ?IsSpawnedAll@CSector@@QEAA_NXZ | 0x14028d4a0 | implemented | IDA ?IsSpawnedAll@CSector@@QEAA_NXZ | yes | - |
 | - | - | ?SetPortalOpen@CSector@@QEAAX_N@Z | 0x14028d4e0 | implemented | IDA ?SetPortalOpen@CSector@@QEAAX_N@Z | yes | - |
-| - | - | ??0ST_MOVE_TRANSPORT_TAKE@@QEAA@XZ | 0x14028d500 | blocked | IDA ??0ST_MOVE_TRANSPORT_TAKE@@QEAA@XZ | yes | - |
+| Common/XNet/XCommon | PSCommon.h | ??0ST_MOVE_TRANSPORT_TAKE@@QEAA@XZ | 0x14028d500 | implemented | GameServer PDB UDT 0x25220 + IDA 0x14028D500 + landed source | no | insufficient_evidence |
 | - | - | ??0XModeMaze@@QEAA@XZ | 0x14028d540 | blocked | IDA ??0XModeMaze@@QEAA@XZ | yes | - |
 | - | - | ??_EXModeMaze@@UEAAPEAXI@Z | 0x14028d620 | blocked | IDA ??_EXModeMaze@@UEAAPEAXI@Z | yes | - |
 | - | - | ??1?$map@KUST_SERVER_MODE_MAZE_USER_SCORE@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUST_SERVER_MODE_MAZE_USER_SCORE@@@std@@@3@@std@@QEAA@XZ | 0x14028d660 | blocked | IDA ??1?$map@KUST_SERVER_MODE_MAZE_USER_SCORE@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUST_SERVER_MODE_MAZE_USER_SCORE@@@std@@@3@@std@@QEAA@XZ | yes | - |
 | - | - | ??1XModeMaze@@UEAA@XZ | 0x14028d680 | blocked | IDA ??1XModeMaze@@UEAA@XZ | yes | - |
-| - | - | ?Init@XModeMaze@@UEAA_NXZ | 0x14028d700 | implemented | IDA ?Init@XModeMaze@@UEAA_NXZ | yes | - |
+| XGameServer | ModeMaze.cpp | ?Init@XModeMaze@@UEAA_NXZ | 0x14028d700 | implemented | GameServer PDB ModeMaze.obj + IDA + landed source | no | insufficient_evidence |
 | - | - | ?Clear@XModeMaze@@UEAAXXZ | 0x14028d9a0 | implemented | IDA ?Clear@XModeMaze@@UEAAXXZ | yes | - |
-| - | - | ?Create@XModeMaze@@UEAA_NAEAUST_CREATE_MAZE@@@Z | 0x14028da40 | implemented | IDA ?Create@XModeMaze@@UEAA_NAEAUST_CREATE_MAZE@@@Z | yes | - |
-| - | - | ?Create@XModeMaze@@QEAA_NAEAUST_CREATE_MODE_MAZE@@@Z | 0x14028dca0 | implemented | IDA ?Create@XModeMaze@@QEAA_NAEAUST_CREATE_MODE_MAZE@@@Z | yes | - |
+| XGameServer | ModeMaze.cpp | ?Create@XModeMaze@@UEAA_NAEAUST_CREATE_MAZE@@@Z | 0x14028da40 | implemented | GameServer PDB ModeMaze.obj + IDA + landed source | no | insufficient_evidence |
+| XGameServer | ModeMaze.cpp | ?Create@XModeMaze@@QEAA_NAEAUST_CREATE_MODE_MAZE@@@Z | 0x14028dca0 | implemented | GameServer PDB ModeMaze.obj + IDA + landed source | no | insufficient_evidence |
 | - | - | ?SendObjectInfo@XModeMaze@@UEAA_NPEAVXActor@@_N@Z | 0x14028e2a0 | implemented | IDA ?SendObjectInfo@XModeMaze@@UEAA_NPEAVXActor@@_N@Z | yes | - |
 | XGameServer | Maze.cpp | ?SendChangeActionSpawn@XMaze@@UEAAXW4E_ACTOR_TYPE@@@Z | 0x14028e5c0 | implemented | IDA decompile | yes | �㲥actor spawn��Ϣ(��ʵ��) |
 | - | - | ??1PS_MOVE_IDLE_VEC@@QEAA@XZ | 0x14028e780 | blocked | IDA ??1PS_MOVE_IDLE_VEC@@QEAA@XZ | yes | - |
@@ -12253,18 +12259,19 @@
 | - | - | ??1PS_MONSTERINFO_VEC@@QEAA@XZ | 0x14028f410 | blocked | IDA ??1PS_MONSTERINFO_VEC@@QEAA@XZ | yes | - |
 | - | - | ?ExitGameObject@XModeMaze@@UEAAGPEAVXActor@@W4E_SEND_INFO_TYPE@IXArea@@@Z | 0x14028f430 | implemented | IDA ?ExitGameObject@XModeMaze@@UEAAGPEAVXActor@@W4E_SEND_INFO_TYPE@IXArea@@@Z | yes | - |
 | - | - | ?ScanGridOrigin@XModeMaze@@UEAAXMMEHKAEAV?$vector@PEAVCMover@@V?$allocator@PEAVCMover@@@std@@@std@@@Z | 0x14028f720 | implemented | IDA ?ScanGridOrigin@XModeMaze@@UEAAXMMEHKAEAV?$vector@PEAVCMover@@V?$allocator@PEAVCMover@@@std@@@std@@@Z | yes | - |
-| - | - | ?GetScanner@XModeMaze@@QEAAPEAV?$Range2DScanner@PEAVCMover@@@@PEAVXActor@@@Z | 0x14028f7b0 | implemented | IDA ?GetScanner@XModeMaze@@QEAAPEAV?$Range2DScanner@PEAVCMover@@@@PEAVXActor@@@Z | yes | - |
+| XGameServer | ModeMaze.cpp | ?GetScanner@XModeMaze@@QEAAPEAV?$Range2DScanner@PEAVCMover@@@@PEAVXActor@@@Z | 0x14028f7b0 | verified | GameServer PDB ModeMaze.obj + IDA 0x14028F7B0 + landed source + GameServer build | yes | match |
 | - | - | ?EnterActor@XModeMaze@@UEAAGPEAVXActor@@@Z | 0x14028f810 | implemented | IDA ?EnterActor@XModeMaze@@UEAAGPEAVXActor@@@Z | yes | - |
-| - | - | ?EnterGridActor@XModeMaze@@QEAA_NPEAVXActor@@@Z | 0x14028ff70 | implemented | IDA ?EnterGridActor@XModeMaze@@QEAA_NPEAVXActor@@@Z | yes | - |
+| XGameServer | ModeMaze.cpp | ?EnterGridActor@XModeMaze@@QEAA_NPEAVXActor@@@Z | 0x14028ff70 | implemented | GameServer PDB ModeMaze.obj + IDA 0x14028FF70 + landed source | no | insufficient_evidence |
 | - | - | ?ExitActor@XModeMaze@@UEAAGPEAVXActor@@@Z | 0x1402902e0 | implemented | IDA ?ExitActor@XModeMaze@@UEAAGPEAVXActor@@@Z | yes | - |
 | - | - | ?ExitArea@XModeMaze@@UEAAXPEAVXActor@@@Z | 0x140290eb0 | implemented | IDA ?ExitArea@XModeMaze@@UEAAXPEAVXActor@@@Z | yes | - |
-| - | - | ?ExitGridActor@XModeMaze@@QEAA_NPEAVXActor@@@Z | 0x1402911b0 | implemented | IDA ?ExitGridActor@XModeMaze@@QEAA_NPEAVXActor@@@Z | yes | - |
+| XGameServer | ModeMaze.cpp | ?ExitGridActor@XModeMaze@@QEAA_NPEAVXActor@@@Z | 0x1402911b0 | implemented | GameServer PDB ModeMaze.obj + IDA 0x1402911B0 + landed source | no | insufficient_evidence |
 | XGameServer | Maze.cpp | ?EscapeActor@XMaze@@UEAA_NPEAVXActor@@@Z | 0x1402914c0 | implemented | IDA decompile | yes | RTTI cast CUser,����WarpSectorStartPos |
-| - | - | ?MoveActor@XModeMaze@@UEAAGPEAVXActor@@AEAUXVec3@@M_N@Z | 0x140291520 | implemented | IDA ?MoveActor@XModeMaze@@UEAAGPEAVXActor@@AEAUXVec3@@M_N@Z | yes | - |
-| - | - | ?ProcessMoveObject@XModeMaze@@QEAAXPEAVXActor@@AEAV?$vector@PEAVCMover@@V?$allocator@PEAVCMover@@@std@@@std@@111@Z | 0x140291a20 | implemented | IDA ?ProcessMoveObject@XModeMaze@@QEAAXPEAVXActor@@AEAV?$vector@PEAVCMover@@V?$allocator@PEAVCMover@@@std@@@std@@111@Z | yes | - |
-| - | - | ?ProcessSendLeaveObjectToOthers@XModeMaze@@QEAAXAEAV?$vector@PEAVCMover@@V?$allocator@PEAVCMover@@@std@@@std@@PEAVXActor@@_N@Z | 0x140291b10 | implemented | IDA ?ProcessSendLeaveObjectToOthers@XModeMaze@@QEAAXAEAV?$vector@PEAVCMover@@V?$allocator@PEAVCMover@@@std@@@std@@PEAVXActor@@_N@Z | yes | - |
+| XGameServer | ModeMaze.cpp | ?MoveActor@XModeMaze@@UEAAGPEAVXActor@@AEAUXVec3@@M_N@Z | 0x140291520 | implemented | GameServer PDB ModeMaze.obj + IDA + landed source | no | insufficient_evidence |
+| XGameServer | ModeMaze.cpp | ?ProcessMoveObject@XModeMaze@@QEAAXPEAVXActor@@AEAV?$vector@PEAVCMover@@V?$allocator@PEAVCMover@@@std@@@std@@111@Z | 0x140291a20 | implemented | GameServer PDB ModeMaze.obj + IDA 0x140291A20 + landed source | no | insufficient_evidence |
+| XGameServer | ModeMaze.cpp | ?ProcessSendLeaveObjectToOthers@XModeMaze@@QEAAXAEAV?$vector@PEAVCMover@@V?$allocator@PEAVCMover@@@std@@@std@@PEAVXActor@@_N@Z | 0x140291b10 | implemented | GameServer PDB ModeMaze.obj + IDA + landed source | no | insufficient_evidence |
 | - | - | ?ProcessSendLeaveObjectListToPlayer@XModeMaze@@QEAAXPEAVXActor@@AEAV?$vector@PEAVCMover@@V?$allocator@PEAVCMover@@@std@@@std@@@Z | 0x140291ec0 | implemented | IDA ?ProcessSendLeaveObjectListToPlayer@XModeMaze@@QEAAXPEAVXActor@@AEAV?$vector@PEAVCMover@@V?$allocator@PEAVCMover@@@std@@@std@@@Z | yes | - |
-| - | - | ?ProcessSendTranslateInfoToOthers@XDistrict@@QEAAXPEAVXActor@@AEAV?$vector@PEAVCMover@@V?$allocator@PEAVCMover@@@std@@@std@@@Z | 0x1402925b0 | implemented | IDA ?ProcessSendTranslateInfoToOthers@XDistrict@@QEAAXPEAVXActor@@AEAV?$vector@PEAVCMover@@V?$allocator@PEAVCMover@@@std@@@std@@@Z | yes | - |
+| XGameServer | ModeMaze.cpp | ?ProcessSendTranslateInfoToOthers@XModeMaze@@QEAAXPEAVXActor@@AEAV?$vector@PEAVCMover@@V?$allocator@PEAVCMover@@@std@@@std@@@Z | 0x1402925b0 | implemented | GameServer PDB ModeMaze.obj + publics + IDA folded XDistrict body + landed source | no | insufficient_evidence |
+| XCore/XArea | XDistrict.cpp | ?ProcessSendTranslateInfoToOthers@XDistrict@@QEAAXPEAVXActor@@AEAV?$vector@PEAVCMover@@V?$allocator@PEAVCMover@@@std@@@std@@@Z | 0x1402925b0 | implemented | GameServer PDB District.obj + publics + IDA folded body + landed partial source | no | insufficient_evidence |
 | - | - | ?ProcessSendEnterObjectListToPlayer@XModeMaze@@QEAAXPEAVXActor@@AEAV?$vector@PEAVCMover@@V?$allocator@PEAVCMover@@@std@@@std@@1@Z | 0x140292700 | implemented | IDA ?ProcessSendEnterObjectListToPlayer@XModeMaze@@QEAAXPEAVXActor@@AEAV?$vector@PEAVCMover@@V?$allocator@PEAVCMover@@@std@@@std@@1@Z | yes | - |
 | - | - | ?ProcessSendTranslateInfoToPlayer@XModeMaze@@QEAAXPEAVXActor@@AEAV?$vector@PEAVCMover@@V?$allocator@PEAVCMover@@@std@@@std@@@Z | 0x1402927b0 | implemented | IDA ?ProcessSendTranslateInfoToPlayer@XModeMaze@@QEAAXPEAVXActor@@AEAV?$vector@PEAVCMover@@V?$allocator@PEAVCMover@@@std@@@std@@@Z | yes | - |
 | - | - | ?SendSameGridOtherPlayerPosition@XModeMaze@@QEAAXPEAVCUser@@@Z | 0x1402929b0 | implemented | IDA ?SendSameGridOtherPlayerPosition@XModeMaze@@QEAAXPEAVCUser@@@Z | yes | - |
@@ -12310,9 +12317,9 @@
 | - | - | ?MoveNextSector@XModeMaze@@UEAAXPEAVCUser@@H@Z | 0x1402981a0 | implemented | IDA ?MoveNextSector@XModeMaze@@UEAAXPEAVCUser@@H@Z | yes | - |
 | - | - | ?Generate@XModeMaze@@UEAAXXZ | 0x1402984c0 | implemented | IDA ?Generate@XModeMaze@@UEAAXXZ | yes | - |
 | - | - | ?SpawnGenerateMonster@XModeMaze@@UEAAXXZ | 0x1402984e0 | implemented | IDA ?SpawnGenerateMonster@XModeMaze@@UEAAXXZ | yes | - |
-| - | - | ?SendBroadCast@XModeMaze@@UEAAXAEAVXSendPacket@@PEAVXActor@@W4E_BROADCAST_TYPE@IXArea@@@Z | 0x140298870 | implemented | IDA ?SendBroadCast@XModeMaze@@UEAAXAEAVXSendPacket@@PEAVXActor@@W4E_BROADCAST_TYPE@IXArea@@@Z | yes | - |
-| - | - | ?SendBroadCast@XModeMaze@@UEAAXAEAVXSendPacket@@PEAVXActor@@_NW4E_BROADCAST_TYPE@IXArea@@@Z | 0x1402989a0 | implemented | IDA ?SendBroadCast@XModeMaze@@UEAAXAEAVXSendPacket@@PEAVXActor@@_NW4E_BROADCAST_TYPE@IXArea@@@Z | yes | - |
-| - | - | ?SendBroadCastAll@XModeMaze@@QEAAXAEAVXSendPacket@@_N@Z | 0x140298c00 | implemented | IDA ?SendBroadCastAll@XModeMaze@@QEAAXAEAVXSendPacket@@_N@Z | yes | - |
+| XGameServer | ModeMaze.cpp | ?SendBroadCast@XModeMaze@@UEAAXAEAVXSendPacket@@PEAVXActor@@W4E_BROADCAST_TYPE@IXArea@@@Z | 0x140298870 | implemented | GameServer PDB ModeMaze.obj + IDA 0x140298870 + landed source + build | no | insufficient_evidence |
+| XGameServer | ModeMaze.cpp | ?SendBroadCast@XModeMaze@@UEAAXAEAVXSendPacket@@PEAVXActor@@_NW4E_BROADCAST_TYPE@IXArea@@@Z | 0x1402989a0 | implemented | GameServer PDB ModeMaze.obj + IDA 0x1402989A0 + landed source + build | no | insufficient_evidence |
+| XGameServer | ModeMaze.cpp | ?SendBroadCastAll@XModeMaze@@QEAAXAEAVXSendPacket@@_N@Z | 0x140298c00 | implemented | GameServer PDB ModeMaze.obj + IDA 0x140298C00 + landed source + build | no | insufficient_evidence |
 | - | - | ?SetPlayTimeStop_Cheat@XModeMaze@@QEAAXXZ | 0x140298d20 | implemented | IDA ?SetPlayTimeStop_Cheat@XModeMaze@@QEAAXXZ | yes | - |
 | - | - | ?reserve@?$vector@USTCharInfoEx@@V?$allocator@USTCharInfoEx@@@std@@@std@@QEAAX_K@Z | 0x140298e20 | blocked | IDA ?reserve@?$vector@USTCharInfoEx@@V?$allocator@USTCharInfoEx@@@std@@@std@@QEAAX_K@Z | yes | - |
 | - | - | ?push_back@?$vector@USTCharInfoEx@@V?$allocator@USTCharInfoEx@@@std@@@std@@QEAAXAEBUSTCharInfoEx@@@Z | 0x140298f80 | blocked | IDA ?push_back@?$vector@USTCharInfoEx@@V?$allocator@USTCharInfoEx@@@std@@@std@@QEAAXAEBUSTCharInfoEx@@@Z | yes | - |
@@ -12397,7 +12404,7 @@
 | - | - | ?Insert@?$UniformGrid@PEAVCMover@@@@QEAA_NHHAEBQEAVCMover@@@Z | 0x14029bf40 | blocked | IDA ?Insert@?$UniformGrid@PEAVCMover@@@@QEAA_NHHAEBQEAVCMover@@@Z | yes | - |
 | - | - | ?Erase@?$UniformGrid@PEAVCMover@@@@QEAA_NHHAEBQEAVCMover@@@Z | 0x14029bfb0 | blocked | IDA ?Erase@?$UniformGrid@PEAVCMover@@@@QEAA_NHHAEBQEAVCMover@@@Z | yes | - |
 | - | - | ?ScanGrid@?$Range2DScanner@PEAVCMover@@@@QEAAXMMHHAEAV?$vector@PEAVCMover@@V?$allocator@PEAVCMover@@@std@@@std@@@Z | 0x14029c080 | blocked | IDA ?ScanGrid@?$Range2DScanner@PEAVCMover@@@@QEAAXMMHHAEAV?$vector@PEAVCMover@@V?$allocator@PEAVCMover@@@std@@@std@@@Z | yes | - |
-| - | - | ?ScanGridAndSetObjCnt@?$Range2DScanner@PEAVCMover@@@@QEAAXMMHHAEAV?$vector@PEAVCMover@@V?$allocator@PEAVCMover@@@std@@@std@@H@Z | 0x14029c720 | blocked | IDA ?ScanGridAndSetObjCnt@?$Range2DScanner@PEAVCMover@@@@QEAAXMMHHAEAV?$vector@PEAVCMover@@V?$allocator@PEAVCMover@@@std@@@std@@H@Z | yes | - |
+| XCore/XArea | Range2DScanner.cpp | ?ScanGridAndSetObjCnt@?$Range2DScanner@PEAVCMover@@@@QEAAXMMHHAEAV?$vector@PEAVCMover@@V?$allocator@PEAVCMover@@@std@@@std@@H@Z | 0x14029c720 | implemented | GameServer IDA 0x14029C720 + landed source; original OBJ ownership unresolved | no | insufficient_evidence |
 | - | - | ?ScanEnterLeaveCurrentWhenMove@?$Range2DScanner@PEAVCMover@@@@QEAA_NMMMMHHAEAV?$vector@PEAVCMover@@V?$allocator@PEAVCMover@@@std@@@std@@0@Z | 0x14029ce00 | blocked | IDA ?ScanEnterLeaveCurrentWhenMove@?$Range2DScanner@PEAVCMover@@@@QEAA_NMMMMHHAEAV?$vector@PEAVCMover@@V?$allocator@PEAVCMover@@@std@@@std@@0@Z | yes | - |
 | - | - | ?ScanEnterLeaveAndSetObjCnt@?$Range2DScanner@PEAVCMover@@@@QEAA_NMMMMHHAEAV?$vector@PEAVCMover@@V?$allocator@PEAVCMover@@@std@@@std@@0@Z | 0x14029dde0 | blocked | IDA ?ScanEnterLeaveAndSetObjCnt@?$Range2DScanner@PEAVCMover@@@@QEAA_NMMMMHHAEAV?$vector@PEAVCMover@@V?$allocator@PEAVCMover@@@std@@@std@@0@Z | yes | - |
 | - | - | ??$?0TUXActorID@@PEAVCMover@@@?$pair@$$CBKPEAVCMover@@@std@@QEAA@$$QEATUXActorID@@$$QEAPEAVCMover@@@Z | 0x14029ee40 | blocked | IDA ??$?0TUXActorID@@PEAVCMover@@@?$pair@$$CBKPEAVCMover@@@std@@QEAA@$$QEATUXActorID@@$$QEAPEAVCMover@@@Z | yes | - |
@@ -12452,7 +12459,7 @@
 | - | - | ??$_Buynode@U?$pair@$$CBKUST_DAILY_MISSION_INFO@@@std@@@?$_Tree_val@V?$_Tmap_traits@KUST_DAILY_MISSION_INFO@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUST_DAILY_MISSION_INFO@@@std@@@3@$0A@@std@@@std@@QEAAPEAU_Node@?$_Tree_nod@V?$_Tmap_traits@KUST_DAILY_MISSION_INFO@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUST_DAILY_MISSION_INFO@@@std@@@3@$0A@@std@@@1@$$QEAU?$pair@$$CBKUST_DAILY_MISSION_INFO@@@1@@Z | 0x1402a0740 | blocked | IDA ??$_Buynode@U?$pair@$$CBKUST_DAILY_MISSION_INFO@@@std@@@?$_Tree_val@V?$_Tmap_traits@KUST_DAILY_MISSION_INFO@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUST_DAILY_MISSION_INFO@@@std@@@3@$0A@@std@@@std@@QEAAPEAU_Node@?$_Tree_nod@V?$_Tmap_traits@KUST_DAILY_MISSION_INFO@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUST_DAILY_MISSION_INFO@@@std@@@3@$0A@@std@@@1@$$QEAU?$pair@$$CBKUST_DAILY_MISSION_INFO@@@1@@Z | yes | - |
 | - | - | ??$_Buynode@U?$pair@$$CBKUST_SERVER_MODE_MAZE_USER_SCORE@@@std@@@?$_Tree_val@V?$_Tmap_traits@KUST_SERVER_MODE_MAZE_USER_SCORE@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUST_SERVER_MODE_MAZE_USER_SCORE@@@std@@@3@$0A@@std@@@std@@QEAAPEAU_Node@?$_Tree_nod@V?$_Tmap_traits@KUST_SERVER_MODE_MAZE_USER_SCORE@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUST_SERVER_MODE_MAZE_USER_SCORE@@@std@@@3@$0A@@std@@@1@$$QEAU?$pair@$$CBKUST_SERVER_MODE_MAZE_USER_SCORE@@@1@@Z | 0x1402a07b0 | blocked | IDA ??$_Buynode@U?$pair@$$CBKUST_SERVER_MODE_MAZE_USER_SCORE@@@std@@@?$_Tree_val@V?$_Tmap_traits@KUST_SERVER_MODE_MAZE_USER_SCORE@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUST_SERVER_MODE_MAZE_USER_SCORE@@@std@@@3@$0A@@std@@@std@@QEAAPEAU_Node@?$_Tree_nod@V?$_Tmap_traits@KUST_SERVER_MODE_MAZE_USER_SCORE@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUST_SERVER_MODE_MAZE_USER_SCORE@@@std@@@3@$0A@@std@@@1@$$QEAU?$pair@$$CBKUST_SERVER_MODE_MAZE_USER_SCORE@@@1@@Z | yes | - |
 | - | - | ?Enumerate@?$UniformGrid@PEAVCMover@@@@QEBA_KHHAEAV?$vector@PEAVCMover@@V?$allocator@PEAVCMover@@@std@@@std@@@Z | 0x1402a0820 | blocked | IDA ?Enumerate@?$UniformGrid@PEAVCMover@@@@QEBA_KHHAEAV?$vector@PEAVCMover@@V?$allocator@PEAVCMover@@@std@@@std@@@Z | yes | - |
-| - | - | ?AddAroundObjCount@?$UniformGrid@PEAVCMover@@@@QEAAXHHH@Z | 0x1402a08c0 | blocked | IDA ?AddAroundObjCount@?$UniformGrid@PEAVCMover@@@@QEAAXHHH@Z | yes | - |
+| XCore/XArea | Range2DScanner.cpp | ?AddAroundObjCount@?$UniformGrid@PEAVCMover@@@@QEAAXHHH@Z | 0x1402a08c0 | implemented | GameServer IDA + landed source; original OBJ ownership unresolved | no | insufficient_evidence |
 | - | - | ??$get@$01_NPEAV?$vector@PEAVCMover@@V?$allocator@PEAVCMover@@@std@@@std@@V?$_Vector_iterator@V?$_Vector_val@PEAVCMover@@V?$allocator@PEAVCMover@@@std@@@std@@@2@U_Nil@tr1@2@U452@U452@U452@U452@U452@U452@@tr1@std@@YAAEAV?$_Vector_iterator@V?$_Vector_val@PEAVCMover@@V?$allocator@PEAVCMover@@@std@@@std@@@1@AEAV?$tuple@_NPEAV?$vector@PEAVCMover@@V?$allocator@PEAVCMover@@@std@@@std@@V?$_Vector_iterator@V?$_Vector_val@PEAVCMover@@V?$allocator@PEAVCMover@@@std@@@std@@@2@U_Nil@tr1@2@U452@U452@U452@U452@U452@U452@@01@@Z | 0x1402a0950 | blocked | IDA ??$get@$01_NPEAV?$vector@PEAVCMover@@V?$allocator@PEAVCMover@@@std@@@std@@V?$_Vector_iterator@V?$_Vector_val@PEAVCMover@@V?$allocator@PEAVCMover@@@std@@@std@@@2@U_Nil@tr1@2@U452@U452@U452@U452@U452@U452@@tr1@std@@YAAEAV?$_Vector_iterator@V?$_Vector_val@PEAVCMover@@V?$allocator@PEAVCMover@@@std@@@std@@@1@AEAV?$tuple@_NPEAV?$vector@PEAVCMover@@V?$allocator@PEAVCMover@@@std@@@std@@V?$_Vector_iterator@V?$_Vector_val@PEAVCMover@@V?$allocator@PEAVCMover@@@std@@@std@@@2@U_Nil@tr1@2@U452@U452@U452@U452@U452@U452@@01@@Z | yes | - |
 | - | - | ??$make_probe@V?$vector@UCoord@?$Range2DScanner@PEAVCMover@@@@V?$allocator@UCoord@?$Range2DScanner@PEAVCMover@@@@@std@@@std@@@foreach_detail_@boost@@YA?BU?$rvalue_probe@V?$vector@UCoord@?$Range2DScanner@PEAVCMover@@@@V?$allocator@UCoord@?$Range2DScanner@PEAVCMover@@@@@std@@@std@@@01@AEBV?$vector@UCoord@?$Range2DScanner@PEAVCMover@@@@V?$allocator@UCoord@?$Range2DScanner@PEAVCMover@@@@@std@@@std@@@Z | 0x1402a0970 | blocked | IDA ??$make_probe@V?$vector@UCoord@?$Range2DScanner@PEAVCMover@@@@V?$allocator@UCoord@?$Range2DScanner@PEAVCMover@@@@@std@@@std@@@foreach_detail_@boost@@YA?BU?$rvalue_probe@V?$vector@UCoord@?$Range2DScanner@PEAVCMover@@@@V?$allocator@UCoord@?$Range2DScanner@PEAVCMover@@@@@std@@@std@@@01@AEBV?$vector@UCoord@?$Range2DScanner@PEAVCMover@@@@V?$allocator@UCoord@?$Range2DScanner@PEAVCMover@@@@@std@@@std@@@Z | yes | - |
 | - | - | ??$to_ptr@V?$vector@UCoord@?$Range2DScanner@PEAVCMover@@@@V?$allocator@UCoord@?$Range2DScanner@PEAVCMover@@@@@std@@@std@@@foreach_detail_@boost@@YAAEAPEAV?$vector@UCoord@?$Range2DScanner@PEAVCMover@@@@V?$allocator@UCoord@?$Range2DScanner@PEAVCMover@@@@@std@@@std@@AEBV23@@Z | 0x1402a09a0 | blocked | IDA ??$to_ptr@V?$vector@UCoord@?$Range2DScanner@PEAVCMover@@@@V?$allocator@UCoord@?$Range2DScanner@PEAVCMover@@@@@std@@@std@@@foreach_detail_@boost@@YAAEAPEAV?$vector@UCoord@?$Range2DScanner@PEAVCMover@@@@V?$allocator@UCoord@?$Range2DScanner@PEAVCMover@@@@@std@@@std@@AEBV23@@Z | yes | - |
@@ -12608,19 +12615,19 @@
 | - | - | ?IsBot@XActor@@QEAA_NXZ | 0x1402a5070 | implemented | IDA ?IsBot@XActor@@QEAA_NXZ | yes | - |
 | XGameServer | actor/Mover/Mover.cpp (inline in Mover.h) | ?GetPositionXVec3@CMover@@QEAAAEAUXVec3@@XZ | 0x1402a5080 | implemented | IDA decompile + landed inline | no | return &m_vPosition reinterpreted as XVec3&; |
 | - | - | ?GetCurTime@VPublicTransport_cl@@QEAAMXZ | 0x1402a50a0 | implemented | IDA ?GetCurTime@VPublicTransport_cl@@QEAAMXZ | yes | - |
-| - | - | ?GetPublicTransportTime@CUser@@QEAAMXZ | 0x1402a50c0 | implemented | IDA ?GetPublicTransportTime@CUser@@QEAAMXZ | yes | - |
+| XGameServer | User.cpp | ?GetPublicTransportTime@CUser@@QEAAMXZ | 0x1402a50c0 | blocked | GameServer IDA + landed placeholder User.cpp | no | insufficient_evidence |
 | - | - | ?GetPublicTransportIndex@CUser@@QEAAGXZ | 0x1402a50f0 | implemented | IDA ?GetPublicTransportIndex@CUser@@QEAAGXZ | yes | - |
 | - | - | ?IsPlayingPublicTransport@CUser@@QEAA_NXZ | 0x1402a5110 | implemented | IDA ?IsPlayingPublicTransport@CUser@@QEAA_NXZ | yes | - |
 | - | - | ?GetLogSendBuffer@XClient@@QEAAHXZ | 0x1402a5130 | implemented | IDA ?GetLogSendBuffer@XClient@@QEAAHXZ | yes | - |
 | - | - | ??0ST_MODE_MAZE_USER_SCORE@@QEAA@XZ | 0x1402a5150 | blocked | IDA ??0ST_MODE_MAZE_USER_SCORE@@QEAA@XZ | yes | - |
 | - | - | ??0ST_SERVER_MODE_MAZE_USER_SCORE@@QEAA@XZ | 0x1402a51b0 | blocked | IDA ??0ST_SERVER_MODE_MAZE_USER_SCORE@@QEAA@XZ | yes | - |
 | - | - | ??0ST_MAZE_WAIT_ENTER_USER_INFO@@QEAA@XZ | 0x1402a5200 | blocked | IDA ??0ST_MAZE_WAIT_ENTER_USER_INFO@@QEAA@XZ | yes | - |
-| - | - | ??0CTextDBLog@@QEAA@XZ | 0x1402a5280 | blocked | IDA ??0CTextDBLog@@QEAA@XZ | yes | - |
-| - | - | ?Init@CTextDBLog@@QEAAX_J@Z | 0x1402a52b0 | implemented | IDA ?Init@CTextDBLog@@QEAAX_J@Z | yes | - |
-| - | - | ?AddLog@CTextDBLog@@QEAAXHHHPEAD@Z | 0x1402a52f0 | implemented | IDA ?AddLog@CTextDBLog@@QEAAXHHHPEAD@Z | yes | - |
-| - | - | ?SendLogDB@CTextDBLog@@QEAAXXZ | 0x1402a53b0 | implemented | IDA ?SendLogDB@CTextDBLog@@QEAAXXZ | yes | - |
-| - | - | ?AddLog@CTextDBLog@@QEAAXH_JHHHHHHH@Z | 0x1402a5510 | implemented | IDA ?AddLog@CTextDBLog@@QEAAXH_JHHHHHHH@Z | yes | - |
-| - | - | ?SendLogDB@CTextDBLog@@QEAAX_N@Z | 0x1402a5600 | implemented | IDA ?SendLogDB@CTextDBLog@@QEAAX_N@Z | yes | - |
+| XGameServer/Log | TextDBLog.cpp | ??0CTextDBLog@@QEAA@XZ | 0x1402a5280 | implemented | GameServer PDB TextDBLog.obj + IDA + landed source | no | - |
+| XGameServer/Log | TextDBLog.cpp | ?Init@CTextDBLog@@QEAAX_J@Z | 0x1402a52b0 | implemented | GameServer PDB TextDBLog.obj + IDA + landed source | no | - |
+| XGameServer/Log | TextDBLog.cpp | ?AddLog@CTextDBLog@@QEAAXHHHPEAD@Z | 0x1402a52f0 | implemented | GameServer PDB TextDBLog.obj + IDA + landed source | no | - |
+| XGameServer/Log | TextDBLog.cpp | ?SendLogDB@CTextDBLog@@QEAAXXZ | 0x1402a53b0 | implemented | GameServer PDB TextDBLog.obj + IDA + landed source | no | - |
+| XGameServer/Log | TextDBLog.cpp | ?AddLog@CTextDBLog@@QEAAXH_JHHHHHHH@Z | 0x1402a5510 | implemented | GameServer PDB TextDBLog.obj + IDA + landed source | no | - |
+| XGameServer/Log | TextDBLog.cpp | ?SendLogDB@CTextDBLog@@QEAAX_N@Z | 0x1402a5600 | implemented | GameServer PDB TextDBLog.obj + IDA + landed source | no | - |
 | - | - | ??0ST_LOG_TEXT@@QEAA@XZ | 0x1402a5760 | blocked | IDA ??0ST_LOG_TEXT@@QEAA@XZ | yes | - |
 | - | - | ?clear@?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@QEAAXXZ | 0x1402a57c0 | blocked | IDA ?clear@?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@QEAAXXZ | yes | - |
 | - | - | ??0DefenceMode@@QEAA@XZ | 0x1402a57e0 | blocked | IDA ??0DefenceMode@@QEAA@XZ | yes | - |
@@ -12638,31 +12645,31 @@
 | XGameServer | Maze.cpp | ?GetSystemActor@XMaze@@QEAAPEAVCMonster@@XZ | 0x1402a67c0 | implemented | IDA decompile | yes | ��getter����m_pSystemActor |
 | - | - | ?GetNation@XActor@@QEAAEXZ | 0x1402a67e0 | implemented | IDA ?GetNation@XActor@@QEAAEXZ | yes | - |
 | - | - | ?SetIgnoreAggroDebuff@CMover@@QEAAXH@Z | 0x1402a67f0 | implemented | IDA ?SetIgnoreAggroDebuff@CMover@@QEAAXH@Z | yes | - |
-| - | - | ?SendNoticePacket@GameModeBase@@QEAAXPEAVXMaze@@HHM_N@Z | 0x1402a6830 | implemented | IDA ?SendNoticePacket@GameModeBase@@QEAAXPEAVXMaze@@HHM_N@Z | yes | - |
-| - | - | ?SendNoticePacket@GameModeBase@@QEAAXPEAVCUser@@HHM@Z | 0x1402a6930 | implemented | IDA ?SendNoticePacket@GameModeBase@@QEAAXPEAVCUser@@HHM@Z | yes | - |
-| - | - | ??0EquilibriumMode@@QEAA@XZ | 0x1402a6a40 | blocked | IDA ??0EquilibriumMode@@QEAA@XZ | yes | - |
-| - | - | ??_EEquilibriumMode@@UEAAPEAXI@Z | 0x1402a6a70 | blocked | IDA ??_EEquilibriumMode@@UEAAPEAXI@Z | yes | - |
-| - | - | ??1EquilibriumMode@@UEAA@XZ | 0x1402a6ab0 | blocked | IDA ??1EquilibriumMode@@UEAA@XZ | yes | - |
-| - | - | ?Init@EquilibriumMode@@QEAAXPEAUSTMageCheckEventSpawnBox@@@Z | 0x1402a6ae0 | implemented | IDA ?Init@EquilibriumMode@@QEAAXPEAUSTMageCheckEventSpawnBox@@@Z | yes | - |
-| - | - | ?StartMode@EquilibriumMode@@UEAAXPEAVXMaze@@@Z | 0x1402a6b50 | implemented | IDA ?StartMode@EquilibriumMode@@UEAAXPEAVXMaze@@@Z | yes | - |
-| - | - | ?Tick@EquilibriumMode@@UEAAXM@Z | 0x1402a6c70 | implemented | IDA ?Tick@EquilibriumMode@@UEAAXM@Z | yes | - |
-| - | - | ?StartSpawnMonster@EquilibriumMode@@QEAAXXZ | 0x1402a6d80 | implemented | IDA ?StartSpawnMonster@EquilibriumMode@@QEAAXXZ | yes | - |
-| - | - | ?AllMonsterSpawned@EquilibriumMode@@QEAA_NXZ | 0x1402a6ed0 | implemented | IDA ?AllMonsterSpawned@EquilibriumMode@@QEAA_NXZ | yes | - |
-| - | - | ?CheckEndMode@EquilibriumMode@@UEAA_NXZ | 0x1402a6f00 | implemented | IDA ?CheckEndMode@EquilibriumMode@@UEAA_NXZ | yes | - |
-| - | - | ?EndGame@EquilibriumMode@@AEAAXE@Z | 0x1402a6fc0 | implemented | IDA ?EndGame@EquilibriumMode@@AEAAXE@Z | yes | - |
-| - | - | ?Intrusion@EquilibriumMode@@UEAAXPEAVCUser@@@Z | 0x1402a7050 | implemented | IDA ?Intrusion@EquilibriumMode@@UEAAXPEAVCUser@@@Z | yes | - |
-| XGameServer | Maze.cpp | ?SetEventSector@XMaze@@QEAAXPEAVCSector@@@Z | 0x1402a70e0 | implemented | IDA decompile | yes | ��setter����m_pActiveEventSector |
+| XGameServer/Mode | GameModeBase.cpp | ?SendNoticePacket@GameModeBase@@QEAAXPEAVXMaze@@HHM_N@Z | 0x1402a6830 | implemented | GameServer PDB GameModeBase.obj/publics/lines + IDA virtual call at slot 0x240 + landed Mode/GameModeBase.cpp; XMaze virtual declaration and bool ExceptDie now match, but XModeMaze override remains unmatched | no | insufficient_evidence |
+| XGameServer/Mode | GameModeBase.cpp | ?SendNoticePacket@GameModeBase@@QEAAXPEAVCUser@@HHM@Z | 0x1402a6930 | implemented | GameServer PDB GameModeBase.obj/publics/lines + IDA decompile/disasm + landed Mode/GameModeBase.cpp; startup does not exercise send path | no | insufficient_evidence |
+| XGameServer/Mode | EquilibriumMode.cpp | ??0EquilibriumMode@@QEAA@XZ | 0x1402a6a40 | implemented | GameServer PDB EquilibriumMode.obj/lines + IDA constructor + landed Mode/EquilibriumMode.cpp | no | insufficient_evidence |
+| XGameServer/Mode | EquilibriumMode.cpp | ??_EEquilibriumMode@@UEAAPEAXI@Z | 0x1402a6a70 | blocked | GameServer PDB EquilibriumMode.obj/publics; deleting destructor not landed | no | insufficient_evidence |
+| XGameServer/Mode | EquilibriumMode.cpp | ??1EquilibriumMode@@UEAA@XZ | 0x1402a6ab0 | implemented | GameServer PDB EquilibriumMode.obj/lines + IDA destructor + landed Mode/EquilibriumMode.cpp | no | insufficient_evidence |
+| XGameServer/Mode | EquilibriumMode.cpp | ?Init@EquilibriumMode@@QEAAXPEAUSTMageCheckEventSpawnBox@@@Z | 0x1402a6ae0 | implemented | GameServer IDA decompile + PDB EquilibriumMode.obj/types/lines + landed Mode/EquilibriumMode.cpp | no | insufficient_evidence |
+| XGameServer/Mode | EquilibriumMode.cpp | ?StartMode@EquilibriumMode@@UEAAXPEAVXMaze@@@Z | 0x1402a6b50 | implemented | GameServer IDA decompile/disasm + PDB EquilibriumMode.obj/types/lines + landed Mode/EquilibriumMode.cpp | no | insufficient_evidence |
+| XGameServer/Mode | EquilibriumMode.cpp | ?Tick@EquilibriumMode@@UEAAXM@Z | 0x1402a6c70 | implemented | GameServer IDA decompile + PDB EquilibriumMode.obj + landed Mode/EquilibriumMode.cpp | no | insufficient_evidence |
+| XGameServer/Mode | EquilibriumMode.cpp | ?StartSpawnMonster@EquilibriumMode@@QEAAXXZ | 0x1402a6d80 | implemented | GameServer IDA decompile + PDB EquilibriumMode.obj + landed Mode/EquilibriumMode.cpp | no | insufficient_evidence |
+| XGameServer/Mode | EquilibriumMode.cpp | ?AllMonsterSpawned@EquilibriumMode@@QEAA_NXZ | 0x1402a6ed0 | implemented | GameServer IDA decompile + PDB EquilibriumMode.obj + landed Mode/EquilibriumMode.cpp | no | insufficient_evidence |
+| XGameServer/Mode | EquilibriumMode.cpp | ?CheckEndMode@EquilibriumMode@@UEAA_NXZ | 0x1402a6f00 | implemented | GameServer IDA decompile + PDB EquilibriumMode.obj + landed Mode/EquilibriumMode.cpp | no | insufficient_evidence |
+| XGameServer/Mode | EquilibriumMode.cpp | ?EndGame@EquilibriumMode@@AEAAXE@Z | 0x1402a6fc0 | implemented | GameServer IDA decompile + PDB EquilibriumMode.obj + landed Mode/EquilibriumMode.cpp | no | insufficient_evidence |
+| XGameServer/Mode | EquilibriumMode.cpp | ?Intrusion@EquilibriumMode@@UEAAXPEAVCUser@@@Z | 0x1402a7050 | implemented | GameServer IDA decompile + PDB EquilibriumMode.obj + landed Mode/EquilibriumMode.cpp | no | insufficient_evidence |
+| XGameServer | Maze.h | ?SetEventSector@XMaze@@QEAAXPEAVCSector@@@Z | 0x1402a70e0 | implemented | GameServer PDB EquilibriumMode.obj/lines Maze.h + IDA decompile + landed inline setter; build passed | no | insufficient_evidence |
 | - | - | ?SetFLOAT@XParse@@QEAAXAEAM@Z | 0x1402a7100 | implemented | IDA ?SetFLOAT@XParse@@QEAAXAEAM@Z | yes | - |
 | - | - | ??6XParse@@QEAAAEAV0@M@Z | 0x1402a7140 | blocked | IDA ??6XParse@@QEAAAEAV0@M@Z | yes | - |
-| - | - | ??0GameModeBase@@QEAA@XZ | 0x1402a7170 | blocked | IDA ??0GameModeBase@@QEAA@XZ | yes | - |
-| - | - | ??_GGameModeBase@@UEAAPEAXI@Z | 0x1402a71d0 | blocked | IDA ??_GGameModeBase@@UEAAPEAXI@Z | yes | - |
-| - | - | ??1GameModeBase@@UEAA@XZ | 0x1402a7210 | blocked | IDA ??1GameModeBase@@UEAA@XZ | yes | - |
-| - | - | ?Init@GameModeBase@@QEAAXXZ | 0x1402a7240 | implemented | IDA ?Init@GameModeBase@@QEAAXXZ | yes | - |
+| XGameServer/Mode | GameModeBase.cpp | ??0GameModeBase@@QEAA@XZ | 0x1402a7170 | implemented | GameServer PDB GameModeBase.obj/lines/types + IDA + landed source | no | insufficient_evidence |
+| XGameServer/Mode | GameModeBase.cpp | ??_GGameModeBase@@UEAAPEAXI@Z | 0x1402a71d0 | blocked | GameServer PDB GameModeBase.obj/publics; deleting destructor not landed | no | insufficient_evidence |
+| XGameServer/Mode | GameModeBase.cpp | ??1GameModeBase@@UEAA@XZ | 0x1402a7210 | implemented | GameServer PDB GameModeBase.obj/lines + landed defaulted destructor | no | insufficient_evidence |
+| XGameServer/Mode | GameModeBase.cpp | ?Init@GameModeBase@@QEAAXXZ | 0x1402a7240 | implemented | GameServer PDB GameModeBase.obj/lines + IDA + landed source | no | insufficient_evidence |
 | - | - | ??1IXObject@@UEAA@XZ | 0x1402a7270 | blocked | IDA ??1IXObject@@UEAA@XZ | yes | - |
 | - | - | ??_EIXObject@@UEAAPEAXI@Z | 0x1402a72a0 | blocked | IDA ??_EIXObject@@UEAAPEAXI@Z | yes | - |
 | - | - | ??0IXObject@@QEAA@XZ | 0x1402a72e0 | blocked | IDA ??0IXObject@@QEAA@XZ | yes | - |
-| - | - | ?GetModeResult@GameModeBase@@QEAAEXZ | 0x1402a7330 | implemented | IDA ?GetModeResult@GameModeBase@@QEAAEXZ | yes | - |
-| - | - | ?GetMaze@GameModeBase@@QEAAPEAVXMaze@@XZ | 0x1402a7340 | implemented | IDA ?GetMaze@GameModeBase@@QEAAPEAVXMaze@@XZ | yes | - |
+| XGameServer/Mode | GameModeBase.h | ?GetModeResult@GameModeBase@@QEAAEXZ | 0x1402a7330 | implemented | GameServer PDB GameModeBase.h lines/publics + landed inline getter | no | insufficient_evidence |
+| XGameServer/Mode | GameModeBase.h | ?GetMaze@GameModeBase@@QEAAPEAVXMaze@@XZ | 0x1402a7340 | implemented | GameServer PDB GameModeBase.h lines/publics + landed inline getter | no | insufficient_evidence |
 | - | - | ??0DefenceModeMgr@@QEAA@XZ | 0x1402a7350 | blocked | IDA ??0DefenceModeMgr@@QEAA@XZ | yes | - |
 | - | - | ??_GDefenceModeMgr@@UEAAPEAXI@Z | 0x1402a7380 | blocked | IDA ??_GDefenceModeMgr@@UEAAPEAXI@Z | yes | - |
 | - | - | ??1DefenceModeMgr@@UEAA@XZ | 0x1402a73c0 | blocked | IDA ??1DefenceModeMgr@@UEAA@XZ | yes | - |
@@ -12684,19 +12691,19 @@
 | - | - | ?Init@OperationModeMgr@@UEAA_NH@Z | 0x1402a77f0 | implemented | IDA ?Init@OperationModeMgr@@UEAA_NH@Z | yes | - |
 | - | - | ??0?$TGameModeCreator@VOperationMode@@@@QEAA@XZ | 0x1402a7850 | blocked | IDA ??0?$TGameModeCreator@VOperationMode@@@@QEAA@XZ | yes | - |
 | - | - | ?StarGameMode@OperationModeMgr@@QEAAPEAVGameModeBase@@KPEAVXMaze@@@Z | 0x1402a7880 | implemented | IDA ?StarGameMode@OperationModeMgr@@QEAAPEAVGameModeBase@@KPEAVXMaze@@@Z | yes | - |
-| - | - | ??0GameModeMgr@@QEAA@XZ | 0x1402a7910 | blocked | IDA ??0GameModeMgr@@QEAA@XZ | yes | - |
-| - | - | ??1GameModeMgr@@QEAA@XZ | 0x1402a7980 | blocked | IDA ??1GameModeMgr@@QEAA@XZ | yes | - |
-| - | - | ?Init@GameModeMgr@@QEAAXH@Z | 0x1402a79e0 | implemented | IDA ?Init@GameModeMgr@@QEAAXH@Z | yes | - |
-| - | - | ?StartDefenceMode@GameModeMgr@@QEAAXKPEAVXMaze@@@Z | 0x1402a7a80 | implemented | IDA ?StartDefenceMode@GameModeMgr@@QEAAXKPEAVXMaze@@@Z | yes | - |
-| - | - | ?StartSurvivalMode@GameModeMgr@@QEAAXKPEAVXMaze@@@Z | 0x1402a7b00 | implemented | IDA ?StartSurvivalMode@GameModeMgr@@QEAAXKPEAVXMaze@@@Z | yes | - |
-| - | - | ?StartOperationMode@GameModeMgr@@QEAAXKPEAVXMaze@@@Z | 0x1402a7b90 | implemented | IDA ?StartOperationMode@GameModeMgr@@QEAAXKPEAVXMaze@@@Z | yes | - |
-| - | - | ?StartUnityEventMode@GameModeMgr@@QEAAXKHPEAVXMaze@@@Z | 0x1402a7c00 | implemented | IDA ?StartUnityEventMode@GameModeMgr@@QEAAXKHPEAVXMaze@@@Z | yes | - |
-| - | - | ?StartWarlordMode@GameModeMgr@@QEAAXKHPEAVXMaze@@@Z | 0x1402a7d10 | implemented | IDA ?StartWarlordMode@GameModeMgr@@QEAAXKHPEAVXMaze@@@Z | yes | - |
-| - | - | ?StartCheckEventMode@GameModeMgr@@QEAAXPEAVXMaze@@PEAUSTMageCheckEventSpawnBox@@@Z | 0x1402a7e20 | implemented | IDA ?StartCheckEventMode@GameModeMgr@@QEAAXPEAVXMaze@@PEAUSTMageCheckEventSpawnBox@@@Z | yes | - |
-| - | - | ?DestroyGameMode@GameModeMgr@@QEAAXTUXMapID@@@Z | 0x1402a7ee0 | implemented | IDA ?DestroyGameMode@GameModeMgr@@QEAAXTUXMapID@@@Z | yes | - |
-| - | - | ?DestroyGameMode@GameModeMgr@@QEAAXPEAVGameModeBase@@@Z | 0x1402a7f40 | implemented | IDA ?DestroyGameMode@GameModeMgr@@QEAAXPEAVGameModeBase@@@Z | yes | - |
-| - | - | ?SendNoticePacket@GameModeMgr@@IEAAXPEAVXMaze@@HH@Z | 0x1402a7fd0 | implemented | IDA ?SendNoticePacket@GameModeMgr@@IEAAXPEAVXMaze@@HH@Z | yes | - |
-| - | - | ?Tick@GameModeMgr@@QEAAXM@Z | 0x1402a8010 | implemented | IDA ?Tick@GameModeMgr@@QEAAXM@Z | yes | - |
+| XGameServer/Mode | GameModeMgr.cpp | ??0GameModeMgr@@QEAA@XZ | 0x1402a7910 | blocked | GameServer PDB GameModeMgr.obj/types/lines + IDA | no | insufficient_evidence: original 920-byte layout is not landed or linked |
+| XGameServer/Mode | GameModeMgr.cpp | ??1GameModeMgr@@QEAA@XZ | 0x1402a7980 | blocked | GameServer PDB GameModeMgr.obj/types/lines + IDA | no | insufficient_evidence: original map ownership and cleanup are not landed or linked |
+| XGameServer/Mode | GameModeMgr.cpp | ?Init@GameModeMgr@@QEAAXH@Z | 0x1402a79e0 | implemented | GameServer IDA decompile + PDB GameModeMgr.obj/types/lines + landed temporary source | no | insufficient_evidence: temporary managers only and missing 920-byte m_mapModes layout; GameModeMgr.cpp is not wired into GameServer |
+| XGameServer/Mode | GameModeMgr.cpp | ?StartDefenceMode@GameModeMgr@@QEAAXKPEAVXMaze@@@Z | 0x1402a7a80 | pending | GameServer PDB GameModeMgr.obj/symbols/lines + IDA name | no | - |
+| XGameServer/Mode | GameModeMgr.cpp | ?StartSurvivalMode@GameModeMgr@@QEAAXKPEAVXMaze@@@Z | 0x1402a7b00 | pending | GameServer PDB GameModeMgr.obj/symbols/lines + IDA name | no | - |
+| XGameServer/Mode | GameModeMgr.cpp | ?StartOperationMode@GameModeMgr@@QEAAXKPEAVXMaze@@@Z | 0x1402a7b90 | pending | GameServer PDB GameModeMgr.obj/symbols/lines + IDA name | no | - |
+| XGameServer/Mode | GameModeMgr.cpp | ?StartUnityEventMode@GameModeMgr@@QEAAXKHPEAVXMaze@@@Z | 0x1402a7c00 | pending | GameServer PDB GameModeMgr.obj/symbols/lines + IDA name | no | - |
+| XGameServer/Mode | GameModeMgr.cpp | ?StartWarlordMode@GameModeMgr@@QEAAXKHPEAVXMaze@@@Z | 0x1402a7d10 | pending | GameServer PDB GameModeMgr.obj/symbols/lines + IDA name | no | - |
+| XGameServer/Mode | GameModeMgr.cpp | ?StartCheckEventMode@GameModeMgr@@QEAAXPEAVXMaze@@PEAUSTMageCheckEventSpawnBox@@@Z | 0x1402a7e20 | decompiled | GameServer IDA decompile/disasm + PDB GameModeMgr.obj/symbols/types/lines + landed source comparison | no | insufficient_evidence: allocation, initialization, virtual start and map registration identified, but original Mode source and ownership chain are not landed |
+| XGameServer/Mode | GameModeMgr.cpp | ?DestroyGameMode@GameModeMgr@@QEAAXTUXMapID@@@Z | 0x1402a7ee0 | decompiled | GameServer IDA disasm + PDB GameModeMgr.obj/symbols/lines | no | insufficient_evidence: lookup, conditional mode dispatch and map removal are not landed |
+| XGameServer/Mode | GameModeMgr.cpp | ?DestroyGameMode@GameModeMgr@@QEAAXPEAVGameModeBase@@@Z | 0x1402a7f40 | decompiled | GameServer IDA disasm + PDB GameModeMgr.obj/symbols/lines | no | insufficient_evidence: mode type dispatch to three submanagers is not landed |
+| XGameServer/Mode | GameModeMgr.cpp | ?SendNoticePacket@GameModeMgr@@IEAAXPEAVXMaze@@HH@Z | 0x1402a7fd0 | pending | GameServer PDB GameModeMgr.obj/symbols/lines + IDA name | no | - |
+| XGameServer/Mode | GameModeMgr.cpp | ?Tick@GameModeMgr@@QEAAXM@Z | 0x1402a8010 | pending | GameServer PDB GameModeMgr.obj/symbols/lines + IDA name | no | - |
 | - | - | ??0?$TXObjectMgr@VDefenceMode@@@@QEAA@XZ | 0x1402a8280 | blocked | IDA ??0?$TXObjectMgr@VDefenceMode@@@@QEAA@XZ | yes | - |
 | - | - | ??1?$TXObjectMgr@VDefenceMode@@@@UEAA@XZ | 0x1402a82e0 | blocked | IDA ??1?$TXObjectMgr@VDefenceMode@@@@UEAA@XZ | yes | - |
 | - | - | ??0?$TXObjectMgr@VSurvivalMode@@@@QEAA@XZ | 0x1402a8350 | blocked | IDA ??0?$TXObjectMgr@VSurvivalMode@@@@QEAA@XZ | yes | - |
@@ -12751,19 +12758,19 @@
 | - | - | ?lower_bound@?$_Tree@V?$_Tmap_traits@EUTB_MODE_DEFENCE@@U?$less@E@std@@V?$allocator@U?$pair@$$CBEUTB_MODE_DEFENCE@@@std@@@3@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@EUTB_MODE_DEFENCE@@U?$less@E@std@@V?$allocator@U?$pair@$$CBEUTB_MODE_DEFENCE@@@std@@@3@$0A@@std@@@std@@@2@AEBE@Z | 0x1402a98b0 | blocked | IDA ?lower_bound@?$_Tree@V?$_Tmap_traits@EUTB_MODE_DEFENCE@@U?$less@E@std@@V?$allocator@U?$pair@$$CBEUTB_MODE_DEFENCE@@@std@@@3@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@EUTB_MODE_DEFENCE@@U?$less@E@std@@V?$allocator@U?$pair@$$CBEUTB_MODE_DEFENCE@@@std@@@3@$0A@@std@@@std@@@2@AEBE@Z | yes | - |
 | - | - | ?find@?$_Tree@V?$_Tmap_traits@EUTB_MODE_DEFENCE@@U?$less@E@std@@V?$allocator@U?$pair@$$CBEUTB_MODE_DEFENCE@@@std@@@3@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@EUTB_MODE_DEFENCE@@U?$less@E@std@@V?$allocator@U?$pair@$$CBEUTB_MODE_DEFENCE@@@std@@@3@$0A@@std@@@std@@@2@AEBE@Z | 0x1402a98f0 | blocked | IDA ?find@?$_Tree@V?$_Tmap_traits@EUTB_MODE_DEFENCE@@U?$less@E@std@@V?$allocator@U?$pair@$$CBEUTB_MODE_DEFENCE@@@std@@@3@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@EUTB_MODE_DEFENCE@@U?$less@E@std@@V?$allocator@U?$pair@$$CBEUTB_MODE_DEFENCE@@@std@@@3@$0A@@std@@@std@@@2@AEBE@Z | yes | - |
 | - | - | ?GetTB_MODE_DEFENCE@XResourceMgr@@QEAAPEAUTB_MODE_DEFENCE@@E@Z | 0x1402a99b0 | implemented | IDA ?GetTB_MODE_DEFENCE@XResourceMgr@@QEAAPEAUTB_MODE_DEFENCE@@E@Z | yes | - |
-| - | - | ??0CHiddenEvent@@QEAA@XZ | 0x1402a9a20 | blocked | IDA ??0CHiddenEvent@@QEAA@XZ | yes | - |
-| - | - | ??_GCHiddenEvent@@UEAAPEAXI@Z | 0x1402a9a50 | blocked | IDA ??_GCHiddenEvent@@UEAAPEAXI@Z | yes | - |
-| - | - | ??1CHiddenEvent@@UEAA@XZ | 0x1402a9a90 | blocked | IDA ??1CHiddenEvent@@UEAA@XZ | yes | - |
-| - | - | ?Clear@CHiddenEvent@@QEAAXXZ | 0x1402a9ac0 | implemented | IDA ?Clear@CHiddenEvent@@QEAAXXZ | yes | - |
-| - | - | ?Init@CHiddenEvent@@QEAA_NPEAUTB_HIDDEN_EVENT@@PEAUTB_EVENT_CONDITION@@@Z | 0x1402a9b20 | implemented | IDA ?Init@CHiddenEvent@@QEAA_NPEAUTB_HIDDEN_EVENT@@PEAUTB_EVENT_CONDITION@@@Z | yes | - |
-| - | - | ?SelectEventCondition@CHiddenEvent@@QEAA_NH@Z | 0x1402a9b80 | implemented | IDA ?SelectEventCondition@CHiddenEvent@@QEAA_NH@Z | yes | - |
-| - | - | ?Start@CHiddenEvent@@QEAAXXZ | 0x1402a9da0 | implemented | IDA ?Start@CHiddenEvent@@QEAAXXZ | yes | - |
-| - | - | ?UpdateCondition@CHiddenEvent@@QEAA_NHKK@Z | 0x1402a9dd0 | implemented | IDA ?UpdateCondition@CHiddenEvent@@QEAA_NHKK@Z | yes | - |
-| - | - | ?SetRewardItem@CHiddenEvent@@QEAA_NXZ | 0x1402aa250 | blocked | IDA ?SetRewardItem@CHiddenEvent@@QEAA_NXZ | yes | - |
-| - | - | ?GetRewardItem@CHiddenEvent@@QEAA_NAEAGAEAHAEAF@Z | 0x1402aa2c0 | implemented | IDA ?GetRewardItem@CHiddenEvent@@QEAA_NAEAGAEAHAEAF@Z | yes | - |
-| - | - | ?GetHiddenEventID@CHiddenEvent@@QEAAGXZ | 0x1402aa370 | implemented | IDA ?GetHiddenEventID@CHiddenEvent@@QEAAGXZ | yes | - |
-| - | - | ?GetEventConditionID@CHiddenEvent@@QEAAKXZ | 0x1402aa3a0 | implemented | IDA ?GetEventConditionID@CHiddenEvent@@QEAAKXZ | yes | - |
-| - | - | ?CheckResult@CHiddenEvent@@QEAA_NXZ | 0x1402aa3d0 | implemented | IDA ?CheckResult@CHiddenEvent@@QEAA_NXZ | yes | - |
+| XGameServer/Mode | HiddenEvent.cpp | ??0CHiddenEvent@@QEAA@XZ | 0x1402a9a20 | implemented | GameServer PDB HiddenEvent.obj/types/lines + IDA + source | no | - |
+| XGameServer/Mode | HiddenEvent.cpp | ??_GCHiddenEvent@@UEAAPEAXI@Z | 0x1402a9a50 | blocked | GameServer PDB HiddenEvent.obj + IDA | no | insufficient_evidence |
+| XGameServer/Mode | HiddenEvent.cpp | ??1CHiddenEvent@@UEAA@XZ | 0x1402a9a90 | implemented | GameServer PDB HiddenEvent.obj/types/lines + IDA + source | no | - |
+| XGameServer/Mode | HiddenEvent.cpp | ?Clear@CHiddenEvent@@QEAAXXZ | 0x1402a9ac0 | implemented | GameServer PDB HiddenEvent.obj/types/lines + IDA + source | no | - |
+| XGameServer/Mode | HiddenEvent.cpp | ?Init@CHiddenEvent@@QEAA_NPEAUTB_HIDDEN_EVENT@@PEAUTB_EVENT_CONDITION@@@Z | 0x1402a9b20 | implemented | GameServer PDB HiddenEvent.obj/types/lines + IDA + source | no | - |
+| XGameServer/Mode | HiddenEvent.cpp | ?SelectEventCondition@CHiddenEvent@@QEAA_NH@Z | 0x1402a9b80 | implemented | GameServer PDB HiddenEvent.obj/types/lines + IDA/ASM + source | no | insufficient_evidence |
+| XGameServer/Mode | HiddenEvent.cpp | ?Start@CHiddenEvent@@QEAAXXZ | 0x1402a9da0 | implemented | GameServer PDB HiddenEvent.obj/types/lines + IDA + source | no | - |
+| XGameServer/Mode | HiddenEvent.cpp | ?UpdateCondition@CHiddenEvent@@QEAA_NHKK@Z | 0x1402a9dd0 | implemented | GameServer PDB type 0x26380/arglist 0x1dbb0 + HiddenEvent.obj/lines + IDA + source | no | insufficient_evidence |
+| XGameServer/Mode | HiddenEvent.cpp | ?SetRewardItem@CHiddenEvent@@QEAA_NXZ | 0x1402aa250 | implemented | GameServer PDB HiddenEvent.obj/types/lines + IDA + source | no | - |
+| XGameServer/Mode | HiddenEvent.cpp | ?GetRewardItem@CHiddenEvent@@QEAA_NAEAGAEAHAEAF@Z | 0x1402aa2c0 | implemented | GameServer PDB HiddenEvent.obj/types/lines + IDA + source | no | - |
+| XGameServer/Mode | HiddenEvent.cpp | ?GetHiddenEventID@CHiddenEvent@@QEAAGXZ | 0x1402aa370 | implemented | GameServer PDB HiddenEvent.obj/types/lines + IDA + source | no | - |
+| XGameServer/Mode | HiddenEvent.cpp | ?GetEventConditionID@CHiddenEvent@@QEAAKXZ | 0x1402aa3a0 | implemented | GameServer PDB HiddenEvent.obj/types/lines + IDA + source | no | - |
+| XGameServer/Mode | HiddenEvent.cpp | ?CheckResult@CHiddenEvent@@QEAA_NXZ | 0x1402aa3d0 | implemented | GameServer PDB HiddenEvent.obj/types/lines + IDA + source | no | - |
 | - | - | ??$?0AEAPEAUTB_EVENT_CONDITION@@AEAG@?$pair@QEAUTB_EVENT_CONDITION@@G@std@@QEAA@AEAPEAUTB_EVENT_CONDITION@@AEAG@Z | 0x1402aa450 | blocked | IDA ??$?0AEAPEAUTB_EVENT_CONDITION@@AEAG@?$pair@QEAUTB_EVENT_CONDITION@@G@std@@QEAA@AEAPEAUTB_EVENT_CONDITION@@AEAG@Z | yes | - |
 | - | - | ??$insert@U?$pair@QEAUTB_EVENT_CONDITION@@G@std@@@?$_Tree@V?$_Tmap_traits@PEAUTB_EVENT_CONDITION@@GU?$less@PEAUTB_EVENT_CONDITION@@@std@@V?$allocator@U?$pair@QEAUTB_EVENT_CONDITION@@G@std@@@3@$0A@@std@@@std@@QEAA?AU?$pair@V?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@PEAUTB_EVENT_CONDITION@@GU?$less@PEAUTB_EVENT_CONDITION@@@std@@V?$allocator@U?$pair@QEAUTB_EVENT_CONDITION@@G@std@@@3@$0A@@std@@@std@@@std@@_N@1@$$QEAU?$pair@QEAUTB_EVENT_CONDITION@@G@1@@Z | 0x1402aa4a0 | blocked | IDA ??$insert@U?$pair@QEAUTB_EVENT_CONDITION@@G@std@@@?$_Tree@V?$_Tmap_traits@PEAUTB_EVENT_CONDITION@@GU?$less@PEAUTB_EVENT_CONDITION@@@std@@V?$allocator@U?$pair@QEAUTB_EVENT_CONDITION@@G@std@@@3@$0A@@std@@@std@@QEAA?AU?$pair@V?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@PEAUTB_EVENT_CONDITION@@GU?$less@PEAUTB_EVENT_CONDITION@@@std@@V?$allocator@U?$pair@QEAUTB_EVENT_CONDITION@@G@std@@@3@$0A@@std@@@std@@@std@@_N@1@$$QEAU?$pair@QEAUTB_EVENT_CONDITION@@G@1@@Z | yes | - |
 | - | - | ??R?$less@PEAUTB_EVENT_CONDITION@@@std@@QEBA_NAEBQEAUTB_EVENT_CONDITION@@0@Z | 0x1402aa4f0 | blocked | IDA ??R?$less@PEAUTB_EVENT_CONDITION@@@std@@QEBA_NAEBQEAUTB_EVENT_CONDITION@@0@Z | yes | - |
@@ -12772,13 +12779,14 @@
 | - | - | ?construct@?$allocator@U?$pair@QEAUTB_EVENT_CONDITION@@G@std@@@std@@QEAAXPEAU?$pair@QEAUTB_EVENT_CONDITION@@G@2@$$QEAU32@@Z | 0x1402aa5e0 | blocked | IDA ?construct@?$allocator@U?$pair@QEAUTB_EVENT_CONDITION@@G@std@@@std@@QEAAXPEAU?$pair@QEAUTB_EVENT_CONDITION@@G@2@$$QEAU32@@Z | yes | - |
 | - | - | ??$?0QEAUTB_EVENT_CONDITION@@G@?$pair@QEAUTB_EVENT_CONDITION@@G@std@@QEAA@$$QEAU01@@Z | 0x1402aa650 | blocked | IDA ??$?0QEAUTB_EVENT_CONDITION@@G@?$pair@QEAUTB_EVENT_CONDITION@@G@std@@QEAA@$$QEAU01@@Z | yes | - |
 | - | - | ??0?$_Pair_base@QEAUTB_EVENT_CONDITION@@G@std@@QEAA@$$QEBQEAUTB_EVENT_CONDITION@@$$QEAG@Z | 0x1402aa6a0 | blocked | IDA ??0?$_Pair_base@QEAUTB_EVENT_CONDITION@@G@std@@QEAA@$$QEBQEAUTB_EVENT_CONDITION@@$$QEAG@Z | yes | - |
-| - | - | ?AddConditionCnt@CHiddenEvent@@QEAAXH@Z | 0x1402aa6f0 | implemented | IDA ?AddConditionCnt@CHiddenEvent@@QEAAXH@Z | yes | - |
-| - | - | ?GetHiddenEventState@CHiddenEvent@@QEAAEXZ | 0x1402aa710 | blocked | IDA ?GetHiddenEventState@CHiddenEvent@@QEAAEXZ | yes | - |
+| XGameServer/Mode | HiddenEvent.cpp | ?AddConditionCnt@CHiddenEvent@@QEAAXH@Z | 0x1402aa6f0 | implemented | GameServer PDB HiddenEvent.obj + IDA + source | no | - |
+| XGameServer/Mode | HiddenEvent.cpp | ?GetHiddenEventState@CHiddenEvent@@QEAAEXZ | 0x1402aa710 | implemented | GameServer PDB HiddenEvent.obj + IDA + source | no | - |
+| XGameServer/Mode | HiddenEvent.h | ?GetConditionCnt@CHiddenEvent@@QEAAHXZ | 0x1401ad9c0 | implemented | GameServer PDB HiddenEvent.obj/publics/lines 0001:001AC9C0 + IDA folded getter + source | no | insufficient_evidence |
 | - | - | ?GetTB_EVENT_CONDITION@XResourceMgr@@QEAAPEAUTB_EVENT_CONDITION@@K@Z | 0x1402aa720 | implemented | IDA ?GetTB_EVENT_CONDITION@XResourceMgr@@QEAAPEAUTB_EVENT_CONDITION@@K@Z | yes | - |
 | - | - | ?find@?$_Tree@V?$_Tmap_traits@GV?$map@GEU?$less@G@std@@V?$allocator@U?$pair@$$CBGE@std@@@2@@std@@U?$less@G@2@V?$allocator@U?$pair@$$CBGV?$map@GEU?$less@G@std@@V?$allocator@U?$pair@$$CBGE@std@@@2@@std@@@std@@@2@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@GV?$map@GEU?$less@G@std@@V?$allocator@U?$pair@$$CBGE@std@@@2@@std@@U?$less@G@2@V?$allocator@U?$pair@$$CBGV?$map@GEU?$less@G@std@@V?$allocator@U?$pair@$$CBGE@std@@@2@@std@@@std@@@2@$0A@@std@@@std@@@2@AEBG@Z | 0x1402aa790 | blocked | IDA ?find@?$_Tree@V?$_Tmap_traits@GV?$map@GEU?$less@G@std@@V?$allocator@U?$pair@$$CBGE@std@@@2@@std@@U?$less@G@2@V?$allocator@U?$pair@$$CBGV?$map@GEU?$less@G@std@@V?$allocator@U?$pair@$$CBGE@std@@@2@@std@@@std@@@2@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@GV?$map@GEU?$less@G@std@@V?$allocator@U?$pair@$$CBGE@std@@@2@@std@@U?$less@G@2@V?$allocator@U?$pair@$$CBGV?$map@GEU?$less@G@std@@V?$allocator@U?$pair@$$CBGE@std@@@2@@std@@@std@@@2@$0A@@std@@@std@@@2@AEBG@Z | yes | - |
 | - | - | ?GetTB_HIDDEN_EVENT@XResourceMgr@@QEAAPEAUTB_HIDDEN_EVENT@@G@Z | 0x1402aa850 | implemented | IDA ?GetTB_HIDDEN_EVENT@XResourceMgr@@QEAAPEAUTB_HIDDEN_EVENT@@G@Z | yes | - |
-| - | - | ?SetConditionCnt@CHiddenEvent@@QEAAXH@Z | 0x1402aa8c0 | implemented | IDA ?SetConditionCnt@CHiddenEvent@@QEAAXH@Z | yes | - |
-| - | - | ?SetHiddenEventState@CHiddenEvent@@QEAAXH@Z | 0x1402aa8e0 | implemented | IDA ?SetHiddenEventState@CHiddenEvent@@QEAAXH@Z | yes | - |
+| XGameServer/Mode | HiddenEvent.cpp | ?SetConditionCnt@CHiddenEvent@@QEAAXH@Z | 0x1402aa8c0 | implemented | GameServer PDB HiddenEvent.obj + IDA + source | no | - |
+| XGameServer/Mode | HiddenEvent.cpp | ?SetHiddenEventState@CHiddenEvent@@QEAAXH@Z | 0x1402aa8e0 | implemented | GameServer PDB HiddenEvent.obj + IDA + source | no | - |
 | - | - | ??0OperationMode@@QEAA@XZ | 0x1402aa900 | blocked | IDA ??0OperationMode@@QEAA@XZ | yes | - |
 | - | - | ??_GOperationMode@@UEAAPEAXI@Z | 0x1402aa950 | blocked | IDA ??_GOperationMode@@UEAAPEAXI@Z | yes | - |
 | - | - | ??1OperationMode@@UEAA@XZ | 0x1402aa990 | blocked | IDA ??1OperationMode@@UEAA@XZ | yes | - |
@@ -13197,7 +13205,8 @@
 | - | - | ?EnterActor@XDistrict@@UEAAGPEAVXActor@@@Z | 0x1402c88f0 | implemented | IDA ?EnterActor@XDistrict@@UEAAGPEAVXActor@@@Z | yes | - |
 | - | - | ??0PS_CHARACTER_UPDATE_POS@@QEAA@XZ | 0x1402c9ad0 | blocked | IDA ??0PS_CHARACTER_UPDATE_POS@@QEAA@XZ | yes | - |
 | - | - | ?ProcessEnterObject@XDistrict@@QEAAXPEAVXActor@@AEAV?$vector@PEAVCMover@@V?$allocator@PEAVCMover@@@std@@@std@@1@Z | 0x1402c9b10 | implemented | IDA ?ProcessEnterObject@XDistrict@@QEAAXPEAVXActor@@AEAV?$vector@PEAVCMover@@V?$allocator@PEAVCMover@@@std@@@std@@1@Z | yes | - |
-| - | - | ?ProcessSendEnterObjectToOthers@XDistrict@@QEAAXAEAV?$vector@PEAVCMover@@V?$allocator@PEAVCMover@@@std@@@std@@PEAVXActor@@@Z | 0x1402c9b70 | implemented | IDA ?ProcessSendEnterObjectToOthers@XDistrict@@QEAAXAEAV?$vector@PEAVCMover@@V?$allocator@PEAVCMover@@@std@@@std@@PEAVXActor@@@Z | yes | - |
+| XGameServer | ModeMaze.cpp | ?ProcessSendEnterObjectToOthers@XModeMaze@@QEAAXAEAV?$vector@PEAVCMover@@V?$allocator@PEAVCMover@@@std@@@std@@PEAVXActor@@@Z | 0x1402c9b70 | implemented | GameServer PDB ModeMaze.obj + publics + IDA folded XDistrict body + landed source | no | insufficient_evidence |
+| XCore/XArea | XDistrict.cpp | ?ProcessSendEnterObjectToOthers@XDistrict@@QEAAXAEAV?$vector@PEAVCMover@@V?$allocator@PEAVCMover@@@std@@@std@@PEAVXActor@@@Z | 0x1402c9b70 | implemented | GameServer PDB District.obj + publics + IDA folded body + landed partial source | no | insufficient_evidence |
 | - | - | ?ProcessSendEnterObjectListToPlayer@XDistrict@@QEAAXPEAVXActor@@AEAV?$vector@PEAVCMover@@V?$allocator@PEAVCMover@@@std@@@std@@1@Z | 0x1402c9e80 | implemented | IDA ?ProcessSendEnterObjectListToPlayer@XDistrict@@QEAAXPEAVXActor@@AEAV?$vector@PEAVCMover@@V?$allocator@PEAVCMover@@@std@@@std@@1@Z | yes | - |
 | - | - | ?SendPcInfo@XDistrict@@QEAAXPEAVXActor@@AEAV?$vector@PEAVCMover@@V?$allocator@PEAVCMover@@@std@@@std@@1@Z | 0x1402c9f30 | implemented | IDA ?SendPcInfo@XDistrict@@QEAAXPEAVXActor@@AEAV?$vector@PEAVCMover@@V?$allocator@PEAVCMover@@@std@@@std@@1@Z | yes | - |
 | - | - | ?SendNpcInfo@XDistrict@@QEAAXPEAVXActor@@AEAV?$vector@PEAVCMover@@V?$allocator@PEAVCMover@@@std@@@std@@@Z | 0x1402ca260 | implemented | IDA ?SendNpcInfo@XDistrict@@QEAAXPEAVXActor@@AEAV?$vector@PEAVCMover@@V?$allocator@PEAVCMover@@@std@@@std@@@Z | yes | - |
@@ -14768,7 +14777,7 @@
 | - | - | ??1?$map@HV?$vector@UST_ROGUELIKE_EVENT_INFO@@V?$allocator@UST_ROGUELIKE_EVENT_INFO@@@std@@@std@@U?$less@H@2@V?$allocator@U?$pair@$$CBHV?$vector@UST_ROGUELIKE_EVENT_INFO@@V?$allocator@UST_ROGUELIKE_EVENT_INFO@@@std@@@std@@@std@@@2@@std@@QEAA@XZ | 0x140310ca0 | blocked | IDA ??1?$map@HV?$vector@UST_ROGUELIKE_EVENT_INFO@@V?$allocator@UST_ROGUELIKE_EVENT_INFO@@@std@@@std@@U?$less@H@2@V?$allocator@U?$pair@$$CBHV?$vector@UST_ROGUELIKE_EVENT_INFO@@V?$allocator@UST_ROGUELIKE_EVENT_INFO@@@std@@@std@@@std@@@2@@std@@QEAA@XZ | yes | - |
 | - | - | ??1?$map@HUST_RANDOM_BUFF@@U?$less@H@std@@V?$allocator@U?$pair@$$CBHUST_RANDOM_BUFF@@@std@@@3@@std@@QEAA@XZ | 0x140310cc0 | blocked | IDA ??1?$map@HUST_RANDOM_BUFF@@U?$less@H@std@@V?$allocator@U?$pair@$$CBHUST_RANDOM_BUFF@@@std@@@3@@std@@QEAA@XZ | yes | - |
 | - | - | ??1?$map@HUST_TIME_STEP_TIMER@@U?$less@H@std@@V?$allocator@U?$pair@$$CBHUST_TIME_STEP_TIMER@@@std@@@3@@std@@QEAA@XZ | 0x140310ce0 | blocked | IDA ??1?$map@HUST_TIME_STEP_TIMER@@U?$less@H@std@@V?$allocator@U?$pair@$$CBHUST_TIME_STEP_TIMER@@@std@@@3@@std@@QEAA@XZ | yes | - |
-| XGameServer | Maze.cpp | ??1XMaze@@UEAA@XZ | 0x140310d00 | implemented | IDA decompile | yes | IDA������ʵ��
+| XGameServer | Maze.cpp | ??1XMaze@@UEAA@XZ | 0x140310d00 | implemented | GameServer IDA + PDB member offsets + landed source | no | insufficient_evidence: embedded CTextDBLog destructed implicitly; full XMaze member ABI remains unresolved |
 | XGameServer | Maze.cpp | ?StartMazeTime@XMaze@@QEAAXXZ | 0x140311b70 | verified | IDA decompile + landed source + batch-12 compare | yes | batch-12 fresh IDA re-verify PASS: !m_nMazeState gate -> SetMazeState(1,1) + m_dwMazeStartTime=GetTickCount64() + RunSectorAI(10001,1); landed body exact match |
 | XGameServer | Maze.cpp | ?FinishMazeTime@XMaze@@QEAAXXZ | 0x140311bd0 | verified | IDA decompile + landed source + batch-12 compare | yes | batch-12 fresh IDA re-verify PASS: SetMazeState(4,1) + m_dwMazePlayTime=GetTickCount64()-m_dwMazeStartTime; landed body exact match |
 | XGameServer | Maze.cpp | ?MazePlayTime_Now@XMaze@@QEAAKXZ | 0x140311c10 | implemented | IDA decompile | yes | ���ص�ǰ����ʱ��(��) |
@@ -14790,8 +14799,8 @@
 | XGameServer | Maze.cpp | ?SetParty@XMaze@@QEAAXV?$shared_ptr@VCParty@@@tr1@std@@@Z | 0x140315c40 | implemented | IDA decompile + landed source | no | m_pParty empty gate only; assign + SetMazeID(UXMapID(m_uxMapID.nMapID)) + m_nPartyUserCount + byGroupType=1 + LogDebug; recovery-era m_pForce.reset() and null-else branch removed per IDA; TUXMapID stand-in bridged to UXMapID via nMapID (active XArea.h layout divergence) |
 | XGameServer | Maze.cpp | ?SetForce@XMaze@@QEAAXV?$shared_ptr@VCForce@@@tr1@std@@@Z | 0x140315d50 | implemented | IDA decompile + landed source | no | m_pForce empty gate only; assign + SetMazeID + m_nPartyUserCount + byGroupType=2 + LogDebug; recovery-era m_pParty.reset() and null-else branch removed per IDA |
 | XGameServer | Maze.cpp | ?SpawnGenerateMonster@XMaze@@UEAAXXZ | 0x140317750 | implemented | IDA decompile | yes | IDA������ʵ��
-| XGameServer | Maze.cpp | ?ExcuteEventSpawn@XMaze@@QEAAXH@Z | 0x140317a40 | implemented | IDA decompile | yes | IDA������ʵ��
-| XGameServer | Maze.cpp | ?ExcuteCheckEventSpawnBox@XMaze@@QEAAXPEAVCUser@@HH@Z | 0x140317b60 | implemented | IDA decompile | yes | ִ�м���¼����ɺ�?|
+| XGameServer | Maze.cpp | ?ExcuteEventSpawn@XMaze@@QEAAXH@Z | 0x140317a40 | implemented | GameServer IDA decompile + PDB UDT 0x737C6/0x6A3F8 + landed source | no | insufficient_evidence: ten-entry spawn loop and count guard match IDA; called ExcuteSpawnBoxCheck now logs but original VMonsterSpawnInfo offsets remain unresolved |
+| XGameServer | Maze.cpp | ?ExcuteCheckEventSpawnBox@XMaze@@QEAAXPEAVCUser@@HH@Z | 0x140317b60 | implemented | GameServer IDA decompile + PDB Maze.obj/types/lines + landed partial source | no | insufficient_evidence: user check and unique-ID map lookup are landed; logging, event activation, booster, hidden event, broadcast, and cleanup remain unimplemented |
 | XGameServer | Maze.cpp | ?ExcutEventSpawnLua@XMaze@@QEAAXH@Z | 0x1403181b0 | implemented | IDA decompile | yes | ��ȷ��ԭ-ִ���¼�����Lua |
 | XGameServer | Maze.cpp | ?ExcutEventSpawnGroupLua@XMaze@@QEAAXH@Z | 0x140318250 | implemented | IDA decompile | yes | ��ȷ��ԭ-ִ���¼�������Lua |
 | XGameServer | Maze.cpp | ?ExecuteDestroy@XMaze@@QEAAXHPEADPEBDH@Z | 0x140318390 | implemented | IDA decompile | yes | ��ȷ��ԭ-����ָ�����Ͷ��� |
@@ -14808,14 +14817,14 @@
 | XGameServer | Maze.cpp | ?CreateAkashicObject@XMaze@@QEAAPEAVCAkashicObject@@TUXMapID@@HUXVec3@@MKW4E_SEND_INFO_TYPE@IXArea@@@Z | 0x14031a4a0 | implemented | IDA decompile + landed source | no | GetTB_AKASHIC_RECORDS gate -> ThreadLocalData::CreateAkashicObject (stub layer) -> null return -> EnterGameObject fail DeleteAkashicObject -> SetCollisionEnable(0,0); full chain live, dependency layer stubbed |
 | XGameServer | Maze.cpp | ?DeleteAkashicObject@XMaze@@QEAAXPEAVCAkashicObject@@@Z | 0x14031a5e0 | implemented | IDA decompile + landed source | no | ExitGameObject(pAkashic?XActor:nullptr, eSendInfoTypeNot) + ThreadLocalData::DeleteAkashicObject (previously commented out, now live stub) |
 | XGameServer | Maze.cpp | ?GetSpawnPos@XMaze@@UEAAXPEBUVMonsterSpawnInfo@@AEAUXVec3@@@Z | 0x14031a650 | implemented | IDA decompile | yes | 精确还原-根据m_iCreationPositionType计算生成位置(中心�?随机) |
-| XGameServer | Maze.cpp | ?ExcuteSpawnBoxCheck@XMaze@@QEAAHHW4E_SEND_INFO_TYPE@IXArea@@_N@Z | 0x14031a7b0 | implemented | IDA decompile | yes | ��ȷ��ԭ-���ִ��SpawnBox |
-| XGameServer | Maze.cpp | ?GetProcessSpawnBoxInfo@XMaze@@QEAAPEAUVMonsterSpawnInfo@@G@Z | 0x14031a980 | implemented | IDA decompile | yes | ��ȷ��ԭ-��ȡProcessSpawnBox��Ϣ |
+| XGameServer | Maze.cpp | ?ExcuteSpawnBoxCheck@XMaze@@QEAAHHW4E_SEND_INFO_TYPE@IXArea@@_N@Z | 0x14031a7b0 | implemented | GameServer IDA decompile + PDB UDT 0x6B5B9/0x72695 + landed source | no | insufficient_evidence: layout and activation/delay/return fields match; event-chain runtime path not exercised |
+| XGameServer | Maze.cpp | ?GetProcessSpawnBoxInfo@XMaze@@QEAAPEAUVMonsterSpawnInfo@@G@Z | 0x14031a980 | implemented | GameServer IDA decompile + PDB Maze.obj/symbols + landed source | no | insufficient_evidence |
 | XGameServer | Maze.cpp | ?GetMonsterSpawnBoxInfo@XMaze@@QEAAPEAUVMonsterSpawnInfo@@G@Z | 0x14031aa30 | implemented | IDA decompile | yes | ��ȷ��ԭ-��ȡMonsterSpawnBox��Ϣ |
 | XGameServer | Maze.cpp | ?ExcuteSpawnBox@XMaze@@QEAAXPEAUSTMageProcessSpawnBox@@W4E_SEND_INFO_TYPE@IXArea@@@Z | 0x14031aac0 | implemented | IDA decompile | yes | ִ�����ɺ�(STMageProcessSpawnBox�汾) |
 | XGameServer | Maze.cpp | ?AddSyncSpawnActive@XMaze@@QEAAXPEBUVMonsterSpawnInfo@@@Z | 0x14031b510 | implemented | IDA decompile | yes | ��ȷ��ԭ-����ͬ�����ɼ���(�պ���) |
 | XGameServer | Maze.cpp | ?ExcuteSpawnBox@XMaze@@QEAAXPEBUVMonsterSpawnInfo@@W4E_SEND_INFO_TYPE@IXArea@@@Z | 0x14031b560 | implemented | IDA decompile | yes | ִ�����ɺ�(VMonsterSpawnInfo�汾) |
 | XGameServer | Maze.cpp | ?ExcuteSpawn@XMaze@@QEAAXHHPEBUVMonsterSpawnInfo@@W4E_SEND_INFO_TYPE@IXArea@@@Z | 0x14031be90 | implemented | IDA decompile | yes | ��ȷ��ԭ-ִ������(RespawnManager����) |
-| XGameServer | Maze.cpp | ?OnUpdate@XMaze@@UEAAXM@Z | 0x14031c330 | implemented | IDA decompile + fresh full-chain compare | yes | batch13 full-chain rework: UserDB 4/8/0x10 gate + LoadComplete erase; RespawnManager::Update; invalid-user cleanup chain (IsBit_OR/GetValidMapInsID/GetScanner erase/RemoveKey/LogError); DeleteNpc/DeleteAkashicObject dispatch; write-locked stepSilhouettes; tail chain all 7 updates; TODO-marked deviations (GetGroupID gate, GetQuestID key, XActor vtable OnUpdate) 
+| XGameServer | Maze.cpp | ?OnUpdate@XMaze@@UEAAXM@Z | 0x14031c330 | implemented | GameServer IDA comparison record + PDB enum/publics + landed source | no | insufficient_evidence: restored recorded IsBit_OR mask 5 (Connect/InGame) and CMoverEx update dispatch; CSector group gate, actor virtual dispatch/signature, and embedded-member ABI remain unresolved |
 | XGameServer | Maze.cpp | ?UpdateCasualRaidTimer@XMaze@@QEAAXM@Z | 0x14031d850 | implemented | IDA decompile | yes | ��ȷ��ԭ-��������Raid��ʱ�� |
 | XGameServer | Maze.cpp | ?SendSectorInfos@XMaze@@QEAAXPEAVXActor@@@Z | 0x14031d920 | implemented | IDA decompile | yes | IDA������ʵ��
 | XGameServer | Maze.cpp | ?SendGateInfos@XMaze@@QEAAXPEAVXActor@@_N@Z | 0x14031db80 | implemented | IDA decompile | yes | IDA������ʵ��
@@ -14870,7 +14879,7 @@
 | XGameServer | Maze.cpp | ?GetScanner@XMaze@@QEAAPEAV?$map@KPEAVCMover@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKPEAVCMover@@@std@@@3@@std@@PEAVXActor@@@Z | 0x1403264d0 | implemented | IDA decompile + landed source | no | nullptr gate; Type 0 -> &m_objectScanner (mapPlayerList at offset 0, layout-equivalent to IDA MAZE_OBJECT base), Type 1-2 -> &mapNPCList, else -> &mapEtcList; body already landed Maze.cpp:816, stale blocked row updated |
 | XGameServer | Maze.cpp | ?IsDieAllUser@XMaze@@QEAA_NXZ | 0x140326540 | implemented | IDA decompile | yes | ��ȷ��ԭ-��������û��Ƿ�����?|
 | XGameServer | Maze.cpp | ?SendBroadCast@XMaze@@UEAAXAEAVXSendPacket@@PEAVXActor@@W4E_BROADCAST_TYPE@IXArea@@@Z | 0x1403265e0 | implemented | IDA decompile | yes | ��ȷ��ԭ-�㲥���ݰ��������û� |
-| XGameServer | Maze.cpp | ?SendBroadCast@XMaze@@UEAAXAEAVXSendPacket@@PEAVXActor@@_NW4E_BROADCAST_TYPE@IXArea@@@Z | 0x1403266f0 | implemented | IDA decompile | yes | ��ȷ��ԭ-�㲥���ݰ�(�������ų�) |
+| XGameServer | Maze.cpp | ?SendBroadCast@XMaze@@UEAAXAEAVXSendPacket@@PEAVXActor@@_NW4E_BROADCAST_TYPE@IXArea@@@Z | 0x1403266f0 | implemented | GameServer PDB XMaze method list 0x0006AB5E introduces virtual slot 0x240 + IDA + landed Maze.cpp and Maze.h virtual declaration; XModeMaze reference override and complete virtual-table order remain unchecked | no | insufficient_evidence |
 | XGameServer | Maze.cpp | ?UpdateMazeState@XMaze@@QEAAXXZ | 0x140326820 | implemented | IDA decompile | yes | IDA精确还原-迷宫状态机更新 | ��ȷ��ԭ-�����Թ�״̬ |
 | XGameServer | Maze.cpp | ?LoadComplete@XMaze@@UEAAXPEAVXActor@@@Z | 0x1403271a0 | implemented | IDA decompile | yes | - |
 | - | - | ?CheckGuardTarget@XMaze@@QEAAXPEAVCMonster@@K@Z | 0x140328260 | implemented | IDA ?CheckGuardTarget@XMaze@@QEAAXPEAVCMonster@@K@Z | yes | - |
@@ -14986,7 +14995,7 @@
 | XGameServer | Maze.cpp | ?UpdateHiddenEventCondition@XMaze@@QEAAXHKK@Z | 0x140330740 | implemented | IDA decompile | yes | ���������¼����� |
 | XGameServer | Maze.cpp | ?CheckHiddenEventState@XMaze@@QEAA_NXZ | 0x1403307d0 | implemented | IDA decompile | yes | - |
 | XGameServer | Maze.cpp | ?GetRewardHiddenEvent@XMaze@@QEAA_NAEAGAEAHAEAF@Z | 0x140330bd0 | implemented | IDA decompile | yes | ��ȡ�����¼����� |
-| XGameServer | Maze.cpp | ?SendHiddenEventUpdate@XMaze@@QEAAXXZ | 0x140330c20 | implemented | IDA decompile | yes | ���������¼����� |
+| XGameServer | Maze.cpp | ?SendHiddenEventUpdate@XMaze@@QEAAXXZ | 0x140330c20 | decompiled | GameServer IDA decompile + PDB Maze.obj + landed stub comparison | no | insufficient_evidence: hidden event packet serialization and broadcast remain commented out |
 | XGameServer | Maze.cpp | ?SendSyncHiddenEventInfo@XMaze@@QEAAXPEAVCUser@@@Z | 0x140330d40 | implemented | IDA decompile | yes | - |
 | XGameServer | Maze.cpp | ?CheatSetHiddenEvent@XMaze@@QEAAXGK@Z | 0x140330f70 | implemented | IDA decompile | yes | �������������¼� |
 | XGameServer | Maze.cpp | ?CheatUpdateHiddenEvent@XMaze@@QEAAXHG@Z | 0x1403310a0 | implemented | IDA decompile | yes | ���׸��������¼� |
@@ -15055,7 +15064,7 @@
 | XGameServer | Maze.cpp | ?ProcessGameRuleForUser@XMaze@@QEAAXPEAVCUser@@@Z | 0x140337830 | implemented | IDA decompile | yes | Ϊ�û�������Ϸ���� |
 | XGameServer | Maze.cpp | ?ProcessGameRuleForMonster@XMaze@@QEAAXPEAVCMonster@@@Z | 0x140337a90 | implemented | IDA decompile | yes | Ϊ���ﴦ����Ϸ���� |
 | XGameServer | Maze.cpp | ?CallScriptCutsceneOff@XMaze@@QEAAXPEAD@Z | 0x140337cb0 | implemented | IDA decompile | yes | - |
-| - | - | ??1CTextDBLog@@QEAA@XZ | 0x140337ec0 | blocked | IDA ??1CTextDBLog@@QEAA@XZ | yes | - |
+| XGameServer/Log | TextDBLog.cpp | ??1CTextDBLog@@QEAA@XZ | 0x140337ec0 | implemented | GameServer PDB TextDBLog.obj + IDA + landed source | no | - |
 | XGameServer | Maze.cpp | ?ProcessExp@XMaze@@UEAAXPEAVXActor@@MH@Z | 0x140337ee0 | implemented | IDA decompile | yes | - |
 | XGameServer | Maze.cpp | ?CheckMazeCondition@XMaze@@QEAAXPEAVXActor@@@Z | 0x140338020 | implemented | IDA decompile | yes | - |
 | XGameServer | Maze.cpp | ?StartWorldMode@XMaze@@UEAAXAEAUST_WORLD_MODE_INFO@@@Z | 0x140338de0 | implemented | IDA decompile | yes | - |
@@ -15427,7 +15436,7 @@
 | - | - | ?SetPause@LogicTimer@@QEAAX_N@Z | 0x140353580 | implemented | IDA ?SetPause@LogicTimer@@QEAAX_N@Z | yes | - |
 | - | - | ?GetNextLeftTime@LogicTimer@@QEAAHXZ | 0x1403535a0 | implemented | IDA ?GetNextLeftTime@LogicTimer@@QEAAHXZ | yes | - |
 | - | - | ?SetReady@LogicTimer@@QEAAX_N@Z | 0x1403535b0 | implemented | IDA ?SetReady@LogicTimer@@QEAAX_N@Z | yes | - |
-| - | - | ?GetModeType@GameModeBase@@QEAA?AW4eGAMEMODE_TYPE@@XZ | 0x1403535d0 | implemented | IDA ?GetModeType@GameModeBase@@QEAA?AW4eGAMEMODE_TYPE@@XZ | yes | - |
+| XGameServer/Mode | GameModeBase.h | ?GetModeType@GameModeBase@@QEAA?AW4eGAMEMODE_TYPE@@XZ | 0x1403535d0 | implemented | GameServer PDB GameModeBase.h lines/publics + IDA field offset + landed getter | no | insufficient_evidence |
 | - | - | ?SetCallReadyScript@LogicTimer@@QEAAX_N@Z | 0x1403535e0 | implemented | IDA ?SetCallReadyScript@LogicTimer@@QEAAX_N@Z | yes | - |
 | - | - | ?GetReadyString@LogicTimer@@QEBAPEBDXZ | 0x140353600 | implemented | IDA ?GetReadyString@LogicTimer@@QEBAPEBDXZ | yes | - |
 | - | - | ?IsCallReadyScript@LogicTimer@@QEAA_NXZ | 0x140353620 | implemented | IDA ?IsCallReadyScript@LogicTimer@@QEAA_NXZ | yes | - |
@@ -15487,7 +15496,7 @@
 | - | - | ?SetHitID@CMover@@QEAAXK@Z | 0x140354290 | implemented | IDA ?SetHitID@CMover@@QEAAXK@Z | yes | - |
 | XGameServer | Monster.cpp | ?SetReserveDie@CMonster@@QEAAX_N@Z | 0x1403542b0 | implemented | IDA decompile | yes | ����Ԥ������ |
 | - | - | ??0STMageGateBox@@QEAA@XZ | 0x1403542d0 | blocked | IDA ??0STMageGateBox@@QEAA@XZ | yes | - |
-| - | - | ??0STMageCheckEventSpawnBox@@QEAA@XZ | 0x140354310 | blocked | IDA ??0STMageCheckEventSpawnBox@@QEAA@XZ | yes | - |
+| XGameServer | Maze.h | ??0STMageCheckEventSpawnBox@@QEAA@XZ | 0x140354310 | implemented | GameServer IDA decompile + PDB UDT 0x72003 + cvdump lines Maze.h + landed source | no | - |
 | - | - | ?SetSimpleDefenseType@CMover@@QEAAXE@Z | 0x140354350 | implemented | IDA ?SetSimpleDefenseType@CMover@@QEAAXE@Z | yes | - |
 | XGameServer | Monster.cpp | ?Init@STMonsterKillScoreMode@@QEAAXXZ | 0x140354370 | implemented | IDA decompile | yes | ��ʼ�������ɱ����ģ�?|
 | - | - | ?reset@STCasualRaidTime@@QEAAXXZ | 0x140354390 | implemented | IDA ?reset@STCasualRaidTime@@QEAAXXZ | yes | - |
@@ -16616,7 +16625,7 @@ yes | ?????????? |
 | XGameServer | CForce.h | ?IsReadyToMaze@CForceMember@@QEAA_NXZ | 0x1403b0160 | implemented | IDA decompile + PDB | no | Landed inline in CForce.h: GetPartyMemberState() == 2; consumed by CForce::SendEnterMaze broadcast filter. |
 | - | - | ?Login@CPartyMember@@QEAAXXZ | 0x1403b0180 | implemented | IDA ?Login@CPartyMember@@QEAAXXZ | yes | - |
 | - | - | ?SetForceMemeber@CForceMember@@QEAAXAEAUST_FORCE_MEMBER@@@Z | 0x1403b0190 | implemented | IDA ?SetForceMemeber@CForceMember@@QEAAXAEAUST_FORCE_MEMBER@@@Z | yes | - |
-| - | - | ?SetModeState@GameModeBase@@UEAAXH@Z | 0x1403b0220 | implemented | IDA ?SetModeState@GameModeBase@@UEAAXH@Z | yes | - |
+| XGameServer/Mode | GameModeBase.h | ?SetModeState@GameModeBase@@UEAAXH@Z | 0x1403b0220 | implemented | GameServer PDB GameModeBase.h lines/publics + IDA field offset + landed Mode/GameModeBase.cpp source | no | insufficient_evidence |
 | - | - | ?ClearRecode@CPartyMember@@QEAAXXZ | 0x1403b0240 | implemented | IDA ?ClearRecode@CPartyMember@@QEAAXXZ | yes | - |
 | - | - | ?SetProfilePhoto@CPartyMember@@QEAAXK@Z | 0x1403b0260 | implemented | IDA ?SetProfilePhoto@CPartyMember@@QEAAXK@Z | yes | - |
 | - | - | ?GetMatchingState@CGocForce@@QEAAEXZ | 0x1403b0280 | implemented | IDA ?GetMatchingState@CGocForce@@QEAAEXZ | yes | - |
@@ -34021,7 +34030,7 @@ yes | ?????????? |
 | - | - | ??$swap@M@hkvMath@@SAXAEAM0@Z | 0x1406c7660 | blocked | IDA ??$swap@M@hkvMath@@SAXAEAM0@Z | yes | - |
 | - | - | ?transpose@hkvMat3@@QEAAXXZ | 0x1406c76b0 | blocked | IDA ?transpose@hkvMat3@@QEAAXXZ | yes | - |
 | - | - | ?getScalingFactors@hkvMat3@@QEBA?AVhkvVec3@@XZ | 0x1406c7710 | blocked | IDA ?getScalingFactors@hkvMat3@@QEBA?AVhkvVec3@@XZ | yes | - |
-| - | - | ?getAxis@hkvMat3@@QEBA?BVhkvVec3@@I@Z | 0x1406c7810 | blocked | IDA ?getAxis@hkvMat3@@QEBA?BVhkvVec3@@I@Z | yes | - |
+| GameServer/XCore/VisionEngineTypes | hkvMat3.h | ?getAxis@hkvMat3@@QEBA?BVhkvVec3@@I@Z | 0x1406c7810 | implemented | GameServer PDB hkvmat3.inl + IDA decompile + landed hkvMat3.h temporary container | no | - |
 | - | - | ?getRow@hkvMat3@@QEBA?BVhkvVec3@@I@Z | 0x1406c7870 | blocked | IDA ?getRow@hkvMat3@@QEBA?BVhkvVec3@@I@Z | yes | - |
 | - | - | ?isIdentity@hkvMat3@@QEBA_NM@Z | 0x1406c78d0 | blocked | IDA ?isIdentity@hkvMat3@@QEBA_NM@Z | yes | - |
 | - | - | ?isZero@hkvMath@@SA_NMM@Z | 0x1406c7b40 | blocked | IDA ?isZero@hkvMath@@SA_NMM@Z | yes | - |
@@ -34099,8 +34108,8 @@ yes | ?????????? |
 | XGameServer | Sector.cpp | ?AddActor@CSector@@QEAAXKPEAVXActor@@@Z | 0x1406ca630 | implemented | IDA decompile | yes | IDA������ʵ��
 | XGameServer | Sector.cpp | ?DeleteActor@CSector@@QEAAXKAEA_N_N@Z | 0x1406ca7a0 | implemented | IDA decompile | yes | ��ʵ��(ȱʧTB_MONSTER) |
 | XGameServer | Sector.cpp | ?InitClearType@CSector@@QEAAXXZ | 0x1406ca970 | implemented | IDA decompile | yes | IDA������ʵ��
-| XGameServer | Sector.cpp | ?SetModeState@CSector@@QEAAXH@Z | 0x1406ca9b0 | implemented | IDA decompile | yes | IDA������ʵ��
-| XGameServer | Sector.cpp | ?GetGameModeType@CSector@@QEAA?AW4eGAMEMODE_TYPE@@XZ | 0x1406ca9f0 | implemented | IDA decompile | yes | ��ʵ��(ȱʧXGameMode) |
+| XGameServer | Sector.cpp | ?SetModeState@CSector@@QEAAXH@Z | 0x1406ca9b0 | implemented | GameServer IDA decompile + PDB CSector field m_pGameMode + landed source | no | insufficient_evidence |
+| XGameServer | Sector.cpp | ?GetGameModeType@CSector@@QEAA?AW4eGAMEMODE_TYPE@@XZ | 0x1406ca9f0 | implemented | GameServer IDA decompile + PDB eGAMEMODE_TYPE + landed source | no | insufficient_evidence |
 | XGameServer | Sector.cpp | ?DamageMonster@CSector@@QEAAXPEAVCMonster@@@Z | 0x1406caa20 | implemented | IDA decompile | yes | IDA������ʵ��
 | XGameServer | Sector.cpp | ?InteractBoxOnMode@CSector@@QEAAXPEAVCUser@@H@Z | 0x1406caa80 | implemented | IDA decompile | yes | IDA������ʵ��
 | XGameServer | Sector.cpp | ?DiePlayer@CSector@@QEAAXPEAVCUser@@_N@Z | 0x1406caaf0 | implemented | IDA decompile | yes | IDA������ʵ��
@@ -36913,23 +36922,24 @@ yes | ?????????? |
 | - | - | ??0?$_Pair_base@$$CBHVVPList@@@std@@QEAA@$$QEBH$$QEAVVPList@@@Z | 0x1407639a0 | blocked | IDA ??0?$_Pair_base@$$CBHVVPList@@@std@@QEAA@$$QEBH$$QEAVVPList@@@Z | yes | - |
 | - | - | ??_EVEventObjectResource@@WBA@EAAPEAXI@Z | 0x1407639f0 | blocked | IDA ??_EVEventObjectResource@@WBA@EAAPEAXI@Z | yes | - |
 | - | - | ?ReplaceExtension@VPathHelper@@SAXPEADPEBD1@Z | 0x140763a00 | implemented | IDA ?ReplaceExtension@VPathHelper@@SAXPEADPEBD1@Z | yes | - |
-| XGameServer | InteractionObject.h | ?GetCenter@VEventObjectInfo@@QEBA?AVhkvVec3@@XZ | 0x140763a30 | implemented | IDA decompile + PDB fieldlist 0x74D05 (VANILLA non-virtual) + landed source | no | midpoint x/y from PosTopLeft/PosBottomRight, z = PosTopLeft.z; inline in pack(4) type block; consumed by XMaze::AllUserWarp(int) 0x140323980 |
-| - | - | ?Load@VEventObjectInfo@@UEAA_NPEAVTiXmlElement@@@Z | 0x140763ac0 | implemented | IDA ?Load@VEventObjectInfo@@UEAA_NPEAVTiXmlElement@@@Z | yes | - |
-| - | - | ?Clone@VEventObjectInfo@@UEAAPEAU1@XZ | 0x1407640e0 | implemented | IDA ?Clone@VEventObjectInfo@@UEAAPEAU1@XZ | yes | - |
-| - | - | ??0VEventObjectInfo@@QEAA@AEBU0@@Z | 0x140764140 | blocked | IDA ??0VEventObjectInfo@@QEAA@AEBU0@@Z | yes | - |
+| Common/XNet/XCommon | VEventObjectDefine.h | ?GetCenter@VEventObjectInfo@@QEBA?AVhkvVec3@@XZ | 0x140763a30 | implemented | IDA decompile + PDB VEventObjectDefine.obj/lines + landed source | no | midpoint x/y from PosTopLeft/PosBottomRight, z = PosTopLeft.z; landed inline in PDB-backed shared header; original implementation unit VEventObjectDefine.cpp |
+| Common/XNet/XCommon | VEventObjectDefine.cpp | ?Load@VEventObjectInfo@@UEAA_NPEAVTiXmlElement@@@Z | 0x140763ac0 | blocked | GameServer PDB VEventObjectDefine.obj/lines + IDA decompile + shared header stub | no | insufficient_evidence |
+| Common/XNet/XCommon | VEventObjectDefine.cpp | ?Clone@VEventObjectInfo@@UEAAPEAU1@XZ | 0x1407640e0 | implemented | GameServer PDB VEventObjectDefine.obj/lines + IDA decompile/disasm + landed source | no | insufficient_evidence |
+| Common/XNet/XCommon | VEventObjectDefine.cpp | ??0VEventObjectInfo@@QEAA@AEBU0@@Z | 0x140764140 | implemented | GameServer IDA decompile/disasm + PDB VEventObjectDefine.obj + landed source | no | - |
 | - | - | ??__G@YAXPEAX0_KHP6APEAX00@Z@Z | 0x1407642d0 | blocked | IDA ??__G@YAXPEAX0_KHP6APEAX00@Z@Z | yes | - |
-| - | - | ?InitPlane@VEventObjectInfo@@UEAAXXZ | 0x140764340 | implemented | IDA ?InitPlane@VEventObjectInfo@@UEAAXXZ | yes | - |
-| - | - | ?Collision@VEventObjectInfo@@QEAA_NAEBVhkvVec3@@@Z | 0x140764600 | implemented | IDA ?Collision@VEventObjectInfo@@QEAA_NAEBVhkvVec3@@@Z | yes | - |
-| - | - | ?IsIn@VEventObjectInfo@@QEAA_NAEBVhkvVec3@@@Z | 0x140764770 | implemented | IDA ?IsIn@VEventObjectInfo@@QEAA_NAEBVhkvVec3@@@Z | yes | - |
-| - | - | ?Load@VEventPointInfo@@UEAA_NPEAVTiXmlElement@@@Z | 0x1407647d0 | implemented | IDA ?Load@VEventPointInfo@@UEAA_NPEAVTiXmlElement@@@Z | yes | - |
-| - | - | ?Clone@VEventBoxInfo@@UEAAPEAUVEventObjectInfo@@XZ | 0x140764800 | implemented | IDA ?Clone@VEventBoxInfo@@UEAAPEAUVEventObjectInfo@@XZ | yes | - |
-| - | - | ??0VEventBoxInfo@@QEAA@AEBU0@@Z | 0x140764860 | blocked | IDA ??0VEventBoxInfo@@QEAA@AEBU0@@Z | yes | - |
+| Common/XNet/XCommon | VEventObjectDefine.cpp | ?InitPlane@VEventObjectInfo@@UEAAXXZ | 0x140764340 | implemented | GameServer PDB VEventObjectDefine.obj/lines + IDA decompile + landed source; external Euler Rad unavailable | no | insufficient_evidence |
+| Common/XNet/XCommon | VEventObjectDefine.cpp | ?Collision@VEventObjectInfo@@QEAA_NAEBVhkvVec3@@@Z | 0x140764600 | implemented | GameServer IDA + PDB VEventObjectDefine.obj/lines + landed source | no | - |
+| Common/XNet/XCommon | VEventObjectDefine.cpp | ?IsIn@VEventObjectInfo@@QEAA_NAEBVhkvVec3@@@Z | 0x140764770 | implemented | GameServer IDA + PDB VEventObjectDefine.obj/lines + landed source | no | - |
+| Common/XNet/XCommon | VEventObjectDefine.cpp | ?Load@VEventBoxInfo@@UEAA_NPEAVTiXmlElement@@@Z | 0x1407647d0 | implemented | GameServer PDB VEventObjectDefine.obj/lines/publics + IDA disasm + landed source; folded with VEventPointInfo::Load | no | insufficient_evidence |
+| Common/XNet/XCommon | VEventObjectDefine.cpp | ?Load@VEventPointInfo@@UEAA_NPEAVTiXmlElement@@@Z | 0x1407647d0 | implemented | GameServer PDB VEventObjectDefine.obj/lines/publics + IDA disasm + landed source; folded with VEventBoxInfo::Load | no | insufficient_evidence |
+| Common/XNet/XCommon | VEventObjectDefine.cpp | ?Clone@VEventBoxInfo@@UEAAPEAUVEventObjectInfo@@XZ | 0x140764800 | implemented | GameServer PDB VEventObjectDefine.obj/lines + IDA decompile + landed source | no | insufficient_evidence |
+| Common/XNet/XCommon | VEventObjectDefine.cpp | ??0VEventBoxInfo@@QEAA@AEBU0@@Z | 0x140764860 | implemented | GameServer IDA decompile/disasm + PDB VEventObjectDefine.obj/lines + landed source | no | - |
 | - | - | ?Load@VStartEventBoxInfo@@UEAA_NPEAVTiXmlElement@@@Z | 0x1407648b0 | implemented | IDA ?Load@VStartEventBoxInfo@@UEAA_NPEAVTiXmlElement@@@Z | yes | - |
 | - | - | ?Clone@VStartEventBoxInfo@@UEAAPEAUVEventObjectInfo@@XZ | 0x140764a30 | implemented | IDA ?Clone@VStartEventBoxInfo@@UEAAPEAUVEventObjectInfo@@XZ | yes | - |
 | - | - | ??0VStartEventBoxInfo@@QEAA@AEBU0@@Z | 0x140764a90 | blocked | IDA ??0VStartEventBoxInfo@@QEAA@AEBU0@@Z | yes | - |
-| - | - | ?Load@VMonsterSpawnInfo@@UEAA_NPEAVTiXmlElement@@@Z | 0x140764b00 | implemented | IDA ?Load@VMonsterSpawnInfo@@UEAA_NPEAVTiXmlElement@@@Z | yes | - |
-| - | - | ?Clone@VMonsterSpawnInfo@@UEAAPEAUVEventObjectInfo@@XZ | 0x1407660d0 | implemented | IDA ?Clone@VMonsterSpawnInfo@@UEAAPEAUVEventObjectInfo@@XZ | yes | - |
-| - | - | ??0VMonsterSpawnInfo@@QEAA@AEBU0@@Z | 0x140766130 | blocked | IDA ??0VMonsterSpawnInfo@@QEAA@AEBU0@@Z | yes | - |
+| Common/XNet/XCommon | VEventObjectDefine.cpp | ?Load@VMonsterSpawnInfo@@UEAA_NPEAVTiXmlElement@@@Z | 0x140764b00 | decompiled | GameServer PDB VEventObjectDefine.obj/lines + IDA decompile; layout landed in header only | no | insufficient_evidence |
+| Common/XNet/XCommon | VEventObjectDefine.cpp | ?Clone@VMonsterSpawnInfo@@UEAAPEAUVEventObjectInfo@@XZ | 0x1407660d0 | implemented | GameServer PDB VEventObjectDefine.obj/lines + IDA decompile + landed source | no | insufficient_evidence |
+| Common/XNet/XCommon | VEventObjectDefine.cpp | ??0VMonsterSpawnInfo@@QEAA@AEBU0@@Z | 0x140766130 | implemented | GameServer PDB VEventObjectDefine.obj/lines + IDA decompile/disasm + landed source | no | - |
 | - | - | ?Load@VCheckMonsterSpawnInfo@@UEAA_NPEAVTiXmlElement@@@Z | 0x1407663f0 | implemented | IDA ?Load@VCheckMonsterSpawnInfo@@UEAA_NPEAVTiXmlElement@@@Z | yes | - |
 | - | - | ?Clone@VCheckMonsterSpawnInfo@@UEAAPEAUVEventObjectInfo@@XZ | 0x140766610 | implemented | IDA ?Clone@VCheckMonsterSpawnInfo@@UEAAPEAUVEventObjectInfo@@XZ | yes | - |
 | - | - | ??0VCheckMonsterSpawnInfo@@QEAA@AEBU0@@Z | 0x140766670 | blocked | IDA ??0VCheckMonsterSpawnInfo@@QEAA@AEBU0@@Z | yes | - |
@@ -36969,8 +36979,8 @@ yes | ?????????? |
 | - | - | ?Load@VQuestMoveCheckBoxInfo@@UEAA_NPEAVTiXmlElement@@@Z | 0x140768fc0 | implemented | IDA ?Load@VQuestMoveCheckBoxInfo@@UEAA_NPEAVTiXmlElement@@@Z | yes | - |
 | - | - | ?Clone@VQuestMoveCheckBoxInfo@@UEAAPEAUVEventObjectInfo@@XZ | 0x140769030 | implemented | IDA ?Clone@VQuestMoveCheckBoxInfo@@UEAAPEAUVEventObjectInfo@@XZ | yes | - |
 | - | - | ??0VQuestMoveCheckBoxInfo@@QEAA@AEBU0@@Z | 0x140769090 | blocked | IDA ??0VQuestMoveCheckBoxInfo@@QEAA@AEBU0@@Z | yes | - |
-| - | - | ?Clone@VEventPointInfo@@UEAAPEAUVEventObjectInfo@@XZ | 0x1407690e0 | implemented | IDA ?Clone@VEventPointInfo@@UEAAPEAUVEventObjectInfo@@XZ | yes | - |
-| - | - | ??0VEventPointInfo@@QEAA@AEBU0@@Z | 0x140769140 | blocked | IDA ??0VEventPointInfo@@QEAA@AEBU0@@Z | yes | - |
+| Common/XNet/XCommon | VEventObjectDefine.cpp | ?Clone@VEventPointInfo@@UEAAPEAUVEventObjectInfo@@XZ | 0x1407690e0 | implemented | GameServer PDB VEventObjectDefine.obj/lines + IDA decompile + landed source | no | insufficient_evidence |
+| Common/XNet/XCommon | VEventObjectDefine.cpp | ??0VEventPointInfo@@QEAA@AEBU0@@Z | 0x140769140 | implemented | GameServer PDB VEventObjectDefine.obj/lines + IDA decompile + landed source | no | - |
 | - | - | ?Load@VWayPointInfo@@UEAA_NPEAVTiXmlElement@@@Z | 0x140769190 | implemented | IDA ?Load@VWayPointInfo@@UEAA_NPEAVTiXmlElement@@@Z | yes | - |
 | - | - | ?Clone@VWayPointInfo@@UEAAPEAUVEventObjectInfo@@XZ | 0x140769660 | implemented | IDA ?Clone@VWayPointInfo@@UEAAPEAUVEventObjectInfo@@XZ | yes | - |
 | - | - | ??0VWayPointInfo@@QEAA@AEBU0@@Z | 0x1407696c0 | blocked | IDA ??0VWayPointInfo@@QEAA@AEBU0@@Z | yes | - |
@@ -36980,9 +36990,9 @@ yes | ?????????? |
 | - | - | ??0VEscortPointInfo@@QEAA@AEBU0@@Z | 0x140769b20 | blocked | IDA ??0VEscortPointInfo@@QEAA@AEBU0@@Z | yes | - |
 | - | - | ?Clone@VCutSceneEventBoxInfo@@UEAAPEAUVEventObjectInfo@@XZ | 0x140769bc0 | implemented | IDA ?Clone@VCutSceneEventBoxInfo@@UEAAPEAUVEventObjectInfo@@XZ | yes | - |
 | - | - | ??0VCutSceneEventBoxInfo@@QEAA@AEBU0@@Z | 0x140769c20 | blocked | IDA ??0VCutSceneEventBoxInfo@@QEAA@AEBU0@@Z | yes | - |
-| - | - | ?Load@VCheckEventSpawnBoxInfo@@UEAA_NPEAVTiXmlElement@@@Z | 0x140769c90 | implemented | IDA ?Load@VCheckEventSpawnBoxInfo@@UEAA_NPEAVTiXmlElement@@@Z | yes | - |
-| - | - | ?Clone@VCheckEventSpawnBoxInfo@@UEAAPEAUVEventObjectInfo@@XZ | 0x140769fc0 | implemented | IDA ?Clone@VCheckEventSpawnBoxInfo@@UEAAPEAUVEventObjectInfo@@XZ | yes | - |
-| - | - | ??0VCheckEventSpawnBoxInfo@@QEAA@AEBU0@@Z | 0x14076a020 | blocked | IDA ??0VCheckEventSpawnBoxInfo@@QEAA@AEBU0@@Z | yes | - |
+| Common/XNet/XCommon | VEventObjectDefine.cpp | ?Load@VCheckEventSpawnBoxInfo@@UEAA_NPEAVTiXmlElement@@@Z | 0x140769c90 | blocked | GameServer IDA decompile + PDB VEventObjectDefine.obj/lines + landed XML stub | no | insufficient_evidence: external XMLHelper and base XML Load remain unavailable |
+| Common/XNet/XCommon | VEventObjectDefine.cpp | ?Clone@VCheckEventSpawnBoxInfo@@UEAAPEAUVEventObjectInfo@@XZ | 0x140769fc0 | implemented | GameServer IDA decompile + PDB VEventObjectDefine.obj/lines + landed source | no | insufficient_evidence: original VBaseAlloc_rel allocation and failure semantics unavailable |
+| Common/XNet/XCommon | VEventObjectDefine.cpp | ??0VCheckEventSpawnBoxInfo@@QEAA@AEBU0@@Z | 0x14076a020 | implemented | GameServer IDA decompile + PDB UDT 0x76C61 + landed copy constructor | no | - |
 | - | - | ?Clone@VPersonalShopAreaBoxInfo@@UEAAPEAUVEventObjectInfo@@XZ | 0x14076a100 | implemented | IDA ?Clone@VPersonalShopAreaBoxInfo@@UEAAPEAUVEventObjectInfo@@XZ | yes | - |
 | - | - | ??0VPersonalShopAreaBoxInfo@@QEAA@AEBU0@@Z | 0x14076a160 | blocked | IDA ??0VPersonalShopAreaBoxInfo@@QEAA@AEBU0@@Z | yes | - |
 | - | - | ?Clone@VSafeAreaBoxInfo@@UEAAPEAUVEventObjectInfo@@XZ | 0x14076a1a0 | implemented | IDA ?Clone@VSafeAreaBoxInfo@@UEAAPEAUVEventObjectInfo@@XZ | yes | - |
@@ -36994,11 +37004,11 @@ yes | ?????????? |
 | - | - | ?Clone@VSocialItemExcludeBoxInfo@@UEAAPEAUVEventObjectInfo@@XZ | 0x14076a3a0 | implemented | IDA ?Clone@VSocialItemExcludeBoxInfo@@UEAAPEAUVEventObjectInfo@@XZ | yes | - |
 | - | - | ??0VSocialItemExcludeBoxInfo@@QEAA@AEBU0@@Z | 0x14076a400 | blocked | IDA ??0VSocialItemExcludeBoxInfo@@QEAA@AEBU0@@Z | yes | - |
 | - | - | ?Load@VSocialItemExcludeBoxInfo@@UEAA_NPEAVTiXmlElement@@@Z | 0x14076a440 | implemented | IDA ?Load@VSocialItemExcludeBoxInfo@@UEAA_NPEAVTiXmlElement@@@Z | yes | - |
-| - | - | ?getDistanceTo@hkvPlane@@QEBAMAEBVhkvVec3@@@Z | 0x14076a470 | blocked | IDA ?getDistanceTo@hkvPlane@@QEBAMAEBVhkvVec3@@@Z | yes | - |
-| - | - | ?GetSide@hkvPlane@@QEBAHAEBVhkvVec3@@@Z | 0x14076a4a0 | blocked | IDA ?GetSide@hkvPlane@@QEBAHAEBVhkvVec3@@@Z | yes | - |
-| - | - | ?setFromPointAndNormal@hkvPlane@@QEAAXAEBVhkvVec3@@0@Z | 0x14076a4f0 | blocked | IDA ?setFromPointAndNormal@hkvPlane@@QEAAXAEBVhkvVec3@@0@Z | yes | - |
-| - | - | ??4hkvPlane@@QEAAXAEBV0@@Z | 0x14076a560 | blocked | IDA ??4hkvPlane@@QEAAXAEBV0@@Z | yes | - |
-| - | - | ??0hkvPlane@@QEAA@AEBV0@@Z | 0x14076a5c0 | blocked | IDA ??0hkvPlane@@QEAA@AEBV0@@Z | yes | - |
+| GameServer/XCore/VisionEngineTypes | hkvMat3.h | ?getDistanceTo@hkvPlane@@QEBAMAEBVhkvVec3@@@Z | 0x14076a470 | implemented | GameServer IDA + PDB hkvplane.inl/UDT + landed source | no | - |
+| GameServer/XCore/VisionEngineTypes | hkvMat3.h | ?GetSide@hkvPlane@@QEBAHAEBVhkvVec3@@@Z | 0x14076a4a0 | implemented | GameServer IDA + PDB hkvplane.inl/UDT + landed source | no | - |
+| GameServer/XCore/VisionEngineTypes | hkvMat3.h | ?setFromPointAndNormal@hkvPlane@@QEAAXAEBVhkvVec3@@0@Z | 0x14076a4f0 | implemented | GameServer IDA + PDB hkvplane.inl/UDT + landed source | no | - |
+| GameServer/XCore/VisionEngineTypes | hkvMat3.h | ??4hkvPlane@@QEAAXAEBV0@@Z | 0x14076a560 | implemented | GameServer IDA decompile/disasm + PDB hkvplane.inl/UDT + landed source | no | - |
+| GameServer/XCore/VisionEngineTypes | hkvMat3.h | ??0hkvPlane@@QEAA@AEBV0@@Z | 0x14076a5c0 | implemented | GameServer IDA decompile/disasm + PDB hkvplane.inl/UDT + landed source | no | - |
 | - | - | ??0VAkashicResourceManager@@QEAA@XZ | 0x14076a600 | blocked | IDA ??0VAkashicResourceManager@@QEAA@XZ | yes | - |
 | - | - | ??_GVAkashicResourceManager@@UEAAPEAXI@Z | 0x14076a640 | blocked | IDA ??_GVAkashicResourceManager@@UEAAPEAXI@Z | yes | - |
 | - | - | ??1VAkashicResourceManager@@UEAA@XZ | 0x14076a680 | blocked | IDA ??1VAkashicResourceManager@@UEAA@XZ | yes | - |
@@ -37155,7 +37165,7 @@ yes | ?????????? |
 | - | - | ??5@YAAEAVXPacket@@AEAV0@AEAUST_MOVE_JUMP@@@Z | 0x140770810 | blocked | IDA ??5@YAAEAVXPacket@@AEAV0@AEAUST_MOVE_JUMP@@@Z | yes | - |
 | - | - | ??6@YAAEAVXPacket@@AEAV0@AEAUST_MOVE_BATTLE@@@Z | 0x140770950 | blocked | IDA ??6@YAAEAVXPacket@@AEAV0@AEAUST_MOVE_BATTLE@@@Z | yes | - |
 | - | - | ??5@YAAEAVXPacket@@AEAV0@AEAUST_MOVE_BATTLE@@@Z | 0x140770a20 | blocked | IDA ??5@YAAEAVXPacket@@AEAV0@AEAUST_MOVE_BATTLE@@@Z | yes | - |
-| - | - | ??6@YAAEAVXPacket@@AEAV0@AEAUST_MOVE_TRANSPORT_TAKE@@@Z | 0x140770af0 | blocked | IDA ??6@YAAEAVXPacket@@AEAV0@AEAUST_MOVE_TRANSPORT_TAKE@@@Z | yes | - |
+| Common/XNet/XCommon | PSCommon.h | ??6@YAAEAVXPacket@@AEAV0@AEAUST_MOVE_TRANSPORT_TAKE@@@Z | 0x140770af0 | implemented | GameServer PDB UDT 0x25220 + IDA 0x140770AF0 + landed source | no | insufficient_evidence |
 | - | - | ??5@YAAEAVXPacket@@AEAV0@AEAUST_MOVE_TRANSPORT_TAKE@@@Z | 0x140770b70 | blocked | IDA ??5@YAAEAVXPacket@@AEAV0@AEAUST_MOVE_TRANSPORT_TAKE@@@Z | yes | - |
 | - | - | ??6@YAAEAVXPacket@@AEAV0@AEAUST_MOVE_LOOP_MOTION_START@@@Z | 0x140770bf0 | blocked | IDA ??6@YAAEAVXPacket@@AEAV0@AEAUST_MOVE_LOOP_MOTION_START@@@Z | yes | - |
 | - | - | ??5@YAAEAVXPacket@@AEAV0@AEAUST_MOVE_LOOP_MOTION_START@@@Z | 0x140770cf0 | blocked | IDA ??5@YAAEAVXPacket@@AEAV0@AEAUST_MOVE_LOOP_MOTION_START@@@Z | yes | - |
@@ -37222,7 +37232,7 @@ yes | ?????????? |
 | - | - | ?GetEventPointType@VEventCreator@VEventObjectLoader@@SA?AW4eEventPointType@@PEAVTiXmlElement@@_NW43@@Z | 0x140772fd0 | blocked | IDA ?GetEventPointType@VEventCreator@VEventObjectLoader@@SA?AW4eEventPointType@@PEAVTiXmlElement@@_NW43@@Z | yes | - |
 | - | - | ?CreateObj@VEventCreator@VEventObjectLoader@@SAPEAUVEventObjectInfo@@HAEAVVString@@@Z | 0x1407730a0 | blocked | IDA ?CreateObj@VEventCreator@VEventObjectLoader@@SAPEAUVEventObjectInfo@@HAEAVVString@@@Z | yes | - |
 | - | - | ??0VStartEventBoxInfo@@QEAA@XZ | 0x140773bf0 | blocked | IDA ??0VStartEventBoxInfo@@QEAA@XZ | yes | - |
-| - | - | ??0VMonsterSpawnInfo@@QEAA@XZ | 0x140773c20 | blocked | IDA ??0VMonsterSpawnInfo@@QEAA@XZ | yes | - |
+| Common/XNet/XCommon | VEventObjectLoader.cpp | ??0VMonsterSpawnInfo@@QEAA@XZ | 0x140773c20 | implemented | GameServer PDB VEventObjectLoader.obj/lines + IDA decompile + landed source | no | - |
 | - | - | ??0VCheckMonsterSpawnInfo@@QEAA@XZ | 0x140773c50 | blocked | IDA ??0VCheckMonsterSpawnInfo@@QEAA@XZ | yes | - |
 | - | - | ??0VOpenMazeBoxInfo@@QEAA@XZ | 0x140773c80 | blocked | IDA ??0VOpenMazeBoxInfo@@QEAA@XZ | yes | - |
 | - | - | ??0VCheckSceneDirectingInfo@@QEAA@XZ | 0x140773cb0 | blocked | IDA ??0VCheckSceneDirectingInfo@@QEAA@XZ | yes | - |
@@ -37237,17 +37247,17 @@ yes | ?????????? |
 | - | - | ??0VInterActionBoxInfo@@QEAA@XZ | 0x140773e70 | blocked | IDA ??0VInterActionBoxInfo@@QEAA@XZ | yes | - |
 | - | - | ??0VQuestMoveCheckBoxInfo@@QEAA@XZ | 0x140773ea0 | blocked | IDA ??0VQuestMoveCheckBoxInfo@@QEAA@XZ | yes | - |
 | - | - | ??0VCutSceneEventBoxInfo@@QEAA@XZ | 0x140773ed0 | blocked | IDA ??0VCutSceneEventBoxInfo@@QEAA@XZ | yes | - |
-| - | - | ??0VCheckEventSpawnBoxInfo@@QEAA@XZ | 0x140773f00 | blocked | IDA ??0VCheckEventSpawnBoxInfo@@QEAA@XZ | yes | - |
+| Common/XNet/XCommon | VEventObjectLoader.cpp | ??0VCheckEventSpawnBoxInfo@@QEAA@XZ | 0x140773f00 | implemented | GameServer IDA decompile + PDB VEventObjectLoader.obj + landed default constructor | no | - |
 | - | - | ??0VPersonalShopAreaBoxInfo@@QEAA@XZ | 0x140773f30 | blocked | IDA ??0VPersonalShopAreaBoxInfo@@QEAA@XZ | yes | - |
 | - | - | ??0VSafeAreaBoxInfo@@QEAA@XZ | 0x140773f60 | blocked | IDA ??0VSafeAreaBoxInfo@@QEAA@XZ | yes | - |
 | - | - | ??0VSectorStartBoxInfo@@QEAA@XZ | 0x140773f90 | blocked | IDA ??0VSectorStartBoxInfo@@QEAA@XZ | yes | - |
 | - | - | ??0VSocialItemExcludeBoxInfo@@QEAA@XZ | 0x140773fc0 | blocked | IDA ??0VSocialItemExcludeBoxInfo@@QEAA@XZ | yes | - |
 | - | - | ??0VWayPointInfo@@QEAA@XZ | 0x140773ff0 | blocked | IDA ??0VWayPointInfo@@QEAA@XZ | yes | - |
 | - | - | ??0VEscortPointInfo@@QEAA@XZ | 0x140774020 | blocked | IDA ??0VEscortPointInfo@@QEAA@XZ | yes | - |
-| - | - | ??0VEventPointInfo@@QEAA@XZ | 0x140774050 | blocked | IDA ??0VEventPointInfo@@QEAA@XZ | yes | - |
-| - | - | ??0VEventBoxInfo@@QEAA@XZ | 0x140774080 | blocked | IDA ??0VEventBoxInfo@@QEAA@XZ | yes | - |
-| - | - | ??0VEventObjectInfo@@QEAA@XZ | 0x1407740b0 | blocked | IDA ??0VEventObjectInfo@@QEAA@XZ | yes | - |
-| - | - | ??0hkvPlane@@QEAA@XZ | 0x140774130 | blocked | IDA ??0hkvPlane@@QEAA@XZ | yes | - |
+| Common/XNet/XCommon | VEventObjectLoader.cpp | ??0VEventPointInfo@@QEAA@XZ | 0x140774050 | implemented | GameServer PDB VEventObjectLoader.obj/lines + IDA decompile + landed source | no | - |
+| Common/XNet/XCommon | VEventObjectLoader.cpp | ??0VEventBoxInfo@@QEAA@XZ | 0x140774080 | implemented | GameServer IDA decompile + PDB VEventObjectLoader.obj + landed source | no | - |
+| Common/XNet/XCommon | VEventObjectLoader.cpp | ??0VEventObjectInfo@@QEAA@XZ | 0x1407740b0 | implemented | GameServer IDA decompile/disasm + PDB VEventObjectLoader.obj + landed source | no | - |
+| GameServer/XCore/VisionEngineTypes | hkvMat3.h | ??0hkvPlane@@QEAA@XZ | 0x140774130 | implemented | GameServer IDA + PDB hkvplane.h/UDT + landed source | no | - |
 | - | - | ??0XPacket@@QEAA@AEBV0@@Z | 0x140774170 | blocked | IDA ??0XPacket@@QEAA@AEBV0@@Z | yes | - |
 | - | - | ??0XSendPacket@@QEAA@EEAEAVXPacket@@@Z | 0x1407741c0 | blocked | IDA ??0XSendPacket@@QEAA@EEAEAVXPacket@@@Z | yes | - |
 | - | - | ??0XSendPacket@@QEAA@EE@Z | 0x140774270 | blocked | IDA ??0XSendPacket@@QEAA@EE@Z | yes | - |
@@ -43458,7 +43468,7 @@ yes | ?????????? |
 | - | - | ?GetMainQuestOrder@XResourceMgr@@QEAAKEK@Z | 0x1408d7120 | blocked | IDA ?GetMainQuestOrder@XResourceMgr@@QEAAKEK@Z | yes | - |
 | - | - | ?FindPCCostumeByItemID@XResourceMgr@@QEAAPEAUTB_PC_COSTUME@@K@Z | 0x1408d7200 | blocked | IDA ?FindPCCostumeByItemID@XResourceMgr@@QEAAPEAUTB_PC_COSTUME@@K@Z | yes | - |
 | - | - | ?FindPCAkashic@XResourceMgr@@QEAAPEAUTB_AKASHIC_RECORDS@@K@Z | 0x1408d7270 | blocked | IDA ?FindPCAkashic@XResourceMgr@@QEAAPEAUTB_AKASHIC_RECORDS@@K@Z | yes | - |
-| - | - | ?GetOperationInfoTable@XResourceMgr@@QEAAPEAUTB_OPERATION_INFO@@KH@Z | 0x1408d72e0 | implemented | IDA ?GetOperationInfoTable@XResourceMgr@@QEAAPEAUTB_OPERATION_INFO@@KH@Z | yes | - |
+| XSCommon | ResourceMgr.cpp (landed Table/TB_OPERATION_INFO.h) | ?GetOperationInfoTable@XResourceMgr@@QEAAPEAUTB_OPERATION_INFO@@KH@Z | 0x1408d72e0 | implemented | GameServer PDB XSCommon.lib ResourceMgr.obj + cvdump lines ResourceMgr.cpp + IDA + landed fragment | no | insufficient_evidence |
 | - | - | ?FindRoguelikeData@XResourceMgr@@QEAAPEAUTB_MODE_BI_SECTOR_INFO@@HH@Z | 0x1408d73b0 | blocked | IDA ?FindRoguelikeData@XResourceMgr@@QEAAPEAUTB_MODE_BI_SECTOR_INFO@@HH@Z | yes | - |
 | - | - | ?push_back@?$vector@PEAUTB_RANK_INFO@@V?$allocator@PEAUTB_RANK_INFO@@@std@@@std@@QEAAXAEBQEAUTB_RANK_INFO@@@Z | 0x1408d7440 | blocked | IDA ?push_back@?$vector@PEAUTB_RANK_INFO@@V?$allocator@PEAUTB_RANK_INFO@@@std@@@std@@QEAAXAEBQEAUTB_RANK_INFO@@@Z | yes | - |
 | - | - | ?erase@?$_Tree@V?$_Tmap_traits@KUTB_ACHIEVEMENT@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_ACHIEVEMENT@@@std@@@3@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@KUTB_ACHIEVEMENT@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_ACHIEVEMENT@@@std@@@3@$0A@@std@@@std@@@2@V?$_Tree_const_iterator@V?$_Tree_val@V?$_Tmap_traits@KUTB_ACHIEVEMENT@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_ACHIEVEMENT@@@std@@@3@$0A@@std@@@std@@@2@0@Z | 0x1408d74d0 | blocked | IDA ?erase@?$_Tree@V?$_Tmap_traits@KUTB_ACHIEVEMENT@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_ACHIEVEMENT@@@std@@@3@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@KUTB_ACHIEVEMENT@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_ACHIEVEMENT@@@std@@@3@$0A@@std@@@std@@@2@V?$_Tree_const_iterator@V?$_Tree_val@V?$_Tmap_traits@KUTB_ACHIEVEMENT@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUTB_ACHIEVEMENT@@@std@@@3@$0A@@std@@@std@@@2@0@Z | yes | - |
@@ -57436,11 +57446,10 @@ yes | ?????????? |
 | XGameServer | XForceManager.cpp | ?ResForceUpdateInfo@XForceManager@@QEAAXKTUXMapID@@@Z | 0x1401C69D0 | implemented | IDA decompile | yes | Response update info - handles guild update |
 | XGameServer | XForceManager.cpp | ?ResEnterMaze@XForceManager@@QEAAXPEAVCUser@@KAEAUPS_ENTER_MAP_RES@@@Z | 0x1401C68A0 | implemented | IDA decompile | yes | Response enter maze - handles guild maze entry |
 | XGameServer | XForceManager.cpp | ?RecvForceMazeClear@XForceManager@@QEAAXK@Z | 0x1401C6BF0 | implemented | IDA decompile | yes | Receive maze clear - processes maze completion |
-| XGameServer | Maze.cpp | ??0XMaze@@QEAA@XZ | 0x140310550 | implemented | IDA decompile | yes | XMaze constructor - initializes all member containers and default values |
-| XGameServer | Maze.cpp | ??1XMaze@@UEAA@XZ | 0x140310D00 | implemented | IDA decompile | yes | XMaze destructor - cleans up all member containers |
-| XGameServer | Maze.cpp | ?Init@XMaze@@UEAA_NXZ | 0x140311210 | implemented | IDA decompile | yes | Initialize maze - loads resources, creates navmesh, initializes sectors |
+| XGameServer | Maze.cpp | ??0XMaze@@QEAA@XZ | 0x140310550 | implemented | GameServer IDA constructor + PDB member offsets + landed source | no | insufficient_evidence: embedded CTextDBLog constructed; full XMaze member ABI remains unresolved |
+| XGameServer | Maze.cpp | ?Init@XMaze@@UEAA_NXZ | 0x140311210 | implemented | GameServer IDA + PDB TextDBLog.obj + landed source | no | insufficient_evidence: inline log pointer creation replaced with embedded CTextDBLog::Init; other Init branches not fully compared |
 | XGameServer | Maze.cpp | ?Create@XMaze@@UEAA_NAEAUST_CREATE_MAZE@@@Z | 0x140315870 | implemented | IDA decompile | yes | Create maze instance - sets up maze with member list |
-| XGameServer | Maze.cpp | ?Clear@XMaze@@UEAAXXZ | 0x140311C60 | implemented | IDA decompile | yes | Clear maze - destroys all actors and cleans up state |
+| XGameServer | Maze.cpp | ?Clear@XMaze@@UEAAXXZ | 0x140311C60 | implemented | GameServer IDA + landed source | no | insufficient_evidence: SendLogDB restored; remaining cleanup and user handling still partial |
 | XGameServer | Maze.cpp | ?GetMazeType@XMaze@@QEAAEXZ | 0x14005ABD0 | implemented | IDA decompile | yes | Get maze type - returns TB_MAZE_INFO.Maze_Type |
 | XGameServer | Maze.cpp | ?GetMazeGameState@XMaze@@QEAAHXZ | 0x1400492B0 | implemented | IDA decompile | yes | Get maze game state - returns current state flag |
 | XGameServer | MazeProcess.cpp | ??0CMazeProcess@@QEAA@XZ | 0x14050A080 | implemented | IDA decompile | yes | CMazeProcess constructor - initializes base class |

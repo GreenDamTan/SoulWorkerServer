@@ -43,6 +43,10 @@ add_executable(GameServer
     XForceManager.cpp
     TraceHPState.cpp
     Maze.cpp
+    Mode/GameModeBase.cpp
+    Mode/EquilibriumMode.cpp
+    Mode/HiddenEvent.cpp
+    Log/TextDBLog.cpp
     CellPosMgr.cpp
     Timer.cpp
     ModeMaze.cpp
@@ -99,7 +103,6 @@ add_executable(GameServer
     UtilFunc.cpp
     Item/CItem.cpp
     SocialItemObject.cpp
-    HiddenEvent.cpp
     LogicThreadManager_Stub.cpp
     # ManagerStubs.cpp - removed, causes header conflicts with XRelayServer
     # CBlockUser is defined in UserObject.h (XRelayServer)
@@ -117,6 +120,8 @@ add_executable(GameServer
     ${CMAKE_CURRENT_SOURCE_DIR}/../XCore/XArea/Range2DScanner.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../XCore/XArea/XActor.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../XCore/VisionEngineTypes.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../Common/XNet/XCommon/VEventObjectDefine.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../Common/XNet/XCommon/VEventObjectLoader.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../XCore/HavokTypes.cpp
     )
 

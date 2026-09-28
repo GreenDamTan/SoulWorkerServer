@@ -12,23 +12,24 @@
 
 template<typename T>
 UniformGrid<T>::UniformGrid(int width, int height)
-    : m_pVecGridArray(nullptr)
+    : m_unSize(0)
     , m_nWidthGrid(width)
     , m_nHeightGrid(height)
-    , m_unSize(0)
+    , m_pVecGridArray(nullptr)
+    , m_pAroundObjCntArray(nullptr)
 {
-    // IDA: ??0?$UniformGrid@PEAVCMover@@@@QEAA@HH@Z
-    // Allocate grid array
-    int size = width * height;
+    // IDA: ??0?$UniformGrid@PEAVCMover@@@@QEAA@HH@Z (0x1402D2140)
+    const int size = width * height;
     m_pVecGridArray = new std::vector<T>[size];
+    m_pAroundObjCntArray = new int[size]();
+    for (int i = 0; i < size; ++i)
+        m_pVecGridArray[i].reserve(300);
 }
 
 template<typename T>
 UniformGrid<T>::~UniformGrid() {
-    if (m_pVecGridArray) {
-        delete[] m_pVecGridArray;
-        m_pVecGridArray = nullptr;
-    }
+    delete[] m_pVecGridArray;
+    delete[] m_pAroundObjCntArray;
 }
 
 template<typename T>
@@ -88,6 +89,32 @@ bool UniformGrid<T>::Erase(int gridX, int gridY, const T& obj) {
     return true;
 }
 
+template<typename T>
+bool UniformGrid<T>::Erase(const T& obj) {
+    // TODO: 汇编还原
+    const int size = m_nHeightGrid * m_nWidthGrid;
+    for (int i = 0; i < size; ++i) {
+        auto& grid = m_pVecGridArray[i];
+        const auto it = std::find(grid.begin(), grid.end(), obj);
+        if (it != grid.end()) {
+            *it = grid.back();
+            grid.pop_back();
+            --m_unSize;
+            return true;
+        }
+    }
+    return false;
+}
+
+template<typename T>
+void UniformGrid<T>::AddAroundObjCount(int gridX, int gridY, int count) {
+    if (FindGrid(gridX, gridY)) {
+        const int index = ConvertPosToIndex(gridX, gridY);
+        if (index >= 0)
+            m_pAroundObjCntArray[index] += count;
+    }
+}
+
 // ============================================================================
 // Range2DScanner Implementation
 // ============================================================================
@@ -132,11 +159,16 @@ void Range2DScanner<T>::ScanGrid(float fx, float fy, int rangeX, int rangeY, std
 
 template<typename T>
 void Range2DScanner<T>::ScanGridAndSetObjCnt(float fx, float fy, int rangeX, int rangeY, std::vector<T>& vecOut, int nCount) {
-    // IDA 0x14029C720
-    // Similar to ScanGrid but also sets object count
-    ScanGrid(fx, fy, rangeX, rangeY, vecOut);
-    (void)nCount;  // TODO: Implement count logic
-    GreenDamTan_log(__FILE__, __FUNCTION__, "ScanGridAndSetObjCnt");
+    if (!m_uniformGridPtr)
+        return;
+
+    Coord srcCoord = CalcCoordFromPos(fx, fy);
+    std::vector<Coord> coordList;
+    MakeCoordList(srcCoord.x, srcCoord.y, rangeX, rangeY, coordList);
+    for (const Coord& coord : coordList) {
+        m_uniformGridPtr->Enumerate(coord.x, coord.y, vecOut);
+        m_uniformGridPtr->AddAroundObjCount(coord.x, coord.y, nCount);
+    }
 }
 
 template<typename T>
@@ -168,10 +200,7 @@ bool Range2DScanner<T>::Erase(float dx, float dy, const T& obj) {
 template<typename T>
 bool Range2DScanner<T>::Erase(const T& obj) {
     // IDA 0x1401A8D80
-    // Erase without position - need to search all cells
-    (void)obj;
-    GreenDamTan_log(__FILE__, __FUNCTION__, "Erase (no pos) stub");
-    return true;
+    return m_uniformGridPtr && m_uniformGridPtr->Erase(obj);
 }
 
 template<typename T>

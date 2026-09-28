@@ -5,6 +5,7 @@
 #include "Soulworker/GameServer/XGameServer/RespawnManager.h"
 #include "Soulworker/GameServer/XGameServer/VaccumManager.h"
 #include "Soulworker/GameServer/XGameServer/GameWorldMode.h"
+#include "Soulworker/Common/XNet/XCommon/VEventObjectDefine.h"
 #include <cstdint>
 #include <map>
 #include <list>
@@ -59,6 +60,7 @@ class XActor;
 class CMover;
 struct TB_MAZE_INFO;
 struct VMonsterSpawnInfo;
+struct VCheckMonsterSpawnInfo;
 struct STMageProcessSpawnBox;
 struct STMageEventSpawnBox;
 struct STInteractionBox;
@@ -148,83 +150,6 @@ class DohHavokNavMeshInstance;
 // Forward declaration - TB_MONSTER is defined in TB_MONSTER.h
 struct TB_MONSTER;
 
-// Per IDA - VMonsterSpawnInfo 结构中的怪物信息
-struct VMonsterSpawnInfo_MonsterInfo {
-    int m_iID;                           // 怪物/NPC ID
-    int m_iType;                         // 类型 (0=Monster, 1=NPC, 2/4=特殊怪物)
-    int m_iChance;                       // 生成概率
-    // ... 其他字段
-};
-
-// Per IDA - VMonsterSpawnInfo 生成箱信息
-// IDA 0x1402AD220 GetSpawnPos 分析确认的字段偏移:
-//   PosTopLeft at offset 0x14 (20)
-//   PosBottomRight at offset 0x20 (32)
-//   m_iCreationPositionType at offset 0x11C (284)
-struct VMonsterSpawnInfo {
-    int iID;                             // 生成箱ID (PDB VEventBoxInfo::iID 继承语义)
-    // PDB fieldlist 0x72694: 原始继承 VEventBoxInfo(164B), iUniqueID 是基类成员 +12;
-    // 活跃版以平铺替身复现, 此处按 PDB 名补齐
-    int iUniqueID;                       // 事件唯一 ID (PDB VEventBoxInfo::iUniqueID 继承语义)
-    int m_iSectorID;                     // 区域ID
-    // IDA: PosTopLeft at offset 20 (0x14)
-    struct { float x; float y; float z; } PosTopLeft;      // 生成区域左上角
-    // IDA: PosBottomRight at offset 32 (0x20)
-    struct { float x; float y; float z; } PosBottomRight;  // 生成区域右下角
-    int m_iMaxEntityCount;               // 最大实体数量
-    float fRotate;                       // 旋转角度
-    int m_iGroupID;                      // 组ID
-    int m_iMoveType;                     // 移动类型
-    int m_iWaypoint;                     // 路点ID
-    int m_iAggroGroupID;                 // 仇恨组ID
-    int m_iAggroDistance;                // 仇恨距离
-    int m_iAggroMaxCount;                // 最大仇恨数量
-    float m_fTakeTargetRatio;            // 目标比率
-    float m_RespawnTime;                 // 重生时间 (PDB +624)
-    int m_iCreationCondition;            // 创建条件 (1=立即生成, 2=事件触发)
-    char m_ChangeSpawnAction[256];       // 生成动作名称
-    VMonsterSpawnInfo_MonsterInfo m_stMonsterInfo[10]; // 怪物信息数组
-    int m_iWaitCreationSequenceType;     // 等待创建序列类型
-    int m_iWaitCreationMaxWave;          // 等待创建最大波数
-    float m_fWaitCreationDelayTime;      // 等待创建延迟时间
-    float m_fWaitCreationSequenceTime;   // 等待创建序列时间
-    // IDA: SetupScriptTraceHP 使用的字段
-    int m_iScriptType;                   // 脚本类型 (1=单次检查, 2=多阶段检查)
-    int m_iCheckScirptHP[5];             // 检查脚本HP百分比 (5个阶段)
-    // IDA 0x1402AD220: m_iCreationPositionType at offset 0x11C (284)
-    // 0 = 中心点, 1/2 = 随机位置
-    int m_iCreationPositionType;         // 生成位置类型
-    // IDA: m_szObjectKey - 对象键名 (used in AddDieMonsterSpawnBoxID)
-    char m_szObjectKey[64];              // 对象键名
-    // ---- 批10 补齐: PDB fieldlist 0x72694 尾部字段 (原活跃版缺失) ----
-    int m_ProtectionTarget = 0;          // PDB +620
-    int m_iStep = 0;                     // PDB +628
-    int m_eRespawnType = 0;              // PDB +632 (SetQuestRespawn 判 == 1)
-    int m_iRespawnCondition = 0;        // PDB +636 (SetQuestRespawn 传 CGocQuest::FindCondition)
-    char m_CreationEffectFile[128] = {}; // PDB +640 (0x4CE1, 128B)
-};
-
-// Per IDA - STMageProcessSpawnBox 处理生成箱
-struct STMageProcessSpawnBox {
-    VMonsterSpawnInfo* pSpawnBox;        // 生成箱信息
-    bool bActive;                        // 是否激活
-    bool bSpawned;                       // 是否已生成
-    bool bTerminate;                     // 是否终止
-    int nSpawnOrder;                     // 生成顺序
-    float nCreatedCount;                 // 已创建计数
-    float fDelayTime;                    // 延迟时间
-    // ... 其他字段
-};
-
-// Per IDA - STMageEventSpawnBox 事件生成箱
-// IDA: Used in ExcuteEventSpawn
-struct STMageEventSpawnBox {
-    int nLoopCount;                      // 循环计数
-    void* pEventBox;                     // 事件箱指针 (contains m_iCheckBox[10])
-    // ... 其他字段
-
-    STMageEventSpawnBox() : nLoopCount(0), pEventBox(nullptr) {}
-};
 
 // TODO: 需人工审查 - CMonster 最小定义（继承自 MoverEx.h）
 // Note: XActor 是前置声明，实际定义在 MoverEx.h 中

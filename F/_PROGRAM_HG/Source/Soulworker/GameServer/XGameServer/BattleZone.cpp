@@ -1,4 +1,5 @@
 #include "Soulworker/GameServer/XGameServer/BattleZone.h"
+#include "Soulworker/GameServer/XGameServer/Maze.h"
 #include "Soulworker/GameServer/XGameServer/Monster.h"
 #include "Soulworker/GameServer/XCore/XArea/XActor.h"
 // Note: CMonster 和 CNpc 在 BattleZone.h 中前置声明

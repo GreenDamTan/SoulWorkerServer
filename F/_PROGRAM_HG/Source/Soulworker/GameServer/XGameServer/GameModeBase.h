@@ -5,40 +5,39 @@
 #pragma once
 
 #include <cstdint>
+#include "Soulworker/GameServer/XCore/XServer/IXObject.h"
 
 class XMaze;
+class CUser;
+enum eGAMEMODE_TYPE : int;
 
 // GameModeBase - Base class for game modes
-class GameModeBase {
+class GameModeBase : public IXObject {
 public:
-    GameModeBase() : m_pMaze(nullptr), m_bPlayMode(0), m_byModeResult(0) {}
-    virtual ~GameModeBase() = default;
+    GameModeBase();
+    ~GameModeBase() override;
 
-    // IDA: ?Init@GameModeBase@@QEAAXXZ (0x1402a7240)
-    // Initializes the game mode base
-    void Init() {
-        m_pMaze = nullptr;
-        m_bPlayMode = 0;
-        m_byModeResult = 0;
-    }
+    void Init();
+    virtual void Tick(float fDelta);
+    virtual void StartMode(XMaze* pMaze);
+    virtual bool CheckEndMode();
+    virtual void SetModeState(int nState);
+    virtual void Intrusion(CUser* pUser);
 
-    // Virtual methods for derived classes
-    virtual void Start() {}
-    virtual void Update(float fDelta) {}
-    virtual void Finish() {}
+    bool IsPlaying() const { return m_bPlayMode; }
+    std::uint8_t GetModeResult() { return m_byModeResult; }
+    XMaze* GetMaze() { return m_pMaze; }
+    eGAMEMODE_TYPE GetModeType() { return m_eModeType; }
 
-    // Accessors
-    XMaze* GetMaze() const { return m_pMaze; }
-    void SetMaze(XMaze* pMaze) { m_pMaze = pMaze; }
-
-    bool IsPlayMode() const { return m_bPlayMode != 0; }
-    void SetPlayMode(bool bPlay) { m_bPlayMode = bPlay ? 1 : 0; }
-
-    std::uint8_t GetModeResult() const { return m_byModeResult; }
-    void SetModeResult(std::uint8_t byResult) { m_byModeResult = byResult; }
+    void SendNoticePacket(XMaze* pMaze, int nType, int nValue, float fTime, bool bExceptDie);
+    void SendNoticePacket(CUser* pUser, int nType, int nValue, float fTime);
 
 protected:
-    XMaze* m_pMaze;          // Pointer to the maze
-    std::int32_t m_bPlayMode;  // Play mode flag
-    std::uint8_t m_byModeResult;  // Mode result
+    bool m_bPlayMode;
+    std::uint8_t m_byModeResult;
+    XMaze* m_pMaze;
+    eGAMEMODE_TYPE m_eModeType;
+    int m_nModeState;
 };
+
+static_assert(sizeof(GameModeBase) == 88, "GameModeBase size must match GameServer PDB");

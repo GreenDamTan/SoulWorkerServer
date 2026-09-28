@@ -39,7 +39,10 @@ public:
     // Erase - Remove object from grid position
     // IDA: ?Erase@?$UniformGrid@PEAVCMover@@@@QEAA_NHHAEBQEAVCMover@@@Z
     bool Erase(int gridX, int gridY, const T& obj);
-    
+    bool Erase(const T& obj);
+
+    void AddAroundObjCount(int gridX, int gridY, int count);
+
 private:
     // FindGrid - Find grid cell at coordinates
     // IDA: ?FindGrid@?$UniformGrid@PEAVCMover@@@@AEBAPEAV?$vector@PEAVCMover@@...@@HH@Z
@@ -55,10 +58,11 @@ private:
     int ConvertPosToIndex(int x, int y) const;
     
     // === Member variables (from IDA struct analysis) ===
-    std::vector<T>* m_pVecGridArray;  // Array of vectors for each grid cell
+    int m_unSize;                      // Total number of objects in grid
     int m_nWidthGrid;                  // Grid width (number of cells in X)
     int m_nHeightGrid;                 // Grid height (number of cells in Y)
-    size_t m_unSize;                   // Total number of objects in grid
+    std::vector<T>* m_pVecGridArray;  // Array of vectors for each grid cell
+    int* m_pAroundObjCntArray;         // Nearby player count for each grid cell
 };
 
 // ============================================================================

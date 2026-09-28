@@ -10,9 +10,11 @@
 #include "Soulworker/GameServer/XGameServer/Timer.h"
 #include "Soulworker/GameServer/XGameServer/CellPosMgr.h"
 #include "Soulworker/GameServer/XGameServer/RespawnManager.h"
+#include "Soulworker/GameServer/XGameServer/Log/GreenDamTan_TextDBLog.h"
 #include "Soulworker/Common/XNet/XCommon/PSServer/PSServerCore.h"
 #include "Soulworker/Common/XNet/XCommon/PSServer/PSServerMapMaze.h"
 #include <cstdint>
+#include <cstddef>
 #include <map>
 #include <list>
 #include <vector>
@@ -31,7 +33,9 @@ class CMover;
 class VGameHelper;
 struct TB_MAZE_INFO;
 struct VMonsterSpawnInfo;
+struct VCheckEventSpawnBoxInfo;
 struct STMageProcessSpawnBox;
+struct STMageCheckEventSpawnBox;
 struct STMageEventSpawnBox;
 struct STInteractionBox;
 struct VSafeAreaBoxInfo;
@@ -55,23 +59,54 @@ class CCellPosMgr;
 class GameModeMgr;
 class ThreadLocalData;
 struct VEventObjectInfo;
+struct VCheckMonsterSpawnInfo;
 
-// CTextDBLog - Text DB Log for maze logging (IDA confirmed)
-class CTextDBLog {
-public:
-    static void Init(CTextDBLog** ppThis, __int64 nMapID) {
-        // IDA: CTextDBLog::Init - creates log instance for maze
-        if (ppThis && !*ppThis) {
-            *ppThis = new CTextDBLog();
-            (*ppThis)->m_nMapID = nMapID;
-        }
-    }
+// Per IDA - STMageProcessSpawnBox 处理生成箱
+struct STMageProcessSpawnBox {
+    int nBoxIndex;                       // PDB +0
+    bool bActive;                        // PDB +4
+    float fDelayTime;                    // PDB +8
+    float fSequenceTime;                 // PDB +12
+    float nCreatedCount;                 // PDB +16
+    int nSpawnOrder;                     // PDB +20
+    bool bTerminate;                     // PDB +24
+    bool bSpawned;                       // PDB +25
+    VMonsterSpawnInfo* pSpawnBox;         // PDB +32
 
-    ~CTextDBLog() {}
-
-private:
-    __int64 m_nMapID;
+    STMageProcessSpawnBox();
 };
+static_assert(sizeof(STMageProcessSpawnBox) == 40,
+              "STMageProcessSpawnBox size must match PDB (40)");
+
+// Per IDA - STMageEventSpawnBox 事件生成箱
+// IDA: Used in ExcuteEventSpawn
+struct STMageEventSpawnBox {
+    int nBoxIndex;                       // PDB +0
+    int nLoopCount;                      // PDB +4
+    VCheckMonsterSpawnInfo* pEventBox;    // PDB +8
+
+    STMageEventSpawnBox();
+};
+static_assert(sizeof(STMageEventSpawnBox) == 16,
+              "STMageEventSpawnBox size must match PDB (16)");
+
+struct STMageCheckEventSpawnBox {
+    int nBoxIndex;
+    bool bActive;
+    float fDelayTime;
+    VCheckEventSpawnBoxInfo* pEventBox;
+
+    STMageCheckEventSpawnBox() {
+        nBoxIndex = 0;
+        fDelayTime = 0.0f;
+        bActive = false;
+        pEventBox = nullptr;
+    }
+};
+static_assert(sizeof(STMageCheckEventSpawnBox) == 24,
+              "STMageCheckEventSpawnBox size must match PDB (24)");
+static_assert(offsetof(STMageCheckEventSpawnBox, pEventBox) == 16,
+              "STMageCheckEventSpawnBox.pEventBox offset mismatch");
 
 // STInfiniteTowerInfo - Infinite Tower state
 // PDB UDT 0x6D6F6 (fieldlist 0x6D6F5), Size = 12:
@@ -598,7 +633,7 @@ public:
     // IDA: ?SendBroadCast@XMaze@@UEAAXAEAVXSendPacket@@PEAVXActor@@W4E_BROADCAST_TYPE@IXArea@@@Z (0x1403265E0)
     void SendBroadCast(XSendPacket& xSendPacket, XActor* pExceptActor, E_BROADCAST_TYPE eBroadCastType) override;
     // IDA: ?SendBroadCast@XMaze@@UEAAXAEAVXSendPacket@@PEAVXActor@@_NW4E_BROADCAST_TYPE@IXArea@@@Z (0x1403266F0)
-    void SendBroadCast(XSendPacket& xSendPacket, XActor* pExceptActor, bool ExceptDie, E_BROADCAST_TYPE eBroadCastType);
+    virtual void SendBroadCast(XSendPacket& xSendPacket, XActor* pExceptActor, bool ExceptDie, E_BROADCAST_TYPE eBroadCastType);
     // Legacy pointer-based overload for backward compatibility
     void SendBroadCast(XSendPacket* pPacket, XActor* pExceptActor, E_BROADCAST_TYPE eType);
 
@@ -664,7 +699,7 @@ public:
 
     // === Set Event Sector ===
     // IDA: ?SetEventSector@XMaze@@QEAAXPEAVCSector@@@Z (0x1402A70E0)
-    void SetEventSector(CSector* pSector);
+    void SetEventSector(CSector* pSector) { m_pActiveEventSector = pSector; }
 
     // === AI/Sector ===
     // IDA: ?RunSectorAI@XMaze@@QEAAXH_N@Z (0x14031F7C0)
@@ -1407,6 +1442,12 @@ public:
     // IDA: ?ExcuteCheckEventSpawnBox@XMaze@@QEAAXPEAVCUser@@HH@Z (0x140317b60)
     void ExcuteCheckEventSpawnBox(CUser* pUser, int nSectorID, int nBoxIndex);
 
+    // IDA: ?ExcuteSpawnBoxCheck@XMaze@@QEAAHHW4E_SEND_INFO_TYPE@IXArea@@_N@Z (0x14031A7B0)
+    int ExcuteSpawnBoxCheck(int nBoxID, E_SEND_INFO_TYPE eType, bool bLuaCall);
+
+    // IDA: ?GetProcessSpawnBoxInfo@XMaze@@QEAAPEAUVMonsterSpawnInfo@@G@Z (0x14031A980)
+    VMonsterSpawnInfo* GetProcessSpawnBoxInfo(std::uint16_t wSpawnIndex);
+
     // IDA: ?ExcuteSpawnBox@XMaze@@QEAAXPEAUSTMageProcessSpawnBox@@W4E_SEND_INFO_TYPE@IXArea@@@Z (0x14031aac0)
     void ExcuteSpawnBox(void* pProcessSpawn, E_SEND_INFO_TYPE eType);
 
@@ -1606,14 +1647,14 @@ protected:
     // Monster Kill Score Mode - IDA confirmed
     STMonsterKillScoreMode m_stMonsterKillScoreMode;
 
-    // Text DB Log - IDA confirmed
-    CTextDBLog* m_textDBLog;
+    // Maze Log - PDB +2692 (relative to the original XMaze layout)
+    int m_nMazeLog[10];
+
+    // Text DB Log - PDB +2736
+    CTextDBLog m_textDBLog;
 
     // Maze Create Info - IDA: stored after Init() success
     ST_CREATE_MAZE m_stCreateMazeInfo;
-
-    // Maze Log
-    int m_nMazeLog[10];
 
     // Hidden Event - IDA confirmed
     void* m_pHiddenEvent;  // TODO: proper type for hidden event
@@ -1647,7 +1688,7 @@ protected:
 
     // === Maps ===
     std::map<int, STMageProcessSpawnBox*> m_mapProcessSpawnBox;
-    std::map<int, STMageEventSpawnBox*> m_mapCheckEventSpawnBox;
+    std::map<int, STMageCheckEventSpawnBox*> m_mapCheckEventSpawnBox;
     std::map<int, STMageEventSpawnBox*> m_mapEventSpawnBox;
     std::map<int, STMagePotalBox*> m_mapPotalBox;
     std::map<int, STMagePotalBox*> m_mapRandomPotalBox;

@@ -5,6 +5,7 @@
 #include "Soulworker/GameServer/XGameServer/User.h"
 #include "Soulworker/GameServer/XSCommon/Table/DBLoadTable.h"
 #include "Soulworker/Common/XNet/XIOCPBase/Packet.h"
+#include "Soulworker/Common/XNet/XCommon/PSCommon.h"
 #include "Soulworker/GameServer/XCore/XServer/GreenDamTan_MyRoomStructs.h"
 #include "Soulworker/GameServer/XGameServer/InteractionObject.h"
 #include "Soulworker/GameServer/XCore/XArea/XActor.h"
@@ -15,22 +16,6 @@
 #include "Soulworker/GameServer/XGameServer/Npc.h"
 #include "Soulworker/GameServer/XGameServer/Monster.h"
 #include "Soulworker/GameServer/XGameServer/BattleZone.h"
-
-// ST_MOVE_TRANSPORT_TAKE - Transport take packet structure
-// IDA: Used in XMyRoom::SendTransportationInfo
-struct ST_MOVE_TRANSPORT_TAKE {
-    std::uint32_t dwActorID = 0;
-    std::uint16_t wTransportTableIdx = 0;
-    float fStartTime = 0.0f;
-};
-
-// XSendPacket operator<< for ST_MOVE_TRANSPORT_TAKE
-XSendPacket& operator<<(XSendPacket& packet, const ST_MOVE_TRANSPORT_TAKE& data) {
-    packet << data.dwActorID;
-    packet << data.wTransportTableIdx;
-    packet << data.fStartTime;
-    return packet;
-}
 
 XMyRoom::XMyRoom()
     : XArea()

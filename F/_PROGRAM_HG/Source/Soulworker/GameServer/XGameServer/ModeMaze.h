@@ -4,6 +4,7 @@
 #pragma once
 
 #include "Soulworker/GameServer/XGameServer/Maze.h"
+#include "Soulworker/GameServer/XCore/XArea/Range2DScanner.h"
 #include <map>
 #include <vector>
 #include <string>
@@ -155,7 +156,7 @@ public:
     virtual bool Create(ST_CREATE_MAZE& stCreateMaze);
 
     // IDA: ?Create@XModeMaze@@QEAA_NAEAUST_CREATE_MODE_MAZE@@@Z (0x14028DCA0)
-    bool CreateModeMaze(struct ST_CREATE_MODE_MAZE& stCreateModeMaze);
+    bool Create(struct ST_CREATE_MODE_MAZE& stCreateModeMaze);
 
     // === Object Info ===
     // IDA: ?SendObjectInfo@XModeMaze@@UEAA_NPEAVXActor@@_N@Z (0x14028E2A0)
@@ -189,7 +190,7 @@ public:
 
     // === Scanner ===
     // IDA: ?GetScanner@XModeMaze@@QEAAPEAV?$Range2DScanner@PEAVCMover@@@@PEAVXActor@@@Z (0x14028F7B0)
-    void* GetScanner(XActor* pActor);  // TODO: Return proper Range2DScanner<CMover*>*
+    Range2DScanner<CMover*>* GetScanner(XActor* pActor);
 
     // === Actor Enter/Exit ===
     // IDA: ?EnterActor@XModeMaze@@UEAAGPEAVXActor@@@Z (0x14028F810)
@@ -224,6 +225,10 @@ public:
 
     // IDA: ?ProcessSendLeaveObjectListToPlayer@XModeMaze@@QEAAXPEAVXActor@@AEAV?$vector@PEAVCMover@@V?$allocator@PEAVCMover@@@std@@@std@@@Z (0x140291EC0)
     void ProcessSendLeaveObjectListToPlayer(XActor* pActor, std::vector<CMover*>& vecLeaveObjList);
+
+    // PDB: ModeMaze.obj; IDA folds identical bodies with XDistrict methods.
+    void ProcessSendEnterObjectToOthers(std::vector<CMover*>& vecPlayerList, XActor* pActor);
+    void ProcessSendTranslateInfoToOthers(XActor* pActor, std::vector<CMover*>& vecPlayerList);
 
     // === Send Info Functions ===
     // IDA: ?ProcessSendEnterObjectListToPlayer@XModeMaze@@QEAAXPEAVXActor@@AEAV?$vector@PEAVCMover@@V?$allocator@PEAVCMover@@@std@@@std@@1@Z (0x140292700)
@@ -367,52 +372,34 @@ public:
 
     // === Broadcast ===
     // IDA: ?SendBroadCast@XModeMaze@@UEAAXAEAVXSendPacket@@PEAVXActor@@W4E_BROADCAST_TYPE@IXArea@@@Z (0x140298870)
-    virtual void SendBroadCast(XSendPacket* pPacket, XActor* pExceptActor, E_BROADCAST_TYPE eType);
+    void SendBroadCast(XSendPacket& packet, XActor* pActor, E_BROADCAST_TYPE eType) override;
 
     // IDA: ?SendBroadCast@XModeMaze@@UEAAXAEAVXSendPacket@@PEAVXActor@@_NW4E_BROADCAST_TYPE@IXArea@@@Z (0x1402989A0)
-    virtual void SendBroadCast(XSendPacket* pPacket, XActor* pExceptActor, bool bSend, E_BROADCAST_TYPE eType);
+    void SendBroadCast(XSendPacket& packet, XActor* pActor, bool bExceptDie, E_BROADCAST_TYPE eType) override;
 
     // IDA: ?SendBroadCastAll@XModeMaze@@QEAAXAEAVXSendPacket@@_N@Z (0x140298C00)
-    void SendBroadCastAll(XSendPacket* pPacket, bool bSend);
+    void SendBroadCastAll(XSendPacket& packet, bool bExceptDie);
 
     // === Cheat ===
     // IDA: ?SetPlayTimeStop_Cheat@XModeMaze@@QEAAXXZ (0x140298D20)
     void SetPlayTimeStop_Cheat();
 
 protected:
-    // === IDA confirmed member variables ===
-
-    // Operation Info Table
+    // TODO: 需人工审查：XMaze 当前布局仍未达到 PDB 的 3904 字节，派生类绝对偏移待核对。
+    AREA_OBJECT m_objectGridScanner;
+    int m_pcCount = 0;
+    bool m_bHotTime;
+    std::uint32_t m_dwEventRoomID;
     TB_OPERATION_INFO* m_pTB_OPERATION_INFO;
-
-    // Party member count (from XMaze but re-declared here)
-    int m_nPartyMemeberCount;
-    int m_nMaxUserCount;
-
-    // Dimension/Shutter variables
+    std::map<unsigned long, int> m_mapFirstJumpID;
+    std::map<unsigned long, int> m_mapFirstSectorID;
+    std::uint64_t m_dw64DemensionInfoSendTick;
+    std::uint64_t m_dw64DemensionReviveTick;
+    std::uint32_t m_dwLastCheckPlayTime;
     int m_nMaxDemensionTime;
     int m_nMaxDemensionPoint;
     int m_nTotalDemensionPoint;
     int m_nGoalDemensionPoint;
-    std::uint64_t m_dw64DemensionInfoSendTick;
-    std::uint64_t m_dw64DemensionReviveTick;
-    std::uint32_t m_dwLastCheckPlayTime;
-    bool m_bPlayTimeStop_Cheat;
-    bool m_bHotTime;
-    std::uint32_t m_dwEventRoomID;
-
-    // Grid Scanner for objects
-    // TODO: AREA_OBJECT m_objectGridScanner;
-    char m_objectGridScanner_dummy[256];  // Placeholder for AREA_OBJECT
-
-    // Enter limit maps
-    std::map<std::uint32_t, std::uint32_t> m_mapFirstJumpID;      // UXActorID -> JumpID
-    std::map<std::uint32_t, std::uint32_t> m_mapFirstSectorID;    // UXActorID -> SectorID
-    std::map<unsigned long, int> m_mapCheckSectorUser;            // UCID -> UniqueID for sector check
-
-    // ModeMaze wait enter user info map (stores ST_MAZE_WAIT_ENTER_USER_INFO)
-    std::map<unsigned long, ST_MAZE_WAIT_ENTER_USER_INFO> m_mapModeMazeWaitEnterUser;
-
-    // Dimension Score Map
     std::map<unsigned long, ST_SERVER_MODE_MAZE_USER_SCORE> m_mapDemensionScore;
+    bool m_bPlayTimeStop_Cheat;
 };

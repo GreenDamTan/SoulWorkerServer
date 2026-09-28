@@ -12,13 +12,13 @@ class CMover;
 // E_BROADCAST_TYPE - Broadcast type enumeration for area broadcast
 // IDA: Used by CGocNetwork::SendBroadCast and XArea::SendBroadCast
 enum class E_BROADCAST_TYPE : std::uint32_t {
-    eNoneSelf = 0,              // 不发送给自己
-    eAll = 1,                   // 发送给所有
-    eNearby = 2,                // 发送给附近
-    // Legacy names for backward compatibility
+    eAll = 0,                   // 发送给所有
+    eNoneSelf = 1,              // 不发送给自己
+    eAll_InMap = 2,             // 向地图内所有玩家发送
+    eNearby = eAll_InMap,
     E_BROADCAST_TYPE_NORMAL = eNoneSelf,
     E_BROADCAST_TYPE_ALL = eAll,
-    E_BROADCAST_TYPE_NEARBY = eNearby,
+    E_BROADCAST_TYPE_NEARBY = eAll_InMap,
 };
 
 // TODO: 推测结果 - 需要IDA验证

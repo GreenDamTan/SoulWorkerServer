@@ -3856,6 +3856,25 @@ inline void operator>>(XPacket& packet, ST_MOVE_IGNORE_MOTION_DELTA& value) {
     packet.XParse >> value.bForced;
 }
 
+struct ST_MOVE_TRANSPORT_TAKE {
+    std::uint32_t dwActorID = 0;
+    std::uint16_t wTransportTableIdx = 0;
+    std::uint32_t dwNpcID = 0;
+    float fStartTime = 0.0f;
+};
+
+static_assert(sizeof(ST_MOVE_TRANSPORT_TAKE) == 16);
+static_assert(offsetof(ST_MOVE_TRANSPORT_TAKE, dwNpcID) == 8);
+static_assert(offsetof(ST_MOVE_TRANSPORT_TAKE, fStartTime) == 12);
+
+inline XPacket& operator<<(XPacket& packet, const ST_MOVE_TRANSPORT_TAKE& value) {
+    packet.XParse << value.dwActorID;
+    packet.XParse << value.wTransportTableIdx;
+    packet.XParse << value.dwNpcID;
+    packet.XParse << value.fStartTime;
+    return packet;
+}
+
 /**
  * @brief 传送信息结构
  * 用于 main=4, sub=8 (eMAIN_CMD_MOVE, eSUB_CMD_WARP)

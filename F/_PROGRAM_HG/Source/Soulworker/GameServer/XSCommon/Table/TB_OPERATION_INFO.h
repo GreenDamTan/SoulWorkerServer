@@ -69,6 +69,7 @@ static_assert(sizeof(TB_OPERATION_INFO) == 0xCA, "TB_OPERATION_INFO size must ma
 
 #if defined(GREENDAMTAN_TB_XRES_PUBLIC_DECL_SECTION)
     TB_OPERATION_INFO* GetTB_OPERATION_INFO(unsigned int index) ;
+    TB_OPERATION_INFO* GetOperationInfoTable(unsigned int dwID, int nWorldID) ;
     void SetTB_OPERATION_INFO(unsigned int index, const TB_OPERATION_INFO& row) ;
 #endif
 
@@ -81,6 +82,14 @@ static_assert(sizeof(TB_OPERATION_INFO) == 0xCA, "TB_OPERATION_INFO size must ma
 TB_OPERATION_INFO* XResourceMgr::GetTB_OPERATION_INFO(unsigned int index) {
         const auto it = m_mapTB_OPERATION_INFO.find(index);
         return it == m_mapTB_OPERATION_INFO.end() ? nullptr : &it->second;
+    }
+
+// IDA: ?GetOperationInfoTable@XResourceMgr@@QEAAPEAUTB_OPERATION_INFO@@KH@Z (0x1408D72E0)
+TB_OPERATION_INFO* XResourceMgr::GetOperationInfoTable(unsigned int dwID, int nWorldID) {
+        const auto it = m_mapTB_OPERATION_INFO.find(dwID * 100u + static_cast<unsigned int>(nWorldID));
+        if (it != m_mapTB_OPERATION_INFO.end())
+            return &it->second;
+        return GetTB_OPERATION_INFO(dwID);
     }
 
 void XResourceMgr::SetTB_OPERATION_INFO(unsigned int index, const TB_OPERATION_INFO& row) {

@@ -11,7 +11,7 @@
 
 // Forward declarations
 class XMaze;
-class XGameMode;
+class GameModeBase;
 class CUser;
 class CMonster;
 class XActor;
@@ -75,14 +75,14 @@ struct ST_LUA_CLIENT_SYNC {
 #include "Soulworker/GameServer/XGameServer/BattleZone.h"
 
 // eGAMEMODE_TYPE - Game mode type enumeration
-enum eGAMEMODE_TYPE {
-    eGAMEMODE_TYPE_NONE = 0,
-    eGAMEMODE_TYPE_NORMAL = 1,
-    eGAMEMODE_TYPE_PVP = 2,
-    eGAMEMODE_TYPE_PARTY_QUEST = 3,
-    eGAMEMODE_TYPE_SURVIVAL = 4,
-    eGAMEMODE_TYPE_BOSS = 5,
-    eGAMEMODE_TYPE_OPERATION = 6,
+enum eGAMEMODE_TYPE : int {
+    eGM_MODE_NONE = 0,
+    eGM_MODE_DEFENCE = 1,
+    eGM_MODE_SURVIVAL = 2,
+    eGM_MODE_UNITY = 3,
+    eGM_MODE_WARLORD = 4,
+    eGM_MODE_EQ = 5,
+    eGM_MODE_OPERATION = 6,
 };
 
 // ============================================================================
@@ -272,7 +272,7 @@ public:
 
     // === Setters ===
     void SetMaze(XMaze* pMaze) { m_pMaze = pMaze; }
-    void SetGameMode(XGameMode* pGameMode) { m_pGameMode = pGameMode; }
+    void SetMode(GameModeBase* pGameMode) { m_pGameMode = pGameMode; }
     void SetSectorBox(VSectorBox* pBox) { m_pSectorBox = pBox; }
     void SetSectorStartBox(VSectorStartBoxInfo* pBox) { m_pSectorStartBox = pBox; }
     void SetRogueKey(int nKey) { m_nRogueKey = nKey; }
@@ -288,7 +288,7 @@ public:
 
     // === Getters ===
     XMaze* GetMaze() const { return m_pMaze; }
-    XGameMode* GetGameMode() const { return m_pGameMode; }
+    GameModeBase* GetGameMode() const { return m_pGameMode; }
     VSectorBox* GetSectorBox() const { return m_pSectorBox; }
     bool IsComplete() const { return m_bComplete; }
     bool IsCanAI() const { return m_bCanAI; }
@@ -306,7 +306,7 @@ protected:
     XMaze* m_pMaze;
 
     // Game mode reference
-    XGameMode* m_pGameMode;
+    GameModeBase* m_pGameMode;
 
     // Sector flags
     bool m_bAI;                  // AI enabled

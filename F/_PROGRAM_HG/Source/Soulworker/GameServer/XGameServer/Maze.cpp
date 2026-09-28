@@ -39,6 +39,23 @@
 #include <cstdlib>
 #include <algorithm>
 
+STMageProcessSpawnBox::STMageProcessSpawnBox() {
+    bActive = false;
+    nBoxIndex = 0;
+    fDelayTime = 0.0f;
+    fSequenceTime = 0.0f;
+    nCreatedCount = 0.0f;
+    nSpawnOrder = 0;
+    bTerminate = false;
+    bSpawned = false;
+    pSpawnBox = nullptr;
+}
+
+STMageEventSpawnBox::STMageEventSpawnBox()
+    : nBoxIndex(0)
+    , nLoopCount(0)
+    , pEventBox(nullptr) {}
+
 // 外部全局变量
 extern std::string g_strCurPath_10;
 
@@ -2037,7 +2054,7 @@ bool XMaze::Init() {
     }
 
     // IDA: CTextDBLog::Init(&this->m_textDBLog, ...)
-    CTextDBLog::Init(&m_textDBLog, static_cast<__int64>(GetMapID().nMapID));
+    m_textDBLog.Init(static_cast<__int64>(GetMapID().nMapID));
 
     // Generate Maze
     Generate();
@@ -2168,7 +2185,7 @@ void XMaze::Clear() {
     }
 
     // IDA: 发送文本DB日志
-    // CTextDBLog::SendLogDB(&m_textDBLog);
+    m_textDBLog.SendLogDB();
 
     // IDA: 遍历 objectScanner 中的所有玩家，踢出他们
     for (auto it = m_objectScanner.begin(); it != m_objectScanner.end(); ++it) {
@@ -2814,7 +2831,7 @@ void XMaze::ExcuteEventSpawn(int nBoxIndex) {
     }
 
     // IDA: Check loop count and event box
-    if (pEventSpawn->nLoopCount <= 0 || !pEventSpawn->pEventBox) {
+    if (!pEventSpawn->nLoopCount || !pEventSpawn->pEventBox) {
         return;
     }
 
@@ -2822,9 +2839,47 @@ void XMaze::ExcuteEventSpawn(int nBoxIndex) {
     --pEventSpawn->nLoopCount;
 
     // IDA: Execute spawn box checks
-    // for (int i = 0; i < 10 && pEventSpawn->pEventBox->m_iCheckBox[i]; ++i) {
-    //     ExcuteSpawnBoxCheck(pEventSpawn->pEventBox->m_iCheckBox[i], eSendInfoTypeSend, false);
-    // }
+    for (int i = 0; i < 10 && pEventSpawn->pEventBox->m_iCheckBox[i]; ++i) {
+        ExcuteSpawnBoxCheck(pEventSpawn->pEventBox->m_iCheckBox[i], eSendInfoTypeSend, false);
+    }
+}
+
+// ExcuteSpawnBoxCheck (0x14031A7B0)
+// 状态: 部分还原 - PDB 生成盒布局及 IDA 的激活、延时、返回值链已落地。
+// TODO: 需人工审查 - 生成盒原始字段偏移已按 PDB 落地，但事件链尚未经过运行验证。
+// 依赖: Maze 生成盒运行路径及 CTextDBLog 发送链。
+int XMaze::ExcuteSpawnBoxCheck(int nBoxID, E_SEND_INFO_TYPE eType, bool bLuaCall) {
+    (void)eType;
+    m_textDBLog.AddLog(10, nBoxID, bLuaCall, const_cast<char*>(""));
+    int nUniqueID = GetUniqueID(nBoxID);
+    auto itProcess = m_mapProcessSpawnBox.find(nUniqueID);
+    if (itProcess == m_mapProcessSpawnBox.end()) {
+        return 0;
+    }
+    STMageProcessSpawnBox* pProcessSpawn = itProcess->second;
+    if (!pProcessSpawn || (!bLuaCall && pProcessSpawn->bSpawned)) {
+        return 0;
+    }
+    pProcessSpawn->bActive = true;
+    pProcessSpawn->bSpawned = true;
+    pProcessSpawn->nCreatedCount = pProcessSpawn->pSpawnBox->m_iWaitCreationMaxWave
+        ? static_cast<float>(pProcessSpawn->pSpawnBox->m_iWaitCreationMaxWave) : 1.0f;
+    pProcessSpawn->fDelayTime = pProcessSpawn->pSpawnBox->m_fWaitCreationDelayTime <= 0.0f
+        ? pProcessSpawn->pSpawnBox->m_fWaitCreationSequenceTime
+        : pProcessSpawn->pSpawnBox->m_fWaitCreationDelayTime;
+    if (pProcessSpawn->pSpawnBox) {
+        return pProcessSpawn->pSpawnBox->m_stMonsterInfo[0].m_iID;
+    }
+    return 0;
+}
+
+VMonsterSpawnInfo* XMaze::GetProcessSpawnBoxInfo(std::uint16_t wSpawnIndex) {
+    int iBoxUniqueID = VEventObjectInfo::GetEventUniqueID(wSpawnIndex, GetBatchLayerLevel());
+    auto it = m_mapProcessSpawnBox.find(iBoxUniqueID);
+    if (it != m_mapProcessSpawnBox.end() && it->second && !it->second->bTerminate) {
+        return it->second->pSpawnBox;
+    }
+    return nullptr;
 }
 
 // ============================================================================
@@ -3666,7 +3721,8 @@ void XMaze::DeleteMonster(CMonster* pMonster) {
 // ============================================================================
 // OnUpdate
 // IDA: 0x14031C330 (?OnUpdate@XMaze@@UEAAXM@Z, 端 0x14031D841)
-// 已精确还原 - 迷宫更新主循环 (批13 按 IDA 真体全链重写):
+// 部分还原 - 迷宫更新主循环；原始虚调用与部分业务门仍待核对。
+// TODO: 需人工审查 - CSector 分组门、完整 actor 虚派发、原始 OnUpdate 参数和内嵌成员布局。
 //   1. m_listWaitForRecvInfo 遍历: UserDB 位掩码 4/8/0x10 全置时
 //      LoadComplete (原始经 +132384 CMoverEx->XActor 子对象调整的虚调用)
 //      后置递增 erase;
@@ -3683,8 +3739,9 @@ void XMaze::DeleteMonster(CMonster* pMonster) {
 //      检查 + bCheckCellPos 时 IsMoving ? RemoveMonsterInfo+SetCellID(0xFFFFFFFF)
 //      : GetEmptyCellID/bDuplicate -> SetCellID + AddMonsterInfo);
 //      Type1 NPC (GetSector 检查); Type0 用户 (bCheckCellPos 时 CellIDFromPos+SetCellID);
-//      之后 IsBit_OR(eStateInGame) 且 GetValidMapInsID==GetInstanceID 才调
-//      OnUpdate, 否则 GetScanner erase + listDeleteUser 收集 + LogError;
+//      之后非用户或 IsBit_OR(eStateConnect|eStateInGame) 且
+//      GetValidMapInsID==GetInstanceID 时更新 actor；否则 GetScanner erase
+//      + listDeleteUser 收集 + LogError;
 //  10. listDeleteUser 遍历 RemoveKey + LogError + clear;
 //  11. m_objectScanner 遍历: 非 GM+Status(0x2000) 用户 SetAmountOfHeal(0.0);
 //  12. m_lstDestoryObject 按 GetType 分派 DeleteMonster/DeleteNpc/DeleteAkashicObject
@@ -3867,19 +3924,21 @@ void XMaze::OnUpdate(float fElapsed, float fRealElapsed) {
         }
 
         // IDA: 有效性检查 - 非 CUser 或 (未进游戏 或 地图实例不匹配) 时清理
-        // Per IDA: XClient::IsBit_OR(5) 即任一 eStateInGame 位, 且
+        // Per IDA: XClient::IsBit_OR(5) 检查 eStateConnect | eStateInGame, 且
         // CUser::GetValidMapInsID()->nMapID == XArea::GetInstanceID()->nMapID
         // (a3 为原始第三参数 float, 与 IDA TUXMapID 位比较无关)
         CUser* pUserCheck = dynamic_cast<CUser*>(pActor);
         if (!pUserCheck
-            || (pUserCheck->IsBit_OR(XClient::eStateInGame)
+            || (pUserCheck->IsBit_OR(static_cast<XClient::E_NET_STATE>(
+                    XClient::eStateConnect | XClient::eStateInGame))
                 && pUserCheck->GetValidMapInsID().nMapID == GetInstanceID().nMapID)) {
             // IDA: 有效 - 调用 Actor 的 OnUpdate (XActor 虚槽, CUser/CMover 覆写)
-            // TODO: 需人工审查 - 活跃 XActor 基类无 OnUpdate 虚槽 (原始
-            // XActor vtable 亦为 ICF 折叠槽), CUser::OnUpdate 为独立虚接口;
-            // 原始经 XActor vtable 调用, 当前以 CUser::OnUpdate 直调等价
+            // TODO: 需人工审查 - 活跃 XActor 基类无 OnUpdate 虚槽；非 mover 的
+            // 原始派发路径及 OnUpdate 参数仍需核对。
             if (pUserCheck) {
                 pUserCheck->OnUpdate(fElapsed);
+            } else if (CMoverEx* pMover = dynamic_cast<CMoverEx*>(pActor)) {
+                pMover->OnUpdate(fElapsed);
             }
         } else {
             // IDA: 无效用户 - 从 scanner 移除并收集删除
@@ -10051,6 +10110,13 @@ void XMaze::ApplyBuffEx(int nType, int nCount, const char* szBuffID) {
 // ExcuteCheckEventSpawnBox
 // IDA: 0x140317b60
 // 执行检查事件生成盒
+// 状态: 部分还原 - 已按 IDA 落地生成盒索引与指针检查，事件分支仍为占位。
+// TODO: 需人工审查 - 待恢复：
+//   1. 获取用户任务 ID 并写入 CTextDBLog；
+//   2. 根据类型与概率启动 GameModeMgr 或 CHiddenEvent；
+//   3. 广播倒计时并处理 booster、失败清理与对象所有权。
+// 依赖: VCheckEventSpawnBoxInfo、GameModeMgr::StartCheckEventMode、
+//       CHiddenEvent::SelectEventCondition 与共享 XML 加载链。
 // ============================================================================
 void XMaze::ExcuteCheckEventSpawnBox(CUser* pUser, int nSectorID, int nBoxIndex) {
     // IDA 反编译: XMaze::ExcuteCheckEventSpawnBox
@@ -10058,13 +10124,14 @@ void XMaze::ExcuteCheckEventSpawnBox(CUser* pUser, int nSectorID, int nBoxIndex)
 
     if (!pUser) return;
 
-    // int iBoxUniqueID = VEventObjectInfo::GetEventUniqueID(nBoxIndex, GetBatchLayerLevel());
-    // auto it = m_mapCheckEventSpawnBox.find(iBoxUniqueID);
-    // if (it == m_mapCheckEventSpawnBox.end()) return;
-    //
-    // STMageCheckEventSpawnBox* pEventSpawn = it->second;
-    // if (!pEventSpawn || !pEventSpawn->pEventBox) return;
-    //
+    const int iBoxUniqueID = VEventObjectInfo::GetEventUniqueID(nBoxIndex, GetBatchLayerLevel());
+    auto it = m_mapCheckEventSpawnBox.find(iBoxUniqueID);
+    if (it == m_mapCheckEventSpawnBox.end()) return;
+
+    STMageCheckEventSpawnBox* pEventSpawn = it->second;
+    if (!pEventSpawn || !pEventSpawn->pEventBox) return;
+    (void)nSectorID;
+
     // int nEventType = pEventSpawn->pEventBox->m_eEvent_Type;
     // if (nEventType == 0) {
     //     // 普通事件

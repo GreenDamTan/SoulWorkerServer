@@ -122,6 +122,7 @@ add_executable(GameServer
     ${CMAKE_CURRENT_SOURCE_DIR}/../XCore/VisionEngineTypes.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Common/XNet/XCommon/VEventObjectDefine.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Common/XNet/XCommon/VEventObjectLoader.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../Common/XNet/XCommon/PSSocialItem.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../XCore/HavokTypes.cpp
     )
 

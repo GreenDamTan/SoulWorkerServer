@@ -5777,39 +5777,39 @@
 | - | - | ?Push@?$TXPool@VXDistrict@@@@QEAAXPEAVXDistrict@@@Z | 0x14018b4a0 | blocked | IDA ?Push@?$TXPool@VXDistrict@@@@QEAAXPEAVXDistrict@@@Z | yes | - |
 | - | - | ??$_Construct@PEAUSRandomSummonEvent@@AEBQEAU1@@std@@YAXPEAPEAUSRandomSummonEvent@@AEBQEAU1@@Z | 0x14018b4e0 | blocked | IDA ??$_Construct@PEAUSRandomSummonEvent@@AEBQEAU1@@std@@YAXPEAPEAUSRandomSummonEvent@@AEBQEAU1@@Z | yes | - |
 | - | - | ?construct@?$allocator@PEAUVMonsterSpawnInfo@@@std@@QEAAXPEAPEAUVMonsterSpawnInfo@@AEBQEAU3@@Z | 0x14018b550 | blocked | IDA ?construct@?$allocator@PEAUVMonsterSpawnInfo@@@std@@QEAAXPEAPEAUVMonsterSpawnInfo@@AEBQEAU3@@Z | yes | - |
-| XGameServer | SocialItemObject.cpp | ?CreateObject@CSocialItemObject@@SAPEAVVTypedObject@@XZ | 0x14018b580 | implemented | IDA decompile | yes | ��ȷ��ԭ-�����罻��Ʒ���� |
-| XGameServer | SocialItemObject.cpp | ?GetTypeId@CSocialItemObject@@UEBAPEAUVType@@XZ | 0x14018b5e0 | implemented | IDA decompile | yes | ��ȷ��ԭ-��ȡ����ID |
-| XGameServer | SocialItemObject.cpp | ??0CSocialItemObject@@QEAA@XZ | 0x14018b5f0 | implemented | IDA decompile | yes | ��ȷ��ԭ-���캯�� |
+| XGameServer | SocialItemObject.cpp | ?CreateObject@CSocialItemObject@@SAPEAVVTypedObject@@XZ | 0x14018b580 | implemented | GameServer PDB UDT 0x6D166 + IDA + landed source | no | insufficient_evidence |
+| XGameServer | SocialItemObject.cpp | ?GetTypeId@CSocialItemObject@@UEBAPEAUVType@@XZ | 0x14018b5e0 | implemented | GameServer PDB SocialItemObject.obj + IDA + landed source | no | insufficient_evidence |
+| XGameServer | SocialItemObject.cpp | ??0CSocialItemObject@@QEAA@XZ | 0x14018b5f0 | implemented | GameServer PDB UDT 0x6D166 + IDA + landed source | no | insufficient_evidence |
 | - | - | ??_ECSocialItemObject@@UEAAPEAXI@Z | 0x14018b720 | blocked | IDA ??_ECSocialItemObject@@UEAAPEAXI@Z | yes | - |
 | - | - | ??1?$map@HUPS_UPDATE_MAZE_ENTER_LIMIT_COUNT@@U?$less@H@std@@V?$allocator@U?$pair@$$CBHUPS_UPDATE_MAZE_ENTER_LIMIT_COUNT@@@std@@@3@@std@@QEAA@XZ | 0x14018b760 | blocked | IDA ??1?$map@HUPS_UPDATE_MAZE_ENTER_LIMIT_COUNT@@U?$less@H@std@@V?$allocator@U?$pair@$$CBHUPS_UPDATE_MAZE_ENTER_LIMIT_COUNT@@@std@@@3@@std@@QEAA@XZ | yes | - |
-| XGameServer | SocialItemObject.cpp | ??1CSocialItemObject@@UEAA@XZ | 0x14018b780 | implemented | IDA decompile | yes | ��ȷ��ԭ-�������� |
-| XGameServer | SocialItemObject.cpp | ?Init@CSocialItemObject@@QEAAXPEAVXArea@@AEAUXVec3@@MKG@Z | 0x14018b890 | implemented | IDA decompile | yes | ��ȷ��ԭ-��ʼ���罻��Ʒ |
+| XGameServer | SocialItemObject.cpp | ??1CSocialItemObject@@UEAA@XZ | 0x14018b780 | blocked | GameServer PDB UDT 0x6D166 + IDA + landed source | no | insufficient_evidence |
+| XGameServer | SocialItemObject.cpp | ?Init@CSocialItemObject@@QEAAXPEAVXArea@@AEAUXVec3@@MKG@Z | 0x14018b890 | implemented | GameServer PDB UDT 0x6D166 + IDA + landed source | no | insufficient_evidence |
 | XGameServer | Monster.cpp | ?NotifyRemoved@CMonster@@UEAAXXZ | 0x14018bbb0 | implemented | IDA decompile | yes | IDA������ʵ��
-| XGameServer | SocialItemObject.cpp | ?Reset@CSocialItemObject@@UEAAXXZ | 0x14018bbf0 | implemented | IDA decompile | yes | ��ȷ��ԭ-���� |
-| XGameServer | SocialItemObject.cpp | ?InitComponant@CSocialItemObject@@QEAAXXZ | 0x14018bc10 | implemented | IDA decompile | yes | ��ȷ��ԭ-��ʼ�����?|
-| XGameServer | SocialItemObject.cpp | ?GetActorID@CSocialItemObject@@UEAA?ATUXActorID@@XZ | 0x14018bc40 | implemented | IDA decompile | yes | ��ȷ��ԭ-��ȡActorID |
-| XGameServer | SocialItemObject.cpp | ?BuildInfoPacket@CSocialItemObject@@QEAAXAEAUST_SOCIAL_ITEM_RES@@@Z | 0x14018bc70 | implemented | IDA decompile | yes | ��ȷ��ԭ-������Ϣ�� |
-| XGameServer | SocialItemObject.cpp | ?SetInfoPacket@CSocialItemObject@@UEAAXAEAVXSendPacket@@@Z | 0x14018bde0 | implemented | IDA decompile | yes | ��ȷ��ԭ-������Ϣ�� |
-| - | - | ??1ST_SOCIAL_ITEM_RES@@QEAA@XZ | 0x14018be70 | blocked | IDA ??1ST_SOCIAL_ITEM_RES@@QEAA@XZ | yes | - |
-| XGameServer | SocialItemObject.cpp | ?SetInfoLeavePacket@CSocialItemObject@@QEAAXAEAVXSendPacket@@@Z | 0x14018be90 | implemented | IDA decompile | yes | ��ȷ��ԭ-�����뿪��Ϣ�� |
-| XGameServer | SocialItemObject.cpp | ?AddUser@CSocialItemObject@@QEAA_NKAEAHH@Z | 0x14018bec0 | implemented | IDA decompile | yes | ��ȷ��ԭ-�����û� |
+| XGameServer | SocialItemObject.cpp | ?Reset@CSocialItemObject@@UEAAXXZ | 0x14018bbf0 | blocked | GameServer PDB UDT 0x6D166 + IDA + landed source | no | insufficient_evidence |
+| XGameServer | SocialItemObject.cpp | ?InitComponant@CSocialItemObject@@QEAAXXZ | 0x14018bc10 | blocked | GameServer PDB SocialItemObject.obj + IDA + landed source | no | insufficient_evidence |
+| XGameServer | SocialItemObject.cpp | ?GetActorID@CSocialItemObject@@UEAA?ATUXActorID@@XZ | 0x14018bc40 | implemented | GameServer PDB UDT 0x6D166 + IDA 0x14018BC40 + landed source | no | insufficient_evidence |
+| XGameServer | SocialItemObject.cpp | ?BuildInfoPacket@CSocialItemObject@@QEAAXAEAUST_SOCIAL_ITEM_RES@@@Z | 0x14018bc70 | implemented | GameServer PDB SocialItemObject.obj + IDA + landed source | no | insufficient_evidence |
+| XGameServer | SocialItemObject.cpp | ?SetInfoPacket@CSocialItemObject@@UEAAXAEAVXSendPacket@@@Z | 0x14018bde0 | implemented | GameServer PDB SocialItemObject.obj + IDA + landed source | no | insufficient_evidence |
+| Common/XNet/XCommon | PSSocialItem.h | ??1ST_SOCIAL_ITEM_RES@@QEAA@XZ | 0x14018be70 | implemented | GameServer PDB cvdump types + IDA + landed source | no | - |
+| XGameServer | SocialItemObject.cpp | ?SetInfoLeavePacket@CSocialItemObject@@QEAAXAEAVXSendPacket@@@Z | 0x14018be90 | implemented | GameServer PDB SocialItemObject.obj + IDA + landed source | no | insufficient_evidence |
+| XGameServer | SocialItemObject.cpp | ?AddUser@CSocialItemObject@@QEAA_NKAEAHH@Z | 0x14018bec0 | implemented | GameServer PDB cvdump types + IDA 0x14018BEC0 + landed source + Windows clang-cl mangled symbol | no | insufficient_evidence |
 | XGameServer | SocialItemObject.cpp | ?IsExistUser@CSocialItemObject@@QEAA_NK@Z | 0x14018c2a0 | implemented | IDA decompile | yes | ��ȷ��ԭ-����û��Ƿ���� |
-| XGameServer | SocialItemObject.cpp | ?DeleteUser@CSocialItemObject@@QEAA_NK@Z | 0x14018c320 | implemented | IDA decompile | yes | ��ȷ��ԭ-ɾ���û� |
-| XGameServer | SocialItemObject.cpp | ?EndProcess@CSocialItemObject@@QEAAXXZ | 0x14018c6d0 | implemented | IDA decompile | yes | ��ȷ��ԭ-�������� |
-| XGameServer | SocialItemObject.cpp | ?CheckRemainTime@CSocialItemObject@@QEAA_NM@Z | 0x14018c7b0 | implemented | IDA decompile | yes | ��ȷ��ԭ-���ʣ��ʱ��?|
-| XGameServer | SocialItemObject.cpp | ?SetFurnitureInfo@CSocialItemObject@@QEAAXH@Z | 0x14018c830 | implemented | IDA decompile | yes | ��ȷ��ԭ-���üҾ���Ϣ |
+| XGameServer | SocialItemObject.cpp | ?DeleteUser@CSocialItemObject@@QEAA_NK@Z | 0x14018c320 | implemented | GameServer PDB cvdump modules + publics + IDA 0x14018C320 + landed source + Windows clang-cl mangled symbol | no | insufficient_evidence |
+| XGameServer | SocialItemObject.cpp | ?EndProcess@CSocialItemObject@@QEAAXXZ | 0x14018c6d0 | blocked | GameServer IDA 0x14018c6d0 + landed source | no | insufficient_evidence |
+| XGameServer | SocialItemObject.cpp | ?CheckRemainTime@CSocialItemObject@@QEAA_NM@Z | 0x14018c7b0 | implemented | GameServer IDA ASM 0x14018C7B0 + landed source | no | insufficient_evidence |
+| XGameServer | SocialItemObject.cpp | ?SetFurnitureInfo@CSocialItemObject@@QEAAXH@Z | 0x14018c830 | implemented | GameServer PDB cvdump types + IDA ASM 0x14018C830 + landed source | no | insufficient_evidence |
 | XGameServer | SocialItemObject.cpp | ?SetSocialType@CSocialItemObject@@QEAAXE@Z | 0x14018c850 | implemented | IDA decompile | yes | ��ȷ��ԭ-�����罻���� |
 | XGameServer | SocialItemObject.cpp | ?IsFunniture@CSocialItemObject@@QEAA_NXZ | 0x14018c870 | implemented | IDA decompile | yes | ��ȷ��ԭ-�Ƿ�Ҿ�?|
-| XGameServer | SocialItemObject.cpp | ?SendPlayInfo@CSocialItemObject@@QEAAXUPS_SOCIALITEM_PLAY@@@Z | 0x14018c8a0 | implemented | IDA decompile | yes | ��ȷ��ԭ-���Ͳ�����Ϣ |
+| XGameServer | SocialItemObject.cpp | ?SendPlayInfo@CSocialItemObject@@QEAAXUPS_SOCIALITEM_PLAY@@@Z | 0x14018c8a0 | blocked | GameServer IDA 0x14018c8a0 + landed source | no | insufficient_evidence |
 | XGameServer | SocialItemObject.cpp | ?GetPlayNextTurn@CSocialItemObject@@QEAAKXZ | 0x14018ca10 | implemented | IDA decompile | yes | ��ȷ��ԭ-��ȡ��һ�غ����?|
-| XGameServer | SocialItemObject.cpp | ?IsPlayGame@CSocialItemObject@@QEAAHKUPS_SOCIALITEM_PLAY@@@Z | 0x14018ca50 | implemented | IDA decompile | yes | ��ȷ��ԭ-�Ƿ���Ϸ������ |
-| XGameServer | SocialItemObject.cpp | ?FinishPlaySocialItemObject@CSocialItemObject@@QEAAXK@Z | 0x14018d3b0 | implemented | IDA decompile | yes | ��ȷ��ԭ-������Ϸ |
+| XGameServer | SocialItemObject.cpp | ?IsPlayGame@CSocialItemObject@@QEAAHKUPS_SOCIALITEM_PLAY@@@Z | 0x14018ca50 | blocked | GameServer PDB symbol + landed source partial game/log chain | no | insufficient_evidence |
+| XGameServer | SocialItemObject.cpp | ?FinishPlaySocialItemObject@CSocialItemObject@@QEAAXK@Z | 0x14018d3b0 | blocked | GameServer IDA 0x14018d3b0 + landed source partial reward/log chain | no | insufficient_evidence |
 | XGameServer | SocialItemObject.cpp | ?IsUsePlaySocialItem@CSocialItemObject@@QEAA_NXZ | 0x14018dab0 | implemented | IDA decompile | yes | ��ȷ��ԭ-�Ƿ���������?|
-| XGameServer | SocialItemObject.cpp | ?GetPlayGuestID@CSocialItemObject@@QEAAKXZ | 0x14018daf0 | implemented | IDA decompile | yes | ��ȷ��ԭ-��ȡ�ÿ�ID |
-| XGameServer | SocialItemObject.cpp | ?AddPlayUserInfo@CSocialItemObject@@QEAAXUPS_SOCIALITEM_USER@@@Z | 0x14018dba0 | implemented | IDA decompile | yes | ��ȷ��ԭ-������Ϸ�û���Ϣ |
+| XGameServer | SocialItemObject.cpp | ?GetPlayGuestID@CSocialItemObject@@QEAAKXZ | 0x14018daf0 | implemented | GameServer PDB cvdump types + IDA ASM 0x14018DAF0 + landed source + Windows clang-cl mangled symbol | no | insufficient_evidence |
+| XGameServer | SocialItemObject.cpp | ?AddPlayUserInfo@CSocialItemObject@@QEAAXUPS_SOCIALITEM_USER@@@Z | 0x14018dba0 | implemented | GameServer PDB cvdump publics + IDA 0x14018DBA0 and caller 0x1405FD008 + landed source + Windows clang-cl mangled symbol | no | insufficient_evidence |
 | XGameServer | SocialItemObject.cpp | ?GetOtherInfo@CSocialItemObject@@QEAAKK@Z | 0x14018de70 | implemented | IDA decompile | yes | ��ȷ��ԭ-��ȡ����������?|
-| XGameServer | SocialItemObject.cpp | ?StartPlaySocialItem@CSocialItemObject@@QEAA_NUPS_SOCIAL_ITEM_PLAY_START@@@Z | 0x14018df00 | implemented | IDA decompile | yes | ��ȷ��ԭ-��ʼ��Ϸ |
-| XGameServer | SocialItemObject.cpp | ?SendStartInfo@CSocialItemObject@@QEAAXUPS_SOCIAL_ITEM_PLAY_START@@@Z | 0x14018e1c0 | implemented | IDA decompile | yes | ��ȷ��ԭ-���Ϳ�ʼ��Ϣ |
+| XGameServer | SocialItemObject.cpp | ?StartPlaySocialItem@CSocialItemObject@@QEAA_NUPS_SOCIAL_ITEM_PLAY_START@@@Z | 0x14018df00 | blocked | GameServer IDA 0x14018df00 + landed source | no | insufficient_evidence |
+| XGameServer | SocialItemObject.cpp | ?SendStartInfo@CSocialItemObject@@QEAAXUPS_SOCIAL_ITEM_PLAY_START@@@Z | 0x14018e1c0 | blocked | GameServer PDB symbol + landed source partial send/log chain | no | insufficient_evidence |
 | - | - | ??0?$map@HUPS_UPDATE_MAZE_ENTER_LIMIT_COUNT@@U?$less@H@std@@V?$allocator@U?$pair@$$CBHUPS_UPDATE_MAZE_ENTER_LIMIT_COUNT@@@std@@@3@@std@@QEAA@XZ | 0x14018e490 | blocked | IDA ??0?$map@HUPS_UPDATE_MAZE_ENTER_LIMIT_COUNT@@U?$less@H@std@@V?$allocator@U?$pair@$$CBHUPS_UPDATE_MAZE_ENTER_LIMIT_COUNT@@@std@@@3@@std@@QEAA@XZ | yes | - |
 | - | - | ??1?$_Tree@V?$_Tmap_traits@TUXActorID@@KU?$less@TUXActorID@@@std@@V?$allocator@U?$pair@$$CBTUXActorID@@K@std@@@3@$0A@@std@@@std@@QEAA@XZ | 0x14018e4c0 | blocked | IDA ??1?$_Tree@V?$_Tmap_traits@TUXActorID@@KU?$less@TUXActorID@@@std@@V?$allocator@U?$pair@$$CBTUXActorID@@K@std@@@3@$0A@@std@@@std@@QEAA@XZ | yes | - |
 | - | - | ?clear@?$_Tree@V?$_Tmap_traits@TUXActorID@@KU?$less@TUXActorID@@@std@@V?$allocator@U?$pair@$$CBTUXActorID@@K@std@@@3@$0A@@std@@@std@@QEAAXXZ | 0x14018e4f0 | blocked | IDA ?clear@?$_Tree@V?$_Tmap_traits@TUXActorID@@KU?$less@TUXActorID@@@std@@V?$allocator@U?$pair@$$CBTUXActorID@@K@std@@@3@$0A@@std@@@std@@QEAAXXZ | yes | - |
@@ -5870,12 +5870,12 @@
 | - | - | ?GetTB_MODE_CARDMATCH_RULE@XResourceMgr@@QEAAPEAUTB_MODE_CARDMATCH_RULE@@K@Z | 0x14018fbd0 | implemented | IDA ?GetTB_MODE_CARDMATCH_RULE@XResourceMgr@@QEAAPEAUTB_MODE_CARDMATCH_RULE@@K@Z | yes | - |
 | XGameServer | SocialItemObject.cpp | ?GetOwnerID@CSocialItemObject@@QEAAKXZ | 0x14018fc40 | implemented | IDA decompile | yes | ��ȷ��ԭ-��ȡ������ID |
 | CUser | User.cpp | ?SetSocialUseID@CUser@@QEAAXK@Z | 0x14018fc60 | implemented | IDA ?SetSocialUseID@CUser@@QEAAXK@Z | yes | - |
-| - | - | ??0ST_SOCIAL_ITEM_RES@@QEAA@XZ | 0x14018fc80 | blocked | IDA ??0ST_SOCIAL_ITEM_RES@@QEAA@XZ | yes | - |
-| - | - | ??1ST_SOCIAL_ITEM_INFO@@QEAA@XZ | 0x14018fce0 | blocked | IDA ??1ST_SOCIAL_ITEM_INFO@@QEAA@XZ | yes | - |
-| - | - | ?reset@ST_SOCIAL_ITEM_SLOT_INFO@@QEAAXXZ | 0x14018fd00 | implemented | IDA ?reset@ST_SOCIAL_ITEM_SLOT_INFO@@QEAAXXZ | yes | - |
-| - | - | ??0ST_SOCIAL_ITEM_SLOT_INFO@@QEAA@XZ | 0x14018fd20 | blocked | IDA ??0ST_SOCIAL_ITEM_SLOT_INFO@@QEAA@XZ | yes | - |
-| - | - | ?reset@ST_SOCIAL_ITEM_INFO@@QEAAXXZ | 0x14018fd40 | implemented | IDA ?reset@ST_SOCIAL_ITEM_INFO@@QEAAXXZ | yes | - |
-| - | - | ??0ST_SOCIAL_ITEM_INFO@@QEAA@XZ | 0x14018fdc0 | blocked | IDA ??0ST_SOCIAL_ITEM_INFO@@QEAA@XZ | yes | - |
+| Common/XNet/XCommon | PSSocialItem.h | ??0ST_SOCIAL_ITEM_RES@@QEAA@XZ | 0x14018fc80 | implemented | GameServer PDB cvdump lines + types + IDA + landed source | no | - |
+| Common/XNet/XCommon | PSSocialItem.h | ??1ST_SOCIAL_ITEM_INFO@@QEAA@XZ | 0x14018fce0 | implemented | GameServer PDB cvdump types + IDA + landed source | no | - |
+| Common/XNet/XCommon | PSSocialItem.h | ?reset@ST_SOCIAL_ITEM_SLOT_INFO@@QEAAXXZ | 0x14018fd00 | implemented | GameServer PDB cvdump lines + types + IDA + landed source | no | - |
+| Common/XNet/XCommon | PSSocialItem.h | ??0ST_SOCIAL_ITEM_SLOT_INFO@@QEAA@XZ | 0x14018fd20 | implemented | GameServer PDB cvdump lines + types + IDA + landed source | no | - |
+| Common/XNet/XCommon | PSSocialItem.h | ?reset@ST_SOCIAL_ITEM_INFO@@QEAAXXZ | 0x14018fd40 | implemented | GameServer PDB cvdump lines + types + IDA + landed source | no | - |
+| Common/XNet/XCommon | PSSocialItem.h | ??0ST_SOCIAL_ITEM_INFO@@QEAA@XZ | 0x14018fdc0 | implemented | GameServer PDB cvdump lines + types + IDA + landed source | no | - |
 | - | - | ??0SocialItemObjectMgr@@QEAA@XZ | 0x14018fe20 | blocked | IDA ??0SocialItemObjectMgr@@QEAA@XZ | yes | - |
 | - | - | ??_ESocialItemObjectMgr@@UEAAPEAXI@Z | 0x14018fe50 | blocked | IDA ??_ESocialItemObjectMgr@@UEAAPEAXI@Z | yes | - |
 | - | - | ??1SocialItemObjectMgr@@UEAA@XZ | 0x14018fe90 | blocked | IDA ??1SocialItemObjectMgr@@UEAA@XZ | yes | - |
@@ -12268,7 +12268,7 @@
 | XGameServer | Maze.cpp | ?EscapeActor@XMaze@@UEAA_NPEAVXActor@@@Z | 0x1402914c0 | implemented | IDA decompile | yes | RTTI cast CUser,����WarpSectorStartPos |
 | XGameServer | ModeMaze.cpp | ?MoveActor@XModeMaze@@UEAAGPEAVXActor@@AEAUXVec3@@M_N@Z | 0x140291520 | implemented | GameServer PDB ModeMaze.obj + IDA + landed source | no | insufficient_evidence |
 | XGameServer | ModeMaze.cpp | ?ProcessMoveObject@XModeMaze@@QEAAXPEAVXActor@@AEAV?$vector@PEAVCMover@@V?$allocator@PEAVCMover@@@std@@@std@@111@Z | 0x140291a20 | implemented | GameServer PDB ModeMaze.obj + IDA 0x140291A20 + landed source | no | insufficient_evidence |
-| XGameServer | ModeMaze.cpp | ?ProcessSendLeaveObjectToOthers@XModeMaze@@QEAAXAEAV?$vector@PEAVCMover@@V?$allocator@PEAVCMover@@@std@@@std@@PEAVXActor@@_N@Z | 0x140291b10 | implemented | GameServer PDB ModeMaze.obj + IDA + landed source | no | insufficient_evidence |
+| XGameServer | ModeMaze.cpp | ?ProcessSendLeaveObjectToOthers@XModeMaze@@QEAAXAEAV?$vector@PEAVCMover@@V?$allocator@PEAVCMover@@@std@@@std@@PEAVXActor@@_N@Z | 0x140291b10 | implemented | GameServer PDB ModeMaze.obj + IDA 0x140291B10 + landed PS_OBJECT_REMOVE and guarded CVaccumCube branches | no | insufficient_evidence |
 | - | - | ?ProcessSendLeaveObjectListToPlayer@XModeMaze@@QEAAXPEAVXActor@@AEAV?$vector@PEAVCMover@@V?$allocator@PEAVCMover@@@std@@@std@@@Z | 0x140291ec0 | implemented | IDA ?ProcessSendLeaveObjectListToPlayer@XModeMaze@@QEAAXPEAVXActor@@AEAV?$vector@PEAVCMover@@V?$allocator@PEAVCMover@@@std@@@std@@@Z | yes | - |
 | XGameServer | ModeMaze.cpp | ?ProcessSendTranslateInfoToOthers@XModeMaze@@QEAAXPEAVXActor@@AEAV?$vector@PEAVCMover@@V?$allocator@PEAVCMover@@@std@@@std@@@Z | 0x1402925b0 | implemented | GameServer PDB ModeMaze.obj + publics + IDA folded XDistrict body + landed source | no | insufficient_evidence |
 | XCore/XArea | XDistrict.cpp | ?ProcessSendTranslateInfoToOthers@XDistrict@@QEAAXPEAVXActor@@AEAV?$vector@PEAVCMover@@V?$allocator@PEAVCMover@@@std@@@std@@@Z | 0x1402925b0 | implemented | GameServer PDB District.obj + publics + IDA folded body + landed partial source | no | insufficient_evidence |
@@ -31675,7 +31675,7 @@ yes | ?????????? |
 | - | - | ??$_ApplyX@X@?$_Callable_obj@V_lambda6_@?A0xa78b647a@@$0A@@tr1@std@@QEAAXXZ | 0x140601b00 | blocked | IDA ??$_ApplyX@X@?$_Callable_obj@V_lambda6_@?A0xa78b647a@@$0A@@tr1@std@@QEAAXXZ | yes | - |
 | - | - | ??$_ApplyX@X@?$_Callable_obj@V_lambda8_@?A0xa78b647a@@$0A@@tr1@std@@QEAAXXZ | 0x140601b20 | blocked | IDA ??$_ApplyX@X@?$_Callable_obj@V_lambda8_@?A0xa78b647a@@$0A@@tr1@std@@QEAAXXZ | yes | - |
 | - | - | ??$_ApplyX@X@?$_Callable_obj@V_lambda10_@?A0xa78b647a@@$0A@@tr1@std@@QEAAXXZ | 0x140601b40 | blocked | IDA ??$_ApplyX@X@?$_Callable_obj@V_lambda10_@?A0xa78b647a@@$0A@@tr1@std@@QEAAXXZ | yes | - |
-| - | - | ??0PS_SOCIALITEM_USER@@QEAA@XZ | 0x140601b60 | blocked | IDA ??0PS_SOCIALITEM_USER@@QEAA@XZ | yes | - |
+| Common/XNet/XCommon | PSSocialItem.h | ??0PS_SOCIALITEM_USER@@QEAA@XZ | 0x140601b60 | implemented | GameServer PDB UDT 0x18238 + cvdump lines + IDA 0x140601B60 + landed source | no | insufficient_evidence |
 | - | - | ??0PS_SOCIALITEM_USE_RES@@QEAA@XZ | 0x140601bc0 | blocked | IDA ??0PS_SOCIALITEM_USE_RES@@QEAA@XZ | yes | - |
 | - | - | ?SetSocialUseTime@CUser@@QEAAX_J@Z | 0x140601c20 | implemented | IDA ?SetSocialUseTime@CUser@@QEAAX_J@Z | yes | - |
 | XGameServer | SocialItemObject.cpp | ?GetSocialItemID@CSocialItemObject@@QEAAGXZ | 0x140601c40 | implemented | IDA decompile | yes | ��ȷ��ԭ-��ȡ�罻��ƷID |
@@ -35962,6 +35962,7 @@ yes | ?????????? |
 | - | - | ??5@YAAEAVXPacket@@AEAV0@AEAUPS_CASH_SET_LIST@@@Z | 0x140738a00 | blocked | IDA ??5@YAAEAVXPacket@@AEAV0@AEAUPS_CASH_SET_LIST@@@Z | yes | - |
 | - | - | ??5@YAAEAVXPacket@@AEAV0@AEAUPS_TRADE_RESULT@@@Z | 0x140738ac0 | blocked | IDA ??5@YAAEAVXPacket@@AEAV0@AEAUPS_TRADE_RESULT@@@Z | yes | - |
 | - | - | ??6@YAAEAVXPacket@@AEAV0@AEAUPS_TRADE_PW_RES@@@Z | 0x140738b30 | blocked | IDA ??6@YAAEAVXPacket@@AEAV0@AEAUPS_TRADE_PW_RES@@@Z | yes | - |
+| Common/XNet/XCommon | PSSocialItem.cpp | ??6@YAAEAVXPacket@@AEAV0@AEAUST_SOCIAL_ITEM_SLOT_INFO@@@Z | 0x140738b30 | implemented | GameServer PDB publics folded alias + PSSocialItem.obj + IDA 0x140738B30 + landed source | no | insufficient_evidence |
 | - | - | ??5@YAAEAVXPacket@@AEAV0@AEAUST_APPEARANCE_INFO@@@Z | 0x140738b80 | blocked | IDA ??5@YAAEAVXPacket@@AEAV0@AEAUST_APPEARANCE_INFO@@@Z | yes | - |
 | - | - | ??6@YAAEAVXPacket@@AEAV0@AEAUST_APPEARANCE_LIST@@@Z | 0x140738bd0 | blocked | IDA ??6@YAAEAVXPacket@@AEAV0@AEAUST_APPEARANCE_LIST@@@Z | yes | - |
 | - | - | ??5@YAAEAVXPacket@@AEAV0@AEAUST_APPEARANCE_LIST@@@Z | 0x140738c50 | blocked | IDA ??5@YAAEAVXPacket@@AEAV0@AEAUST_APPEARANCE_LIST@@@Z | yes | - |
@@ -36850,13 +36851,13 @@ yes | ?????????? |
 | - | - | ??6@YAAEAVXPacket@@AEAV0@AEAUST_LUAVALUES@@@Z | 0x14075fa20 | blocked | IDA ??6@YAAEAVXPacket@@AEAV0@AEAUST_LUAVALUES@@@Z | yes | - |
 | - | - | ??A?$vector@UST_LUASTRING@@V?$allocator@UST_LUASTRING@@@std@@@std@@QEAAAEAUST_LUASTRING@@_K@Z | 0x14075faa0 | blocked | IDA ??A?$vector@UST_LUASTRING@@V?$allocator@UST_LUASTRING@@@std@@@std@@QEAAAEAUST_LUASTRING@@_K@Z | yes | - |
 | - | - | GetModuleFilePath_30 | 0x14075fac0 | blocked | IDA GetModuleFilePath_30 | yes | - |
-| - | - | ??6@YAAEAVXPacket@@AEAV0@AEAUST_SOCIAL_ITEM_INFO@@@Z | 0x14075fbe0 | blocked | IDA ??6@YAAEAVXPacket@@AEAV0@AEAUST_SOCIAL_ITEM_INFO@@@Z | yes | - |
-| - | - | ??6@YAAEAVXPacket@@AEAV0@AEAUST_SOCIAL_ITEM_RES@@@Z | 0x14075fd30 | blocked | IDA ??6@YAAEAVXPacket@@AEAV0@AEAUST_SOCIAL_ITEM_RES@@@Z | yes | - |
+| Common/XNet/XCommon | PSSocialItem.cpp | ??6@YAAEAVXPacket@@AEAV0@AEAUST_SOCIAL_ITEM_INFO@@@Z | 0x14075fbe0 | implemented | GameServer PDB PSSocialItem.obj + publics + IDA 0x14075FBE0 + landed source | no | insufficient_evidence |
+| Common/XNet/XCommon | PSSocialItem.cpp | ??6@YAAEAVXPacket@@AEAV0@AEAUST_SOCIAL_ITEM_RES@@@Z | 0x14075fd30 | implemented | GameServer PDB PSSocialItem.obj + publics + IDA 0x14075FD30 + landed source | no | insufficient_evidence |
 | - | - | ??6@YAAEAVXPacket@@AEAV0@AEAUST_SOCIAL_ITEM_LIST@@@Z | 0x14075fdd0 | blocked | IDA ??6@YAAEAVXPacket@@AEAV0@AEAUST_SOCIAL_ITEM_LIST@@@Z | yes | - |
 | - | - | ??5@YAAEAVXPacket@@AEAV0@AEAUPS_SOCIALITEM_USE_REQ@@@Z | 0x14075fe50 | blocked | IDA ??5@YAAEAVXPacket@@AEAV0@AEAUPS_SOCIALITEM_USE_REQ@@@Z | yes | - |
 | - | - | ??6@YAAEAVXPacket@@AEAV0@AEAUPS_SOCIALITEM_USE_RES@@@Z | 0x14075fed0 | blocked | IDA ??6@YAAEAVXPacket@@AEAV0@AEAUPS_SOCIALITEM_USE_RES@@@Z | yes | - |
 | - | - | ??6@YAAEAVXPacket@@AEAV0@AEAUPS_SOCIALITEM_STOP_RES@@@Z | 0x14075ff80 | blocked | IDA ??6@YAAEAVXPacket@@AEAV0@AEAUPS_SOCIALITEM_STOP_RES@@@Z | yes | - |
-| - | - | ??6@YAAEAVXPacket@@AEAV0@AEAUPS_SOCIALITEM_USER@@@Z | 0x140760000 | blocked | IDA ??6@YAAEAVXPacket@@AEAV0@AEAUPS_SOCIALITEM_USER@@@Z | yes | - |
+| Common/XNet/XCommon | PSSocialItem.cpp | ??6@YAAEAVXPacket@@AEAV0@AEAUPS_SOCIALITEM_USER@@@Z | 0x140760000 | implemented | GameServer PDB PSSocialItem.obj + cvdump lines + IDA 0x140760000 + landed source | no | insufficient_evidence |
 | - | - | ??6@YAAEAVXPacket@@AEAV0@AEAUPS_SOCIALITEM_PLAY_POINT@@@Z | 0x1407600d0 | blocked | IDA ??6@YAAEAVXPacket@@AEAV0@AEAUPS_SOCIALITEM_PLAY_POINT@@@Z | yes | - |
 | - | - | ??5@YAAEAVXPacket@@AEAV0@AEAUPS_SOCIALITEM_PLAY_POINT@@@Z | 0x140760160 | blocked | IDA ??5@YAAEAVXPacket@@AEAV0@AEAUPS_SOCIALITEM_PLAY_POINT@@@Z | yes | - |
 | - | - | ??6@YAAEAVXPacket@@AEAV0@AEAUPS_SOCIAL_ITEM_PLAY_START@@@Z | 0x1407601f0 | blocked | IDA ??6@YAAEAVXPacket@@AEAV0@AEAUPS_SOCIAL_ITEM_PLAY_START@@@Z | yes | - |

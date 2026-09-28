@@ -2,6 +2,10 @@
 
 | directory | file | type | size | status | source | verified | verification |
 | --- | --- | --- | --- | --- | --- | --- | --- |
+| Common/XNet/XCommon | PSSocialItem.h | PS_SOCIALITEM_USER | 60 | decompiled | GameServer PDB UDT 0x18238 + IDA + landed source | no | UTF-16 name +4; UCID +52; leave flag +56; packet-byte check pending. |
+| Common/XNet/XCommon | PSSocialItem.h | ST_SOCIAL_ITEM_SLOT_INFO | 8 | decompiled | GameServer PDB UDT 0x6CC10 + IDA + landed source | no | dwUserID +0 and byAniIndex +4; size asserted; byte-level packet test pending. |
+| Common/XNet/XCommon | PSSocialItem.h | ST_SOCIAL_ITEM_INFO | 88 | decompiled | GameServer PDB UDT 0x270C5 + IDA + landed source | no | lRemainTime +16, vecUsers +24, stUsedSlot +56; 88-byte assertion limited to Windows debug iterator ABI. |
+| Common/XNet/XCommon | PSSocialItem.h | ST_SOCIAL_ITEM_RES | 104 | decompiled | GameServer PDB UDT 0x18227 + IDA + landed source | no | itemInfo +0 and four floats +88 through +100; 104-byte assertion limited to Windows debug iterator ABI. |
 | XGameServer/Log | GreenDamTan_TextDBLog.h | CTextDBLog | 48 | decompiled | GameServer PDB UDT 0x6E2BB + IDA + landed declaration | no | PDB: string at +0, UXMapID at +40; original header path unknown, manual declaration; MSVC debug ABI assertion pending build. |
 | Common/XNet/XCommon | PSCommon.h | STWarp | 24 | verified | PDB UDT 0x25D28 + static_assert + source build | yes | byResult +0x00, xPos(XVec3) +0x04, fRot +0x10, nSectorID +0x14; nested enum RESULT_WARP {SUCCESS=0, FAILED=1}; layout rebuilt from previous flat fPosX/Y/Z form. |
 | Common/XNet/XCommon | PSCommon.h | ST_MOVE_TRANSPORT_TAKE | 16 | decompiled | GameServer PDB UDT 0x25220 + IDA ctor 0x14028D500 + landed layout assertions | no | Four direct fields: dwActorID +0, wTransportTableIdx +4, dwNpcID +8, fStartTime +12; current transport-time provider is a placeholder, so runtime send remains unverified. |
@@ -69,6 +73,7 @@
 | XGameServer | Ai.h | StateVarInfo | 16 | implemented | IDA struct | no | - |
 | XGameServer | Mover.h | CMover | 58592 | implemented | IDA struct | no | - |
 | XGameServer | MoverEx.h | CMoverEx | 60392 | implemented | IDA struct | no | - |
+| XGameServer/Actor/SocialItemObject | SocialItemObject.h | CSocialItemObject | 60680 | decompiled | GameServer PDB UDT 0x6D166 + IDA + landed declaration | no | CMoverEx +0, XActor +872, m_itemInfo +60392, m_posInfo +60480, embedded m_textDBLog +60632; GetActorID returns UXActorID from m_itemInfo.dwObjectID, but the landed flat class and pointer log member still lack the original ABI; original path differs from landed XGameServer root. |
 | XGameServer | User.h | CUser | ~128000 | implemented | IDA struct | no | - |
 | XGameServer | BattleZone.h | CBattleZone | - | implemented | IDA struct | no | - |
 | XGameServer | GroupAggro.h | CGroupAggro | - | implemented | IDA struct | no | 群体仇恨管理类 |

@@ -10,7 +10,9 @@
 #include "Soulworker/GameServer/XGameServer/User.h"
 #include "Soulworker/GameServer/XGameServer/Mover.h"
 #include "Soulworker/GameServer/XGameServer/Monster.h"
+#include "Soulworker/GameServer/XGameServer/VaccumCube.h"
 #include "Soulworker/GameServer/XGameServer/actor/component/GocNetwork.h"
+#include "Soulworker/Common/XNet/XCommon/PSServer/PSServerCore.h"
 #include "Soulworker/Common/XNet/XIOCPBase/Packet.h"
 #include <cstring>
 
@@ -904,7 +906,7 @@ void XModeMaze::ExitArea(XActor* pActor)
 // 状态: 部分还原 - 有位置删除、失败后无位置删除与逐格扫描计数已接通，离开通知仍不完整。
 // TODO: 需人工审查
 //   1. 对照汇编核准无位置删除的对象搜索顺序及失败行为。
-//   2. 恢复 ProcessSendLeaveObjectToOthers 的实际封包发送。
+//   2. 补全 ProcessSendLeaveObjectToOthers 的类型 6 分支并验证真实网格退出路径。
 // 依赖: UniformGrid::Erase(obj) 的原始行为、离开通知链及 XMaze 布局核对。
 bool XModeMaze::ExitGridActor(XActor* pActor)
 {
@@ -1043,12 +1045,12 @@ void XModeMaze::ProcessMoveObject(XActor* pActor, std::vector<CMover*>& vecEnter
 }
 
 // XModeMaze::ProcessSendEnterObjectToOthers (0x1402C9B70)
-// 状态: 部分还原 - 玩家与真空立方体封包可发送，其他对象类型仍待补齐。
+// 状态: 部分还原 - 玩家与类型 5 的进入通知已发送，其余对象类型仍待补齐。
 // TODO: 需人工审查
 //   1. 恢复 NPC 的 PS_NPCINFO_VEC 与 STNpcInfo 序列化及 CNpc 构建接线。
 //   2. 恢复怪物的 PS_MONSTERINFO_VEC 与 STMonsterInfo 序列化。
-//   3. 核对类型 6 的具体派生对象及其信息封包实现。
-// 依赖: NPC/怪物协议序列化及类型 6 的完整业务类。
+//   3. 核对类型 6 的 CSocialItemObject 原始继承关系和信息封包，再接通发送。
+// 依赖: NPC/怪物协议序列化及类型 6 的业务类布局。
 void XModeMaze::ProcessSendEnterObjectToOthers(std::vector<CMover*>& vecPlayerList, XActor* pActor)
 {
     switch (pActor->GetType())
@@ -1097,57 +1099,50 @@ void XModeMaze::ProcessSendTranslateInfoToOthers(XActor* pActor, std::vector<CMo
 }
 
 // IDA: ?ProcessSendLeaveObjectToOthers@XModeMaze@@QEAAXAEAV?$vector@PEAVCMover@@V?$allocator@PEAVCMover@@@std@@@std@@PEAVXActor@@_N@Z (0x140291B10)
-// Verified: Direct IDA decompilation
+// 状态: 部分还原 - 玩家、怪物、NPC 和类型 5 的离开通知已接通。
+// TODO: 需人工审查
+//   1. 恢复类型 6 对象与 XActor 的原始继承关系和离开封包。
+//   2. 在真实网格退出路径验证各通知包的序列化与发送。
+// 依赖: CSocialItemObject 原始布局、玩家网格退出运行验证。
 void XModeMaze::ProcessSendLeaveObjectToOthers(std::vector<CMover*>& vecPlayerList, XActor* pLeaveActor, bool bExitActor)
 {
     if (!pLeaveActor)
         return;
 
-    // IDA: Check actor type and send appropriate leave packet
     if (pLeaveActor->IsPlayer())
     {
-        // IDA: Send PC leave packet (main=4, sub=0x12)
-        // PS_POST_DELETE_LIST stObjectInfo;
-        // stObjectInfo.vecObjectID.push_back(pLeaveActor->GetActorID());
-        // XSendPacket xSendPacket(4, 0x12);
-        // xSendPacket << stObjectInfo;
-        // CGocNetwork::Send(&vecPlayerList, &xSendPacket, nullptr);
+        PS_OBJECT_REMOVE stObjectInfo;
+        stObjectInfo.vecObjectID.push_back(pLeaveActor->GetActorID());
+        XSendPacket xSendPacket(4, 0x12);
+        xSendPacket << stObjectInfo;
+        CGocNetwork::Send(vecPlayerList, xSendPacket, nullptr);
     }
     else if (pLeaveActor->IsMonster())
     {
-        // IDA: Send monster leave packet (main=4, sub=0x16)
-        // PS_POST_DELETE_LIST stObjectInfo;
-        // stObjectInfo.vecObjectID.push_back(pLeaveActor->GetActorID());
-        // XSendPacket packet(4, 0x16);
-        // packet << stObjectInfo;
-        // CGocNetwork::Send(&vecPlayerList, &packet, nullptr);
+        PS_OBJECT_REMOVE stObjectInfo;
+        stObjectInfo.vecObjectID.push_back(pLeaveActor->GetActorID());
+        XSendPacket packet(4, 0x16);
+        packet << stObjectInfo;
+        CGocNetwork::Send(vecPlayerList, packet, nullptr);
     }
     else if (pLeaveActor->IsNPC())
     {
-        // IDA: Send NPC leave packet (main=4, sub=0x14)
-        // PS_POST_DELETE_LIST stObjectInfo;
-        // stObjectInfo.vecObjectID.push_back(pLeaveActor->GetActorID());
-        // XSendPacket packet(4, 0x14);
-        // packet << stObjectInfo;
-        // CGocNetwork::Send(&vecPlayerList, &packet, nullptr);
+        PS_OBJECT_REMOVE stObjectInfo;
+        stObjectInfo.vecObjectID.push_back(pLeaveActor->GetActorID());
+        XSendPacket packet(4, 0x14);
+        packet << stObjectInfo;
+        CGocNetwork::Send(vecPlayerList, packet, nullptr);
     }
-    else if (pLeaveActor->GetType() == 5)  // VaccumCube
+    else if (pLeaveActor->GetType() == 5)
     {
-        // IDA: Send VaccumCube leave packet (main=0x25, sub=0x12)
-        // XSendPacket packet(0x25, 0x12);
-        // CVaccumCube* pVaccumCube = dynamic_cast<CVaccumCube*>(pLeaveActor);
-        // if (pVaccumCube)
-        //     pVaccumCube->SetInfoLeavePacket(&packet, bExitActor);
-        // CGocNetwork::Send(&vecPlayerList, &packet, nullptr);
+        XSendPacket packet(0x25, 0x12);
+        CVaccumCube* pVaccumCube = static_cast<CVaccumCube*>(static_cast<CMover*>(pLeaveActor));
+        pVaccumCube->SetInfoLeavePacket(packet, bExitActor);
+        CGocNetwork::Send(vecPlayerList, packet, nullptr);
     }
-    else if (pLeaveActor->GetType() == 6)  // SocialItemObject
+    else if (pLeaveActor->GetType() == 6)
     {
-        // IDA: Send SocialItemObject leave packet (main=0x2D, sub=7)
-        // XSendPacket packet(0x2D, 7);
-        // CSocialItemObject* pSocialItem = dynamic_cast<CSocialItemObject*>(pLeaveActor);
-        // if (pSocialItem)
-        //     pSocialItem->SetInfoLeavePacket(&packet);
-        // CGocNetwork::Send(&vecPlayerList, &packet, nullptr);
+        // TODO: 需人工审查 - CSocialItemObject 当前不继承 XActor，禁止发送空载荷的 0x2D/7 封包。
     }
 }
 

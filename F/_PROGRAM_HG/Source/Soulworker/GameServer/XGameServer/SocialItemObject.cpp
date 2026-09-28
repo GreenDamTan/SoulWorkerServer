@@ -3,6 +3,9 @@
 // IDA decompilation from GameServer.exe
 
 #include "SocialItemObject.h"
+#include "GameServer.h"
+#include "User.h"
+#include "actor/component/GocNetwork.h"
 #include <new>
 #include <cstring>
 
@@ -144,14 +147,7 @@ void CSocialItemObject::SetInfoPacket(XSendPacket& xSendPacket)
 
     ST_SOCIAL_ITEM_RES stInfo;
     BuildInfoPacket(&stInfo);
-
-    // Serialize the info structure to the packet
-    // TODO: Implement packet serialization when XSendPacket operator<< available
-    // xSendPacket << stInfo;
-    
-    // Manual serialization for now
-    xSendPacket.XParse.SetBytes(
-        reinterpret_cast<const char*>(&stInfo), sizeof(ST_SOCIAL_ITEM_RES));
+    xSendPacket << stInfo;
 }
 
 // ============================================================================
@@ -187,7 +183,7 @@ bool CSocialItemObject::IsExistUser(std::uint32_t dwActorID)
 // CSocialItemObject::AddUser - Add user to social item
 // IDA @ 0x14018BEC0
 // ============================================================================
-bool CSocialItemObject::AddUser(std::uint32_t dwActorID, int* nSlot, int byAniIndex)
+bool CSocialItemObject::AddUser(GreenDamTan_SocialItemActorID dwActorID, int& nSlot, int byAniIndex)
 {
     // IDA code (complex logic):
     // - Check if user already exists
@@ -204,7 +200,7 @@ bool CSocialItemObject::AddUser(std::uint32_t dwActorID, int* nSlot, int byAniIn
     // Owner handling for social type 2
     if (m_bySocialType == E_SOCIAL_OBJECT_TYPE_OWNER_FIRST && m_itemInfo.dwOwnerID == dwActorID)
     {
-        *nSlot = 0;
+        nSlot = 0;
         m_itemInfo.vecUsers.push_back(dwActorID);
         return true;
     }
@@ -255,7 +251,7 @@ bool CSocialItemObject::AddUser(std::uint32_t dwActorID, int* nSlot, int byAniIn
                 m_itemInfo.stUsedSlot[i].dwUserID = dwActorID;
                 m_itemInfo.stUsedSlot[i].byAniIndex = static_cast<std::uint8_t>(byAniIndex);
                 bFind = true;
-                *nSlot = i;
+                nSlot = i;
                 break;
             }
         }
@@ -270,7 +266,7 @@ bool CSocialItemObject::AddUser(std::uint32_t dwActorID, int* nSlot, int byAniIn
                 m_itemInfo.stUsedSlot[j].dwUserID = dwActorID;
                 m_itemInfo.stUsedSlot[j].byAniIndex = static_cast<std::uint8_t>(byAniIndex);
                 bFind = true;
-                *nSlot = j;
+                nSlot = j;
                 break;
             }
         }
@@ -308,8 +304,13 @@ bool CSocialItemObject::AddUser(std::uint32_t dwActorID, int* nSlot, int byAniIn
 // ============================================================================
 // CSocialItemObject::DeleteUser - Delete user from social item
 // IDA @ 0x14018C320
+// 状态: 部分还原 - 已恢复用户记录与离开通知链，社交对象基类 ABI 尚未恢复。
+// TODO: 需人工审查
+//   1. 在恢复 CMoverEx/XActor 继承后核查该对象的生命周期与虚调用。
+//   2. 对照原始客户端协议验证 0x2D/0x10 实际封包与发送行为。
+// 依赖: CSocialItemObject 原始继承布局及客户端封包回归验证。
 // ============================================================================
-bool CSocialItemObject::DeleteUser(std::uint32_t dwActorID)
+bool CSocialItemObject::DeleteUser(GreenDamTan_SocialItemActorID dwActorID)
 {
     // IDA: Complex function that removes user from vecUsers and stUsedSlot
     // Returns true if user was found and deleted
@@ -339,17 +340,33 @@ bool CSocialItemObject::DeleteUser(std::uint32_t dwActorID)
         {
             if (m_itemInfo.stUsedSlot[i].dwUserID == dwActorID)
             {
-                m_itemInfo.stUsedSlot[i].dwUserID = 0;
-                m_itemInfo.stUsedSlot[i].byAniIndex = 0;
+                m_itemInfo.stUsedSlot[i].reset();
                 break;
             }
         }
     }
 
-    // Update play state
-    if (m_byPlayState == E_SOCIAL_OBJECT_STATE_READY)
+    for (auto it = m_vecPlayerInfo.begin(); it != m_vecPlayerInfo.end(); ++it)
     {
-        m_byPlayState = E_SOCIAL_OBJECT_STATE_WAIT;
+        if (it->dwUCID != dwActorID)
+            continue;
+
+        PS_SOCIALITEM_USER psDelUserInfo = *it;
+        psDelUserInfo.bLeave = true;
+        std::uint32_t dwUCID = GetOtherInfo(dwActorID);
+        CUser* pUser = XGameServer::Instance()->FindActorIDToUser(UXActorID(dwUCID));
+        if (pUser)
+        {
+            XSendPacket xSendPacket(0x2D, 0x10);
+            xSendPacket << psDelUserInfo;
+            CGocNetwork::Send(static_cast<XActor*>(pUser), xSendPacket);
+        }
+
+        if (m_byPlayState == E_SOCIAL_OBJECT_STATE_READY)
+            m_byPlayState = E_SOCIAL_OBJECT_STATE_WAIT;
+
+        m_vecPlayerInfo.erase(it);
+        return true;
     }
 
     return bRes;
@@ -387,27 +404,17 @@ void CSocialItemObject::SetInfoLeavePacket(XSendPacket& xSendPacket)
     //   operator<<(xSendPacket, &this->m_itemInfo);
     // }
     
-    // Serialize the item info structure to the packet
-    // TODO: Implement packet serialization when XSendPacket operator<< available
-    // xSendPacket << m_itemInfo;
-    
-    // Manual serialization for now
-    xSendPacket.XParse.SetBytes(
-        reinterpret_cast<const char*>(&m_itemInfo), sizeof(ST_SOCIAL_ITEM_INFO));
+    xSendPacket << m_itemInfo;
 }
 
 // ============================================================================
 // CSocialItemObject::SetFurnitureInfo - Set furniture max user count
 // IDA @ 0x14018C830
 // ============================================================================
-void CSocialItemObject::SetFurnitureInfo(std::uint8_t nMaxUseNum)
+void CSocialItemObject::SetFurnitureInfo(int nMaxUseNum)
 {
-    // IDA code:
-    // void __fastcall CSocialItemObject::SetFurnitureInfo(CSocialItemObject *this, unsigned __int8 nMaxUseNum)
-    // {
-    //   this->m_byMaxUserCount = nMaxUseNum;
-    // }
-    m_byMaxUserCount = nMaxUseNum;
+    // PDB 记录参数为 int；原始指令仅将其低字节写入成员。
+    m_byMaxUserCount = static_cast<std::uint8_t>(nMaxUseNum);
 }
 
 // ============================================================================
@@ -488,17 +495,19 @@ bool CSocialItemObject::IsUsePlaySocialItem()
 // CSocialItemObject::GetPlayGuestID - Get guest player UCID
 // IDA @ 0x14018DAF0
 // ============================================================================
-std::uint32_t CSocialItemObject::GetPlayGuestID()
+GreenDamTan_SocialItemActorID CSocialItemObject::GetPlayGuestID()
 {
     // IDA code:
     // unsigned __int64 __fastcall CSocialItemObject::GetPlayGuestID(CSocialItemObject *this)
     // {
+    //   if ( this->m_bySocialType != 3 )
+    //     return 0;
     //   for ( i = 0; i < vecUsers.size(); ++i )
     //   {
     //     if ( this->m_itemInfo.dwOwnerID != vecUsers[i]->dwActorID )
     //       return vecUsers[i]->dwActorID;
     //   }
-    //   return 0;
+    //   return vecUsers.size();
     // }
     if (m_bySocialType != E_SOCIAL_OBJECT_TYPE_PARTY)
         return 0;
@@ -510,7 +519,7 @@ std::uint32_t CSocialItemObject::GetPlayGuestID()
             return m_itemInfo.vecUsers[i];
         }
     }
-    return 0;
+    return static_cast<GreenDamTan_SocialItemActorID>(m_itemInfo.vecUsers.size());
 }
 
 // ============================================================================
@@ -629,17 +638,7 @@ std::uint32_t CSocialItemObject::GetOtherInfo(std::uint32_t dwUCID)
 // ============================================================================
 bool CSocialItemObject::CheckRemainTime(float fElapsedTime)
 {
-    // IDA code:
-    // char __fastcall CSocialItemObject::CheckRemainTime(CSocialItemObject *this, float fElapsedTime)
-    // {
-    //   if ( this->m_itemInfo.lRemainTime <= 0 )
-    //     return 0;
-    //   this->m_itemInfo.lRemainTime = (unsigned int)(int)(float)((float)(int)this->m_itemInfo.lRemainTime - (float)(fElapsedTime * 1000.0));
-    //   if ( this->m_itemInfo.lRemainTime > 0 )
-    //     return 0;
-    //   this->m_itemInfo.lRemainTime = 0;
-    //   return 1;
-    // }
+    // TODO: 需人工审查 - IDA 伪代码给出 32 位转换，但汇编使用 cvtsi2ss 和 cvttss2si 的 64 位形式。
     if (m_itemInfo.lRemainTime <= 0)
         return false;
 
@@ -900,18 +899,11 @@ void CSocialItemObject::EndProcess()
 // CSocialItemObject::GetActorID - Get actor ID
 // IDA @ 0x14018BC40
 // ============================================================================
-std::uint32_t CSocialItemObject::GetActorID()
+UXActorID CSocialItemObject::GetActorID()
 {
-    // IDA code:
-    // VBitmask *__fastcall CSocialItemObject::GetActorID(CSocialItemObject *this, VBitmask *result)
-    // {
-    //   ATL::CAtlMap<int,IXObject *,ATL::CElementTraits<int>,ATL::CElementTraits<IXObject *>>::CPair::CPair(
-    //     result,
-    //     LODWORD(this->m_fSkillSkipCoolTime));
-    //   return result;
-    // }
-    // Note: Returns actor ID from m_itemInfo.dwObjectID
-    return m_itemInfo.dwObjectID;
+    // TODO: 需人工审查 - 当前类尚未恢复 CMoverEx/XActor 继承及虚调用链。
+    // IDA 从 XActor 子对象 +59520 取值，PDB 确认其对应完整对象 +60392 的 m_itemInfo.dwObjectID。
+    return UXActorID(m_itemInfo.dwObjectID);
 }
 
 // ============================================================================
@@ -1184,47 +1176,44 @@ int CSocialItemObject::IsPlayGame(std::uint32_t dwUCID, PS_SOCIALITEM_PLAY* psPl
 // ============================================================================
 // CSocialItemObject::AddPlayUserInfo - Add play user info
 // IDA @ 0x14018DBA0
+// 状态: 部分还原 - 发送顺序与玩家记录已恢复，实际封包仍待运行核对。
+// TODO: 需人工审查
+//   1. 在有效用户会话中核对两个方向的 0x2D/0x10 实际封包。
+//   2. 核对恢复后的 CSocialItemObject 基类与用户对象虚调用。
+// 依赖: 有效 GameServer 会话和 CSocialItemObject 的 CMoverEx/XActor 继承布局。
 // ============================================================================
-void CSocialItemObject::AddPlayUserInfo(PS_SOCIALITEM_USER* psInfo)
+void CSocialItemObject::AddPlayUserInfo(PS_SOCIALITEM_USER psInfo)
 {
     // IDA: Sends user info to all existing players, then sends all existing
     // player info to new player, finally adds new player to m_vecPlayerInfo
-
-    if (!psInfo)
-        return;
 
     // Send new player info to all existing players
     for (size_t i = 0; i < m_vecPlayerInfo.size(); ++i)
     {
         std::uint32_t dwActorID = m_vecPlayerInfo[i].dwUCID;
-        
-        // TODO: Implement when XGameServer/XSendPacket/CGocNetwork available
-        // XGameServer* pServer = TXSingleton<XGameServer>::Instance();
-        // CUser* pUser = pServer->FindActorIDToUser(dwActorID);
-        // if (pUser)
-        // {
-        //     XSendPacket xSendPacket(0x2D, 0x10);
-        //     xSendPacket << *psInfo;
-        //     CGocNetwork::Send(&pUser->XActor, &xSendPacket);
-        // }
+        CUser* pUser = XGameServer::Instance()->FindActorIDToUser(UXActorID(dwActorID));
+        if (pUser)
+        {
+            XSendPacket xSendPacket(0x2D, 0x10);
+            xSendPacket << psInfo;
+            CGocNetwork::Send(static_cast<XActor*>(pUser), xSendPacket);
+        }
     }
 
     // Send all existing player info to new player
     for (size_t j = 0; j < m_vecPlayerInfo.size(); ++j)
     {
-        // TODO: Implement when XGameServer/XSendPacket/CGocNetwork available
-        // XGameServer* pServer = TXSingleton<XGameServer>::Instance();
-        // CUser* pNewUser = pServer->FindActorIDToUser(psInfo->dwUCID);
-        // if (pNewUser)
-        // {
-        //     XSendPacket packet(0x2D, 0x10);
-        //     packet << m_vecPlayerInfo[j];
-        //     CGocNetwork::Send(&pNewUser->XActor, &packet);
-        // }
+        CUser* pNewUser = XGameServer::Instance()->FindActorIDToUser(UXActorID(psInfo.dwUCID));
+        if (pNewUser)
+        {
+            XSendPacket packet(0x2D, 0x10);
+            packet << m_vecPlayerInfo[j];
+            CGocNetwork::Send(static_cast<XActor*>(pNewUser), packet);
+        }
     }
 
     // Add new player to list
-    m_vecPlayerInfo.push_back(*psInfo);
+    m_vecPlayerInfo.push_back(psInfo);
 }
 
 // ============================================================================
@@ -1232,8 +1221,15 @@ void CSocialItemObject::AddPlayUserInfo(PS_SOCIALITEM_USER* psInfo)
 // ============================================================================
 CSocialItemObject::CSocialItemObject()
 {
-    // Initialize members
-    std::memset(&m_itemInfo, 0, sizeof(m_itemInfo));
+    // TODO: 需人工审查 - 基类、位置和组件构造链仍待按 PDB 完整核准。
+    m_itemInfo.dwObjectID = 0;
+    m_itemInfo.dwOwnerID = 0;
+    m_itemInfo.dwItemID = 0;
+    m_itemInfo.wSocialItemID = 0;
+    m_itemInfo.lRemainTime = 0;
+    m_itemInfo.vecUsers.clear();
+    for (auto& slot : m_itemInfo.stUsedSlot)
+        slot = {};
     m_vPosition[0] = 0.0f;
     m_vPosition[1] = 0.0f;
     m_vPosition[2] = 0.0f;

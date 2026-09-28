@@ -14,10 +14,12 @@
 #pragma once
 
 #include <cstdint>
+#include <type_traits>
 #include <vector>
 #include <map>
 
 #include "Soulworker/Common/XNet/XCommon/PSCommon.h"
+#include "Soulworker/Common/XNet/XCommon/PSSocialItem.h"
 
 // Forward declarations
 class VType;
@@ -56,14 +58,6 @@ struct PS_SOCIAL_ITEM_PLAY_START {
 };
 
 // ============================================================================
-// PS_SOCIALITEM_USER - Social item user info
-// ============================================================================
-struct PS_SOCIALITEM_USER {
-    std::uint32_t dwUCID = 0;           // User character ID
-    int nPoint = 0;                     // User's points
-};
-
-// ============================================================================
 // ST_SOCIALITEM_CARD - Social item card info
 // ============================================================================
 struct ST_SOCIALITEM_CARD {
@@ -88,34 +82,7 @@ enum E_SOCIAL_OBJECT_TYPE {
     E_SOCIAL_OBJECT_TYPE_PARTY = 3
 };
 
-// ============================================================================
-// ST_SOCIAL_ITEM_INFO - Social item info structure
-// ============================================================================
-struct ST_SOCIAL_ITEM_INFO {
-    std::uint32_t dwObjectID = 0;       // Object ID
-    std::uint32_t dwOwnerID = 0;        // Owner ID
-    std::uint32_t dwItemID = 0;         // Item ID
-    std::uint16_t wSocialItemID = 0;    // Social item ID
-    std::int64_t lRemainTime = 0;       // Remaining time
-    std::vector<std::uint32_t> vecUsers; // User list
-
-    // Used slot info (4 slots)
-    struct ST_USED_SLOT {
-        std::uint32_t dwUserID = 0;
-        std::uint8_t byAniIndex = 0;    // Animation index
-    } stUsedSlot[4];
-};
-
-// ============================================================================
-// ST_SOCIAL_ITEM_RES - Social item response structure
-// ============================================================================
-struct ST_SOCIAL_ITEM_RES {
-    ST_SOCIAL_ITEM_INFO itemInfo;
-    float fPosX = 0.0f;
-    float fPosY = 0.0f;
-    float fPosZ = 0.0f;
-    float fRot = 0.0f;
-};
+using GreenDamTan_SocialItemActorID = std::conditional_t<sizeof(unsigned long) == 4, unsigned long, std::uint32_t>;
 
 // ============================================================================
 // CSocialItemObject - Social item game object
@@ -155,7 +122,7 @@ public:
 
     // AddUser - Add a user to the social item
     // IDA: ?AddUser@CSocialItemObject@@QEAA_NKAEAHH@Z @ 0x14018BEC0
-    bool AddUser(std::uint32_t dwActorID, int* nSlot, int byAniIndex);
+    bool AddUser(GreenDamTan_SocialItemActorID dwActorID, int& nSlot, int byAniIndex);
 
     // IsExistUser - Check if user exists in the social item
     // IDA: ?IsExistUser@CSocialItemObject@@QEAA_NK@Z @ 0x14018C2A0
@@ -163,7 +130,7 @@ public:
 
     // DeleteUser - Delete a user from the social item
     // IDA: ?DeleteUser@CSocialItemObject@@QEAA_NK@Z @ 0x14018C320
-    bool DeleteUser(std::uint32_t dwActorID);
+    bool DeleteUser(GreenDamTan_SocialItemActorID dwActorID);
 
     // SetSocialType - Set social type
     // IDA: ?SetSocialType@CSocialItemObject@@QEAAXE@Z @ 0x14018C850
@@ -181,7 +148,7 @@ public:
 
     // SetFurnitureInfo - Set furniture max user count
     // IDA: ?SetFurnitureInfo@CSocialItemObject@@QEAAXH@Z @ 0x14018C830
-    void SetFurnitureInfo(std::uint8_t nMaxUseNum);
+    void SetFurnitureInfo(int nMaxUseNum);
 
     // === Play Methods ===
 
@@ -199,7 +166,7 @@ public:
 
     // GetPlayGuestID - Get guest player UCID
     // IDA: ?GetPlayGuestID@CSocialItemObject@@QEAAKXZ @ 0x14018DAF0
-    std::uint32_t GetPlayGuestID();
+    GreenDamTan_SocialItemActorID GetPlayGuestID();
 
     // FinishPlaySocialItemObject - Finish play and send rewards
     // IDA: ?FinishPlaySocialItemObject@CSocialItemObject@@QEAAXK@Z @ 0x14018D3B0
@@ -219,7 +186,7 @@ public:
 
     // AddPlayUserInfo - Add play user info
     // IDA: ?AddPlayUserInfo@CSocialItemObject@@QEAAXUPS_SOCIALITEM_USER@@@Z @ 0x14018DBA0
-    void AddPlayUserInfo(PS_SOCIALITEM_USER* psInfo);
+    void AddPlayUserInfo(PS_SOCIALITEM_USER psInfo);
 
     // GetOtherInfo - Get other player's UCID
     // IDA: ?GetOtherInfo@CSocialItemObject@@QEAAKK@Z @ 0x14018DE70
@@ -283,7 +250,7 @@ public:
 
     // GetActorID - Get actor ID
     // IDA: ?GetActorID@CSocialItemObject@@UEAA?ATUXActorID@@XZ @ 0x14018BC40
-    std::uint32_t GetActorID();
+    UXActorID GetActorID();
 
     // === Accessors ===
     const ST_SOCIAL_ITEM_INFO& GetItemInfo() const { return m_itemInfo; }

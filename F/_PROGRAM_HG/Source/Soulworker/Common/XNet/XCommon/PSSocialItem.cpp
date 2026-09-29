@@ -19,6 +19,90 @@ XPacket& operator<<(XPacket& packet, PS_SOCIALITEM_USER& value)
     return packet;
 }
 
+XPacket& operator<<(XPacket& packet, PS_SOCIALITEM_PLAY_POINT& value)
+{
+    packet.XParse << value.nTotalPoint;
+    for (char c = 0; c < 7; ++c)
+        packet.XParse << value.nCardFaction[static_cast<std::size_t>(c)];
+    packet.XParse << value.bTurn;
+    return packet;
+}
+
+XPacket& operator>>(XPacket& packet, PS_SOCIALITEM_PLAY_POINT& value)
+{
+    packet.XParse >> value.nTotalPoint;
+    for (char c = 0; c < 7; ++c)
+        packet.XParse >> value.nCardFaction[static_cast<std::size_t>(c)];
+    packet.XParse >> value.bTurn;
+    return packet;
+}
+
+XPacket& operator<<(XPacket& packet, PS_SOCIALITEM_PLAY& value)
+{
+    packet.XParse << value.dwSocialObjectID;
+    packet.XParse << value.dwCardID;
+    packet.XParse << value.byCardIdx;
+    packet.XParse << value.bFinish;
+    packet.XParse << value.nPlayCount;
+    packet.XParse << value.nType;
+    packet << value.psOwnerInfo;
+    packet << value.psGuestInfo;
+    return packet;
+}
+
+XPacket& operator>>(XPacket& packet, PS_SOCIALITEM_PLAY& value)
+{
+    packet.XParse >> value.dwSocialObjectID;
+    packet.XParse >> value.dwCardID;
+    packet.XParse >> value.byCardIdx;
+    packet.XParse >> value.bFinish;
+    packet.XParse >> value.nPlayCount;
+    packet.XParse >> value.nType;
+    packet >> value.psOwnerInfo;
+    packet >> value.psGuestInfo;
+    return packet;
+}
+
+XPacket& operator<<(XPacket& packet, ST_SOCIALITEM_CARD& value)
+{
+    packet.XParse << value.byCardIndex;
+    packet.XParse << value.dwCardID;
+    return packet;
+}
+
+XPacket& operator>>(XPacket& packet, ST_SOCIALITEM_CARD& value)
+{
+    char byCardIndex = 0;
+    packet.XParse >> byCardIndex;
+    value.byCardIndex = static_cast<std::uint8_t>(byCardIndex);
+    packet.XParse >> value.dwCardID;
+    return packet;
+}
+
+XPacket& operator<<(XPacket& packet, PS_SOCIAL_ITEM_PLAY_START& value)
+{
+    packet.XParse << value.dwSocialObjectID;
+    const char cCount = static_cast<char>(value.vecCardInfo.size());
+    packet.XParse << cCount;
+    for (char c = 0; c < cCount; ++c)
+        packet << value.vecCardInfo[static_cast<std::size_t>(c)];
+    return packet;
+}
+
+XPacket& operator>>(XPacket& packet, PS_SOCIAL_ITEM_PLAY_START& value)
+{
+    packet.XParse >> value.dwSocialObjectID;
+    char cCount = 0;
+    packet.XParse >> cCount;
+    for (char c = 0; c < cCount; ++c)
+    {
+        ST_SOCIALITEM_CARD stInfo;
+        packet >> stInfo;
+        value.vecCardInfo.push_back(stInfo);
+    }
+    return packet;
+}
+
 XPacket& operator<<(XPacket& packet, ST_SOCIAL_ITEM_SLOT_INFO& value)
 {
     packet.XParse << value.dwUserID;

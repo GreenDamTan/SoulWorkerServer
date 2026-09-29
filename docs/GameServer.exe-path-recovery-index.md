@@ -11,9 +11,9 @@
 | Soulworker/GameServer/XGameServer/Monster.h | XGameServer/Monster.h | Monster.h | IDA source path | yes |
 | Soulworker/GameServer/XGameServer/Ai.cpp | XGameServer/Ai.cpp | Ai.cpp | IDA source path | yes |
 | Soulworker/GameServer/XGameServer/Ai.h | XGameServer/Ai.h | Ai.h | IDA source path | yes |
-| Soulworker/GameServer/XGameServer/Mover.cpp | XGameServer/Mover.cpp | Mover.cpp | IDA source path | yes |
+| soulworker/gameserver/xgameserver/mover.cpp | Soulworker/GameServer/XGameServer/Mover.cpp | Mover.cpp | GameServer PDB cvdump module 005B Mover.obj + cvdump lines xgameserver/mover.cpp + IDA 0x1403659E0 + landed source; current-target | yes |
 | Soulworker/GameServer/XGameServer/Mover.h | XGameServer/Mover.h | Mover.h | IDA source path | yes |
-| Soulworker/GameServer/XGameServer/MoverEx.cpp | XGameServer/MoverEx.cpp | MoverEx.cpp | IDA source path | yes |
+| soulworker/gameserver/xgameserver/moverex.cpp | Soulworker/GameServer/XGameServer/MoverEx.cpp | MoverEx.cpp | GameServer PDB cvdump module 005C MoverEx.obj + cvdump lines xgameserver/moverex.cpp + IDA 0x140378A60 + landed source; current-target | yes |
 | Soulworker/GameServer/XGameServer/MoverEx.h | XGameServer/MoverEx.h | MoverEx.h | IDA source path | yes |
 | Soulworker/GameServer/XGameServer/User.cpp | XGameServer/User.cpp | User.cpp | IDA source path | yes |
 | Soulworker/GameServer/XGameServer/User.h | XGameServer/User.h | User.h | IDA source path | yes |
@@ -120,6 +120,7 @@
 | soulworker/common/xnet/xcommon/pssocialitem.h | Soulworker/Common/XNet/XCommon/PSSocialItem.h | PSSocialItem.h | GameServer PDB cvdump lines in SocialItemObject.obj + PSSocialItem.obj + landed shared header; shared-layer | yes |
 | soulworker/gameserver/xgameserver/actor/socialitemobject/socialitemobject.cpp | Soulworker/GameServer/XGameServer/Actor/SocialItemObject/SocialItemObject.cpp | SocialItemObject.cpp | GameServer PDB SocialItemObject.obj module 0020 + cvdump lines; current landing is XGameServer/SocialItemObject.cpp, not original path; current-target | no |
 | soulworker/gameserver/xgameserver/actor/socialitemobject/socialitemobject.h | Soulworker/GameServer/XGameServer/Actor/SocialItemObject/SocialItemObject.h | SocialItemObject.h | GameServer PDB SocialItemObject.obj + cvdump lines; current landing is XGameServer/SocialItemObject.h, not original path; current-target | no |
+| soulworker/gameserver/xgameserver/actor/socialitemobject/socialitemobjectmgr.cpp | Soulworker/GameServer/XGameServer/Actor/SocialItemObject/SocialItemObjectMgr.cpp | SocialItemObjectMgr.cpp | GameServer PDB SocialItemObjectMgr.obj module 0021 + cvdump lines for source path and creator RVA 0x18F130; current landing is XGameServer/SocialItemObjectMgr.cpp, not original path; current-target | no |
 | soulworker/common/xnet/xcommon/veventobjectdefine.cpp | Soulworker/Common/XNet/XCommon/VEventObjectDefine.cpp | VEventObjectDefine.cpp | GameServer PDB XCommon.lib/VEventObjectDefine.obj + cvdump lines/publics + landed VCheckEventSpawnBoxInfo copy/Clone and XML stub; base XML Load remains unlanded and Clone uses a substitute allocator; shared-layer | yes |
 | soulworker/common/xnet/xcommon/veventobjectdefine.h | Soulworker/Common/XNet/XCommon/VEventObjectDefine.h | VEventObjectDefine.h | GameServer PDB cvdump lines/types + XCommon.lib/VEventObjectDefine.obj + landed VCheckEventSpawnBoxInfo 204-byte layout and event base layouts; shared-layer | yes |
 | soulworker/common/xnet/xcommon/veventobjectloader.cpp | Soulworker/Common/XNet/XCommon/VEventObjectLoader.cpp | VEventObjectLoader.cpp | GameServer PDB XCommon.lib/VEventObjectLoader.obj + cvdump lines/symbols for VCheckEventSpawnBoxInfo and related default constructors + landed shared source; shared-layer | yes |

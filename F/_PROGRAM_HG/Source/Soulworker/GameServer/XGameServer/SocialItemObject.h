@@ -27,59 +27,21 @@ class CGocAttribute;
 class CTextDBLog;
 class XArea;
 
-struct PS_SOCIALITEM_PLAY;
-struct PS_SOCIAL_ITEM_PLAY_START;
-struct PS_SOCIALITEM_USER;
-struct ST_SOCIALITEM_CARD;
-
-// ============================================================================
-// PS_SOCIALITEM_PLAY - Social item play packet
-// ============================================================================
-struct PS_SOCIALITEM_PLAY {
-    int nType = 0;                      // 0=normal play, 1=turn change
-    std::uint32_t dwCardID = 0;         // Selected card ID
-    bool bFinish = false;               // Game finished flag
-    
-    struct {
-        bool bTurn = false;             // Is owner's turn
-        int nTotalPoint = 0;            // Owner's total points
-    } psOwnerInfo;
-    
-    struct {
-        int nTotalPoint = 0;            // Guest's total points
-    } psGuestInfo;
-};
-
-// ============================================================================
-// PS_SOCIAL_ITEM_PLAY_START - Social item play start packet
-// ============================================================================
-struct PS_SOCIAL_ITEM_PLAY_START {
-    std::vector<std::uint32_t> vecMission;  // Card IDs for the game
-};
-
-// ============================================================================
-// ST_SOCIALITEM_CARD - Social item card info
-// ============================================================================
-struct ST_SOCIALITEM_CARD {
-    std::uint32_t dwCardID = 0;         // Card ID
-    std::uint8_t byType = 0;            // Card type
-};
-
 // Social object state enumeration
 enum E_SOCIAL_OBJECT_STATE {
     E_SOCIAL_OBJECT_STATE_NONE = 0,
     E_SOCIAL_OBJECT_STATE_WAIT = 1,
     E_SOCIAL_OBJECT_STATE_READY = 2,
-    E_SOCIAL_OBJECT_STATE_PLAY = 3,
-    E_SOCIAL_OBJECT_STATE_START = 4,
-    E_SOCIAL_OBJECT_STATE_FINISH = 5
+    E_SOCIAL_OBJECT_STATE_START = 3,
+    E_SOCIAL_OBJECT_STATE_FINISH = 4
 };
 
 // Social object type enumeration
 enum E_SOCIAL_OBJECT_TYPE {
-    E_SOCIAL_OBJECT_TYPE_NORMAL = 1,
-    E_SOCIAL_OBJECT_TYPE_OWNER_FIRST = 2,
-    E_SOCIAL_OBJECT_TYPE_PARTY = 3
+    E_SOCIAL_OBJECT_TYPE_NORMAL = 0,
+    E_SOCIAL_OBJECT_TYPE_BATCH = 1,
+    E_SOCIAL_OBJECT_TYPE_FUNITURE = 2,
+    E_SOCIAL_OBJECT_TYPE_PLAY = 3
 };
 
 using GreenDamTan_SocialItemActorID = std::conditional_t<sizeof(unsigned long) == 4, unsigned long, std::uint32_t>;
@@ -112,7 +74,7 @@ public:
 
     // BuildInfoPacket - Build info packet for network transmission
     // IDA: ?BuildInfoPacket@CSocialItemObject@@QEAAXAEAUST_SOCIAL_ITEM_RES@@@Z @ 0x14018BC70
-    void BuildInfoPacket(ST_SOCIAL_ITEM_RES* stInfo);
+    void BuildInfoPacket(ST_SOCIAL_ITEM_RES& stInfo);
 
     // SetInfoPacket - Set info packet for network send
     // IDA: ?SetInfoPacket@CSocialItemObject@@UEAAXAEAVXSendPacket@@@Z @ 0x14018BDE0
@@ -154,7 +116,7 @@ public:
 
     // SendPlayInfo - Send play info to all users
     // IDA: ?SendPlayInfo@CSocialItemObject@@QEAAXUPS_SOCIALITEM_PLAY@@@Z @ 0x14018C8A0
-    void SendPlayInfo(PS_SOCIALITEM_PLAY* psPlayInfo);
+    void SendPlayInfo(PS_SOCIALITEM_PLAY psPlayInfo);
 
     // GetPlayNextTurn - Get next turn player UCID
     // IDA: ?GetPlayNextTurn@CSocialItemObject@@QEAAKXZ @ 0x14018CA10
@@ -174,15 +136,15 @@ public:
 
     // StartPlaySocialItem - Start play social item game
     // IDA: ?StartPlaySocialItem@CSocialItemObject@@QEAA_NUPS_SOCIAL_ITEM_PLAY_START@@@Z @ 0x14018DF00
-    bool StartPlaySocialItem(PS_SOCIAL_ITEM_PLAY_START* psStart);
+    bool StartPlaySocialItem(PS_SOCIAL_ITEM_PLAY_START psStart);
 
     // SendStartInfo - Send start info to all users
     // IDA: ?SendStartInfo@CSocialItemObject@@QEAAXUPS_SOCIAL_ITEM_PLAY_START@@@Z @ 0x14018E1C0
-    void SendStartInfo(PS_SOCIAL_ITEM_PLAY_START* psStartInfo);
+    void SendStartInfo(PS_SOCIAL_ITEM_PLAY_START psStartInfo);
 
     // IsPlayGame - Check and process play game
     // IDA: ?IsPlayGame@CSocialItemObject@@QEAAHKUPS_SOCIALITEM_PLAY@@@Z @ 0x14018CA50
-    int IsPlayGame(std::uint32_t dwUCID, PS_SOCIALITEM_PLAY* psPlay);
+    int IsPlayGame(GreenDamTan_SocialItemActorID dwUCID, PS_SOCIALITEM_PLAY psPlay);
 
     // AddPlayUserInfo - Add play user info
     // IDA: ?AddPlayUserInfo@CSocialItemObject@@QEAAXUPS_SOCIALITEM_USER@@@Z @ 0x14018DBA0
@@ -272,7 +234,7 @@ protected:
     float m_fRot = 0.0f;                // Rotation
     float m_fRadius = 0.0f;             // Radius
     std::int64_t m_xItemSerial = 0;     // Item serial ID
-    std::uint8_t m_bySocialType = 1;    // Social type (1=normal, 2=owner first, 3=party)
+    std::uint8_t m_bySocialType = 1;    // Social type (0=NORMAL, 1=BATCH, 2=FUNITURE, 3=PLAY)
     std::uint8_t m_byMaxUserCount = 1;  // Max user count
     std::uint8_t m_byPlayState = 0;     // Play state
     std::uint8_t m_byPlayCount = 0;     // Play count

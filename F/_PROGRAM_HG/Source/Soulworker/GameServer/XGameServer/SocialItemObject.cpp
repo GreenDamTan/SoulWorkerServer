@@ -6,6 +6,8 @@
 #include "GameServer.h"
 #include "User.h"
 #include "actor/component/GocNetwork.h"
+#include "Log/GreenDamTan_TextDBLog.h"
+#include "Soulworker/GameServer/XCore/XServer/GreenDamTan_LogHelper.h"
 #include <new>
 #include <cstring>
 
@@ -81,7 +83,7 @@ void CSocialItemObject::InitComponant()
 // CSocialItemObject::BuildInfoPacket - Build info packet
 // IDA @ 0x14018BC70
 // ============================================================================
-void CSocialItemObject::BuildInfoPacket(ST_SOCIAL_ITEM_RES* stInfo)
+void CSocialItemObject::BuildInfoPacket(ST_SOCIAL_ITEM_RES& stInfo)
 {
     // IDA code:
     // void __fastcall CSocialItemObject::BuildInfoPacket(CSocialItemObject *this, ST_SOCIAL_ITEM_RES *stInfo)
@@ -101,31 +103,28 @@ void CSocialItemObject::BuildInfoPacket(ST_SOCIAL_ITEM_RES* stInfo)
     //   stInfo->fRot = this->m_fRot;
     // }
 
-    if (!stInfo)
-        return;
-
     // Copy item info
-    stInfo->itemInfo.dwObjectID = m_itemInfo.dwObjectID;
-    stInfo->itemInfo.dwOwnerID = m_itemInfo.dwOwnerID;
-    stInfo->itemInfo.dwItemID = m_itemInfo.dwItemID;
-    stInfo->itemInfo.wSocialItemID = m_itemInfo.wSocialItemID;
-    stInfo->itemInfo.lRemainTime = m_itemInfo.lRemainTime;
+    stInfo.itemInfo.dwObjectID = m_itemInfo.dwObjectID;
+    stInfo.itemInfo.dwOwnerID = m_itemInfo.dwOwnerID;
+    stInfo.itemInfo.dwItemID = m_itemInfo.dwItemID;
+    stInfo.itemInfo.wSocialItemID = m_itemInfo.wSocialItemID;
+    stInfo.itemInfo.lRemainTime = m_itemInfo.lRemainTime;
 
     // Copy user list
-    stInfo->itemInfo.vecUsers.clear();
-    stInfo->itemInfo.vecUsers = m_itemInfo.vecUsers;
+    stInfo.itemInfo.vecUsers.clear();
+    stInfo.itemInfo.vecUsers = m_itemInfo.vecUsers;
 
     // Copy used slots
     for (int i = 0; i < 4; ++i)
     {
-        stInfo->itemInfo.stUsedSlot[i] = m_itemInfo.stUsedSlot[i];
+        stInfo.itemInfo.stUsedSlot[i] = m_itemInfo.stUsedSlot[i];
     }
 
     // Copy position and rotation
-    stInfo->fPosX = m_vPosition[0];
-    stInfo->fPosY = m_vPosition[1];
-    stInfo->fPosZ = m_vPosition[2];
-    stInfo->fRot = m_fRot;
+    stInfo.fPosX = m_vPosition[0];
+    stInfo.fPosY = m_vPosition[1];
+    stInfo.fPosZ = m_vPosition[2];
+    stInfo.fRot = m_fRot;
 }
 
 // ============================================================================
@@ -146,7 +145,7 @@ void CSocialItemObject::SetInfoPacket(XSendPacket& xSendPacket)
     // }
 
     ST_SOCIAL_ITEM_RES stInfo;
-    BuildInfoPacket(&stInfo);
+    BuildInfoPacket(stInfo);
     xSendPacket << stInfo;
 }
 
@@ -187,7 +186,7 @@ bool CSocialItemObject::AddUser(GreenDamTan_SocialItemActorID dwActorID, int& nS
 {
     // IDA code (complex logic):
     // - Check if user already exists
-    // - Handle different social types (1=normal, 2=owner_first, 3=party)
+    // - Handle different social types (1=BATCH, 2=FUNITURE, 3=PLAY)
     // - Find available slot
     // - Update play state
 
@@ -198,7 +197,7 @@ bool CSocialItemObject::AddUser(GreenDamTan_SocialItemActorID dwActorID, int& nS
     }
 
     // Owner handling for social type 2
-    if (m_bySocialType == E_SOCIAL_OBJECT_TYPE_OWNER_FIRST && m_itemInfo.dwOwnerID == dwActorID)
+    if (m_bySocialType == E_SOCIAL_OBJECT_TYPE_FUNITURE && m_itemInfo.dwOwnerID == dwActorID)
     {
         nSlot = 0;
         m_itemInfo.vecUsers.push_back(dwActorID);
@@ -209,7 +208,7 @@ bool CSocialItemObject::AddUser(GreenDamTan_SocialItemActorID dwActorID, int& nS
     if (m_itemInfo.dwOwnerID == dwActorID)
     {
         m_itemInfo.vecUsers.push_back(dwActorID);
-        if (m_bySocialType == E_SOCIAL_OBJECT_TYPE_PARTY)
+        if (m_bySocialType == E_SOCIAL_OBJECT_TYPE_PLAY)
         {
             m_byPlayState = E_SOCIAL_OBJECT_STATE_WAIT;
             if (m_itemInfo.vecUsers.size() == m_byMaxUserCount)
@@ -222,7 +221,7 @@ bool CSocialItemObject::AddUser(GreenDamTan_SocialItemActorID dwActorID, int& nS
 
     // Check capacity
     bool bOwnerExists = IsExistUser(m_itemInfo.dwOwnerID);
-    if (!bOwnerExists || m_bySocialType == E_SOCIAL_OBJECT_TYPE_OWNER_FIRST || m_bySocialType == E_SOCIAL_OBJECT_TYPE_PARTY)
+    if (!bOwnerExists || m_bySocialType == E_SOCIAL_OBJECT_TYPE_FUNITURE || m_bySocialType == E_SOCIAL_OBJECT_TYPE_PLAY)
     {
         if (m_itemInfo.vecUsers.size() >= m_byMaxUserCount)
         {
@@ -242,7 +241,7 @@ bool CSocialItemObject::AddUser(GreenDamTan_SocialItemActorID dwActorID, int& nS
     // Find available slot based on social type
     switch (m_bySocialType)
     {
-    case E_SOCIAL_OBJECT_TYPE_NORMAL:
+    case E_SOCIAL_OBJECT_TYPE_BATCH:
         bFind = false;
         for (int i = 0; i < m_byMaxUserCount; ++i)
         {
@@ -257,7 +256,7 @@ bool CSocialItemObject::AddUser(GreenDamTan_SocialItemActorID dwActorID, int& nS
         }
         break;
 
-    case E_SOCIAL_OBJECT_TYPE_OWNER_FIRST:
+    case E_SOCIAL_OBJECT_TYPE_FUNITURE:
         bFind = false;
         for (int j = 1; j < m_byMaxUserCount; ++j)
         {
@@ -272,7 +271,7 @@ bool CSocialItemObject::AddUser(GreenDamTan_SocialItemActorID dwActorID, int& nS
         }
         break;
 
-    case E_SOCIAL_OBJECT_TYPE_PARTY:
+    case E_SOCIAL_OBJECT_TYPE_PLAY:
         // Check if all users are owner or owner's party members
         for (size_t k = 0; k < m_itemInfo.vecUsers.size(); ++k)
         {
@@ -287,7 +286,7 @@ bool CSocialItemObject::AddUser(GreenDamTan_SocialItemActorID dwActorID, int& nS
     if (bFind)
     {
         m_itemInfo.vecUsers.push_back(dwActorID);
-        if (m_bySocialType == E_SOCIAL_OBJECT_TYPE_PARTY)
+        if (m_bySocialType == E_SOCIAL_OBJECT_TYPE_PLAY)
         {
             m_byPlayState = E_SOCIAL_OBJECT_STATE_WAIT;
             if (m_itemInfo.vecUsers.size() == m_byMaxUserCount)
@@ -334,7 +333,7 @@ bool CSocialItemObject::DeleteUser(GreenDamTan_SocialItemActorID dwActorID)
     }
 
     // Clear slot for social types 1 and 2
-    if (bRes && (m_bySocialType == E_SOCIAL_OBJECT_TYPE_NORMAL || m_bySocialType == E_SOCIAL_OBJECT_TYPE_OWNER_FIRST))
+    if (bRes && (m_bySocialType == E_SOCIAL_OBJECT_TYPE_BATCH || m_bySocialType == E_SOCIAL_OBJECT_TYPE_FUNITURE))
     {
         for (int i = 0; i < m_byMaxUserCount; ++i)
         {
@@ -389,7 +388,7 @@ void CSocialItemObject::SetSocialType(std::uint8_t bySocialType)
 bool CSocialItemObject::IsFunniture()
 {
     // IDA: return this->m_bySocialType && this->m_bySocialType != 3;
-    return m_bySocialType != 0 && m_bySocialType != E_SOCIAL_OBJECT_TYPE_PARTY;
+    return m_bySocialType != 0 && m_bySocialType != E_SOCIAL_OBJECT_TYPE_PLAY;
 }
 
 // ============================================================================
@@ -420,8 +419,13 @@ void CSocialItemObject::SetFurnitureInfo(int nMaxUseNum)
 // ============================================================================
 // CSocialItemObject::SendPlayInfo - Send play info to all users
 // IDA @ 0x14018C8A0
+// 状态: 部分还原 - 发送与序列化顺序已恢复，真实会话尚未核对。
+// TODO: 需人工审查
+//   1. 在有效双人社交道具会话中验证 0x2D/9 封包及两名用户的接收结果。
+//   2. 恢复 CMoverEx/XActor 继承后核对原始对象虚调用及生命周期。
+// 依赖: 原始社交对象继承布局和实际客户端卡牌会话。
 // ============================================================================
-void CSocialItemObject::SendPlayInfo(PS_SOCIALITEM_PLAY* psPlayInfo)
+void CSocialItemObject::SendPlayInfo(PS_SOCIALITEM_PLAY psPlayInfo)
 {
     // IDA code: Iterates through all users and sends play info packet
     // for ( i = 0; i < vecUsers.size(); ++i )
@@ -436,23 +440,16 @@ void CSocialItemObject::SendPlayInfo(PS_SOCIALITEM_PLAY* psPlayInfo)
     //   }
     // }
 
-    if (!psPlayInfo)
-        return;
-
-    // Iterate through all users and send play info packet
-    for (size_t i = 0; i < m_itemInfo.vecUsers.size(); ++i)
+    for (int i = 0; i < static_cast<int>(m_itemInfo.vecUsers.size()); ++i)
     {
-        std::uint32_t dwActorID = m_itemInfo.vecUsers[i];
-        
-        // TODO: Implement when XGameServer/XSendPacket/CGocNetwork available
-        // XGameServer* pServer = TXSingleton<XGameServer>::Instance();
-        // CUser* pUser = pServer->FindActorIDToUser(dwActorID);
-        // if (pUser)
-        // {
-        //     XSendPacket xSendPacket(0x2D, 9);  // Main=0x2D, Sub=9
-        //     xSendPacket << *psPlayInfo;
-        //     CGocNetwork::Send(&pUser->XActor, &xSendPacket);
-        // }
+        std::uint32_t dwActorID = m_itemInfo.vecUsers[static_cast<std::size_t>(i)];
+        CUser* pUser = XGameServer::Instance()->FindActorIDToUser(UXActorID(dwActorID));
+        if (pUser)
+        {
+            XSendPacket xSendPacket(0x2D, 9);
+            xSendPacket << psPlayInfo;
+            CGocNetwork::Send(static_cast<XActor*>(pUser), xSendPacket);
+        }
     }
 }
 
@@ -488,7 +485,7 @@ bool CSocialItemObject::IsUsePlaySocialItem()
     // {
     //   return this->m_bySocialType != 3 || this->m_byPlayState < (unsigned int)E_SOCIAL_OBJECT_STATE_READY;
     // }
-    return m_bySocialType != E_SOCIAL_OBJECT_TYPE_PARTY || m_byPlayState < E_SOCIAL_OBJECT_STATE_READY;
+    return m_bySocialType != E_SOCIAL_OBJECT_TYPE_PLAY || m_byPlayState < E_SOCIAL_OBJECT_STATE_READY;
 }
 
 // ============================================================================
@@ -509,7 +506,7 @@ GreenDamTan_SocialItemActorID CSocialItemObject::GetPlayGuestID()
     //   }
     //   return vecUsers.size();
     // }
-    if (m_bySocialType != E_SOCIAL_OBJECT_TYPE_PARTY)
+    if (m_bySocialType != E_SOCIAL_OBJECT_TYPE_PLAY)
         return 0;
 
     for (size_t i = 0; i < m_itemInfo.vecUsers.size(); ++i)
@@ -909,28 +906,23 @@ UXActorID CSocialItemObject::GetActorID()
 // ============================================================================
 // CSocialItemObject::StartPlaySocialItem - Start play social item game
 // IDA @ 0x14018DF00
+// 状态: 部分还原 - 卡牌数量、资源检查及插入顺序已对照 IDA，还缺原始对象布局与实际会话验证。
+// TODO: 需人工审查
+//   1. 恢复 CMoverEx/XActor 基类后核对成员偏移及卡牌 map 生命周期。
+//   2. 在有效卡牌会话中验证资源缺失和重复卡牌的返回路径。
+// 依赖: CSocialItemObject 原始继承布局和实际客户端卡牌会话。
 // ============================================================================
-bool CSocialItemObject::StartPlaySocialItem(PS_SOCIAL_ITEM_PLAY_START* psStart)
+bool CSocialItemObject::StartPlaySocialItem(PS_SOCIAL_ITEM_PLAY_START psStart)
 {
-    // IDA: Complex game start logic
-    // - Check card size (must be 18 pairs = 36 cards)
-    // - Initialize play state, turn, bonus, reverse count
-    // - Load card info from TB_MODE_CARDMATCH_RULE and TB_MODE_CARDMATCH_CARD
-    // - Insert cards into m_mpCardInfo map
-
-    if (!psStart)
-        return false;
-
     m_byMaxPlayCount = 1;
 
-    // Check if card count is correct (18 pairs = 36 cards)
-    // TODO: Check actual vector size from psStart when structure defined
-    // size_t cardSize = psStart->vecMission.size();
-    // if (cardSize != 36)
-    // {
-    //     LogHelper::LogError("game.contents", "StartPlaySocialItem error - CardSize[%d]", cardSize);
-    //     return false;
-    // }
+    // IDA 对卡牌数先做整数除以 2；奇数 37 也会通过此判断。
+    if (psStart.vecCardInfo.size() / 2 != 18)
+    {
+        LogHelper::LogError("game.contents", "StartPlaySocialItem error - CardSize[%d]",
+                            static_cast<int>(psStart.vecCardInfo.size()));
+        return false;
+    }
 
     m_byPlayState = E_SOCIAL_OBJECT_STATE_START;
     m_dwTurnUCID = m_itemInfo.dwOwnerID;
@@ -939,88 +931,85 @@ bool CSocialItemObject::StartPlaySocialItem(PS_SOCIAL_ITEM_PLAY_START* psStart)
     m_byBonus = 0;
     m_byReverseCount = 0;
 
-    // Process cards from psStart and insert into m_mpCardInfo
-    // TODO: Implement when PS_SOCIAL_ITEM_PLAY_START structure defined
-    // for (size_t i = 0; i < psStart->vecMission.size(); ++i)
-    // {
-    //     ST_SOCIALITEM_CARD& stCard = psStart->vecMission[i];
-    //     
-    //     // Verify TB_MODE_CARDMATCH_RULE exists
-    //     TB_MODE_CARDMATCH_RULE* pRule = XResourceMgr::GetTB_MODE_CARDMATCH_RULE(m_itemInfo.wSocialItemID);
-    //     if (!pRule)
-    //     {
-    //         LogHelper::LogError("game.contents", "StartPlaySocialItem error - No TB_MODE_CARDMATCH_RULE[%d]", 
-    //             m_itemInfo.wSocialItemID);
-    //         return false;
-    //     }
-    //     
-    //     // Verify TB_MODE_CARDMATCH_CARD exists
-    //     TB_MODE_CARDMATCH_CARD* pCard = XResourceMgr::GetTB_MODE_CARDMATCH_CARD(stCard.dwCardID);
-    //     if (!pCard)
-    //     {
-    //         LogHelper::LogError("game.contents", "StartPlaySocialItem error - No TB_MODE_CARDMATCH_CARD[%d]", 
-    //             stCard.dwCardID);
-    //         return false;
-    //     }
-    //     
-    //     // Insert into m_mpCardInfo with use count 0
-    //     m_mpCardInfo[stCard.dwCardID] = 0;
-    // }
-
+    XResourceMgr& resourceMgr = XGameServer::Instance()->GetResourceMgr();
+    for (int i = 0; i < static_cast<int>(psStart.vecCardInfo.size()); ++i)
+    {
+        ST_SOCIALITEM_CARD stCard = psStart.vecCardInfo[static_cast<std::size_t>(i)];
+        if (!resourceMgr.GetTB_MODE_CARDMATCH_RULE(m_itemInfo.wSocialItemID))
+        {
+            LogHelper::LogError("game.contents", "StartPlaySocialItem error - No TB_MODE_CARDMATCH_ROUL[%d]",
+                                m_itemInfo.wSocialItemID);
+            return false;
+        }
+        if (!resourceMgr.GetTB_MODE_CARDMATCH_CARD(stCard.dwCardID))
+        {
+            LogHelper::LogError("game.contents", "StartPlaySocialItem error - No TB_MODE_CARDMATCH_CARD[%d]",
+                                stCard.dwCardID);
+            return false;
+        }
+        m_mpCardInfo.insert({stCard.dwCardID, 0});
+    }
     return true;
 }
 
 // ============================================================================
 // CSocialItemObject::SendStartInfo - Send start info to all users
 // IDA @ 0x14018E1C0
+// 状态: 部分还原 - 发送与数据库日志链已落地，内嵌文本日志和原始基类仍待恢复。
+// TODO: 需人工审查
+//   1. 将当前空指针文本日志恢复为 PDB 所示内嵌 CTextDBLog，并核对 53 类日志实际发送。
+//   2. 在有效双人会话中核对 0x2D/8 封包及两名用户的 DB 日志。
+// 依赖: CSocialItemObject 原始继承与日志布局、有效客户端会话。
 // ============================================================================
-void CSocialItemObject::SendStartInfo(PS_SOCIAL_ITEM_PLAY_START* psStartInfo)
+void CSocialItemObject::SendStartInfo(PS_SOCIAL_ITEM_PLAY_START psStartInfo)
 {
     // IDA: Sends start info packet to all users in vecUsers
     // - Packet main=0x2D, sub=8
     // - Logs game start with ST_LOG_GAME (main=20, sub=3)
 
-    if (!psStartInfo)
-        return;
-
-    // Iterate through all users and send start info packet
-    for (size_t i = 0; i < m_itemInfo.vecUsers.size(); ++i)
+    for (int i = 0; i < static_cast<int>(m_itemInfo.vecUsers.size()); ++i)
     {
-        std::uint32_t dwActorID = m_itemInfo.vecUsers[i];
-        
-        // TODO: Implement when XGameServer/XSendPacket/CGocNetwork available
-        // XGameServer* pServer = TXSingleton<XGameServer>::Instance();
-        // CUser* pUser = pServer->FindActorIDToUser(dwActorID);
-        // if (pUser)
-        // {
-        //     XSendPacket xSendPacket(0x2D, 8);
-        //     xSendPacket << *psStartInfo;
-        //     CGocNetwork::Send(&pUser->XActor, &xSendPacket);
-        //     
-        //     // Log game start
-        //     CTextDBLog::AddLog(m_textDBLog, 53, m_itemInfo.dwObjectID, dwActorID, 0, 0, 0, 0, 0, 0);
-        //     
-        //     // Send DB log
-        //     ST_LOG_GAME stLog;
-        //     stLog._nUCID = pUser->GetActorID();
-        //     stLog._nUAID = pUser->GetUAID();
-        //     stLog._sMainType = 20;
-        //     stLog._sSubType = 3;
-        //     stLog.nParam0 = m_itemInfo.dwItemID;
-        //     stLog.nParam1 = m_itemInfo.dwOwnerID;
-        //     stLog.nParam2 = GetOtherInfo(dwActorID);
-        //     stLog.nParam5 = m_itemInfo.dwObjectID;
-        //     pServer->SendDBLog(&stLog);
-        // }
+        std::uint32_t dwActorID = m_itemInfo.vecUsers[static_cast<std::size_t>(i)];
+        XGameServer* pServer = XGameServer::Instance();
+        CUser* pUser = pServer->FindActorIDToUser(UXActorID(dwActorID));
+        if (pUser)
+        {
+            XSendPacket xSendPacket(0x2D, 8);
+            xSendPacket << psStartInfo;
+            CGocNetwork::Send(static_cast<XActor*>(pUser), xSendPacket);
+
+            // TODO: 需人工审查 - 原版日志内嵌对象尚未恢复，当前指针为空时不得解引用。
+            if (m_textDBLog)
+                m_textDBLog->AddLog(53, m_itemInfo.dwObjectID, dwActorID, 0, 0, 0, 0, 0, 0);
+
+            ST_LOG_GAME stLog;
+            stLog._nUCID = pUser->GetActorID().dwActorID;
+            stLog._nUAID = pUser->GetUAID();
+            stLog._sMainType = 20;
+            stLog._sSubType = 3;
+            stLog.nParam0 = m_itemInfo.dwItemID;
+            stLog.nParam1 = m_itemInfo.dwOwnerID;
+            stLog.nParam2 = GetOtherInfo(dwActorID);
+            stLog.nParam5 = m_itemInfo.dwObjectID;
+            pServer->SendDBLog(stLog);
+        }
     }
 }
 
 // ============================================================================
 // CSocialItemObject::IsPlayGame - Check and process play game
 // IDA @ 0x14018CA50
+// 状态: 部分还原 - 结果 5/6 的后续结算路径已对照 IDA，日志与完整对象布局仍未恢复。
+// TODO: 需人工审查
+//   1. 恢复内嵌 CTextDBLog 后核对结果 1-4、换手、结算及常规出牌的日志参数与发送。
+//   2. 在有效会话中核对回合切换、结算与实际封包交互。
+//   3. 核对原版完成时清空卡牌 map 后仍使用旧迭代器的未定义行为。
+// 依赖: 原始社交对象继承布局、可用的卡牌会话及内嵌文本日志链。
 // ============================================================================
-int CSocialItemObject::IsPlayGame(std::uint32_t dwUCID, PS_SOCIALITEM_PLAY* psPlay)
+int CSocialItemObject::IsPlayGame(GreenDamTan_SocialItemActorID dwUCID, PS_SOCIALITEM_PLAY psPlayInfo)
 {
+    PS_SOCIALITEM_PLAY* psPlay = &psPlayInfo;
+    int nResult = 0;
     // IDA: Complex game logic with multiple result codes:
     // - nResult = 0: Success
     // - nResult = 1: Not in START state
@@ -1029,10 +1018,7 @@ int CSocialItemObject::IsPlayGame(std::uint32_t dwUCID, PS_SOCIALITEM_PLAY* psPl
     // - nResult = 4: Card already used
     // - nResult = 5: Game finish but not all cards matched
     // - nResult = 6: Too many cards matched
-    // - nResult = 10: Turn change (nType=1)
-
-    if (!psPlay)
-        return 1;
+    // - nResult = 0: Turn change (nType=1), logged with result code 10
 
     // Check if in START state
     if (m_byPlayState != E_SOCIAL_OBJECT_STATE_START)
@@ -1059,7 +1045,7 @@ int CSocialItemObject::IsPlayGame(std::uint32_t dwUCID, PS_SOCIALITEM_PLAY* psPl
         // CTextDBLog::AddLog(m_textDBLog, 54, m_itemInfo.dwObjectID, dwUCID, 
         //     psPlay->dwCardID, psPlay->psOwnerInfo.nTotalPoint, psPlay->psGuestInfo.nTotalPoint, 
         //     10, nOldTurn, m_dwTurnUCID);
-        return 10;
+        return 0;
     }
 
     // Check if this player's turn
@@ -1129,13 +1115,21 @@ int CSocialItemObject::IsPlayGame(std::uint32_t dwUCID, PS_SOCIALITEM_PLAY* psPl
         if (m_byReverseCount != 18)
         {
             m_bSendLogDB = true;
-            return 5;  // Not all cards matched
+            nResult = 5;
+            if (m_textDBLog)
+                m_textDBLog->AddLog(55, m_itemInfo.dwObjectID, dwUCID,
+                                    psPlay->dwCardID, psPlay->psOwnerInfo.nTotalPoint,
+                                    psPlay->psGuestInfo.nTotalPoint, 5, m_byReverseCount, 0);
         }
     }
     else if (m_byReverseCount > 18)
     {
         m_bSendLogDB = true;
-        return 6;  // Too many cards matched
+        nResult = 6;
+        if (m_textDBLog)
+            m_textDBLog->AddLog(55, m_itemInfo.dwObjectID, dwUCID,
+                                psPlay->dwCardID, psPlay->psOwnerInfo.nTotalPoint,
+                                psPlay->psGuestInfo.nTotalPoint, 6, m_byReverseCount, 0);
     }
 
     // Check if game round complete
@@ -1150,11 +1144,14 @@ int CSocialItemObject::IsPlayGame(std::uint32_t dwUCID, PS_SOCIALITEM_PLAY* psPl
             nWinnerUCID = GetOwnerID();
         }
         
-        // TODO: Send DB log when CTextDBLog available
-        // CTextDBLog::AddLog(m_textDBLog, 55, m_itemInfo.dwObjectID, dwUCID,
-        //     psPlay->dwCardID, psPlay->psOwnerInfo.nTotalPoint, psPlay->psGuestInfo.nTotalPoint,
-        //     0, nWinnerUCID, 0);
-        // CTextDBLog::SendLogDB(m_textDBLog, m_bSendLogDB);
+        // TODO: 需人工审查 - 原版为内嵌日志对象，当前仅能在指针有效时发送。
+        if (m_textDBLog)
+        {
+            m_textDBLog->AddLog(55, m_itemInfo.dwObjectID, dwUCID,
+                                psPlay->dwCardID, psPlay->psOwnerInfo.nTotalPoint,
+                                psPlay->psGuestInfo.nTotalPoint, nResult, nWinnerUCID, 0);
+            m_textDBLog->SendLogDB(m_bSendLogDB);
+        }
         m_bSendLogDB = false;
     }
 
@@ -1164,9 +1161,9 @@ int CSocialItemObject::IsPlayGame(std::uint32_t dwUCID, PS_SOCIALITEM_PLAY* psPl
         // First card of the pair
         m_dwCheckCardID = psPlay->dwCardID;
     }
-    else if (bSuccess)
+    else if (bSuccess && !psPlay->bFinish)
     {
-        // Mark card as used (both cards in pair)
+        // TODO: 需人工审查 - 原版完成时清空 map 后仍写旧迭代器，此处跳过失效写入。
         it->second = 2;
     }
 

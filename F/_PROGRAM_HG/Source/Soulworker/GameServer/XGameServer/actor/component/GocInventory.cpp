@@ -8006,7 +8006,7 @@ void CGocInventory::CheatSetCashDate(std::int16_t shSlot, int nVal) {
 // void __fastcall CGocInventory::SendFurniture(CGocInventory *this)
 // Sends furniture inventory to client (main=8, sub=0x4A)
 void CGocInventory::SendFurniture() {
-    // TODO: 需人工审查：m_CubeInven 仍是空指针占位，GetSlotInfos 尚未还原；当前封包无法包含原始家具槽位数据。
+    // TODO: 需人工审查：m_CubeInven 仍是空指针占位，GetSlotInfos 尚未具备原始库存布局与生命周期；当前封包无法包含原始家具槽位数据。
     PS_RES_STORAGE_INFO stInvenInfo;
     GetInvenInfo(0xB, stInvenInfo);
 

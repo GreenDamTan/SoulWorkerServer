@@ -252,32 +252,51 @@ bool XBaseInventory::CheckEmptySlotCount(std::uint16_t wNeedCount) {
     return false;
 }
 
-std::int16_t XBaseInventory::GetEmptySlotCount() {
+std::uint16_t XBaseInventory::GetEmptySlotCount() {
     // IDA 0x1402FECD0: Count empty slots
-    std::int16_t count = 0;
+    std::uint16_t wEmptyCount = 0;
     for (int i = 0; i < m_shOpenSlot; ++i) {
-        if (!m_pItem[i]) {
-            ++count;
+        if (!m_pItem[i] && !m_bLock[i]) {
+            ++wEmptyCount;
         }
     }
-    m_shEmptySlotCount = count;
-    return count;
+
+    ST_LOG_GAME stLog;
+    stLog._nUAID = 0;
+    stLog._nUCID = 0;
+    stLog._sMainType = 51;
+    stLog._sSubType = 12;
+    stLog.nParam0 = m_shEmptySlotCount;
+    stLog.nParam1 = wEmptyCount;
+    wcscpy_s(stLog.szComment, L"\uBE48\uC2AC\uB86F \uBE44\uAD50");
+    TXSingleton<XGameServer>::Instance()->SendDBLog(stLog);
+    return wEmptyCount;
 }
 
 std::uint8_t XBaseInventory::GetLock(std::int16_t shSlot) {
     // IDA 0x1402FE670: Get lock status
-    if (shSlot < 0 || shSlot >= m_shOpenSlot) {
-        return 0;
+    if (shSlot < 0) {
+        return 6;
     }
     return m_bLock[shSlot];
 }
 
 std::shared_ptr<CItem> XBaseInventory::GetSlotInfo(std::int16_t shSlot) {
     // IDA 0x1402FE5E0: Get item at slot
-    if (shSlot < 0 || shSlot >= m_shOpenSlot) {
+    if (!CheckSlotPos(shSlot)) {
         return nullptr;
     }
     return m_pItem[shSlot];
+}
+
+std::int16_t XBaseInventory::GetFirstEmptySlot(std::uint8_t byLock) {
+    // IDA 0x1402FF940：仅选择空物品且锁值为零或匹配的槽位。
+    for (int i = 0; i < m_shOpenSlot; ++i) {
+        if (!m_pItem[i] && (!m_bLock[i] || m_bLock[i] == byLock)) {
+            return static_cast<std::int16_t>(i);
+        }
+    }
+    return -1;
 }
 
 std::shared_ptr<CItem> XBaseInventory::GetItem(int nItemID) {
@@ -469,9 +488,7 @@ int XBaseInventory::ReduceItem(std::int16_t shSlot, int nCount) {
 
 void XBaseInventory::SetLock(std::int16_t shSlot, std::uint8_t byLock) {
     // IDA 0x1403087F0: Set lock status
-    if (shSlot >= 0 && shSlot < m_shOpenSlot) {
-        m_bLock[shSlot] = byLock;
-    }
+    m_bLock[shSlot] = byLock;
 }
 
 bool XBaseInventory::CheckSlotPos(std::int16_t shSlot) {
@@ -479,35 +496,59 @@ bool XBaseInventory::CheckSlotPos(std::int16_t shSlot) {
     return shSlot >= 0 && shSlot < m_shOpenSlot;
 }
 
-bool XBaseInventory::IsEmptySlot(std::int16_t shSlot) {
+bool XBaseInventory::IsEmptySlot(int nSlot) {
     // IDA 0x1402FF500: Check if slot is empty
-    if (shSlot < 0 || shSlot >= m_shOpenSlot) {
+    if (!CheckSlotPos(static_cast<std::int16_t>(nSlot))) {
         return false;
     }
-    return !m_pItem[shSlot];
+    return m_pItem[nSlot]->GetID() == -1;
 }
 
 bool XBaseInventory::GetSlotInfos(PS_RES_STORAGE_INFO& stInfo) {
     // IDA 0x1402FE820: Get all slot info
-    // TODO: Implement when PS_RES_STORAGE_INFO is fully defined
-    return false;
+    // 状态: 部分还原 - 槽位序列化流程已核对，库存对象布局尚未恢复。
+    // TODO: 需人工审查：
+    // 1. 按 PDB 还原 m_pItem、m_Inventory 与其余成员的原始 7000 字节布局。
+    // 2. 核对内嵌库存构造、初始化和析构后再验证真实家具槽位数据。
+    // 依赖: XBaseInventory/XInventory 布局与 CGocInventory 内嵌库存生命周期。
+    for (int i = 0; i < m_shOpenSlot; ++i) {
+        if (m_pItem[i]) {
+            PS_STORAGE_INFO info{};
+            m_pItem[i]->GetItem(&info.stItem);
+            info.byInvenType = m_byType;
+            info.shSlotPos = static_cast<std::int16_t>(i);
+            stInfo.vecItem.push_back(info);
+        }
+    }
+    return true;
 }
 
 void XBaseInventory::InitSimpleEmptySlot() {
     // IDA 0x140303400: Initialize empty slot count
-    GetEmptySlotCount();
+    m_shEmptySlotCount = GetEmptySlotCount();
 }
 
 bool XBaseInventory::AddExtendSlot(std::uint8_t byStep, std::int16_t shSlot) {
     // IDA 0x1402FF5B0: Add extended slot
-    // TODO: Implement slot extension logic
-    return false;
+    const std::int16_t shTempSlot = m_shOpenSlot;
+    if (!CheckAddExtendSlot(byStep, shSlot)) {
+        return false;
+    }
+
+    m_byExtendStep = byStep;
+    m_shOpenSlot = shSlot;
+    m_shEmptySlotCount += shSlot - shTempSlot;
+    if (m_shEmptySlotCount > 400) {
+        m_shEmptySlotCount = 400;
+    }
+    return true;
 }
 
 bool XBaseInventory::CheckAddExtendSlot(std::uint8_t byStep, std::int16_t shSlot) {
     // IDA 0x1402FF560: Check if can add extended slot
-    // TODO: Implement slot extension check
-    return false;
+    return byStep > static_cast<int>(m_byExtendStep) &&
+           byStep == static_cast<int>(m_byExtendStep) + 1 &&
+           shSlot != 0;
 }
 
 // IDA: 0x1403008F0

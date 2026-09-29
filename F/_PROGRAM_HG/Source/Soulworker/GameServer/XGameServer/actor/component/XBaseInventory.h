@@ -183,14 +183,17 @@ public:
     std::int16_t GetEmptySlot_2() { return GetEmptySlot(); }
 
     // GetEmptySlotCount - IDA 0x1402FECD0
-    virtual std::int16_t GetEmptySlotCount();
+    virtual std::uint16_t GetEmptySlotCount();
     
     // GetLock - IDA 0x1402FE670
     virtual std::uint8_t GetLock(std::int16_t shSlot);
     
     // GetSlotInfo - IDA 0x1402FE5E0
     virtual std::shared_ptr<CItem> GetSlotInfo(std::int16_t shSlot);
-    
+
+    // GetFirstEmptySlot - IDA 0x1402FF940
+    std::int16_t GetFirstEmptySlot(std::uint8_t byLock);
+
     // GetItem by ID - IDA 0x1402FE6A0
     std::shared_ptr<CItem> GetItem(int nItemID);
 
@@ -238,7 +241,7 @@ public:
     virtual bool CheckSlotPos(std::int16_t shSlot);
     
     // IsEmptySlot - IDA 0x1402FF500
-    virtual bool IsEmptySlot(std::int16_t shSlot);
+    virtual bool IsEmptySlot(int nSlot);
     
     // GetSlotInfos - IDA 0x1402FE820
     virtual bool GetSlotInfos(PS_RES_STORAGE_INFO& stInfo);

@@ -2800,7 +2800,7 @@
 | CGocEntity | GocEntity.cpp | ?GetWMPortalID@CGocEntity@@QEAAPEADXZ | 0x14009f730 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
 | CGocNpcCredit | GocNpcCredit.cpp | ?GetFamilyID@CGocNpcCredit@@SAHXZ | 0x14009f750 | implemented | IDA decompile | yes | IDA��ȷ��ԭ(����17) |
 | CGocParty | GocParty.cpp | ?GetPartyID@CGocParty@@QEAAHXZ | 0x14009f760 | implemented | IDA ?GetPartyID@CGocParty@@QEAAHXZ | yes | - |
-| CGocInventory | GocInventory.cpp | ??0CGocInventory@@QEAA@XZ | 0x14009f7b0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
+| XGameServer/Actor/Component | GocInventory.cpp | ??0CGocInventory@@QEAA@XZ | 0x14009f7b0 | blocked | GameServer IDA decompile + landed source; embedded inventories missing | no | insufficient_evidence |
 | - | - | ??_ECGocInventory@@UEAAPEAXI@Z | 0x14009fc70 | blocked | IDA ??_ECGocInventory@@UEAAPEAXI@Z | yes | - |
 | - | - | ??1PS_RES_TOOL_DROP_INFO@@QEAA@XZ | 0x14009fcb0 | blocked | IDA ??1PS_RES_TOOL_DROP_INFO@@QEAA@XZ | yes | - |
 | - | - | ??1PS_RES_TOOL_SOULSTONE@@QEAA@XZ | 0x14009fcd0 | blocked | IDA ??1PS_RES_TOOL_SOULSTONE@@QEAA@XZ | yes | - |
@@ -2809,7 +2809,7 @@
 | CGocInventory | GocInventory.cpp | ??1CGocInventory@@UEAA@XZ | 0x14009fd40 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | CGocInventory | GocInventory.cpp | ?ClearInven@CGocInventory@@QEAAXXZ | 0x1400a0000 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
 | CGocInventory | GocInventory.cpp | ?ClearTradeInfo@CGocInventory@@QEAAXXZ | 0x1400a0080 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
-| CGocInventory | GocInventory.cpp | ?Init@CGocInventory@@QEAA_NXZ | 0x1400a00c0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
+| XGameServer/Actor/Component | GocInventory.cpp | ?Init@CGocInventory@@QEAA_NXZ | 0x1400a00c0 | blocked | GameServer IDA decompile + landed source; embedded inventories not initialized | no | insufficient_evidence |
 | CGocInventory | GocInventory.cpp | ?InitTarde@CGocInventory@@QEAAXXZ | 0x1400a0850 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
 | CGocInventory | GocInventory.cpp | ?InitItemCoolTime@CGocInventory@@QEAAXXZ | 0x1400a08b0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
 | CGocInventory | GocInventory.cpp | ?SetInventory@CGocInventory@@QEAAXEEEE_J0000@Z | 0x1400a08e0 | implemented | IDA decompile | no | IDA��ȷ��ԭ(stub) |
@@ -2817,7 +2817,7 @@
 | CGocInventory | GocInventory.cpp | ?InventoryInfoReq@CGocInventory@@QEAAX_N0K@Z | 0x1400a0a90 | implemented | IDA decompile | no | 7 个 DB 包 (0x21,1/0xF) + 国家分支类型 + 6 辅助加载，UCID 补齐 |
 | CGocInventory | GocInventory.cpp | ?SetBankStep@CGocInventory@@QEAAXEEEE@Z | 0x1400a1290 | implemented | IDA decompile | yes | Precise restoration - bank extend steps with nation type check |
 | CGocInventory | GocInventory.cpp | ?SetEquipItem@CGocInventory@@QEAAXUPS_RES_STORAGE_INFO@@H@Z | 0x1400a1380 | implemented | IDA decompile | no | Signature corrected to ST_PRIVATE_SHOP_LIST*, detailed TODO with IDA logic |
-| CGocInventory | GocInventory.cpp | ?GetInvenPtr@CGocInventory@@QEAAPEAVXBaseInventory@@E@Z | 0x1400a2170 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
+| XGameServer/Actor/Component | GocInventory.cpp | ?GetInvenPtr@CGocInventory@@QEAAPEAVXBaseInventory@@E@Z | 0x1400a2170 | blocked | GameServer IDA decompile + landed source; cube object is a null placeholder | no | insufficient_evidence |
 | CGocInventory | GocInventory.cpp | ?GetTBInvenPtr@CGocInventory@@QEAAPEAVXBaseInventory@@E@Z | 0x1400a2260 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
 | CGocInventory | GocInventory.cpp | ?GetEquipPtr@CGocInventory@@QEAAPEAVXBaseEquip@@E@Z | 0x1400a22d0 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
 | CGocInventory | GocInventory.cpp | ?SetInvenMoney@CGocInventory@@QEAAX_J_N@Z | 0x1400a2340 | implemented | IDA decompile | yes | IDA��ȷ��ԭ |
@@ -2941,7 +2941,7 @@
 | - | - | ?UseItemInfo@CGocInventory@@QEAAXH@Z | 0x1400b7f90 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | - | - | ?OnUpdateCashItemDate@CGocInventory@@QEAAXXZ | 0x1400b8230 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | - | - | ?CheatSetCashDate@CGocInventory@@QEAAXFH@Z | 0x1400b8750 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
-| - | - | ?SendFurniture@CGocInventory@@QEAAXXZ | 0x1400b88e0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
+| XGameServer/Actor/Component | GocInventory.cpp | ?SendFurniture@CGocInventory@@QEAAXXZ | 0x1400b88e0 | implemented | GameServer IDA decompile + disasm + landed source | no | insufficient_evidence |
 | - | - | ?AddCashItemSet@CGocInventory@@QEAAXUPS_CASH_SET_LIST@@@Z | 0x1400b89e0 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
 | - | - | ??1PS_CASH_SET_LIST@@QEAA@XZ | 0x1400b8af0 | blocked | IDA ??1PS_CASH_SET_LIST@@QEAA@XZ | yes | - |
 | - | - | ?DelCashItemSet@CGocInventory@@QEAA_NE@Z | 0x1400b8b10 | blocked | IDA decompile | no | IDA��ȷ��ԭ(stub) |
@@ -13549,6 +13549,7 @@
 | - | - | ?at@?$bucket_array@V?$allocator@V?$shared_ptr@VCItem@@@tr1@std@@@std@@@detail@multi_index@boost@@QEBAPEAU?$hashed_index_node_impl@V?$allocator@D@std@@@234@_K@Z | 0x1402e1440 | blocked | IDA ?at@?$bucket_array@V?$allocator@V?$shared_ptr@VCItem@@@tr1@std@@@std@@@detail@multi_index@boost@@QEBAPEAU?$hashed_index_node_impl@V?$allocator@D@std@@@234@_K@Z | yes | - |
 | - | - | ?_Tidy@?$_Tree@V?$_Tmap_traits@KUSTCashItem@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUSTCashItem@@@std@@@3@$0A@@std@@@std@@IEAAXXZ | 0x1402e1470 | blocked | IDA ?_Tidy@?$_Tree@V?$_Tmap_traits@KUSTCashItem@@U?$less@K@std@@V?$allocator@U?$pair@$$CBKUSTCashItem@@@std@@@3@$0A@@std@@@std@@IEAAXXZ | yes | - |
 | - | - | ?_Orphan_range@?$vector@UST_WORLD_EVENT_REWARD_INFO@@V?$allocator@UST_WORLD_EVENT_REWARD_INFO@@@std@@@std@@IEBAXPEAUST_WORLD_EVENT_REWARD_INFO@@0@Z | 0x1402e14d0 | blocked | IDA ?_Orphan_range@?$vector@UST_WORLD_EVENT_REWARD_INFO@@V?$allocator@UST_WORLD_EVENT_REWARD_INFO@@@std@@@std@@IEBAXPEAUST_WORLD_EVENT_REWARD_INFO@@0@Z | yes | - |
+| Vision/Runtime/Base/Types | VType.hpp | ?GetVariableAttributes@VTypedObject@@UEAAXPEAVVisVariable_cl@@AEAUVVariableAttributeInfo@@@Z | 0x1402e14d0 | implemented | GameServer PDB cvdump types/symbols/lines/publics + IDA disasm + landed source | no | insufficient_evidence |
 | Vision/Runtime/Base/Types | VType.hpp | ?OnVariableValueChanged@VTypedObject@@UEAAXPEAVVisVariable_cl@@PEBD@Z | 0x1402e14d0 | implemented | GameServer PDB cvdump symbols/lines/publics + IDA disasm + landed source | no | insufficient_evidence |
 | - | - | ?lower_bound@?$_Tree@V?$_Tmap_traits@GGU?$less@G@std@@V?$allocator@U?$pair@$$CBGG@std@@@2@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@GGU?$less@G@std@@V?$allocator@U?$pair@$$CBGG@std@@@2@$0A@@std@@@std@@@2@AEBG@Z | 0x1402e14e0 | blocked | IDA ?lower_bound@?$_Tree@V?$_Tmap_traits@GGU?$less@G@std@@V?$allocator@U?$pair@$$CBGG@std@@@2@$0A@@std@@@std@@QEAA?AV?$_Tree_iterator@V?$_Tree_val@V?$_Tmap_traits@GGU?$less@G@std@@V?$allocator@U?$pair@$$CBGG@std@@@2@$0A@@std@@@std@@@2@AEBG@Z | yes | - |
 | - | - | ?Destroy@?$GenericDocument@U?$UTF8@D@rapidjson@@V?$MemoryPoolAllocator@VCrtAllocator@rapidjson@@@2@VCrtAllocator@2@@rapidjson@@AEAAXXZ | 0x1402e1520 | blocked | IDA ?Destroy@?$GenericDocument@U?$UTF8@D@rapidjson@@V?$MemoryPoolAllocator@VCrtAllocator@rapidjson@@@2@VCrtAllocator@2@@rapidjson@@AEAAXXZ | yes | - |
@@ -14252,7 +14253,7 @@
 | - | - | ?GetLock@XBaseInventory@@UEAAEF@Z | 0x1402fe670 | implemented | IDA ?GetLock@XBaseInventory@@UEAAEF@Z | yes | - |
 | - | - | ?GetItem@XBaseInventory@@QEAA?AV?$shared_ptr@VCItem@@@tr1@std@@H@Z | 0x1402fe6a0 | implemented | IDA ?GetItem@XBaseInventory@@QEAA?AV?$shared_ptr@VCItem@@@tr1@std@@H@Z | yes | - |
 | - | - | ?GetItem@XBaseInventory@@QEAA?AV?$shared_ptr@VCItem@@@tr1@std@@_J@Z | 0x1402fe760 | implemented | IDA ?GetItem@XBaseInventory@@QEAA?AV?$shared_ptr@VCItem@@@tr1@std@@_J@Z | yes | - |
-| - | - | ?GetSlotInfos@XBaseInventory@@UEAA_NAEAUPS_RES_STORAGE_INFO@@@Z | 0x1402fe820 | implemented | IDA ?GetSlotInfos@XBaseInventory@@UEAA_NAEAUPS_RES_STORAGE_INFO@@@Z | yes | - |
+| XGameServer | Inventory.cpp | ?GetSlotInfos@XBaseInventory@@UEAA_NAEAUPS_RES_STORAGE_INFO@@@Z | 0x1402fe820 | blocked | GameServer PDB module + IDA decompile + landed stub | no | insufficient_evidence |
 | - | - | ?AddItem@XBaseInventory@@UEAA_NFV?$shared_ptr@VCItem@@@tr1@std@@@Z | 0x1402fe950 | implemented | IDA ?AddItem@XBaseInventory@@UEAA_NFV?$shared_ptr@VCItem@@@tr1@std@@@Z | yes | - |
 | - | - | ??0_lambda0_@?A0x85756574@@QEAA@AEBV?$shared_ptr@VCItem@@@tr1@std@@@Z | 0x1402febe0 | blocked | IDA ??0_lambda0_@?A0x85756574@@QEAA@AEBV?$shared_ptr@VCItem@@@tr1@std@@@Z | yes | - |
 | - | - | ??R_lambda0_@?A0x85756574@@QEBAXV?$shared_ptr@VCItem@@@tr1@std@@@Z | 0x1402fec10 | blocked | IDA ??R_lambda0_@?A0x85756574@@QEBAXV?$shared_ptr@VCItem@@@tr1@std@@@Z | yes | - |
@@ -42865,8 +42866,8 @@ yes | ?????????? |
 | - | - | ?GetCurrentMemoryUsageForMemLimit@VResourceManager@@UEBAHXZ_0 | 0x1408b0f3a | implemented | IDA ?GetCurrentMemoryUsageForMemLimit@VResourceManager@@UEBAHXZ_0 | yes | - |
 | - | - | ?DebugOutput@VResourceManager@@UEAAXPEAVVActionManager@@@Z_0 | 0x1408b0f40 | implemented | IDA ?DebugOutput@VResourceManager@@UEAAXPEAVVActionManager@@@Z_0 | yes | - |
 | - | - | ?GetOverviewOutputString@VResourceManager@@UEBAXPEAD@Z_0 | 0x1408b0f46 | implemented | IDA ?GetOverviewOutputString@VResourceManager@@UEBAXPEAD@Z_0 | yes | - |
-| - | - | ?SetVariable@VTypedObject@@UEAA_NPEBD0@Z_0 | 0x1408b0f4c | implemented | IDA ?SetVariable@VTypedObject@@UEAA_NPEBD0@Z_0 | yes | - |
-| - | - | ?GetVariableValue@VTypedObject@@UEBA_NPEBDPEAD@Z_0 | 0x1408b0f52 | implemented | IDA ?GetVariableValue@VTypedObject@@UEBA_NPEBDPEAD@Z_0 | yes | - |
+| - | - | ?SetVariable@VTypedObject@@UEAA_NPEBD0@Z_0 | 0x1408b0f4c | blocked | GameServer PDB publics + IDA import jump; external body unavailable | no | insufficient_evidence |
+| - | - | ?GetVariableValue@VTypedObject@@UEBA_NPEBDPEAD@Z_0 | 0x1408b0f52 | blocked | GameServer PDB publics + IDA import jump; external body unavailable | no | insufficient_evidence |
 | - | - | ?SetNewMemSize@VManagedResource@@UEAAXW4VResourceMemoryType_e@@H@Z_0 | 0x1408b0f58 | implemented | IDA ?SetNewMemSize@VManagedResource@@UEAAXW4VResourceMemoryType_e@@H@Z_0 | yes | - |
 | - | - | ?GatherTimeStamp@VManagedResource@@UEAAHPEAVIVFileStreamManager@@AEAUVFileTime@@@Z_0 | 0x1408b0f5e | implemented | IDA ?GatherTimeStamp@VManagedResource@@UEAAHPEAVIVFileStreamManager@@AEAUVFileTime@@@Z_0 | yes | - |
 | - | - | ?CreateReplacementBlock@VManagedResource@@UEAAXAEAVVResourceSnapshot@@AEAVVResourceSnapshotEntry@@PEBD@Z_0 | 0x1408b0f64 | implemented | IDA ?CreateReplacementBlock@VManagedResource@@UEAAXAEAVVResourceSnapshot@@AEAVVResourceSnapshotEntry@@PEBD@Z_0 | yes | - |
@@ -42888,12 +42889,12 @@ yes | ?????????? |
 | - | - | ?CreateProxy@VManagedResource@@MEAAPEAVIVSerializationProxy@@XZ_0 | 0x1408b0fc4 | implemented | IDA ?CreateProxy@VManagedResource@@MEAAPEAVIVSerializationProxy@@XZ_0 | yes | - |
 | - | - | ?GetTypeId@VPList@@UEBAPEAUVType@@XZ_0 | 0x1408b0fca | implemented | IDA ?GetTypeId@VPList@@UEBAPEAUVType@@XZ_0 | yes | - |
 | - | - | ?Serialize@VPList@@UEAAXAEAVVArchive@@@Z_0 | 0x1408b0fd0 | implemented | IDA ?Serialize@VPList@@UEAAXAEAVVArchive@@@Z_0 | yes | - |
-| - | - | ?OnSerialized@VTypedObject@@UEAAXAEAVVArchive@@@Z_0 | 0x1408b0fd6 | implemented | IDA ?OnSerialized@VTypedObject@@UEAAXAEAVVArchive@@@Z_0 | yes | - |
-| - | - | ?AssertValid@VTypedObject@@UEAAXXZ_0 | 0x1408b0fdc | implemented | IDA ?AssertValid@VTypedObject@@UEAAXXZ_0 | yes | - |
-| - | - | ?Initialize@VTypedObject@@UEAAXXZ_0 | 0x1408b0fe2 | implemented | IDA ?Initialize@VTypedObject@@UEAAXXZ_0 | yes | - |
-| - | - | ?DisposeObject@VTypedObject@@UEAAXXZ_0 | 0x1408b0fe8 | implemented | IDA ?DisposeObject@VTypedObject@@UEAAXXZ_0 | yes | - |
-| - | - | ?GetDependencies@VTypedObject@@UEAAXAEAVVResourceSnapshot@@@Z_0 | 0x1408b0fee | implemented | IDA ?GetDependencies@VTypedObject@@UEAAXAEAVVResourceSnapshot@@@Z_0 | yes | - |
-| - | - | ?SetMarkInsideSerializationSession@VTypedObject@@UEAAX_N@Z_0 | 0x1408b0ff4 | implemented | IDA ?SetMarkInsideSerializationSession@VTypedObject@@UEAAX_N@Z_0 | yes | - |
+| - | - | ?OnSerialized@VTypedObject@@UEAAXAEAVVArchive@@@Z_0 | 0x1408b0fd6 | blocked | GameServer PDB publics + IDA import jump; external body unavailable | no | insufficient_evidence |
+| - | - | ?AssertValid@VTypedObject@@UEAAXXZ_0 | 0x1408b0fdc | blocked | GameServer PDB publics + IDA import jump; external body unavailable | no | insufficient_evidence |
+| - | - | ?Initialize@VTypedObject@@UEAAXXZ_0 | 0x1408b0fe2 | blocked | GameServer PDB publics + IDA import jump; external body unavailable | no | insufficient_evidence |
+| - | - | ?DisposeObject@VTypedObject@@UEAAXXZ_0 | 0x1408b0fe8 | blocked | GameServer PDB publics + IDA import jump; external body unavailable | no | insufficient_evidence |
+| - | - | ?GetDependencies@VTypedObject@@UEAAXAEAVVResourceSnapshot@@@Z_0 | 0x1408b0fee | blocked | GameServer PDB publics + IDA import jump; external body unavailable | no | insufficient_evidence |
+| - | - | ?SetMarkInsideSerializationSession@VTypedObject@@UEAAX_N@Z_0 | 0x1408b0ff4 | blocked | GameServer PDB publics + IDA import jump; external body unavailable | no | insufficient_evidence |
 | - | - | ?Init@XItemFactory@@QEAAXEE@Z | 0x1408b1000 | implemented | IDA ?Init@XItemFactory@@QEAAXEE@Z | yes | - |
 | - | - | ?GeneratSerial@XItemFactory@@QEAA?ATUXSerial@@XZ | 0x1408b1040 | implemented | IDA ?GeneratSerial@XItemFactory@@QEAA?ATUXSerial@@XZ | yes | - |
 | - | - | ?CreateItem@XItemFactory@@QEAAXAEAUSTItem@@U2@@Z | 0x1408b1160 | implemented | IDA ?CreateItem@XItemFactory@@QEAAXAEAUSTItem@@U2@@Z | yes | - |
@@ -58570,7 +58571,6 @@ yes | ?????????? |
 | XGameServer | GocInventory.cpp | CGocInventory::SetBP | 0x1400A2F30 | implemented | IDA decompile | yes | Exact IDA implementation with RTTI cast |
 | XGameServer | GocInventory.cpp | CGocInventory::SetEther | 0x1400A3CF0 | implemented | IDA decompile | yes | Exact IDA implementation with RTTI cast |
 | XGameServer | GocInventory.cpp | CGocInventory::SetTotalFriendPoint | 0x1400A4BF0 | implemented | IDA decompile | yes | Exact IDA implementation with RTTI cast |
-| XGameServer | GocInventory.cpp | CGocInventory::GetInvenPtr | 0x1400A2170 | implemented | IDA decompile | yes | Exact IDA switch statement |
 | XGameServer | GocInventory.cpp | CGocInventory::GetTBInvenPtr | 0x1400A2260 | implemented | IDA decompile | yes | Exact IDA switch statement |
 | XGameServer | GocInventory.cpp | CGocInventory::AddMoney | 0x1400A24C0 | implemented | IDA decompile | yes | Exact IDA with DB packet and logging |
 | XGameServer | GocInventory.cpp | CGocInventory::SendMoney | 0x1400A2D70 | implemented | IDA decompile | yes | Exact IDA with XSendPacket |

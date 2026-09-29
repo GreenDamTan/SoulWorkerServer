@@ -13,6 +13,7 @@
 class VisVariable_cl;
 class VType;
 class VArchive;
+struct VVariableAttributeInfo;
 
 // ============================================================================
 // VVarChangeRes_e - Variable change result enumeration
@@ -88,6 +89,10 @@ public:
 
     // TODO: 需人工审查：原函数与其他符号共用空函数体，完整虚调用 ABI 仍待核对。
     virtual void OnVariableValueChanged(VisVariable_cl* pVar, const char* value) {
+    }
+
+    // TODO: 需人工审查：与其他符号共用空函数体，原始虚槽顺序仍待恢复。
+    virtual void GetVariableAttributes(VisVariable_cl* pVariable, VVariableAttributeInfo& destInfo) {
     }
 };
 

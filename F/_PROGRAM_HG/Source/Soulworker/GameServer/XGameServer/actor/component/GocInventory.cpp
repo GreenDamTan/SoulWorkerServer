@@ -8006,15 +8006,17 @@ void CGocInventory::CheatSetCashDate(std::int16_t shSlot, int nVal) {
 // void __fastcall CGocInventory::SendFurniture(CGocInventory *this)
 // Sends furniture inventory to client (main=8, sub=0x4A)
 void CGocInventory::SendFurniture() {
-    // IDA Decompiled:
-    // PS_RES_STORAGE_INFO stInvenInfo;
-    // GetInvenInfo(0xB, &stInvenInfo);  // Type 0xB = Furniture
-    //
-    // XSendPacket xSendPacket(8, 0x4A);
-    // xSendPacket << stInvenInfo;
-    // CGocNetwork::Send(pActor, &xSendPacket);
+    // TODO: 需人工审查：m_CubeInven 仍是空指针占位，GetSlotInfos 尚未还原；当前封包无法包含原始家具槽位数据。
+    PS_RES_STORAGE_INFO stInvenInfo;
+    GetInvenInfo(0xB, stInvenInfo);
 
-    // TODO: 需人工审查 - Implement when PS_RES_STORAGE_INFO type available
+    XSendPacket xSendPacket(8, 0x4A);
+    xSendPacket << stInvenInfo;
+
+    CMover* pOwner = GetOwnerGO();
+    // TODO: 需人工审查：CMover 的 XActor 原始 +0x368 基类偏移尚未在当前源码布局核准。
+    XActor* pActor = pOwner ? static_cast<XActor*>(pOwner) : nullptr;
+    CGocNetwork::Send(pActor, xSendPacket);
 }
 
 // IDA: 0x1400BA760
